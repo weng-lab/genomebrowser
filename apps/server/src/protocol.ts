@@ -58,6 +58,8 @@ export type SessionSnapshot = z.infer<typeof sessionSnapshotSchema>;
 
 export const sessionIdSchema = z.string().regex(/^[\w-]{1,64}$/, "Invalid session ID");
 
+export const sessionListSchema = z.array(sessionIdSchema);
+
 /** A command sent to the tab over SSE. The tab looks up `name` and validates `params`. */
 export const commandMessageSchema = z.strictObject({
   commandId: z.uuid(),

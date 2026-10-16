@@ -15,8 +15,10 @@ The local server requires no tokens or login. It binds to loopback, rejects non-
 
 | Route                        | Purpose                                                                                                       |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `GET /api/sessions`          | List saved session IDs alphabetically.                                                                        |
 | `GET /api/sessions/:id`      | Load a saved snapshot, or 404 when none is saved.                                                             |
 | `PUT /api/sessions/:id`      | Validate and save a snapshot of up to 1 MB.                                                                   |
+| `DELETE /api/sessions/:id`   | Delete a saved snapshot. Deleting `local` returns 403; deleting an absent ID succeeds.                        |
 | `GET /api/sessions/:id/rpc`  | SSE stream of commands for the tab that has the session open. A second tab for the same session receives 409. |
 | `POST /api/sessions/:id/rpc` | The tab's reply to a command.                                                                                 |
 | `/mcp`                       | MCP endpoint (Streamable HTTP). Every browser command is a tool that takes a `sessionId`.                     |
@@ -42,7 +44,7 @@ src/
     routes.ts                   # Session, tab stream, and MCP routes
     middleware.ts               # Local hosts, origins, and request limits
   storage/
-    sessionRepository.ts        # Async load/save by session ID
+    sessionRepository.ts        # Async list/load/save/remove of sessions
     sqlite.ts                   # SQLite implementation
 ```
 

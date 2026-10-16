@@ -14,7 +14,7 @@ const BrowserSessionProvider = dynamic(
   { ssr: false, loading: () => <WorkspaceSkeleton /> },
 );
 
-/** Opened until there is a session picker, and when no session has been viewed yet. */
+/** Opened when no session has been viewed yet. */
 const defaultSessionId = "local";
 
 export function AppProviders({ children }: { children: ReactNode }) {

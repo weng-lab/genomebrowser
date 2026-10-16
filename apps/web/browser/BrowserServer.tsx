@@ -1,14 +1,26 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
+import { WorkspaceNavigationDisabledContext } from "../components/workspace/navigationState";
 import { useBrowserSession } from "./BrowserSession";
 import { persistBrowserSession, type SessionSaveState } from "./persistence";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
 
 const disabledSaveStore = createStore<{ status: SessionSaveState }>(() => ({ status: "disabled" }));
 const SessionSaveContext = createContext(disabledSaveStore);
+const SessionDeletionContext = createContext<((id: string) => Promise<void>) | null>(null);
+const SessionFlushContext = createContext<(() => Promise<void>) | null>(null);
 const SessionIdContext = createContext<string | null>(null);
 
 type RemoteControl = {
@@ -33,9 +45,11 @@ export function BrowserServer({
   children: ReactNode;
 }) {
   const session = useBrowserSession();
+  const persistence = useRef<ReturnType<typeof persistBrowserSession> | null>(null);
   const [saveStore] = useState(() =>
     createStore<{ status: SessionSaveState }>(() => ({ status: "loading" })),
   );
+  const [deletingActiveSession, setDeletingActiveSession] = useState(false);
   const [enabled, setEnabled] = useState(true);
   const [state, setState] = useState<RemoteControlState>("off");
   const remoteControl = useMemo(() => ({ state, enabled, setEnabled }), [state, enabled]);
@@ -48,7 +62,7 @@ export function BrowserServer({
     const { sessionUrl, session } = restoration;
     if (!sessionUrl) return;
     let loaded = false;
-    return persistBrowserSession(sessionUrl, session, (status) => {
+    const controller = persistBrowserSession(sessionUrl, session, (status) => {
       saveStore.setState({ status });
       // Both restored sessions and new sessions (404) reach saved/saving only after loading.
       if (!loaded && (status === "saved" || status === "saving")) {
@@ -56,6 +70,11 @@ export function BrowserServer({
         setRestored(restoration);
       }
     });
+    persistence.current = controller;
+    return () => {
+      controller.stop();
+      persistence.current = null;
+    };
   }, [restoration, saveStore]);
 
   useEffect(() => {
@@ -63,14 +82,48 @@ export function BrowserServer({
       return connectRemoteControl(`${sessionUrl}/rpc`, session, setState);
   }, [sessionUrl, enabled, ready, session]);
 
+  const deleteSession = useCallback(
+    async (id: string) => {
+      if (id === "local") throw new Error("The local session cannot be deleted");
+      if (!endpoint) throw new Error("Session server is not configured");
+      if (id === sessionId) {
+        if (!persistence.current) throw new Error("Session is not ready");
+        setDeletingActiveSession(true);
+        try {
+          await persistence.current.remove();
+        } finally {
+          setDeletingActiveSession(false);
+        }
+      } else {
+        const response = await fetch(`${endpoint.replace(/\/$/, "")}/sessions/${id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Session deletion failed");
+      }
+    },
+    [endpoint, sessionId],
+  );
+
+  const flushSession = useCallback(async () => {
+    if (!endpoint) return;
+    if (!persistence.current) throw new Error("Session is not ready");
+    await persistence.current.flush();
+  }, [endpoint]);
+
   return (
-    <SessionIdContext value={sessionId}>
-      <RemoteControlContext value={remoteControl}>
-        <SessionSaveContext value={sessionUrl ? saveStore : disabledSaveStore}>
-          {children}
-        </SessionSaveContext>
-      </RemoteControlContext>
-    </SessionIdContext>
+    <WorkspaceNavigationDisabledContext value={deletingActiveSession}>
+      <SessionFlushContext value={flushSession}>
+        <SessionDeletionContext value={deleteSession}>
+          <SessionIdContext value={sessionId}>
+            <RemoteControlContext value={remoteControl}>
+              <SessionSaveContext value={sessionUrl ? saveStore : disabledSaveStore}>
+                {children}
+              </SessionSaveContext>
+            </RemoteControlContext>
+          </SessionIdContext>
+        </SessionDeletionContext>
+      </SessionFlushContext>
+    </WorkspaceNavigationDisabledContext>
   );
 }
 
@@ -94,4 +147,18 @@ export function useSessionLoading() {
     useContext(SessionSaveContext),
     (state) => state.status === "loading" || state.status === "load-error",
   );
+}
+
+/** Delete a saved session, stopping this tab's autosave first when deleting its active session. */
+export function useDeleteSession() {
+  const deleteSession = useContext(SessionDeletionContext);
+  if (!deleteSession) throw new Error("useDeleteSession must be used within BrowserServer");
+  return deleteSession;
+}
+
+/** Finish autosaves before replacing the current session's stores. */
+export function useFlushSession() {
+  const flush = useContext(SessionFlushContext);
+  if (!flush) throw new Error("useFlushSession must be used within BrowserServer");
+  return flush;
 }

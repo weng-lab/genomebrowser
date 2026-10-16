@@ -13,7 +13,10 @@ import SettingsPage from "../app/(workspace)/settings/page";
 import { navigation } from "../app/(workspace)/navigation";
 
 const route = vi.hoisted(() => ({ pathname: "/browser", navigate: (_href: string) => {} }));
-vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => route.pathname,
+  useRouter: () => ({ replace: route.navigate }),
+}));
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
     <a

@@ -21,15 +21,19 @@ Next.js rewrites `/api/*` and `/mcp` to the browser server at `http://127.0.0.1:
 
 ## Shared session
 
+The Sessions panel lists saved sessions alphabetically and marks the current session. Select a name to open its `/browser/[sessionId]` URL and restore its saved snapshot. Use the delete icon beside a session name to remove its saved snapshot. The `local` session cannot be deleted. Deleting the current session stops this tab's autosave and opens `/browser/local`. A failed deletion leaves the current session open and resumes saving. Another tab still viewing a deleted session can recreate it by saving. The list refreshes after a successful deletion, when the panel opens, or when the window regains focus. Open a new session URL, such as `/browser/niship`, to create it; it appears in the saved list after its first autosave.
+
 Sessions are saved in SQLite by the session ID in the URL. IDs are 1–64 letters, digits, `_`, or `-`. Set `GB_DATABASE_PATH` in the server process to choose the database file; the default is `./data/browser.sqlite`, relative to its working directory. The server creates the parent directory. Keep this file on persistent storage when hosting the server.
 
-The tab loads the saved snapshot with `GET /api/sessions/:id` and restores it before showing the browser view. With no saved snapshot (404), it starts with the default hg38 region, coordinate ruler, GENCODE 50 basic genes in merged display, and human cCREs. The snapshot includes the viewport region, browser settings, highlights, selection settings, ordered track configurations and source ownership, and pinned track IDs. Runtime loading state, fetched data, track resources, registered modules, and functions stay local.
+The tab loads the saved snapshot with `GET /api/sessions/:id` and restores it before showing the browser view. With no saved snapshot (404), it starts with the default hg38 region, coordinate ruler, GENCODE 50 basic genes in merged display, and human cCREs. The snapshot includes the viewport region, browser settings, highlights, selection settings, ordered track configurations and source ownership, and pinned track IDs. Runtime loading state, fetched data, track resources, registered modules, and functions stay local. All first-party track modules are registered so saved collection tracks, including BigWig, BigBed, CAVE, and BAM, can be restored. Registering a module does not add tracks to the session.
+
+Selecting another session in the Sessions panel finishes pending autosaves before switching stores. If saving fails, the current session stays open with its edits and an error; select the destination again to retry.
 
 Changes autosave with `PUT /api/sessions/:id` after 200 ms of inactivity. Each tab sends one save request at a time and retries a failed save after two seconds. A failed load retries after two seconds. Saving does not depend on remote control. Wait for **Saved** at the top left of the browser center panel before refreshing or closing the tab; closing does not flush pending edits.
 
 Every tab that opens the session saves to it. The last save wins, and tabs do not receive each other's edits. There are no per-user sessions, tenant isolation, or conflict resolution. A new tab or refresh restores the last successfully saved snapshot.
 
-The server receives an asynchronous `SessionRepository` with `load(id)` and `save(id, snapshot)` operations. Its SQLite adapter is implemented in `apps/server/src/storage/sqlite.ts`. No Postgres adapter is implemented.
+The server receives an asynchronous `SessionRepository` with `list()`, `load(id)`, `save(id, snapshot)`, and `remove(id)` operations. `list()` returns saved IDs in ascending alphabetical order. Its SQLite adapter is implemented in `apps/server/src/storage/sqlite.ts`. No Postgres adapter is implemented.
 
 ## Control a browser tab
 
