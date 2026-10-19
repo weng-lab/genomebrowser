@@ -15,7 +15,8 @@
     "db:start": "docker compose up --detach --wait",
     "db:stop": "docker compose stop",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "sessions:import-sqlite": "node --env-file-if-exists=.env.local scripts/importSqliteSessions.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.17",
@@ -32,12 +33,12 @@
     "@weng-lab/genomebrowser-ui": "workspace:*",
     "@weng-lab/session-snapshot": "workspace:*",
     "drizzle-orm": "^0.45.4",
+    "effect": "^4.0.5",
     "next": "catalog:",
     "pg": "^8.23.1",
     "react": "catalog:",
     "react-dom": "catalog:",
     "server-only": "^0.0.1",
-    "swr": "^2.5.1",
     "zod": "catalog:",
     "zustand": "catalog:"
   },

@@ -1,6 +1,6 @@
 # Web app glossary
 
-Terms for the Next.js browser product, browser server, and generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
+Terms for the Next.js browser product, saved sessions, the MCP server, and generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
 
 ## Application and session
 
@@ -14,11 +14,11 @@ The route composition component. Each route supplies a title, optional subtitle 
 
 ### AppProviders
 
-The shared client provider composition above routes. It owns browser-only initialization, the browser session, and `BrowserServer`, which saves the session and runs remote control.
+The shared client provider composition above routes. For each account, it mounts the session owner and the optional remote control.
 
-### Browser session
+### Session owner
 
-The live browser and track stores shared through `browser/BrowserSession.tsx`. They survive client navigation within the shared layout. A session snapshot is the serializable form used for saving and restoration. See [Shared session](README.md#shared-session) for persistence behavior.
+`createSession` in `sessions/session.ts`, provided by `SessionProvider` and read with `useSession`. It lives as long as the workspace for one account. It lists saved sessions, owns the **open session** and its live browser and track stores, runs autosave, and performs open, create, rename, remove, and close as complete operations. See [Sessions](README.md#sessions).
 
 ### Product pages
 
@@ -26,17 +26,17 @@ The browser route at `/browser/[sessionId]` has a Sessions panel on the left and
 
 ## Commands and persistence
 
-### Browser server
+### MCP server
 
-The persistent Hono server in `apps/server`. It loads and saves sessions through a session repository, exposes browser commands to agents over MCP, and sends each command to the tab that has the session open over server-sent events, or SSE. It does not fetch genomic track files or own the live browser stores. Next.js rewrites `/api/*` and `/mcp` to it.
+The optional persistent Hono server in `apps/server`, also called the browser server. It exposes browser commands to agents over MCP and sends each command to the tab that has the session open over server-sent events, or SSE. It does not fetch genomic track files or own the live browser stores. Next.js rewrites `/mcp` and `/api/sessions/:id/rpc` to it. Its SQLite session storage is no longer used by the web app.
 
 ### Remote control
 
-A tab's SSE stream for one session, opened at `/api/sessions/:id/rpc`. Only the first tab to connect receives the session's commands; later tabs are rejected and retry until it disconnects. It is on by default and can be turned off in Settings. Saving does not depend on it.
+A tab's SSE stream for one session, opened at `/api/sessions/:id/rpc`. Only the first tab to connect receives the session's commands; later tabs are rejected and retry until it disconnects. It is off by default and turned on in Settings. It attaches only to a loaded session. Saving does not depend on it.
 
 ### Local access
 
-The web app and server run on loopback without tokens or login. Host and origin checks restrict browser access to the local setup. Any local caller can control a connected tab or save a session. Account authentication and ownership checks are future work.
+The MCP server runs on loopback without tokens or login. Host and origin checks restrict browser access to the local setup. Any local caller can control a connected tab. Saved sessions are owner-checked by the web app; MCP authentication is future work.
 
 ### Command and reply
 
@@ -46,15 +46,11 @@ A **pending command** has been sent to a tab and is waiting for its reply. The p
 
 ### Session snapshot
 
-The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `@weng-lab/session-snapshot`, and `browser.assembly` is the session's only assembly value. A **session** is a snapshot saved in SQLite under a session ID. The URL `/browser/[sessionId]` selects it; `local` is the default until there is a session picker. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
-
-### Session repository
-
-The server's injected `SessionRepository`, with asynchronous `load(id)` and `save(id, snapshot)` operations. SQLite is the current implementation.
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `@weng-lab/session-snapshot`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
 
 ### Save status
 
-The client indicator at the top left of the browser center panel. It reports restoration, saving, successful persistence, or failure and retry. A command reply and save completion are separate events.
+The client indicator at the top left of the browser center panel. It reports saving, the newest edits saved, retrying after a failed write, or that the session can no longer be saved. A command reply and save completion are separate events.
 
 See [Architecture and data flow](docs/02-guides/dataFlow.md) for the paths connecting these terms.
 

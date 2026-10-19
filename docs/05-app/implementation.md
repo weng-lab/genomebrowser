@@ -13,22 +13,29 @@ Use this as the starting context for bounded implementation threads. Read [app d
 
 ## Progress
 
-Steps 1 and 2 have landed as one slice; the browser does not use them yet.
+Steps 1 to 4 have landed in two slices. Step 3 is partial: the web app no longer uses the browser server's persistence, but that server still contains it.
 
-- `packages/session-snapshot` holds the snapshot schema, moved from the browser server's protocol. `browser.assembly` accepts any assembly ID; restoring into a store for another assembly fails.
-- `apps/web/server/sessions/` owns the `sessions` table and `createSessions({ db, identity })`. Operations derive the owner from identity on every call, validate input, report other users' sessions as not found, refuse to recreate deleted sessions, and check the stored assembly inside the `UPDATE` statement.
-- `apps/web/server/identity.ts` selects Clerk or explicitly enabled mock users. Mock identity is refused in production. `server/composition.ts` composes both with a `pg` pool on first use.
-- With Clerk, `apps/web/proxy.ts` runs `clerkMiddleware()`, the root layout renders `ClerkProvider`, and `/sign-in` hosts Clerk's form. Mock mode skips all three. The root layout renders per request so builds need no keys, which makes every page dynamic.
-- A test sends requests through the real proxy and Clerk's `auth()` into `getSessions()`, with tokens signed by a local key. It covers the signed-in owner, signed-out and forged tokens, and a route outside the proxy. Sign-in against a real Clerk instance has not been tried; no credentials were available.
-- Migrations live in `apps/web/drizzle/` and run with `drizzle-kit migrate`. Tests run them against a fresh PostgreSQL database; CI provides the server.
+- `packages/session-snapshot` holds the snapshot schema. `browser.assembly` accepts any assembly ID; restoring into a store for another assembly fails.
+- `apps/web/server/sessions/` owns the `sessions` table and `createSessions({ db, identity })`. Operations derive the owner from identity on every call, validate input, report other users' sessions as not found, refuse to recreate deleted sessions, and check the stored assembly inside the `UPDATE` statement. Migrations live in `apps/web/drizzle/`.
+- `apps/web/server/identity.ts` selects Clerk or explicitly enabled mock users and refuses mock identity in production. A test sends requests through the real proxy and Clerk's `auth()` with locally signed tokens.
+- Route handlers under `apps/web/app/api/sessions/` expose those operations with a 1 MB body limit and coded errors; other failures return 500 without detail. The `/api/*` rewrite is gone. Only `/mcp` and `/api/sessions/:id/rpc` still go to the MCP server.
+- `apps/web/sessions/` owns the client lifecycle. One store per account, mounted by the workspace layout, holds the session list, the open session's stores, save status, and complete `open`, `create`, `rename`, `remove`, and `close` operations; components read it through `useSession`. Composition injects the HTTP transport, store construction from `assemblies/`, and navigation. Effect runs requests, the autosave worker, debounce, and retries; interruption aborts a request and its response body.
+- URLs carry the session UUID. Links, typed URLs, and history all call `open`, which saves the open session first and keeps it, with its edits, when saving or loading fails. `/browser` without an ID shows an empty state. Deleting the open session waits for an outstanding write.
+- Autosave keeps unsaved edits dirty whatever the failure. Refused input, such as a session over 1 MB, waits for a further edit; `NOT_FOUND` ends saving, and switching then fails until the user discards the edits.
+- The sidebar's account menu, for Clerk or mock users, signs out or switches only after `close` saves and closes the open session. If saving fails, it offers to stay, retry, or discard. The session provider is keyed by user, so an account change made elsewhere stops the previous user's requests and saving.
+- `pnpm web sessions:import-sqlite` copies old SQLite sessions to one named owner with new UUIDs, keeping the old ID as the name. It never runs automatically and leaves the SQLite file unchanged.
 
-The next slice must:
+Known limitations, with their impact:
 
-- Choose the browser transport, Server Functions or route handlers. `/api/*` still rewrites to the browser server, so new routes must not collide with it. Add account controls to the workspace; nothing links to `/sign-in` yet.
-- Smoke-test sign-in with a real Clerk development instance before relying on it.
-- Limit snapshot request size at that transport. The old server's 1 MB limit does not apply to the new operations.
-- Move session IDs from names in the URL to the generated UUIDs, and decide how the `local` default session and SQLite snapshots without owners are migrated or retired.
-- Build the Effect lifecycle and autosave worker on `create` and `update`. Treat `NOT_FOUND` after deletion as final rather than retrying it.
+- Sign-in against a real Clerk instance is untested; no credentials were available. Account switching is tested with mock users, and sign-out with Clerk's hooks replaced. Smoke-test a Clerk development instance before relying on it.
+- An account change made outside the account menu, such as signing out in another tab or the Clerk session ending, discards unsaved edits. They cannot be saved with the new credentials, and keeping them would show them to the new account. Clerk's multi-session switching is not offered. Closing the tab with unsaved edits asks for confirmation but does not save.
+- Several tabs may edit one session; the last write wins.
+- Remote control detaches from the previous session in a React effect after the stores are replaced. Until then, the tab checks before each command that its session is still open and otherwise replies `SESSION_CLOSED`. The MCP slice should make detachment part of replacement.
+- While another session opens, the browser keeps showing the open one under the new URL until restoration finishes.
+- Only hg38 can be created.
+- Merged gene tracks store their data-dependent height in the track configuration. A new session therefore saves once shortly after its first render without a user edit. This is harmless but means saved height follows loaded data.
+
+The next slice must remove persistence and its database from `apps/server`, separate shared command contracts, and start MCP with a single region tool attached to the ready session, as step 5 describes.
 
 Production pool sizing for serverless functions on Cloud SQL is untested. The pool uses `pg` defaults.
 
@@ -48,7 +55,7 @@ Demonstrate opening, editing, saving, reloading, switching, and deleting session
 
 ## Decisions and scope
 
-Still to settle: existing-data migration, the session transport, unsaved edits on tab close, and the initial multi-tab write policy. MCP authentication and connection authorization need design before cloud deployment.
+Settled in the second slice: route handlers as the transport, explicit per-owner import of SQLite sessions, a confirmation prompt for unsaved edits on tab close, and last-write-wins across tabs. MCP authentication and connection authorization need design before cloud deployment.
 
 Defer sharing UI, user settings, incremental writes, and advanced conflict handling. Keep initial behavior simple without hiding unsaved data or silently losing edits.
 

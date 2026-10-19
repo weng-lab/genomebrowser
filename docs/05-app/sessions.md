@@ -1,6 +1,6 @@
 # Sessions
 
-A session is a saved browsing setup for one assembly. This is the target design. The saved data below is implemented in the Next.js server; the client hook signatures still need design.
+A session is a saved browsing setup for one assembly. This is the target design. The saved data and session operations below are implemented in `apps/web`.
 
 ## Saved data
 

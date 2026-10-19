@@ -2,7 +2,7 @@
 
 Build a browser app around saved, user-owned sessions, with optional agent control. Keep feature interfaces small so new functionality does not require understanding database, request, or connection wiring.
 
-This section records the agreed target architecture. The browser still persists sessions through `apps/server`. The Next.js server has owner-checked session operations on Drizzle and PostgreSQL, but the browser does not use them yet. [Implementation order](implementation.md#progress) tracks what has landed. These pages guide the refactor; app READMEs describe current setup.
+This section records the agreed target architecture. The browser saves sessions through owner-checked Next.js routes on Drizzle and PostgreSQL. `apps/server` still contains its old persistence, now unused, and MCP has not been separated yet. [Implementation order](implementation.md#progress) tracks what has landed. These pages guide the refactor; app READMEs describe current setup.
 
 ## Read next
 

@@ -1,11 +1,11 @@
 import { commands } from "@weng-lab/browser-server/commands";
 import type { CommandMessage, CommandResult } from "@weng-lab/browser-server/protocol";
-import type { BrowserSession } from "./BrowserSession";
+import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { snapshot } from "./snapshot";
 
 /** Run a command from the registry against the tab's stores, then report the whole state. */
 export function executeBrowserCommand(
-  session: BrowserSession,
+  session: GenomeBrowserStores,
   message: CommandMessage,
 ): CommandResult {
   const command = commands.find(({ name }) => name === message.name);

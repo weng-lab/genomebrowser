@@ -1,9 +1,12 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { useSessionId } from "../../../browser/BrowserServer";
+import { useSession } from "../../../sessions/SessionProvider";
+import { BrowserPage } from "./BrowserPage";
 
-/** Return to the session viewed last, so the sidebar link does not switch sessions. */
+/** Return to the open session, so the sidebar link does not close it. */
 export default function BrowserIndexPage() {
-  redirect(`/browser/${useSessionId()}`);
+  const id = useSession((session) => session.active?.id);
+  if (id) redirect(`/browser/${id}`);
+  return <BrowserPage />;
 }

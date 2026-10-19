@@ -2,7 +2,8 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { identityMode } from "../server/identity";
-import { createSessions, type SessionInput } from "../server/sessions/sessions";
+import { createSessions } from "../server/sessions/sessions";
+import type { SessionInput } from "../sessions/schema";
 import { sessionsTable } from "../server/sessions/table";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 

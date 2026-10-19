@@ -1,26 +1,18 @@
 import "server-only";
-import { sessionSnapshotSchema, type SessionSnapshot } from "@weng-lab/session-snapshot";
+import { sessionSnapshotSchema } from "@weng-lab/session-snapshot";
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { z } from "zod";
+import {
+  sessionIdSchema,
+  sessionInputSchema,
+  type SavedSession,
+  type Session,
+  type SessionErrorCode,
+  type SessionInput,
+} from "../../sessions/schema";
 import type { Identity } from "../identity";
 import { sessionsTable } from "./table";
-
-const sessionInputSchema = z.strictObject({
-  name: z.string().trim().min(1).max(200),
-  snapshot: sessionSnapshotSchema,
-});
-export type SessionInput = z.input<typeof sessionInputSchema>;
-
-/** Saved session metadata. The owner stays on the server. */
-export type Session = { id: string; name: string; createdAt: Date; updatedAt: Date };
-export type SavedSession = Session & { snapshot: SessionSnapshot };
-
-export type SessionErrorCode =
-  | "INVALID_INPUT"
-  | "UNAUTHENTICATED"
-  | "NOT_FOUND"
-  | "ASSEMBLY_CHANGED";
 
 export class SessionError extends Error {
   constructor(
@@ -30,6 +22,13 @@ export class SessionError extends Error {
     super(message);
     this.name = "SessionError";
   }
+}
+
+/** Validate a session's name and snapshot, failing with `INVALID_INPUT`. */
+export function parseSessionInput(input: unknown) {
+  const result = sessionInputSchema.safeParse(input);
+  if (!result.success) throw new SessionError("INVALID_INPUT", z.prettifyError(result.error));
+  return result.data;
 }
 
 /**
@@ -52,7 +51,6 @@ const metadata = {
   createdAt: sessionsTable.createdAt,
   updatedAt: sessionsTable.updatedAt,
 };
-const idSchema = z.uuid();
 
 export function createSessions({
   db,
@@ -67,22 +65,16 @@ export function createSessions({
     return userId;
   }
 
-  function parse(input: SessionInput) {
-    const result = sessionInputSchema.safeParse(input);
-    if (!result.success) throw new SessionError("INVALID_INPUT", z.prettifyError(result.error));
-    return result.data;
-  }
-
   function owned(owner: string, id: string) {
     // Only database-generated UUIDs name sessions; any other ID matches nothing.
-    if (!idSchema.safeParse(id).success) throw notFound();
+    if (!sessionIdSchema.safeParse(id).success) throw notFound();
     return and(eq(sessionsTable.id, id), eq(sessionsTable.owner, owner));
   }
 
   return {
     async create(input) {
       const owner = await actingUser();
-      const { name, snapshot } = parse(input);
+      const { name, snapshot } = parseSessionInput(input);
       const [created] = await db
         .insert(sessionsTable)
         .values({ owner, name, snapshot })
@@ -111,7 +103,7 @@ export function createSessions({
 
     async update(id, input) {
       const owner = await actingUser();
-      const { name, snapshot } = parse(input);
+      const { name, snapshot } = parseSessionInput(input);
       // Checking the stored assembly in the same statement keeps concurrent writes from changing it.
       const [updated] = await db
         .update(sessionsTable)

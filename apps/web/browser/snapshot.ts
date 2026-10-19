@@ -1,9 +1,12 @@
-import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
+import {
+  createBrowserStore,
+  createTrackStore,
+  type GenomeBrowserStores,
+} from "@weng-lab/genomebrowser";
 import { sessionSnapshotSchema, type SessionSnapshot } from "@weng-lab/session-snapshot";
-import type { BrowserSession } from "./BrowserSession";
 
 /** Serializable browser and track state, as saved and as returned to agents. */
-export function snapshot(session: BrowserSession): SessionSnapshot {
+export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
   const browser = session.useBrowserStore.getState();
   const tracks = session.useTrackStore.getState();
   const values = {
@@ -28,7 +31,7 @@ export function snapshot(session: BrowserSession): SessionSnapshot {
   return sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(values)));
 }
 
-export function restore(session: BrowserSession, saved: SessionSnapshot) {
+export function restore(session: GenomeBrowserStores, saved: SessionSnapshot) {
   // Validate both stores before changing either live store. Runtime actions and
   // registered modules stay local; only serializable session values are restored.
   const { assembly } = session.useBrowserStore.getState();

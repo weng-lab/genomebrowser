@@ -1,42 +1,37 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import dynamic from "next/dynamic";
-import { useParams } from "next/navigation";
-import { sessionIdSchema } from "@weng-lab/browser-server/protocol";
-import { BrowserServer } from "../../browser/BrowserServer";
+import { useAuth } from "@clerk/nextjs";
+import type { ReactNode } from "react";
+import { RemoteControlProvider } from "../../browser/RemoteControl";
 import { WorkspaceSkeleton } from "../../components/workspace/WorkspaceSkeleton";
+import { SessionProvider } from "../../sessions/SessionProvider";
+import type { Account } from "./AccountControls";
 
-// Browser stores initialize browser-only rendering resources. The provider stays mounted
-// in the shared layout while Next swaps the page supplied as children.
-const BrowserSessionProvider = dynamic(
-  () => import("../../browser/BrowserSession").then((module) => module.BrowserSessionProvider),
-  { ssr: false, loading: () => <WorkspaceSkeleton /> },
-);
-
-/** Opened when no session has been viewed yet. */
-const defaultSessionId = "local";
-
-export function AppProviders({ children }: { children: ReactNode }) {
-  const sessionId = useCurrentSessionId();
-  // A different session gets fresh stores instead of inheriting the previous session's state.
-  return (
-    <BrowserSessionProvider key={sessionId}>
-      <BrowserServer endpoint="/api" sessionId={sessionId}>
-        {children}
-      </BrowserServer>
-    </BrowserSessionProvider>
+/**
+ * Workspace state for the signed-in account. The account controls save or discard
+ * edits before changing accounts. An account change made elsewhere, such as signing
+ * out in another tab, discards unsaved edits: they cannot be saved without the old
+ * account's credentials, and must not reach the new account.
+ */
+export function AppProviders({ account, children }: { account: Account; children: ReactNode }) {
+  return account.mode === "clerk" ? (
+    <ClerkAccount>{children}</ClerkAccount>
+  ) : (
+    <AccountSessions userId={account.userId}>{children}</AccountSessions>
   );
 }
 
-/** The session in the URL, or the last one viewed while on pages without one, such as Settings. */
-function useCurrentSessionId() {
-  const params = useParams<{ sessionId?: string }>();
-  // An invalid ID renders the not-found page; keep the current session instead of opening it.
-  const sessionId = sessionIdSchema.safeParse(params.sessionId).success
-    ? params.sessionId
-    : undefined;
-  const [lastSessionId, setLastSessionId] = useState(sessionId ?? defaultSessionId);
-  if (sessionId && sessionId !== lastSessionId) setLastSessionId(sessionId);
-  return sessionId ?? lastSessionId;
+function ClerkAccount({ children }: { children: ReactNode }) {
+  const { isLoaded, userId } = useAuth();
+  if (!isLoaded) return <WorkspaceSkeleton />;
+  return <AccountSessions userId={userId ?? null}>{children}</AccountSessions>;
+}
+
+function AccountSessions({ userId, children }: { userId: string | null; children: ReactNode }) {
+  // Never let one account's open session, list, or pending saves reach another account.
+  return (
+    <SessionProvider key={userId ?? "signed-out"}>
+      <RemoteControlProvider>{children}</RemoteControlProvider>
+    </SessionProvider>
+  );
 }

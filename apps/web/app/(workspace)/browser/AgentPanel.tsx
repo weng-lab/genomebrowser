@@ -3,21 +3,22 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { useRemoteControl, useSessionId } from "../../../browser/BrowserServer";
+import { useRemoteControl } from "../../../browser/RemoteControl";
+import { useSession } from "../../../sessions/SessionProvider";
 
 export function AgentPanel() {
-  const { state } = useRemoteControl();
-  const sessionId = useSessionId();
-  const stateMessages = {
-    off: "Remote control is off. Turn it on in Settings.",
-    connecting: "Connecting… If this session is open in another tab, close that tab.",
-    connected: `Connected. MCP tools called with sessionId "${sessionId}" run in this tab.`,
-  };
+  const { state, enabled } = useRemoteControl();
+  const sessionId = useSession((session) => session.active?.id);
+  let message = "Remote control is off. Turn it on in Settings.";
+  if (enabled && !sessionId) message = "Open a session to connect it to agents.";
+  else if (enabled && state === "connected")
+    message = `Connected. MCP tools called with sessionId "${sessionId}" run in this tab.`;
+  else if (enabled) message = "Connecting… If this session is open in another tab, close that tab.";
   return (
     <Box sx={{ p: 2, overflow: "auto" }}>
       <Stack spacing={2}>
         <Typography component="output" variant="body2">
-          {stateMessages[state]}
+          {message}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Connect an MCP client to <Box component="code">/mcp</Box> on this site.

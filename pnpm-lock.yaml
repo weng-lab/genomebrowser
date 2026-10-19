@@ -360,6 +360,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(pg@8.23.1)
+      effect:
+        specifier: ^4.0.5
+        version: 4.0.5
       next:
         specifier: 'catalog:'
         version: 16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -375,9 +378,6 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
-      swr:
-        specifier: ^2.5.1
-        version: 2.5.1(react@19.3.0)
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -3559,6 +3559,9 @@ packages:
       sqlite3:
         optional: true
 
+  effect@4.0.5:
+    resolution: {integrity: sha512-BY4/28NlpOd99yzmV741xbVGmp+1U7tks4oB7F/Png64bTa5tm5eCA6W0RiXsnuLDDoJpjfVSo4Dnq4BZb/89Q==}
+
   electron-to-chromium@1.5.430:
     resolution: {integrity: sha512-e1QEj72Y4zd8RlNZVmoTg+iCOSVwpk05IOiiQwdrkwCSVlZfPthevErhE+nckGd2YbsXfp1SkisznhGVIXP2NQ==}
 
@@ -4541,11 +4544,6 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
-
-  swr@2.5.1:
-    resolution: {integrity: sha512-BRw55e8r0B7SpDN20CAzoQAHl7y1yP7/Zt7oqUjMv0vSt2u2Xnkm88Ws+VypbV9BXHQVuSuyVq7zMjO16wSExw==}
-    peerDependencies:
-      react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -7019,6 +7017,8 @@ snapshots:
       '@types/pg': 8.23.1
       pg: 8.23.1
 
+  effect@4.0.5: {}
+
   electron-to-chromium@1.5.430: {}
 
   entities@6.0.1: {}
@@ -8130,12 +8130,6 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
-
-  swr@2.5.1(react@19.3.0):
-    dependencies:
-      dequal: 2.0.3
-      react: 19.3.0
-      use-sync-external-store: 1.7.0(react@19.3.0)
 
   symbol-tree@3.2.4: {}
 

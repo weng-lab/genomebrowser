@@ -1,103 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import useSWR from "swr";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
+import MenuItem from "@mui/material/MenuItem";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { usePanelState } from "../../../components/workspace/panels/panelState";
-import { sessionListSchema } from "@weng-lab/browser-server/protocol";
-import { useDeleteSession, useFlushSession, useSessionId } from "../../../browser/BrowserServer";
+import Link from "next/link";
+import { useShallow } from "zustand/react/shallow";
+import { useState, type FormEvent } from "react";
+import { supportedAssemblies } from "../../../assemblies/assemblies";
+import { useSession } from "../../../sessions/SessionProvider";
 
-async function fetchSessions(url: string) {
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw new Error("Session list failed");
-  return sessionListSchema.parse(await response.json());
-}
+const statusMessages = {
+  loading: "Loading saved sessions…",
+  unavailable: "Could not reach saved sessions. Retrying…",
+  "signed-out": "Sign in to save sessions.",
+  ready: "Sessions save automatically.",
+};
 
 export function SessionPanel() {
-  const sessionId = useSessionId();
-  const deleteSession = useDeleteSession();
-  const router = useRouter();
-  const flushSession = useFlushSession();
-  const [switching, setSwitching] = useState(false);
-  const switchPending = useRef(false);
-  const selectionGeneration = useRef(0);
-  useEffect(
-    () => () => {
-      // Saving outlives this panel when the user visits another workspace page.
-      selectionGeneration.current += 1;
-    },
-    [],
-  );
-  const [switchError, setSwitchError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const {
-    data: savedIds = [],
-    error,
-    isLoading,
-    mutate,
-  } = useSWR("/api/sessions", fetchSessions, {
-    revalidateOnMount: true,
-  });
-
-  const open = usePanelState((state) => state.leftOpen);
-  const wasOpen = useRef(open);
-  useEffect(() => {
-    // Closed workspace panels remain mounted, so mount revalidation cannot refresh reopening.
-    if (open && !wasOpen.current) void mutate();
-    wasOpen.current = open;
-  }, [open, mutate]);
-
-  async function openSession(id: string) {
-    if (id === sessionId || deleting || switchPending.current) return;
-    const generation = selectionGeneration.current;
-    switchPending.current = true;
-    setSwitching(true);
-    setSwitchError(null);
-    try {
-      await flushSession();
-      if (generation === selectionGeneration.current) router.replace(`/browser/${id}`);
-    } catch {
-      if (generation === selectionGeneration.current)
-        setSwitchError(
-          "Could not save this session. Stay here and try selecting the session again.",
-        );
-    } finally {
-      if (generation === selectionGeneration.current) {
-        switchPending.current = false;
-        setSwitching(false);
-      }
-    }
-  }
-
-  async function handleDelete(id: string) {
-    if (id === "local" || deleting || switchPending.current) return;
-    setDeleting(id);
-    setDeleteError(null);
-    try {
-      await deleteSession(id);
-      // Invalidate older list reads, remove the deleted name, and fetch the current list.
-      void mutate((ids) => (ids ?? []).filter((savedId) => savedId !== id), { revalidate: true });
-      if (id === sessionId) router.replace("/browser/local");
-    } catch {
-      setDeleteError(`Could not delete ${id}. Try again.`);
-    } finally {
-      setDeleting(null);
-    }
-  }
-
-  // Show the active session even before its first autosave creates a saved snapshot.
-  const ids = [...new Set([...savedIds, sessionId])].sort();
+  const ids = useSession(useShallow((session) => session.sessions.map(({ id }) => id)));
+  const activeId = useSession((session) => session.active?.id);
+  const status = useSession((session) => session.status);
   return (
     <>
+      {activeId && <RenameSession key={activeId} />}
       <List
         component="nav"
         aria-label="Browser sessions"
@@ -105,60 +38,119 @@ export function SessionPanel() {
         sx={{ px: 1, flex: 1, minHeight: 0, overflowY: "auto" }}
       >
         {ids.map((id) => (
-          <Box key={id} sx={{ display: "flex", alignItems: "center" }}>
-            <ListItemButton
-              component={Link}
-              href={`/browser/${id}`}
-              onNavigate={(event: { preventDefault(): void }) => {
-                event.preventDefault();
-                void openSession(id);
-              }}
-              selected={id === sessionId}
-              disabled={deleting !== null || switching}
-              aria-current={id === sessionId ? "page" : undefined}
-              sx={{ borderRadius: 1, flex: 1, minWidth: 0 }}
-            >
-              <ListItemText
-                primary={id}
-                slotProps={{ primary: { sx: { overflowWrap: "anywhere" } } }}
-              />
-            </ListItemButton>
-            {id !== "local" && (
-              <IconButton
-                aria-label={`Delete session ${id}`}
-                title={`Delete session ${id}`}
-                size="small"
-                disabled={deleting !== null || switching}
-                onClick={() => void handleDelete(id)}
-              >
-                <DeleteOutline fontSize="small" />
-              </IconButton>
-            )}
-          </Box>
+          <SessionRow key={id} id={id} />
         ))}
       </List>
-      {switchError && (
-        <Typography role="alert" variant="body2" color="error" sx={{ p: 1.5, flexShrink: 0 }}>
-          {switchError}
-        </Typography>
-      )}
-      {deleteError && (
-        <Typography role="alert" variant="body2" color="error" sx={{ p: 1.5, flexShrink: 0 }}>
-          {deleteError}
-        </Typography>
-      )}
+      {/* Creating a session opens it, which resets the form. */}
+      {status === "ready" && <CreateSession key={`new:${activeId}`} />}
       <Typography
         variant="body2"
-        color={error ? "error" : "text.secondary"}
-        role={error ? "alert" : "status"}
+        color={status === "unavailable" ? "error" : "text.secondary"}
+        role="status"
         sx={{ p: 1.5, flexShrink: 0 }}
       >
-        {error
-          ? "Could not load saved sessions. Refresh this page to try again."
-          : isLoading
-            ? "Loading saved sessions..."
-            : "Sessions save automatically."}
+        {status === "ready" && ids.length === 0 ? "No saved sessions yet." : statusMessages[status]}
       </Typography>
     </>
+  );
+}
+
+function SessionRow({ id }: { id: string }) {
+  const name = useSession((session) => session.sessions.find((saved) => saved.id === id)?.name);
+  const activeId = useSession((session) => session.active?.id);
+  const busy = useSession((session) => session.pending !== undefined);
+  const remove = useSession((session) => session.remove);
+  return (
+    <Box sx={{ display: "flex", alignItems: "center" }}>
+      <ListItemButton
+        component={Link}
+        href={`/browser/${id}`}
+        selected={id === activeId}
+        aria-current={id === activeId ? "page" : undefined}
+        sx={{ borderRadius: 1, flex: 1, minWidth: 0 }}
+      >
+        <ListItemText
+          primary={name}
+          slotProps={{ primary: { sx: { overflowWrap: "anywhere" } } }}
+        />
+      </ListItemButton>
+      <IconButton
+        aria-label={`Delete session ${name}`}
+        title={`Delete session ${name}`}
+        size="small"
+        disabled={busy}
+        onClick={() => void remove(id)}
+      >
+        <DeleteOutline fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+}
+
+/** Edit the open session's name. It saves with the session's other changes. */
+function RenameSession() {
+  const name = useSession((session) => session.active?.name ?? "");
+  const rename = useSession((session) => session.rename);
+  const [draft, setDraft] = useState(name);
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (draft !== name) rename(draft);
+  }
+  return (
+    <Box component="form" onSubmit={handleSubmit} sx={{ p: 1.5, flexShrink: 0 }}>
+      <TextField
+        label="Session name"
+        size="small"
+        fullWidth
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => draft !== name && rename(draft)}
+      />
+    </Box>
+  );
+}
+
+function CreateSession() {
+  const create = useSession((session) => session.create);
+  const busy = useSession((session) => session.pending !== undefined);
+  const [name, setName] = useState("");
+  const [assembly, setAssembly] = useState(supportedAssemblies[0].id);
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    void create({ name, assembly });
+  }
+  return (
+    <Stack
+      component="form"
+      aria-label="New session"
+      spacing={1}
+      onSubmit={handleSubmit}
+      sx={{ p: 1.5, flexShrink: 0, borderTop: 1, borderColor: "divider" }}
+    >
+      <TextField
+        label="New session name"
+        size="small"
+        required
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        slotProps={{ htmlInput: { maxLength: 200 } }}
+      />
+      <TextField
+        select
+        label="Assembly"
+        size="small"
+        value={assembly}
+        onChange={(event) => setAssembly(event.target.value)}
+      >
+        {supportedAssemblies.map(({ id, label }) => (
+          <MenuItem key={id} value={id}>
+            {label}
+          </MenuItem>
+        ))}
+      </TextField>
+      <Button type="submit" variant="outlined" size="small" disabled={busy || !name.trim()}>
+        Create session
+      </Button>
+    </Stack>
   );
 }

@@ -1,17 +1,15 @@
-import { WorkspaceNavigationDisabledContext } from "../navigationState";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useContext, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { SIDE_BAR_WIDTH } from "./layout";
 import type { WorkspaceNavigationItem } from "../types";
 
 type SideBarProps = { navigation: readonly WorkspaceNavigationItem[]; footer?: ReactNode };
 export function SideBar({ navigation, footer }: SideBarProps) {
   const pathname = usePathname();
-  const navigationDisabled = useContext(WorkspaceNavigationDisabledContext);
   const pageLink = (item: WorkspaceNavigationItem) => {
     const exact = item.href === pathname;
     const current =
@@ -21,10 +19,6 @@ export function SideBar({ navigation, footer }: SideBarProps) {
         <IconButton
           component={Link}
           href={item.href}
-          disabled={navigationDisabled}
-          onNavigate={(event: { preventDefault(): void }) => {
-            if (navigationDisabled) event.preventDefault();
-          }}
           aria-label={item.label}
           aria-current={exact ? "page" : current ? "location" : undefined}
           color={current ? "primary" : "default"}

@@ -4,7 +4,7 @@ These components are internal to `apps/web`, not a published package API. The sh
 
 ## `AppProviders`
 
-Owns browser-only initialization, the browser session, and its server connection above route pages. `browser/BrowserSession.tsx` keeps browser and track stores stable for that provider lifetime. `BrowserServer` owns restoration, autosave, and remote control for the same lifetime, for the session in the URL and the `/api` rewrite to the browser server. A different session ID remounts the stores. `useSessionId()` returns the current ID, and `useRemoteControl()` exposes the connection state and the Settings toggle. The browser view waits for initial restoration; `SaveStatus` at the top left of the browser center panel reports save state. See [Shared session](../README.md#shared-session) for the persistence contract.
+Mounts `SessionProvider` and `RemoteControlProvider` for the signed-in account; changing accounts remounts both. `AccountControls` signs out or switches users only after `close` saves or discards the open session. `SessionProvider` owns saved sessions and the open session for the workspace's lifetime, and opens the session named in the URL. Read it with `useSession(selector)`, which returns `status`, `sessions`, `active` (the open session's ID, name, and stores), `saveStatus`, `pending`, `error`, and the operations `open`, `create`, `rename`, `remove`, and `close`. `useRemoteControl()` exposes the connection state and the Settings toggle. See [Sessions](../README.md#sessions) for the contract.
 
 ## `Workspace`
 
