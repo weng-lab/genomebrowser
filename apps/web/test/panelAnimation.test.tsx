@@ -110,7 +110,9 @@ it("keeps resizing instant and restores motion for later toggles", () => {
   const handle = container!.querySelector<HTMLElement>(
     '[role="separator"][aria-controls="left-panel"]',
   )!;
-  act(() => handle.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true })));
+  act(() => {
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+  });
   expect(handle.getAttribute("aria-valuenow")).toBe("480");
   expect(transition()).toBe("none");
   paintReset();
@@ -118,7 +120,9 @@ it("keeps resizing instant and restores motion for later toggles", () => {
   toggle();
   expect(getComputedStyle(container!.querySelector("#left-panel")!).width).toBe("480px");
   expect(transition()).toContain("width");
-  act(() => handle.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })));
+  act(() => {
+    handle.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+  });
   expect(handle.getAttribute("aria-valuenow")).toBe("240");
   expect(transition()).toBe("none");
 });

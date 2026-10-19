@@ -92,6 +92,7 @@ function ClerkControls({ signInPath, leaving, leave }: { signInPath: string } & 
           disabled={leaving}
           onClick={() => {
             dismiss();
+            // oxlint-disable-next-line typescript/no-floating-promises -- close observes Effect and account-change failures, so leave always resolves.
             void leave(() => clerk.openUserProfile());
           }}
         >
@@ -102,6 +103,7 @@ function ClerkControls({ signInPath, leaving, leave }: { signInPath: string } & 
           disabled={leaving}
           onClick={() => {
             dismiss();
+            // oxlint-disable-next-line typescript/no-floating-promises -- close observes Effect and account-change failures, so leave always resolves.
             void leave(() => clerk.signOut());
           }}
         >
@@ -122,6 +124,7 @@ function MockUserMenu({
 }: { userId: string | null; users: readonly string[]; cookie: string } & LeaveProps) {
   function actAs(user: string, dismiss: () => void) {
     dismiss();
+    // oxlint-disable-next-line typescript/no-floating-promises -- close observes Effect and account-change failures, so leave always resolves.
     void leave(() => {
       document.cookie = `${cookie}=${user}; path=/; SameSite=Lax`;
       window.location.reload();

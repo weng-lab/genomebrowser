@@ -61,7 +61,9 @@ function setup() {
 function pointer(handle: HTMLElement, type: string, clientX = 240, pointerId = 1) {
   const event = new MouseEvent(type, { bubbles: true, button: 0, clientX });
   Object.defineProperty(event, "pointerId", { value: pointerId });
-  act(() => handle.dispatchEvent(event));
+  act(() => {
+    handle.dispatchEvent(event);
+  });
 }
 
 it.each(["pointerup", "pointercancel", "lostpointercapture", "blur", "unmount"])(
@@ -105,7 +107,9 @@ it.each(["pointerup", "pointercancel", "lostpointercapture", "blur", "unmount"])
       act(() => root?.unmount());
       root = undefined;
     } else if (ending === "blur") {
-      act(() => window.dispatchEvent(new Event("blur")));
+      act(() => {
+        window.dispatchEvent(new Event("blur"));
+      });
     } else pointer(handle, ending, 300);
 
     expect(cancel).toHaveBeenCalledWith(dragFrame);

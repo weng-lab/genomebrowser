@@ -47,7 +47,9 @@ it("retains panel state across page remounts and resets them with the workspace"
   try {
     render("a");
     act(() => counter().click());
-    act(() => handle().dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true })));
+    act(() => {
+      handle().dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    });
     expect(handle().getAttribute("aria-valuenow")).toBe("480");
     expect(counter().textContent).toBe("Count 1");
 

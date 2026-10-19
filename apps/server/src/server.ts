@@ -37,7 +37,10 @@ export function createBrowserServer(options: BrowserServerOptions = {}) {
       if (closing) socket.end();
       else idle.add(socket);
     });
-    return listener(request, response);
+    listener(request, response).catch((error: unknown) => {
+      console.error("Could not handle browser server request", error);
+      response.destroy(error instanceof Error ? error : new Error(String(error)));
+    });
   });
   server.on("connection", (socket) => {
     if (closing) return socket.destroy();

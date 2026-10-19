@@ -37,6 +37,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => session.start(), [session]);
   useEffect(() => {
+    // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
     if (requested) void session.store.getState().open(requested);
   }, [session, requested]);
 

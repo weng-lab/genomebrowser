@@ -117,6 +117,7 @@ function CreateSession() {
   const [assembly, setAssembly] = useState(supportedAssemblies[0].id);
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
     void create({ name, assembly });
   }
   return (

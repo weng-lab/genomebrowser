@@ -47,11 +47,12 @@
       "outputs": ["node_modules/.tmp/**", "tsconfig.tsbuildinfo"]
     },
     "lint": {
-      "dependsOn": ["transit"],
+      "dependsOn": ["transit", "^build"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.oxlintrc.json"]
     },
     "lint:fix": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["^build"]
     },
     "format": {
       "cache": false
@@ -62,6 +63,9 @@
     "//#format:root": {
       "cache": false
     },
-    "//#format:check:root": {}
+    "//#format:check:root": {},
+    "//#lint:policy": {
+      "inputs": ["tools/lint/**", ".oxlintrc.json", "package.json", "pnpm-lock.yaml"]
+    }
   }
 }
