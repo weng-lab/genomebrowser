@@ -1,12 +1,5 @@
+import { regionSchema } from "@weng-lab/contracts";
 import { z } from "zod";
-
-export const regionSchema = z
-  .strictObject({
-    chromosome: z.string(),
-    start: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    end: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-  })
-  .refine((region) => region.end > region.start, "end must exceed start");
 
 const highlightStyleSchema = z.strictObject({
   color: z.string().min(1),

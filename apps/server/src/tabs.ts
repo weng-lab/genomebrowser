@@ -1,5 +1,5 @@
 import type { SSEStreamingApi } from "hono/streaming";
-import type { CommandReply, CommandResult } from "../../web/commands/contracts.ts";
+import type { CommandReply, CommandResult } from "@weng-lab/contracts";
 import { createPendingCommands, type CommandInput } from "./pendingCommands.ts";
 
 type ConnectedTab = {

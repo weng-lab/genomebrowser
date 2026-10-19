@@ -33,12 +33,12 @@ src/
     middleware.ts     # Local hosts, origins, and body limits
 ```
 
-Command contracts come from [the web app](../web/commands/README.md): each tool's name, description, parameter schema, and result schema. The server imports only the pure `apps/web/commands/contracts.ts` module and its `sessions/snapshot.ts` dependency, with no Next.js runtime or browser stores. It does not know how a command runs. `mcp.ts` validates parameters against the contract and checks the tab's result against the result schema before replying to the agent. A result that does not match fails with `INVALID_REPLY`.
+Command contracts come from [the shared app package](../contracts/README.md): each tool's name, description, parameter schema, and result schema. The server imports `@weng-lab/contracts`, which depends only on Zod, with no Next.js runtime or browser stores. It does not know how a command runs. `mcp.ts` validates parameters against the contract and checks the tab's result against the result schema before replying to the agent. A result that does not match fails with `INVALID_REPLY`.
 
 Only the first tab to open a session's stream receives its commands; later tabs get 409 until it disconnects. `pendingCommands.ts` registers each reply before sending and cleans up on reply, timeout (five seconds by default), cancellation, or disconnect. Commands are not replayed. Failures reach the agent as `{ code }: { error }` tool errors, such as `NOT_CONNECTED` or `TIMEOUT`.
 
-Adding a command needs no server change. See [Add a command](../web/commands/README.md#add-a-command).
+Adding a command needs no server change. See [Add a command](../contracts/README.md#add-a-command).
 
 Build with `pnpm exec turbo run build --filter=@weng-lab/mcp`, then run `pnpm --filter @weng-lab/mcp start`. Host one persistent instance that supports long-lived SSE connections.
 
-The build emits the server and both web-owned contract modules under `dist/`. The start script runs `dist/server/src/main.js`; keep the full output tree and the server's production dependencies together when deploying. Turbo tracks the two contract files explicitly, so changes invalidate server checks without requiring a web app build.
+The build emits the server under `dist/`. The start script runs `dist/main.js`; deploy it with its production dependencies, including the compiled `@weng-lab/contracts` package. Turbo builds and tracks that workspace dependency without requiring a web app build.

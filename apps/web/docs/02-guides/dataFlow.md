@@ -15,10 +15,10 @@ The browser tab owns live browser state. Next.js serves the website and the save
 | `commands/RemoteControl.tsx`, `remoteControl.ts`, `commands.ts` | Command stream, command handlers, and replies                     | While remote control is on and the open session saves |
 | `components/workspace/`                                         | Navigation, theme, panel widths and collapsed state               | Panel state survives navigation                       |
 | `next.config.ts` rewrites                                       | Forward `/mcp` and `/rpc/:id` to the MCP server                   | Each HTTP request                                     |
-| `commands/contracts.ts`                                         | Command contracts and wire schemas                                | Module                                                |
+| `@weng-lab/contracts`                                           | Command contracts and wire schemas                                | Module                                                |
 | Server `mcp.ts`, `tabs.ts`, `pendingCommands.ts`                | MCP tools, open tabs, pending replies                             | MCP server process, in memory                         |
 
-The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The session snapshot schema comes from `sessions/snapshot.ts`, and command contracts and tab message schemas from `commands/contracts.ts`. The MCP server imports only these pure contract modules from the web app, with no Next.js or browser-runtime dependencies.
+The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The session snapshot schema comes from `sessions/snapshot.ts`, and command contracts and tab message schemas from `@weng-lab/contracts`. The MCP server imports the same package, with no Next.js or browser-runtime dependencies.
 
 ```mermaid
 flowchart TD
@@ -94,6 +94,6 @@ Opening another session saves the open one first and replaces the stores only on
 
 A local browser action or remote command changes the same stores. Core determines which tracks need data; their fetchers use genomic readers to request remote files directly from the browser. Neither server is on this data path. Fetched records, loading state, and runtime resources are not saved in the session snapshot. Source URLs and track configuration are saved.
 
-For extension points, see [Add a command](../../commands/README.md#add-a-command). Definitions live in the [app glossary](../../glossary.md#commands-and-persistence).
+For extension points, see [Add a command](../../../contracts/README.md#add-a-command). Definitions live in the [app glossary](../../glossary.md#commands-and-persistence).
 
 [Back to the docs home](../README.md)

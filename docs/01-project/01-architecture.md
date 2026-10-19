@@ -27,11 +27,14 @@ A track module supplies the behavior for its visualization, including fetching, 
 | `packages/reader`       | Genomic file reading, usable independently of the browser.                                                                    |
 | `packages/ui`           | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
 | `apps/web`              | Next.js product routes, saved sessions, generic workspace layout, command handlers, and command proxy.                        |
+| `apps/contracts`        | Private app command contracts, wire schemas, and shared region schema.                                                        |
 | `apps/server`           | Optional persistent MCP server: MCP tools and command delivery to tabs. No database.                                          |
 | `packages/create`       | A starter generator for developers building a browser application.                                                            |
 | `packages/render-probe` | Internal test utility that measures React render counts for render budgets. Private and unpublished.                          |
 
 Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The web app is one such application, not the source of every shared component's requirements.
+
+`packages/` contains the embeddable browser libraries and their tooling. `apps/` contains the applications and private packages shared by those applications, including `apps/contracts`. Applications import that package through `@weng-lab/contracts`, never through another app's source. Saved-session schemas and runtime behavior stay with their app owners.
 
 The archived playground and standalone applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace. Ongoing product development belongs in `apps/web` and `apps/server`.
 
@@ -39,7 +42,7 @@ The web app owns concrete Next.js routes for `/browser/[sessionId]`, `/collectio
 
 The shared route layout composes `AppProviders`, `Workspace`, and route children. `AppProviders` owns the browser session and command connection above the routes. `Workspace` owns navigation and panel state, while each route supplies its title, panels, and center content through `WorkspacePage`. Navigation entries contain links and labels, not page components. The shared layout preserves the session and panel state across route changes; page-local component state may reset. Refreshing creates new stores and restores the session named in the URL before the browser view appears.
 
-The web app saves sessions in PostgreSQL through its own routes. The optional MCP server uses Hono on Node.js. It exposes commands to agents as MCP tools and delivers each call over SSE to the tab connected for that session. `server.ts` wires the routes, tab connections, and MCP endpoint together. Command contracts live in `apps/web/commands/contracts.ts` and reuse the region schema in `apps/web/sessions/snapshot.ts`. The MCP server imports only these pure modules to define its tools; the web app's handlers run them against the same browser stores as the UI. Open tabs and pending replies live in memory, keyed by session ID, and only the first tab to connect receives a session's commands. The server has no database. Next.js rewrites `/mcp` and `/rpc/:id` to it.
+The web app saves sessions in PostgreSQL through its own routes. The optional MCP server uses Hono on Node.js. It exposes commands to agents as MCP tools and delivers each call over SSE to the tab connected for that session. `server.ts` wires the routes, tab connections, and MCP endpoint together. Command contracts, wire schemas, and the shared region schema live in the private `@weng-lab/contracts` package in `apps/contracts`. Both apps depend on it through the workspace; the web app's handlers run them against the same browser stores as the UI. Open tabs and pending replies live in memory, keyed by session ID, and only the first tab to connect receives a session's commands. The server has no database. Next.js rewrites `/mcp` and `/rpc/:id` to it.
 
 The local MCP server requires no credentials. The last saved snapshot wins across tabs. MCP authentication, conflict resolution, ACP, and Eve integrations are not implemented. See the [web app guide](../../apps/web/README.md) for development and deployment instructions.
 

@@ -1,6 +1,6 @@
 import type { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { commandReplySchema, sessionIdSchema } from "../../../web/commands/contracts.ts";
+import { commandReplySchema, sessionIdSchema } from "@weng-lab/contracts";
 import type { TabConnections } from "../tabs.ts";
 import { handleHttpError, type HttpMiddleware } from "./middleware.ts";
 

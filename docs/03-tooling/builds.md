@@ -20,4 +20,4 @@ Build with `pnpm exec turbo run build --filter=@weng-lab/web` or `pnpm exec turb
 
 The web app contains its workspace layout and domain pages directly. It has no separate workspace application dependency. Local and cloud deployments build the same Next.js app; the browser server remains an independent persistent process.
 
-The MCP server imports the web app's pure command contracts and snapshot schema directly. Its TypeScript build emits those modules alongside the server under `apps/server/dist/`. Its package-local Turbo configuration tracks both files for build, typecheck, and test caching; it has no dependency on the web package or its Next.js build.
+The web app and MCP server depend on the private `@weng-lab/contracts` package in `apps/contracts`. It builds command contracts, wire schemas, and the shared region schema to ESM and declarations in its own `dist/`. Turbo builds this workspace dependency first and tracks its changes for both apps. The MCP server emits only its own source to `apps/server/dist/` and starts at `dist/main.js`; it has no dependency on the web package or its Next.js build.

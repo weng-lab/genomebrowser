@@ -1,31 +1,8 @@
 {
   "extends": ["//"],
   "tasks": {
-    "build": {
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/apps/web/commands/contracts.ts",
-        "$TURBO_ROOT$/apps/web/sessions/snapshot.ts",
-        ".env",
-        ".env.*"
-      ]
-    },
     "typecheck": {
-      "outputs": [],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/apps/web/commands/contracts.ts",
-        "$TURBO_ROOT$/apps/web/sessions/snapshot.ts"
-      ]
-    },
-    "test": {
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/apps/web/commands/contracts.ts",
-        "$TURBO_ROOT$/apps/web/sessions/snapshot.ts",
-        ".env",
-        ".env.*"
-      ]
+      "outputs": []
     }
   }
 }

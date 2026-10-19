@@ -27,6 +27,7 @@
     "@mui/material": "catalog:",
     "@mui/material-nextjs": "catalog:",
     "@tanstack/react-hotkeys": "^0.13.0",
+    "@weng-lab/contracts": "workspace:*",
     "@weng-lab/genomebrowser": "workspace:*",
     "@weng-lab/genomebrowser-tracks": "workspace:*",
     "@weng-lab/genomebrowser-ui": "workspace:*",

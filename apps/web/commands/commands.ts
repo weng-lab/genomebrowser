@@ -1,4 +1,9 @@
-import { commands, type Command, type CommandMessage, type CommandResult } from "./contracts.ts";
+import {
+  commands,
+  type Command,
+  type CommandMessage,
+  type CommandResult,
+} from "@weng-lab/contracts";
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
 

@@ -1,4 +1,4 @@
-import { commandMessageSchema, type CommandResult } from "./contracts.ts";
+import { commandMessageSchema, type CommandResult } from "@weng-lab/contracts";
 import { executeCommand, type CommandCapabilities } from "./commands";
 
 export type RemoteControlState = "off" | "connecting" | "connected";
