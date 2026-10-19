@@ -7,8 +7,8 @@
     "ui": "pnpm --filter @weng-lab/genomebrowser-ui",
     "reader": "pnpm --filter @weng-lab/genomic-reader",
     "web": "pnpm --filter @weng-lab/web",
-    "server": "pnpm --filter @weng-lab/browser-server",
-    "dev": "turbo run dev --filter=@weng-lab/web --filter=@weng-lab/browser-server",
+    "server": "pnpm --filter @weng-lab/mcp",
+    "dev": "turbo run dev --filter=@weng-lab/web --filter=@weng-lab/mcp",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
@@ -23,7 +23,7 @@
     "publish:dry-run": "pnpm publish -r --tag latest --dry-run --no-git-checks",
     "publish:stable": "pnpm publish -r --tag latest",
     "dev:web": "turbo run dev --filter=@weng-lab/web",
-    "dev:server": "turbo run dev --filter=@weng-lab/browser-server"
+    "dev:server": "turbo run dev --filter=@weng-lab/mcp"
   },
   "devDependencies": {
     "oxfmt": "catalog:",

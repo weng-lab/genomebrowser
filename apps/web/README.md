@@ -137,8 +137,8 @@ Run `pnpm verify` for the workspace check. React changes also follow the [render
 ```sh
 pnpm exec turbo run build --filter=@weng-lab/web
 pnpm --filter @weng-lab/web start
-pnpm exec turbo run build --filter=@weng-lab/browser-server
-pnpm --filter @weng-lab/browser-server start
+pnpm exec turbo run build --filter=@weng-lab/mcp
+pnpm --filter @weng-lab/mcp start
 ```
 
 Run Next.js and, for agent control, the MCP server as separate processes. Set `GB_SERVER_URL` before `next build` if the server is not at `http://127.0.0.1:3001`. For an HPC deployment reached through an SSH tunnel, forwarding web port 3000 is sufficient because the rewrites reach the server on loopback. Set `GB_ALLOWED_ORIGINS` if the browser uses a different web origin.

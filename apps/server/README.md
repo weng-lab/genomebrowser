@@ -1,6 +1,6 @@
 # Browser server
 
-`@weng-lab/browser-server` is the optional MCP server. It exposes app commands to agents as MCP tools and delivers each call over SSE to the browser tab connected for the given session. The tab runs the command and posts the result back. The server keeps open tabs and pending commands in memory. It has no database, saves nothing, and never reads sessions.
+`@weng-lab/mcp` is the optional MCP server. It exposes app commands to agents as MCP tools and delivers each call over SSE to the browser tab connected for the given session. The tab runs the command and posts the result back. The server keeps open tabs and pending commands in memory. It has no database, saves nothing, and never reads sessions.
 
 Use Node.js 24 or newer. From the repository root, run `pnpm dev:server`, or `pnpm dev` to start web and server together. The browser works without it. See the [web app guide](../web/README.md#control-a-browser-tab) for MCP client setup.
 
@@ -39,4 +39,4 @@ Only the first tab to open a session's stream receives its commands; later tabs 
 
 Adding a command needs no server change. See [Add a command](../../packages/agent-commands/README.md#add-a-command).
 
-Build with `pnpm exec turbo run build --filter=@weng-lab/browser-server`, then run `pnpm --filter @weng-lab/browser-server start`. Host one persistent instance that supports long-lived SSE connections.
+Build with `pnpm exec turbo run build --filter=@weng-lab/mcp`, then run `pnpm --filter @weng-lab/mcp start`. Host one persistent instance that supports long-lived SSE connections.

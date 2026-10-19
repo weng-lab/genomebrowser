@@ -16,6 +16,6 @@ The active applications are `apps/web` and `apps/server`. Archived applications 
 
 Run `pnpm dev` for the Next.js frontend on port 3000 and the optional MCP server on loopback port 3001. Use `pnpm dev:web` or `pnpm dev:server` to run either process separately. These filtered Turbo `dev` tasks depend on `^build`, so a clean checkout builds dependency outputs first. Development tasks are persistent and uncached.
 
-Build with `pnpm exec turbo run build --filter=@weng-lab/web` or `pnpm exec turbo run build --filter=@weng-lab/browser-server`. See the [web guide](../../apps/web/README.md) for configuration, commands, and deployment, and the [server README](../../apps/server/README.md) for runtime requirements.
+Build with `pnpm exec turbo run build --filter=@weng-lab/web` or `pnpm exec turbo run build --filter=@weng-lab/mcp`. See the [web guide](../../apps/web/README.md) for configuration, commands, and deployment, and the [server README](../../apps/server/README.md) for runtime requirements.
 
 The web app contains its workspace layout and domain pages directly. It has no separate workspace application dependency. Local and cloud deployments build the same Next.js app; the browser server remains an independent persistent process.
