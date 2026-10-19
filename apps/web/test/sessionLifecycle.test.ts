@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { SessionSnapshot } from "@weng-lab/session-snapshot";
+import type { SessionSnapshot } from "../sessions/snapshot.ts";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../assemblies/assemblies";
 import { snapshot } from "../browser/snapshot";

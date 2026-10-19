@@ -3,7 +3,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { once } from "node:events";
 import { connect, createServer, type AddressInfo } from "node:net";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
-import type { CommandMessage } from "@weng-lab/agent-commands";
+import type { CommandMessage } from "../../web/commands/contracts.ts";
 import { afterEach, beforeEach, expect, test } from "vitest";
 import { createBrowserServer } from "../src/server.ts";
 

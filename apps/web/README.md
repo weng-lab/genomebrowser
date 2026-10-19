@@ -128,7 +128,7 @@ To add a product page:
 
 There is no central page registry or page export step. See [Pages and panels](docs/02-guides/pages.md) for a route example.
 
-A command's contract lives in `@weng-lab/agent-commands`, and its implementation in `commands/commands.ts`. The MCP server needs no change. Follow [Add a command](../../packages/agent-commands/README.md#add-a-command).
+A command's contract lives in `commands/contracts.ts`, and its implementation in `commands/commands.ts`. The MCP server needs no change. Follow [Add a command](commands/README.md#add-a-command).
 
 Run `pnpm verify` for the workspace check. React changes also follow the [render verification guidance](../../docs/02-contributing/testing.md). The [app docs](docs/README.md) describe workspace components and route composition.
 

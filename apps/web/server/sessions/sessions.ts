@@ -1,5 +1,5 @@
 import "server-only";
-import { sessionSnapshotSchema } from "@weng-lab/session-snapshot";
+import { sessionSnapshotSchema } from "../../sessions/snapshot.ts";
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { z } from "zod";

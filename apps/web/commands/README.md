@@ -1,14 +1,14 @@
 # Agent commands
 
-`@weng-lab/agent-commands` is a private, browser-safe package with the contracts for commands agents send to the app. A contract has the MCP tool name, the description agents read, a Zod schema for parameters, and a Zod schema for the successful result. The package also has the wire schemas for a delivered command and the tab's reply. It depends only on Zod and `@weng-lab/session-snapshot`, whose region schema it reuses.
+`contracts.ts` is a browser-safe module with the contracts for commands agents send to the app. A contract has the MCP tool name, the description agents read, a Zod schema for parameters, and a Zod schema for the successful result. The module also has the wire schemas for a delivered command and the tab's reply. It depends only on Zod and the region schema in `../sessions/snapshot.ts`.
 
-The MCP server in `apps/server` turns each contract into a tool. The web app implements each one in `apps/web/commands/commands.ts`. Neither imports the other.
+The MCP server in `apps/server` turns each contract into a tool. The web app implements each one in `apps/web/commands/commands.ts`. The server imports these pure contracts directly. Keep them free of Next.js, React, browser stores, and server-only dependencies.
 
 The implemented command is `set_region`. Its region is zero-based and half-open. It returns the region shown and whether the browser clamped it.
 
 ## Add a command
 
-1. Add a contract in `src/index.ts` and list it in `commands`:
+1. Add a contract in `contracts.ts` and list it in `commands`:
 
    ```ts
    export const setRegion = {
@@ -25,4 +25,4 @@ The implemented command is `set_region`. Its region is zero-based and half-open.
 
 3. Add a web test that sends the command to the tab, following `apps/web/test/remoteControl.test.tsx`.
 
-The MCP server picks up the new tool on restart. Build this package with `pnpm exec turbo run build --filter=@weng-lab/agent-commands`; Turbo builds it before its consumers.
+The MCP server picks up the new tool on restart. Its build compiles these contracts and the snapshot schema into its own output. Its Turbo tasks track both files without depending on the web app build.

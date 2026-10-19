@@ -1,4 +1,4 @@
-import { regionSchema } from "@weng-lab/session-snapshot";
+import { regionSchema } from "../sessions/snapshot.ts";
 import { z } from "zod";
 
 /**

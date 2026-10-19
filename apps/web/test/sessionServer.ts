@@ -1,4 +1,4 @@
-import type { SessionSnapshot } from "@weng-lab/session-snapshot";
+import type { SessionSnapshot } from "../sessions/snapshot.ts";
 import { vi } from "vitest";
 import { maxSessionBytes, sessionInputSchema } from "../sessions/schema";
 

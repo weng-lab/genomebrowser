@@ -1,4 +1,4 @@
-import { sessionSnapshotSchema } from "@weng-lab/session-snapshot";
+import { sessionSnapshotSchema } from "./snapshot.ts";
 import { z } from "zod";
 
 /** Saved sessions are named by database-generated UUIDs. */

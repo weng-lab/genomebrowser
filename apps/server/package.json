@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/main.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
+    "start": "node dist/server/src/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "lint": "oxlint .",
@@ -17,7 +17,6 @@
   "dependencies": {
     "@hono/node-server": "^2.1.4",
     "@modelcontextprotocol/server": "^2.3.1",
-    "@weng-lab/agent-commands": "workspace:*",
     "hono": "^4.13.13",
     "zod": "catalog:"
   },

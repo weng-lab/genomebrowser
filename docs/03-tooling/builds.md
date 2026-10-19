@@ -19,3 +19,5 @@ Run `pnpm dev` for the Next.js frontend on port 3000 and the optional MCP server
 Build with `pnpm exec turbo run build --filter=@weng-lab/web` or `pnpm exec turbo run build --filter=@weng-lab/mcp`. See the [web guide](../../apps/web/README.md) for configuration, commands, and deployment, and the [server README](../../apps/server/README.md) for runtime requirements.
 
 The web app contains its workspace layout and domain pages directly. It has no separate workspace application dependency. Local and cloud deployments build the same Next.js app; the browser server remains an independent persistent process.
+
+The MCP server imports the web app's pure command contracts and snapshot schema directly. Its TypeScript build emits those modules alongside the server under `apps/server/dist/`. Its package-local Turbo configuration tracks both files for build, typecheck, and test caching; it has no dependency on the web package or its Next.js build.

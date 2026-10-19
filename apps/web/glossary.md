@@ -40,13 +40,13 @@ The MCP server runs on loopback without tokens or login. Host and origin checks 
 
 ### Command and reply
 
-A command is an app action an agent can request. Its **command contract**, in `@weng-lab/agent-commands`, gives the MCP tool name, description, parameter schema, and result schema. The web app's **command handler** in `commands/commands.ts` carries it out. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
+A command is an app action an agent can request. Its **command contract**, in `commands/contracts.ts`, gives the MCP tool name, description, parameter schema, and result schema. The web app's **command handler** in `commands/commands.ts` carries it out. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
 
 A **pending command** has been sent to a tab and is waiting for its reply. The per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
 
 ### Session snapshot
 
-The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `@weng-lab/session-snapshot`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `sessions/snapshot.ts`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
 
 ### Save status
 

@@ -1,5 +1,5 @@
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
-import { commands, sessionIdSchema } from "@weng-lab/agent-commands";
+import { commands, sessionIdSchema } from "../../web/commands/contracts.ts";
 import { z } from "zod";
 import type { TabConnections } from "./tabs.ts";
 

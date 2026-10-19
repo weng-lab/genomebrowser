@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { createPendingCommands } from "../src/pendingCommands.ts";
-import type { CommandMessage } from "@weng-lab/agent-commands";
+import type { CommandMessage } from "../../web/commands/contracts.ts";
 
 const region = { chromosome: "chr1", start: 10, end: 100 };
 const command = { name: "set_region" as const, params: { region } };
