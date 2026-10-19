@@ -1,6 +1,6 @@
-import type { SessionSnapshot } from "../sessions/snapshot.ts";
+import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { vi } from "vitest";
-import { maxSessionBytes, sessionInputSchema } from "../sessions/schema";
+import { maxSessionBytes, sessionInputSchema } from "../features/sessions/schema";
 
 type Request = {
   method: string;

@@ -1,15 +1,15 @@
 import type { ReactNode } from "react";
-import { Workspace } from "../../components/workspace/Workspace";
+import { Workspace } from "../../shared/workspace/Workspace";
 import {
   createIdentity,
   identityMode,
   mockUserCookie,
   mockUserIds,
   signInPath,
-} from "../../server/identity";
-import { AccountControls, type Account } from "./AccountControls";
-import { AppProviders } from "./AppProviders";
-import { navigation } from "./navigation";
+} from "../../features/account/server/identity";
+import { AccountControls, type Account } from "../../features/account/components/AccountControls";
+import { AppProviders } from "../../composition/AppProviders";
+import { navigation } from "../../composition/navigation";
 
 export default async function WorkspaceLayout({ children }: { children: ReactNode }) {
   // Clerk reports the signed-in user to the client itself; mock users exist only on the server.

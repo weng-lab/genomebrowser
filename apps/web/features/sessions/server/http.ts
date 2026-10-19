@@ -1,7 +1,6 @@
 import "server-only";
-import { maxSessionBytes, type SessionErrorCode } from "../../sessions/schema";
-import { getSessions } from "../composition";
-import { parseSessionInput, SessionError, type Sessions } from "./sessions";
+import { maxSessionBytes, type SessionErrorCode } from "../schema";
+import { parseSessionInput, SessionError } from "./sessions";
 
 const statuses: Record<SessionErrorCode, number> = {
   INVALID_INPUT: 400,
@@ -15,10 +14,10 @@ const statuses: Record<SessionErrorCode, number> = {
  * Session errors keep their code; any other failure is logged and reported
  * without detail.
  */
-export async function respond(operation: (sessions: Sessions) => Promise<unknown>) {
+export async function respond(operation: () => Promise<unknown>) {
   const headers = { "Cache-Control": "no-store" };
   try {
-    const result = await operation(getSessions());
+    const result = await operation();
     return result === undefined
       ? new Response(null, { status: 204, headers })
       : Response.json(result, { headers });

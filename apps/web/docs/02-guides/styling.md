@@ -32,7 +32,7 @@ For text in other elements, spread the internal `textBoxTrim` style onto the ele
 
 ```tsx
 import Box from "@mui/material/Box";
-// Example from a module directly inside components/workspace/.
+// Example from a module directly inside shared/workspace/.
 import { textBoxTrim } from "./theme";
 
 <Box component="span" sx={{ ...textBoxTrim, display: "block" }}>

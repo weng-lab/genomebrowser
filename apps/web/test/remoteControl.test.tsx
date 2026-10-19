@@ -5,9 +5,9 @@ import { route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { act, useLayoutEffect, useState } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createStores } from "../assemblies/assemblies";
-import { snapshot } from "../browser/snapshot";
-import { useSession } from "../sessions/SessionProvider";
+import { createStores } from "../features/assemblies/assemblies";
+import { snapshot } from "../features/sessions/storeSnapshot";
+import { useSession } from "../features/sessions/SessionProvider";
 import { installSessionServer, type SessionServer } from "./sessionServer";
 
 // EventSource and fetch are the external boundaries. The session owner, remote

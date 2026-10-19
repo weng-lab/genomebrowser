@@ -1,8 +1,8 @@
 import "server-only";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { createIdentity, identityMode } from "./identity";
-import { createSessions, type Sessions } from "./sessions/sessions";
+import { createIdentity, identityMode } from "../features/account/server/identity";
+import { createSessions, type Sessions } from "../features/sessions/server/sessions";
 
 let sessions: Sessions | undefined;
 

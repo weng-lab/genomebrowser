@@ -1,6 +1,6 @@
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
-import { snapshot } from "../browser/snapshot";
+import { snapshot } from "./storeSnapshot";
 import type { Session, SessionInput } from "./schema";
 import { SessionRequestError, type SessionTransport } from "./transport";
 

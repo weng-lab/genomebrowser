@@ -1,8 +1,8 @@
-import { WorkspacePage } from "../../../components/workspace/WorkspacePage";
-import { AgentPanel } from "./AgentPanel";
+import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
+import { AgentPanel } from "../../agent/components/AgentPanel";
 import { BrowserView } from "./BrowserView";
-import { SessionName } from "./SessionName";
-import { SessionPanel } from "./SessionPanel";
+import { SessionName } from "../../sessions/components/SessionName";
+import { SessionPanel } from "../../sessions/components/SessionPanel";
 
 /** `sessionId` is the session in the URL, which may still be opening. */
 export function BrowserPage({ sessionId }: { sessionId?: string }) {

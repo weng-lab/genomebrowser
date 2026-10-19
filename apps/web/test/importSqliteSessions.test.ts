@@ -7,7 +7,7 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { importSqliteSessions } from "../scripts/importSqliteSessions";
-import { createSessions } from "../server/sessions/sessions";
+import { createSessions } from "../features/sessions/server/sessions";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 describe.skipIf(!testServerUrl)("importing SQLite sessions", () => {

@@ -14,8 +14,8 @@ import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { useShallow } from "zustand/react/shallow";
 import { useState, type FormEvent } from "react";
-import { supportedAssemblies } from "../../../assemblies/assemblies";
-import { useSession } from "../../../sessions/SessionProvider";
+import { supportedAssemblies } from "../../assemblies/assemblies";
+import { useSession } from "../SessionProvider";
 
 const statusMessages = {
   loading: "Loading saved sessions…",

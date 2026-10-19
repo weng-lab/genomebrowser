@@ -5,8 +5,8 @@ import { route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createStores } from "../assemblies/assemblies";
-import { snapshot } from "../browser/snapshot";
+import { createStores } from "../features/assemblies/assemblies";
+import { snapshot } from "../features/sessions/storeSnapshot";
 import { installSessionServer, type SessionServer } from "./sessionServer";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =

@@ -1,6 +1,6 @@
 # Getting started
 
-Follow the [app README](../README.md#run-locally) to start Next.js and the persistent browser server. Open `/browser`, which redirects to the default `local` session, then use the sidebar to visit `/collections` and `/settings`.
+Follow the [app README](../README.md#run-locally) to start Next.js and the persistent browser server. Open `/browser`, which shows the open session or an empty state, then use the sidebar to visit `/collections` and `/settings`.
 
 The shared route layout composes `AppProviders`, `Workspace`, and route children. `AppProviders` owns browser-only initialization, browser and track stores, and the command connection. `Workspace` supplies the generic frame and persistent panel state. Each route renders its own content through `WorkspacePage`.
 

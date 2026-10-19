@@ -12,11 +12,11 @@
  */
 import { DatabaseSync } from "node:sqlite";
 import { parseArgs } from "node:util";
-import { sessionSnapshotSchema } from "../sessions/snapshot.ts";
+import { sessionSnapshotSchema } from "../features/sessions/snapshot.ts";
 import { and, eq, sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { sessionsTable } from "../server/sessions/table.ts";
+import { sessionsTable } from "../features/sessions/server/table.ts";
 
 export async function importSqliteSessions({
   db,

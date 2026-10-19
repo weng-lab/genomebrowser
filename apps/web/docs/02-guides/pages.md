@@ -1,15 +1,15 @@
 # Pages and panels
 
-A route owns its title, optional side panels, and center content. The generic workspace components own their placement, sizing, and animation. Keep domain components beside the route's `page.tsx`; `components/workspace/` must not import them or browser stores.
+A route owns its title, optional side panels, and center content. The generic workspace components own their placement, sizing, and animation. Keep domain components in their owning `features/` folder; `shared/workspace/` must not import them or browser stores.
 
 ## Add a page
 
 Create a normal Next.js server page at `app/(workspace)/reports/page.tsx`. Import interactive client components where needed and pass their elements to `WorkspacePage`:
 
 ```tsx
-import { WorkspacePage } from "../../../components/workspace/WorkspacePage";
-import { ReportList } from "./ReportList";
-import { ReportView } from "./ReportView";
+import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
+import { ReportList } from "../../../features/reports/components/ReportList";
+import { ReportView } from "../../../features/reports/components/ReportView";
 
 export default function ReportsPage() {
   return (
@@ -20,7 +20,7 @@ export default function ReportsPage() {
 }
 ```
 
-Add the route's link to `app/(workspace)/navigation.tsx` using `href`, `label`, `icon`, and optional `placement: "bottom"`. Entries appear in list order within their group. Titles and panel elements stay in the route. No central page registry or export is required.
+Add the route's link to `composition/navigation.tsx` using `href`, `label`, `icon`, and optional `placement: "bottom"`. Entries appear in list order within their group. Titles and panel elements stay in the route. No central page registry or export is required.
 
 Every route has center content. Use a left panel for navigation within the page and a right panel for a tool used alongside it. An absent side panel has no toggle. A supplied panel can be collapsed and reopened by the user.
 

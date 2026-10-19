@@ -6,11 +6,11 @@ Terms for the Next.js browser product, saved sessions, the MCP server, and gener
 
 ### Workspace
 
-The generic full-window layout in `components/workspace/`. It renders navigation and owns panel state and the theme. It does not import domain components or browser state.
+The generic full-window layout in `shared/workspace/`. It renders navigation and owns panel state and the theme. It does not import domain components or browser state.
 
 ### WorkspacePage
 
-The route composition component. Each route supplies a title, optional subtitle and side panels, and center children. Domain components live beside their route's `page.tsx`.
+The route composition component. Each route supplies a title, optional subtitle and side panels, and center children. Domain components and operations live in `features/`; `app/` owns thin Next.js routes and layout orchestration. `composition/` wires concrete providers, navigation, and server dependencies.
 
 ### AppProviders
 
@@ -18,7 +18,7 @@ The shared client provider composition above routes. For each account, it mounts
 
 ### Session owner
 
-`createSession` in `sessions/session.ts`, provided by `SessionProvider` and read with `useSession`. It lives as long as the workspace for one account. It lists saved sessions, owns the **open session** and its live browser and track stores, runs autosave, and performs open, create, rename, remove, and close as complete operations. See [Sessions](README.md#sessions).
+`createSession` in `features/sessions/session.ts`, provided by `SessionProvider` and read with `useSession`. It lives as long as the workspace for one account. It lists saved sessions, owns the **open session** and its live browser and track stores, runs autosave, and performs open, create, rename, remove, and close as complete operations. See [Sessions](README.md#sessions).
 
 ### Product pages
 
@@ -40,13 +40,13 @@ The MCP server runs on loopback without tokens or login. Host and origin checks 
 
 ### Command and reply
 
-A command is an app action an agent can request. Its **command contract**, in `@weng-lab/contracts`, gives the MCP tool name, description, parameter schema, and result schema. The web app's **command handler** in `commands/commands.ts` carries it out. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
+A command is an app action an agent can request. Its **command contract**, in `@weng-lab/contracts`, gives the MCP tool name, description, parameter schema, and result schema. The web app's **command handler** in `features/agent/commands.ts` carries it out. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
 
 A **pending command** has been sent to a tab and is waiting for its reply. The per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
 
 ### Session snapshot
 
-The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `sessions/snapshot.ts`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `features/sessions/snapshot.ts`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
 
 ### Save status
 
@@ -120,7 +120,7 @@ The border of a side panel that faces the center panel. Drag it to resize the pa
 
 ### Navigation entry
 
-A sidebar link in `app/(workspace)/navigation.tsx` containing `href`, `label`, `icon`, and optional `placement`. Entries contain no page or panel components. Next.js owns routes, redirects, and unknown-route 404s.
+A sidebar link in `composition/navigation.tsx` containing `href`, `label`, `icon`, and optional `placement`. Entries contain no page or panel components. Next.js owns routes, redirects, and unknown-route 404s.
 
 ### Route
 

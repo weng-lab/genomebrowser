@@ -5,9 +5,9 @@ import { route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createStores } from "../assemblies/assemblies";
-import { useRemoteControl } from "../commands/RemoteControl";
-import { snapshot } from "../browser/snapshot";
+import { createStores } from "../features/assemblies/assemblies";
+import { useRemoteControl } from "../features/agent/RemoteControl";
+import { snapshot } from "../features/sessions/storeSnapshot";
 import { installSessionServer, type SessionServer } from "./sessionServer";
 
 // The workspace composition, session owner, autosave, panels, and browser are real.

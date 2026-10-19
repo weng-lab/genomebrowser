@@ -62,7 +62,7 @@ The browser calls these route handlers. Each derives the user from the request a
 
 Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `INVALID_INPUT`, 401 `UNAUTHENTICATED`, 404 `NOT_FOUND` (including another user's session), or 409 `ASSEMBLY_CHANGED`. Other failures return 500 without detail and log the error on the server.
 
-Server code can use the same operations directly. `server/composition.ts` exposes `getSessions()`, which only server code may import:
+Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
 ```ts
 const sessions = getSessions();
@@ -72,7 +72,7 @@ await sessions.update(saved.id, { name: saved.name, snapshot: edited });
 
 ### Database
 
-`compose.yaml` runs PostgreSQL on `127.0.0.1:5432` with a named volume, matching `DATABASE_URL` in the example file. `pnpm web db:stop` stops it. Any PostgreSQL server works if you change `DATABASE_URL`. After changing `server/sessions/table.ts`, run `pnpm web db:generate` and commit the new files in `drizzle/`.
+`compose.yaml` runs PostgreSQL on `127.0.0.1:5432` with a named volume, matching `DATABASE_URL` in the example file. `pnpm web db:stop` stops it. Any PostgreSQL server works if you change `DATABASE_URL`. After changing `features/sessions/server/table.ts`, run `pnpm web db:generate` and commit the new files in `drizzle/`.
 
 The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a connection that may create databases, such as `postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postgres` with the compose database. Each run creates and drops its own database. Without the variable, the tests are skipped locally and fail in CI, which runs a PostgreSQL service.
 
@@ -108,6 +108,8 @@ The tab opens an SSE stream at `/rpc/:id`, which Next.js forwards to the MCP ser
 
 ## Change the product
 
+`app/` owns Next.js routes and layout orchestration. `features/` owns product UI and operations. `composition/` wires concrete providers, navigation, and server dependencies; features do not import it.
+
 The shared `app/(workspace)/layout.tsx` resolves the account, then wraps route children in `AppProviders` and `Workspace`. `AppProviders` mounts one `SessionProvider` per account, which owns saved sessions and the open session for the workspace's lifetime. Components read it with `useSession`, selecting one value at a time:
 
 ```tsx
@@ -116,19 +118,19 @@ const open = useSession((session) => session.open);
 void open(id); // Saves the open session first; reports failures in `error`.
 ```
 
-`open`, `create`, `rename`, `remove`, and `close` are complete operations; `close` saves or discards the open session before an account change. They save, request, replace stores, and update the URL themselves, so panels only call them. The session feature lives in `sessions/`: `session.ts` owns the lifecycle, `autosave.ts` the Effect save worker, and `transport.ts` the requests to the session routes. `assemblies/assemblies.ts` lists supported assemblies and creates their default stores. `browser/snapshot.ts` converts stores to and from snapshots. `commands/` holds the optional remote control: `RemoteControl.tsx` attaches `remoteControl.ts` to the open session, and `commands.ts` implements each command. The browser page's views and panels belong in `app/(workspace)/browser/`.
+`open`, `create`, `rename`, `remove`, and `close` are complete operations; `close` saves or discards the open session before an account change. They save, request, replace stores, and update the URL themselves, so panels only call them. The session feature lives in `features/sessions/`: `session.ts` owns the lifecycle, `autosave.ts` the Effect save worker, and `transport.ts` the requests to the session routes. `features/assemblies/assemblies.ts` lists supported assemblies and creates their default stores. `features/sessions/storeSnapshot.ts` converts stores to and from snapshots. `features/agent/` holds the optional remote control: `RemoteControl.tsx` attaches `remoteControl.ts` to the open session, and `commands.ts` implements each command. Browser views belong in `features/browser/`; session and agent panels belong to their respective features.
 
-Generic layout, panels, and theme live in `components/workspace/` and must not import domain code. `Workspace` owns the lifetime of panel state defined in `panels/panelState.tsx`. The `frame/` group contains the shared header, sidebar, and title rows. Panel sizing and collapse behavior belong in `panels/`, where `SidePanel` uses `Resizable`; transition enablement lives in `useTransitionEnabled.ts`.
+Generic layout, panels, and theme live in `shared/workspace/` and must not import domain code. `Workspace` owns the lifetime of panel state defined in `panels/panelState.tsx`. The `frame/` group contains the shared header, sidebar, and title rows. Panel sizing and collapse behavior belong in `panels/`, where `SidePanel` uses `Resizable`; transition enablement lives in `useTransitionEnabled.ts`.
 
 To add a product page:
 
-1. Create `app/(workspace)/<name>/page.tsx` as a normal Next.js server page. Render `WorkspacePage` with the page's title, optional subtitle and side panels, and center children. Colocate domain components with the route and mark interactive components as client components.
-2. Add a link to `app/(workspace)/navigation.tsx` with `href`, `label`, `icon`, and optional `placement: "bottom"`. Navigation contains no panel definitions or page components.
+1. Create `app/(workspace)/<name>/page.tsx` as a normal Next.js server page. Render `WorkspacePage` with the page's title, optional subtitle and side panels, and center children. Keep domain components in `features/<name>/components/` and mark interactive components as client components.
+2. Add a link to `composition/navigation.tsx` with `href`, `label`, `icon`, and optional `placement: "bottom"`. Navigation contains no panel definitions or page components.
 3. Keep the existing shared layout so navigation preserves the open session and panel state. Route-local component state may reset when navigating away. Refreshing restores the session in the URL from its last save.
 
 There is no central page registry or page export step. See [Pages and panels](docs/02-guides/pages.md) for a route example.
 
-A command's contract lives in `@weng-lab/contracts`, and its implementation in `commands/commands.ts`. The MCP server needs no change. Follow [Add a command](../contracts/README.md#add-a-command).
+A command's contract lives in `@weng-lab/contracts`, and its implementation in `features/agent/commands.ts`. The MCP server needs no change. Follow [Add a command](../contracts/README.md#add-a-command).
 
 Run `pnpm verify` for the workspace check. React changes also follow the [render verification guidance](../../docs/02-contributing/testing.md). The [app docs](docs/README.md) describe workspace components and route composition.
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "../../../sessions/SessionProvider";
+import { useSession } from "../SessionProvider";
 
 export function SessionName() {
   return useSession((session) => session.active?.name) ?? null;

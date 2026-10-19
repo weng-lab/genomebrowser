@@ -1,5 +1,5 @@
 import "server-only";
-import { sessionSnapshotSchema } from "../../sessions/snapshot.ts";
+import { sessionSnapshotSchema } from "../snapshot.ts";
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { z } from "zod";
@@ -10,8 +10,8 @@ import {
   type Session,
   type SessionErrorCode,
   type SessionInput,
-} from "../../sessions/schema";
-import type { Identity } from "../identity";
+} from "../schema";
+import type { Identity } from "../../account/server/identity";
 import { sessionsTable } from "./table";
 
 export class SessionError extends Error {

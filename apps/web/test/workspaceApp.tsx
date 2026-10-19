@@ -1,13 +1,13 @@
 import { useSyncExternalStore, type ReactNode } from "react";
 import { vi } from "vitest";
-import { AccountControls, type Account } from "../app/(workspace)/AccountControls";
-import { AppProviders } from "../app/(workspace)/AppProviders";
-import { BrowserPage } from "../app/(workspace)/browser/BrowserPage";
+import { AccountControls, type Account } from "../features/account/components/AccountControls";
+import { AppProviders } from "../composition/AppProviders";
+import { BrowserPage } from "../features/browser/components/BrowserPage";
 import BrowserIndexPage from "../app/(workspace)/browser/page";
 import CollectionsPage from "../app/(workspace)/collections/page";
-import { navigation } from "../app/(workspace)/navigation";
+import { navigation } from "../composition/navigation";
 import SettingsPage from "../app/(workspace)/settings/page";
-import { Workspace } from "../components/workspace/Workspace";
+import { Workspace } from "../shared/workspace/Workspace";
 
 const history = vi.hoisted(() => {
   const listeners = new Set<() => void>();

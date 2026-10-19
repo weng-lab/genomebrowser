@@ -4,7 +4,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
-import { useRemoteControl } from "../../../commands/RemoteControl";
+import { useRemoteControl } from "../../agent/RemoteControl";
 
 const stateLabels = { off: "Off", connecting: "Connecting…", connected: "Connected" };
 

@@ -2,10 +2,10 @@
 
 import { useAuth } from "@clerk/nextjs";
 import type { ReactNode } from "react";
-import { RemoteControlProvider } from "../../commands/RemoteControl";
-import { WorkspaceSkeleton } from "../../components/workspace/WorkspaceSkeleton";
-import { SessionProvider } from "../../sessions/SessionProvider";
-import type { Account } from "./AccountControls";
+import { RemoteControlProvider } from "../features/agent/RemoteControl";
+import { WorkspaceSkeleton } from "../shared/workspace/WorkspaceSkeleton";
+import { SessionProvider } from "../features/sessions/SessionProvider";
+import type { Account } from "../features/account/components/AccountControls";
 
 /**
  * Workspace state for the signed-in account. The account controls save or discard

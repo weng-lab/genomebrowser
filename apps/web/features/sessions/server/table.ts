@@ -1,4 +1,4 @@
-import type { SessionSnapshot } from "../../sessions/snapshot.ts";
+import type { SessionSnapshot } from "../snapshot.ts";
 import { index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const sessionsTable = pgTable(

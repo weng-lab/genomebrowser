@@ -1,10 +1,10 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { identityMode } from "../server/identity";
-import { createSessions } from "../server/sessions/sessions";
-import type { SessionInput } from "../sessions/schema";
-import { sessionsTable } from "../server/sessions/table";
+import { identityMode } from "../features/account/server/identity";
+import { createSessions } from "../features/sessions/server/sessions";
+import type { SessionInput } from "../features/sessions/schema";
+import { sessionsTable } from "../features/sessions/server/table";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 // Real PostgreSQL with the committed migrations; see sessionFixtures.ts.

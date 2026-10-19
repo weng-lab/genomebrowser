@@ -3,8 +3,8 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { useRemoteControl } from "../../../commands/RemoteControl";
-import { useSession } from "../../../sessions/SessionProvider";
+import { useRemoteControl } from "../RemoteControl";
+import { useSession } from "../../sessions/SessionProvider";
 
 export function AgentPanel() {
   const { state, enabled } = useRemoteControl();

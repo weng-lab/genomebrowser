@@ -1,4 +1,4 @@
-import type { SessionSnapshot } from "../sessions/snapshot.ts";
+import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client, Pool } from "pg";

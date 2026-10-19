@@ -3,7 +3,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import type { ReactNode } from "react";
-import { identityMode, signInPath } from "../server/identity";
+import { identityMode, signInPath } from "../features/account/server/identity";
 import "./globals.css";
 
 export const metadata: Metadata = {

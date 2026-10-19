@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 
-import type { SessionSnapshot } from "../sessions/snapshot.ts";
+import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createStores } from "../assemblies/assemblies";
-import { snapshot } from "../browser/snapshot";
-import { maxSessionBytes } from "../sessions/schema";
-import { createSession } from "../sessions/session";
-import { createSessionTransport } from "../sessions/transport";
+import { createStores } from "../features/assemblies/assemblies";
+import { snapshot } from "../features/sessions/storeSnapshot";
+import { maxSessionBytes } from "../features/sessions/schema";
+import { createSession } from "../features/sessions/session";
+import { createSessionTransport } from "../features/sessions/transport";
 import { installSessionServer, type SessionServer } from "./sessionServer";
 
 // The session owner, its Effect autosave, the HTTP transport, and the stores are real.

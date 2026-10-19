@@ -4,21 +4,21 @@ The browser tab owns live browser state. Next.js serves the website and the save
 
 ## Ownership
 
-| Owner                                                           | Responsibility                                                    | Lifetime                                              |
-| --------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
-| `app/(workspace)/layout.tsx`, `AppProviders`                    | Resolve the account; mount session and remote-control providers   | Shared layout mount, per account                      |
-| `sessions/session.ts`                                           | Session list, open session and its stores, and session operations | Shared layout mount, per account                      |
-| `sessions/autosave.ts`                                          | Effect worker that saves the open session                         | From restoration until replaced or removed            |
-| `sessions/transport.ts`                                         | Cancellable requests to the session routes                        | Each request                                          |
-| `assemblies/assemblies.ts`                                      | Supported assemblies and their default stores                     | Module                                                |
-| `app/api/sessions/`, `server/sessions/`                         | Identity, validation, ownership checks, PostgreSQL                | Each request                                          |
-| `commands/RemoteControl.tsx`, `remoteControl.ts`, `commands.ts` | Command stream, command handlers, and replies                     | While remote control is on and the open session saves |
-| `components/workspace/`                                         | Navigation, theme, panel widths and collapsed state               | Panel state survives navigation                       |
-| `next.config.ts` rewrites                                       | Forward `/mcp` and `/rpc/:id` to the MCP server                   | Each HTTP request                                     |
-| `@weng-lab/contracts`                                           | Command contracts and wire schemas                                | Module                                                |
-| Server `mcp.ts`, `tabs.ts`, `pendingCommands.ts`                | MCP tools, open tabs, pending replies                             | MCP server process, in memory                         |
+| Owner                                                                 | Responsibility                                                    | Lifetime                                              |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| `app/(workspace)/layout.tsx`, `AppProviders`                          | Resolve the account; mount session and remote-control providers   | Shared layout mount, per account                      |
+| `features/sessions/session.ts`                                        | Session list, open session and its stores, and session operations | Shared layout mount, per account                      |
+| `features/sessions/autosave.ts`                                       | Effect worker that saves the open session                         | From restoration until replaced or removed            |
+| `features/sessions/transport.ts`                                      | Cancellable requests to the session routes                        | Each request                                          |
+| `features/assemblies/assemblies.ts`                                   | Supported assemblies and their default stores                     | Module                                                |
+| `app/api/sessions/`, `features/sessions/server/`                      | Identity, validation, ownership checks, PostgreSQL                | Each request                                          |
+| `features/agent/RemoteControl.tsx`, `remoteControl.ts`, `commands.ts` | Command stream, command handlers, and replies                     | While remote control is on and the open session saves |
+| `shared/workspace/`                                                   | Navigation, theme, panel widths and collapsed state               | Panel state survives navigation                       |
+| `next.config.ts` rewrites                                             | Forward `/mcp` and `/rpc/:id` to the MCP server                   | Each HTTP request                                     |
+| `@weng-lab/contracts`                                                 | Command contracts and wire schemas                                | Module                                                |
+| Server `mcp.ts`, `tabs.ts`, `pendingCommands.ts`                      | MCP tools, open tabs, pending replies                             | MCP server process, in memory                         |
 
-The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The session snapshot schema comes from `sessions/snapshot.ts`, and command contracts and tab message schemas from `@weng-lab/contracts`. The MCP server imports the same package, with no Next.js or browser-runtime dependencies.
+The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The session snapshot schema comes from `features/sessions/snapshot.ts`, and command contracts and tab message schemas from `@weng-lab/contracts`. The MCP server imports the same package, with no Next.js or browser-runtime dependencies.
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
   View <-->|Genomic reader requests| Files
 ```
 
-The tab looks up each command's contract, validates its parameters, and runs its handler in `commands/commands.ts`. The server never mutates the stores directly.
+The tab looks up each command's contract, validates its parameters, and runs its handler in `features/agent/commands.ts`. The server never mutates the stores directly.
 
 ## Apply a command
 
@@ -65,7 +65,7 @@ sequenceDiagram
 
 The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. Commands expire after five seconds by default and are not replayed on reconnect. Timeout, cancellation, disconnect, and failed stream writes clear pending commands.
 
-Only the first tab to open a session's stream receives its commands. The server answers later tabs with 409, and they retry every second until the first tab disconnects. Turning off remote control in Settings closes the stream. So does the session's `signal` from `sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
+Only the first tab to open a session's stream receives its commands. The server answers later tabs with 409, and they retry every second until the first tab disconnects. Turning off remote control in Settings closes the stream. So does the session's `signal` from `features/sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
 
 ## Save and restore
 

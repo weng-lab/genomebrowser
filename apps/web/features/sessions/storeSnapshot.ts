@@ -3,7 +3,7 @@ import {
   createTrackStore,
   type GenomeBrowserStores,
 } from "@weng-lab/genomebrowser";
-import { sessionSnapshotSchema, type SessionSnapshot } from "../sessions/snapshot.ts";
+import { sessionSnapshotSchema, type SessionSnapshot } from "./snapshot.ts";
 
 /** Serializable browser and track state, as saved and as returned to agents. */
 export function snapshot(session: GenomeBrowserStores): SessionSnapshot {

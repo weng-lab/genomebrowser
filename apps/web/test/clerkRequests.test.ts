@@ -32,7 +32,7 @@ vi.stubEnv("CLERK_JWT_KEY", clerkKey.publicKey.export({ type: "spki", format: "p
 
 // Clerk reads its keys when first imported.
 const { proxy } = await import("../proxy");
-const { getSessions } = await import("../server/composition");
+const { getSessions } = await import("../composition/server");
 
 function sessionToken(userId: string, key: KeyObject = clerkKey.privateKey) {
   const now = Math.floor(Date.now() / 1000);

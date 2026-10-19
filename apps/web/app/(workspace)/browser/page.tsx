@@ -1,8 +1,8 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { useSession } from "../../../sessions/SessionProvider";
-import { BrowserPage } from "./BrowserPage";
+import { useSession } from "../../../features/sessions/SessionProvider";
+import { BrowserPage } from "../../../features/browser/components/BrowserPage";
 
 /** Return to the open session, so the sidebar link does not close it. */
 export default function BrowserIndexPage() {
