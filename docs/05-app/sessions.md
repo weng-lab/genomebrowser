@@ -1,6 +1,6 @@
 # Sessions
 
-A session is a saved browsing setup for one assembly. This is the target design. The saved data and session operations below are implemented in `apps/web`.
+A session is a saved browsing setup for one assembly. The saved data and session operations below are implemented in `apps/web`.
 
 ## Saved data
 
@@ -17,7 +17,7 @@ Keep `snapshot()` and `restore()` as the boundary between serializable data and 
 
 ## Session operations
 
-A workspace-lived session module owns initialization, metadata, restoration, autosave, switching, and deletion. `useSession` is the intended React interface, with focused subscriptions and complete operations. Panels should not coordinate flushes, request cancellation, list refreshes, store replacement, or fallback navigation.
+A workspace-lived session module owns initialization, metadata, restoration, autosave, switching, and deletion. `useSession` is the React interface, with focused subscriptions and complete operations. Panels should not coordinate flushes, request cancellation, list refreshes, store replacement, or fallback navigation.
 
 Next.js derives ownership from the server-side identity capability, backed by Clerk in production or mock identity locally, and validates each operation. Create and update are distinct: an autosave must not recreate a deleted session. The client does not choose the acting user.
 
@@ -27,11 +27,11 @@ Edits update the browser immediately. Observe changes to persisted configuration
 
 Effect owns the worker lifetime, delays, and retries. Failed writes retain unsaved state and retry without blocking browsing. Expose save status to the UI. Start autosave after restoration succeeds; never overwrite a failed load with defaults.
 
-Begin with whole-snapshot saves. Define switching, deletion, and tab-close behavior explicitly; cancellation alone does not preserve unsaved edits. Advanced multi-tab conflict handling can follow later.
+The app saves whole snapshots. Switching saves outstanding edits before replacing the stores; deletion waits for an outstanding write. Tab close requests a warning for unsaved edits. See the [session guide](../../apps/web/README.md#sessions) for failure behavior and [limitations](limitations.md) for current constraints.
 
 ## Future sharing
 
-Track collection JSON shares track configurations. Session JSON should reuse the versioned snapshot to restore the complete browsing setup, including assembly. Export portable metadata such as the name, not account ownership or database identity. Import creates a new session owned by the importing user.
+Track collection JSON shares track configurations. Session JSON should reuse the versioned snapshot to restore the complete browsing setup, including assembly. Export portable metadata such as the name, not account ownership or database identity. A future import should create a new session owned by the importing user.
 
 Keep the model ready for this without implementing sharing yet.
 

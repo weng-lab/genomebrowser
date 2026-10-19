@@ -12,7 +12,7 @@ Start with [architecture](01-project/01-architecture.md) for the project's purpo
 
 ## Understand the app
 
-[App direction](05-app/README.md) records the agreed architecture: Clerk identity, Next.js database access through Drizzle, feature modules composed through dependency injection, and optional MCP. Start there for the session model, feature boundaries, and implementation order. It distinguishes the target from current code.
+[App direction](05-app/README.md) records the agreed architecture: Clerk identity, Next.js database access through Drizzle, feature modules composed through dependency injection, and optional MCP. Start there for the implemented session model, feature boundaries, verification status, and remaining limitations.
 
 ## Contribute a change
 

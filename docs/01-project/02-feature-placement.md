@@ -42,7 +42,7 @@ The web app owns its interface and application-specific components. It may use U
 
 ## Product behavior belongs in the web app
 
-The app is moving toward [feature-owned data and injected capabilities](../05-app/features.md). Follow that direction for refactor work; the session and server placement described below reflects the current implementation.
+The app uses [feature-owned data and injected capabilities](../05-app/features.md). Keep complete operations with their feature owners.
 
 Put browser-product pages and workflows in `apps/web`. Each route's `page.tsx` composes `WorkspacePage` with domain components colocated in that route folder. `components/workspace/` owns generic layout, sizing, panel controls, motion, and theme. It must not import domain components or genome browser state.
 
