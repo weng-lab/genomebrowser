@@ -1,5 +1,5 @@
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
-import { Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
+import { Clock, Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
 import { snapshot } from "./storeSnapshot";
 import type { Session, SessionInput } from "./schema";
 import { SessionRequestError, type SessionTransport } from "./transport";
@@ -50,6 +50,9 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   let refused: { body: string; failure: SessionRequestError } | undefined;
   let ended: SessionRequestError | undefined;
   let waiters: Deferred.Deferred<void, SessionRequestError>[] = [];
+  const clock = yield* Clock.Clock;
+  let editedAt = clock.currentTimeMillisUnsafe();
+  let retryAt = editedAt;
   const edits = yield* Queue.sliding<void>(1);
   const urgent = yield* Latch.make(false);
   const permit = yield* Semaphore.make(1);
@@ -60,8 +63,11 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   function report(failure?: SessionRequestError) {
     const blocked = unsaved();
     if (blocked) onStatus("failed", blocked);
-    else if (failure || failures > 0) onStatus("retrying", failure);
-    else onStatus(writing || latest !== saved ? "saving" : "saved");
+    else if (!writing && latest === saved) {
+      failures = 0;
+      onStatus("saved");
+    } else if (failure || failures > 0) onStatus("retrying", failure);
+    else onStatus("saving");
   }
 
   function settle(failure?: SessionRequestError) {
@@ -84,6 +90,8 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     }
     if (next === latest) return;
     latest = next;
+    editedAt = clock.currentTimeMillisUnsafe();
+    if (!writing && latest === saved && !unsaved()) settle();
     report();
     Queue.offerUnsafe(edits, undefined);
   }
@@ -107,6 +115,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     const failure = result.failure;
     if (failure.code === "UNAVAILABLE") {
       failures += 1;
+      retryAt = clock.currentTimeMillisUnsafe() + retryDelay(failures);
       Queue.offerUnsafe(edits, undefined);
     } else if (failure.code === "INVALID_INPUT") {
       failures = 0;
@@ -131,8 +140,22 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     Effect.gen(function* () {
       while (!ended) {
         yield* Queue.take(edits);
-        const delay = failures > 0 ? retryDelay(failures) : editDelay;
-        yield* Effect.raceFirst(Effect.sleep(delay), urgent.await);
+        // A later edit restarts the quiet period, but never changes the retry
+        // deadline. Reverting to the saved state can end an obsolete backoff.
+        let changedDuringDelay: boolean;
+        do {
+          const due = failures > 0 ? retryAt : editedAt + editDelay;
+          changedDuringDelay = yield* Effect.raceFirst(
+            Effect.as(Queue.take(edits), true),
+            Effect.as(
+              Effect.raceFirst(
+                Effect.sleep(Math.max(0, due - clock.currentTimeMillisUnsafe())),
+                urgent.await,
+              ),
+              false,
+            ),
+          );
+        } while (changedDuringDelay);
         yield* permit.withPermits(1)(write);
       }
     }),

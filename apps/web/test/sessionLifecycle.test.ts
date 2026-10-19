@@ -36,9 +36,9 @@ const puts = () => server.requests.filter(({ method }) => method === "PUT");
 const savedRegion = (id: string) => server.stored.get(id)?.snapshot.browser.region.start;
 /** Let fibers, requests, and timers run for `ms` of fake time. */
 async function advance(ms: number) {
-  for (let elapsed = 0; elapsed <= ms; elapsed += 50) {
+  for (let elapsed = 0; elapsed < ms; elapsed += 50) {
     await new Promise((resolve) => setImmediate(resolve));
-    await vi.advanceTimersByTimeAsync(50);
+    await vi.advanceTimersByTimeAsync(Math.min(50, ms - elapsed));
   }
 }
 /** Whether closing the tab now asks for confirmation. */
@@ -79,7 +79,7 @@ function savedSnapshot(): SessionSnapshot {
 }
 
 beforeEach(() => {
-  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
   server = installSessionServer();
   start();
 });
@@ -133,12 +133,129 @@ it("writes one snapshot at a time, and an older acknowledgement leaves newer edi
   await advance(1000);
   expect(puts()).toHaveLength(1);
 
+  const second = server.hold("PUT");
   first.release();
-  await vi.waitFor(() => expect(savedRegion(id)).toBe(1000));
+  await vi.waitFor(() => expect(puts()).toHaveLength(2));
+  expect(savedRegion(id)).toBe(1000);
   expect(state().saveStatus).toBe("saving");
+  second.release();
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
   expect(puts()).toHaveLength(2);
   expect(savedRegion(id)).toBe(2000);
+});
+
+it("waits for a quiet 200ms after a sustained burst before saving the newest edits", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  for (const start of [1000, 2000, 3000, 4000]) {
+    setRegion(start);
+    await advance(100);
+    expect(puts()).toHaveLength(0);
+  }
+  await advance(100);
+  expect(puts()).toHaveLength(1);
+  expect(savedRegion(id)).toBe(4000);
+  expect(state().saveStatus).toBe("saved");
+});
+
+it("clears retry state when edits revert, and debounces a fresh edit without the old backoff", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  const original = stores().useBrowserStore.getState().region;
+  server.fail("PUT");
+  setRegion(1000);
+  await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
+
+  stores().useBrowserStore.getState().setRegion(original);
+  expect(state().saveStatus).toBe("saved");
+  expect(closeTab()).toBe(false);
+  await advance(100);
+  expect(puts()).toHaveLength(1);
+
+  server.fail("PUT");
+  setRegion(2000);
+  expect(state().saveStatus).toBe("saving");
+  await advance(250);
+  expect(puts()).toHaveLength(2);
+  expect(state().saveStatus).toBe("retrying");
+  // This fresh failure starts at the first retry delay again.
+  await advance(1000);
+  expect(puts()).toHaveLength(3);
+  expect(savedRegion(id)).toBe(2000);
+  expect(state().saveStatus).toBe("saved");
+  await advance(2000);
+  expect(puts()).toHaveLength(3);
+});
+
+it("keeps retry backoff independent of edits during the wait", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  server.fail("PUT");
+  setRegion(1000);
+  await advance(250);
+  expect(state().saveStatus).toBe("retrying");
+  for (const start of [2000, 3000, 4000, 5000, 6000]) {
+    setRegion(start);
+    await advance(150);
+    expect(puts()).toHaveLength(1);
+  }
+  setRegion(7000);
+  await advance(200);
+  expect(puts()).toHaveLength(2);
+  expect(savedRegion(id)).toBe(7000);
+  expect(state().saveStatus).toBe("saved");
+});
+
+it("keeps a revert unsaved until an outstanding write and its correction finish", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  const original = stores().useBrowserStore.getState().region;
+  const first = server.hold("PUT");
+  setRegion(1000);
+  await vi.waitFor(() => expect(puts()).toHaveLength(1));
+  stores().useBrowserStore.getState().setRegion(original);
+  expect(state().saveStatus).toBe("saving");
+  expect(closeTab()).toBe(true);
+  await advance(250);
+  const correction = server.hold("PUT");
+  first.release();
+  await vi.waitFor(() => expect(puts()).toHaveLength(2));
+  expect(savedRegion(id)).toBe(1000);
+  expect(state().saveStatus).toBe("saving");
+  correction.release();
+  await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+  expect(savedRegion(id)).toBe(original.start);
+  expect(closeTab()).toBe(false);
+});
+
+it("settles a revert when the outstanding write fails without retrying it", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  const original = stores().useBrowserStore.getState().region;
+  const write = server.hold("PUT");
+  setRegion(1000);
+  await vi.waitFor(() => expect(puts()).toHaveLength(1));
+  stores().useBrowserStore.getState().setRegion(original);
+  expect(state().saveStatus).toBe("saving");
+  write.fail();
+  await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+  expect(closeTab()).toBe(false);
+  await advance(2000);
+  expect(puts()).toHaveLength(1);
+  expect(savedRegion(id)).toBe(original.start);
+});
+
+it("flushes immediately when closing during the debounce", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  setRegion(1000);
+  await advance(50);
+  expect(puts()).toHaveLength(0);
+  const closing = state().close();
+  await new Promise((resolve) => setImmediate(resolve));
+  await closing;
+  expect(savedRegion(id)).toBe(1000);
+  expect(puts()).toHaveLength(1);
 });
 
 it("continues saving after clearing an optional track setting", async () => {
