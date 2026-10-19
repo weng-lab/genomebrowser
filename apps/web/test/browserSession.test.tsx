@@ -121,9 +121,11 @@ it("retains browser edits across pages and restores the saved session on a new W
   await vi.waitFor(() => expect(route.pathname()).toBe(`/browser/${id}`));
   expect(browserText()).toContain("Retained coordinates");
   expect(ticks(browserText())).toEqual(ticks(editedText));
-  await vi.waitFor(() =>
-    expect(container!.querySelector('main [role="status"]')?.textContent).toBe("Saved"),
-  );
+  await vi.waitFor(() => {
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+  });
 
   await act(async () => root!.render(null));
   await mount();

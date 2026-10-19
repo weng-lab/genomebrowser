@@ -11,7 +11,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
-import { SaveStatus } from "../../sessions/components/SaveStatus";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -20,14 +19,7 @@ export function BrowserView({ sessionId }: { sessionId?: string }) {
   return (
     <Box>
       <SessionAlert />
-      {stores ? (
-        <>
-          <SaveStatus />
-          <BrowserContent key={id} stores={stores} />
-        </>
-      ) : (
-        <NoSession sessionId={sessionId} />
-      )}
+      {stores ? <BrowserContent key={id} stores={stores} /> : <NoSession sessionId={sessionId} />}
     </Box>
   );
 }

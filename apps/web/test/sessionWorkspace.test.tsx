@@ -102,9 +102,7 @@ it("creates a session, saves edits, and keeps it open across workspace pages", a
   const before = region();
   await click(button("Pan right"));
   expect(region()).not.toBe(before);
-  await vi.waitFor(() =>
-    expect(document.querySelector('main [role="status"]')?.textContent).toBe("Saved"),
-  );
+  await vi.waitFor(() => expect(closeTab()).toBe(false));
   expect(server.stored.get(id)!.snapshot.browser.region).not.toEqual(defaults().browser.region);
 
   const edited = region();
@@ -321,16 +319,13 @@ it("budgets session readers for an edit and its save acknowledgement", async () 
 
   const acknowledgement = await probe!.measure(async () => {
     write.release();
-    await vi.waitFor(() =>
-      expect(document.querySelector('main [role="status"]')?.textContent).toBe("Saved"),
-    );
+    await vi.waitFor(() => expect(closeTab()).toBe(false));
   });
-  expect(acknowledgement.pick("SaveStatus", "BrowserView", "BrowserContent", "SessionPanel"))
+  expect(acknowledgement.pick("BrowserView", "BrowserContent", "SessionPanel"))
     .toMatchInlineSnapshot(`
     {
       "BrowserContent": 0,
       "BrowserView": 0,
-      "SaveStatus": 1,
       "SessionPanel": 0,
     }
   `);
@@ -408,12 +403,11 @@ it("budgets session readers when the open session changes", async () => {
     link("Beta")!.click();
     await vi.waitFor(() => expect(heading()).toBe("Beta"));
   });
-  expect(report.pick("SessionPanel", "SessionName", "BrowserView", "BrowserContent", "SaveStatus"))
+  expect(report.pick("SessionPanel", "SessionName", "BrowserView", "BrowserContent"))
     .toMatchInlineSnapshot(`
     {
       "BrowserContent": 2,
       "BrowserView": 2,
-      "SaveStatus": 2,
       "SessionName": 2,
       "SessionPanel": 2,
     }
