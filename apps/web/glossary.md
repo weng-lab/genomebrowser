@@ -46,7 +46,7 @@ A **pending command** has been sent to a tab and is waiting for its reply. The p
 
 ### Session snapshot
 
-The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. A **session** is a snapshot saved in SQLite under a session ID. The URL `/browser/[sessionId]` selects it; `local` is the default until there is a session picker. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `@weng-lab/session-snapshot`, and `browser.assembly` is the session's only assembly value. A **session** is a snapshot saved in SQLite under a session ID. The URL `/browser/[sessionId]` selects it; `local` is the default until there is a session picker. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
 
 ### Session repository
 

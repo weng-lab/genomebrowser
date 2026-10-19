@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { regionSchema } from "../protocol.ts";
+import { regionSchema } from "@weng-lab/session-snapshot";
 import { defineCommand } from "./command.ts";
 
 export const setRegion = defineCommand({

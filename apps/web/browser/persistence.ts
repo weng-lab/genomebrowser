@@ -1,4 +1,4 @@
-import { sessionSnapshotSchema } from "@weng-lab/browser-server/protocol";
+import { sessionSnapshotSchema } from "@weng-lab/session-snapshot";
 import type { BrowserSession } from "./BrowserSession";
 import { restore, snapshot } from "./snapshot";
 

@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { sessionSnapshotSchema } from "../protocol.ts";
+import { sessionSnapshotSchema } from "@weng-lab/session-snapshot";
 import type { SessionRepository } from "./sessionRepository.ts";
 
 export function createSqliteSessionRepository(path: string): SessionRepository & { close(): void } {

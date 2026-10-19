@@ -1,4 +1,4 @@
-import type { SessionSnapshot } from "../protocol.ts";
+import type { SessionSnapshot } from "@weng-lab/session-snapshot";
 
 /** Saved browser sessions by ID; storage adapters own durable reads and writes. */
 export type SessionRepository = {

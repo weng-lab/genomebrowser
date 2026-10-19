@@ -28,6 +28,7 @@ A track module supplies the behavior for its visualization, including fetching, 
 | `packages/ui`           | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
 | `apps/web`              | Next.js product routes, browser session, generic workspace layout, and command proxy.                                         |
 | `apps/server`           | Persistent Node.js server: SQLite sessions, MCP, command delivery to tabs, and browser-safe protocol schemas.                 |
+| `packages/session-snapshot` | Private browser-safe schema for saved session snapshots, shared by `apps/web` and `apps/server`.                    |
 | `packages/create`       | A starter generator for developers building a browser application.                                                            |
 | `packages/render-probe` | Internal test utility that measures React render counts for render budgets. Private and unpublished.                          |
 

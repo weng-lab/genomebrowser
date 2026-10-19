@@ -17,7 +17,7 @@ The browser tab owns live browser state. Next.js serves the website and rewrites
 | Server `tabs.ts`, `pendingCommands.ts`   | Open tabs by session ID, pending replies, timeouts and cancellation | Each tab connection, in memory                     |
 | Server `storage/`                        | Async session repository and SQLite adapter                         | Durable snapshots by session ID                    |
 
-The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The browser and server share schemas through `@weng-lab/browser-server/protocol`; browser code never imports the Node.js server implementation.
+The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The browser and server share the session snapshot schema through `@weng-lab/session-snapshot` and tab message schemas through `@weng-lab/browser-server/protocol`. Browser code never imports the Node.js server implementation.
 
 ```mermaid
 flowchart TD

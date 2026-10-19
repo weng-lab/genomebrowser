@@ -11,6 +11,29 @@ Use this as the starting context for bounded implementation threads. Read [app d
 5. **Separate MCP.** Remove database dependencies from the standalone server and separate shared command contracts. Start with one tool that sets the browser region. Make the connection an optional attachment to the active session, with stale commands unable to affect its replacement. Keep command dispatch extensible to other app features without making every command depend on browser state.
 6. **Remove superseded wiring.** Delete replaced controllers, contexts, helpers, dependencies, and documentation claims. Avoid compatibility wrappers. Update current implementation docs as each slice lands.
 
+## Progress
+
+Steps 1 and 2 have landed as one slice; the browser does not use them yet.
+
+- `packages/session-snapshot` holds the snapshot schema, moved from the browser server's protocol. `browser.assembly` accepts any assembly ID; restoring into a store for another assembly fails.
+- `apps/web/server/sessions/` owns the `sessions` table and `createSessions({ db, identity })`. Operations derive the owner from identity on every call, validate input, report other users' sessions as not found, refuse to recreate deleted sessions, and check the stored assembly inside the `UPDATE` statement.
+- `apps/web/server/identity.ts` selects Clerk or explicitly enabled mock users. Mock identity is refused in production. `server/composition.ts` composes both with a `pg` pool on first use.
+- With Clerk, `apps/web/proxy.ts` runs `clerkMiddleware()`, the root layout renders `ClerkProvider`, and `/sign-in` hosts Clerk's form. Mock mode skips all three. The root layout renders per request so builds need no keys, which makes every page dynamic.
+- A test sends requests through the real proxy and Clerk's `auth()` into `getSessions()`, with tokens signed by a local key. It covers the signed-in owner, signed-out and forged tokens, and a route outside the proxy. Sign-in against a real Clerk instance has not been tried; no credentials were available.
+- Migrations live in `apps/web/drizzle/` and run with `drizzle-kit migrate`. Tests run them against a fresh PostgreSQL database; CI provides the server.
+
+The next slice must:
+
+- Choose the browser transport, Server Functions or route handlers. `/api/*` still rewrites to the browser server, so new routes must not collide with it. Add account controls to the workspace; nothing links to `/sign-in` yet.
+- Smoke-test sign-in with a real Clerk development instance before relying on it.
+- Limit snapshot request size at that transport. The old server's 1 MB limit does not apply to the new operations.
+- Move session IDs from names in the URL to the generated UUIDs, and decide how the `local` default session and SQLite snapshots without owners are migrated or retired.
+- Build the Effect lifecycle and autosave worker on `create` and `update`. Treat `NOT_FOUND` after deletion as final rather than retrying it.
+
+Production pool sizing for serverless functions on Cloud SQL is untested. The pool uses `pg` defaults.
+
+The web server binds to `localhost` for Clerk request handling. On systems where this resolves to `::1`, IPv4 clients and SSH forwarding to `127.0.0.1` may not connect. Use the documented localhost URL and verify the listening address before configuring a tunnel.
+
 ## Slice workflow
 
 Keep the refactor in one draft PR on `architecture-refactor`. Opus 5.5 Medium implements each bounded slice, then Sol 6.1 Medium reviews correctness, code cleanliness, and module boundaries. Return findings to Opus and request a second Sol review when needed. Limit each slice to two review rounds. Record real unresolved limitations in this directory, with their impact and follow-up, before committing the slice. Keep one implementation commit per settled slice.
@@ -25,7 +48,7 @@ Demonstrate opening, editing, saving, reloading, switching, and deleting session
 
 ## Decisions and scope
 
-Still to settle: PostgreSQL driver and cloud connection setup, existing-data migration, exact injected interfaces, unsaved edits on tab close, and the initial multi-tab write policy. MCP authentication and connection authorization need design before cloud deployment.
+Still to settle: existing-data migration, the session transport, unsaved edits on tab close, and the initial multi-tab write policy. MCP authentication and connection authorization need design before cloud deployment.
 
 Defer sharing UI, user settings, incremental writes, and advanced conflict handling. Keep initial behavior simple without hiding unsaved data or silently losing edits.
 

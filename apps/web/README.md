@@ -33,7 +33,41 @@ Changes autosave with `PUT /api/sessions/:id` after 200 ms of inactivity. Each t
 
 Every tab that opens the session saves to it. The last save wins, and tabs do not receive each other's edits. There are no per-user sessions, tenant isolation, or conflict resolution. A new tab or refresh restores the last successfully saved snapshot.
 
-The server receives an asynchronous `SessionRepository` with `list()`, `load(id)`, `save(id, snapshot)`, and `remove(id)` operations. `list()` returns saved IDs in ascending alphabetical order. Its SQLite adapter is implemented in `apps/server/src/storage/sqlite.ts`. No Postgres adapter is implemented.
+The server receives an asynchronous `SessionRepository` with `list()`, `load(id)`, `save(id, snapshot)`, and `remove(id)` operations. `list()` returns saved IDs in ascending alphabetical order. Its SQLite adapter is implemented in `apps/server/src/storage/sqlite.ts`.
+
+## Owned sessions in PostgreSQL
+
+The replacement for SQLite persistence is in progress. The Next.js server can store user-owned sessions in PostgreSQL, but no route or panel uses it yet. The browser still saves through the browser server as described above, and existing SQLite data is untouched.
+
+`server/composition.ts` exposes `getSessions()`, which only server code may import. It returns `create`, `list`, `load`, `update`, and `remove` operations for the user making the request:
+
+```ts
+const sessions = getSessions();
+const saved = await sessions.create({ name: "Promoter scan", snapshot });
+await sessions.update(saved.id, { name: saved.name, snapshot: edited });
+```
+
+Callers never pass a user ID. Each operation reads the acting user from the identity selected at startup. It rejects a signed-out request with `SessionError` code `UNAUTHENTICATED`, and a missing session, or one owned by another user, with `NOT_FOUND`. `update` never recreates a deleted session, and it rejects a snapshot for another assembly with `ASSEMBLY_CHANGED`. Invalid names and snapshots fail with `INVALID_INPUT`. `list` returns metadata without snapshots, sorted by name.
+
+To run it locally, start PostgreSQL with Docker and apply the committed migrations:
+
+```sh
+cp apps/web/.env.example apps/web/.env.local
+pnpm web db:start
+pnpm web db:migrate
+```
+
+`compose.yaml` runs PostgreSQL on `127.0.0.1:5432` with a named volume, matching `DATABASE_URL` in the example file. `pnpm web db:stop` stops it. Any PostgreSQL server works if you change `DATABASE_URL`. After changing `server/sessions/table.ts`, run `pnpm web db:generate` and commit the new files in `drizzle/`.
+
+`GB_IDENTITY=mock` makes requests act as local mock users, with no Clerk keys or Clerk service. Requests act as `mock_user_1` by default. Set the `gb_mock_user` cookie to `mock_user_2` to act as the second user, or to any other value to be signed out. `/sign-in` returns 404 in this mode. Mock identity is refused when `NODE_ENV` is `production`, which includes `next start`; every request then fails with that error.
+
+Without `GB_IDENTITY`, the app uses Clerk. `proxy.ts` runs `clerkMiddleware()` on every route except static files, the root layout renders `ClerkProvider`, and `/sign-in` shows Clerk's sign-in form. Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` at runtime. `CLERK_JWT_KEY`, the instance's PEM public key, lets Clerk verify session tokens without fetching its keys. Without keys in development, Clerk starts its keyless mode, which creates a temporary Clerk application. The root layout renders on each request, so builds need no Clerk keys.
+
+The dev and start scripts bind to `localhost`. With `--hostname 127.0.0.1`, Next.js gives the proxy `localhost` URLs, and every request that passes through Clerk fails.
+
+The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a connection that may create databases, such as `postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postgres` with the compose database. Each run creates and drops its own database. Without the variable, the tests are skipped locally and fail in CI, which runs a PostgreSQL service.
+
+In production, set `DATABASE_URL` to the Google Cloud SQL instance. The `pg` driver accepts standard PostgreSQL URLs, including SSL options such as `sslmode` and `sslrootcert` for a public IP, or a Unix socket host such as `/cloudsql/<project>:<region>:<instance>` when the Cloud SQL Auth Proxy provides one. Run `pnpm web db:migrate` against that database before deploying code that needs a new migration. The server reads credentials only when an operation first runs, so builds do not need them.
 
 ## Control a browser tab
 

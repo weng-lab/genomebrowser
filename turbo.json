@@ -10,6 +10,11 @@
     "GB_SERVER_HOST",
     "GB_SERVER_PORT",
     "GB_ALLOWED_ORIGINS",
+    "DATABASE_URL",
+    "GB_IDENTITY",
+    "CLERK_SECRET_KEY",
+    "CLERK_JWT_KEY",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
     "PORT"
   ],
   "tasks": {

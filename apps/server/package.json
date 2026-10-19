@@ -21,6 +21,7 @@
   "dependencies": {
     "@hono/node-server": "^2.1.4",
     "@modelcontextprotocol/server": "^2.3.1",
+    "@weng-lab/session-snapshot": "workspace:*",
     "hono": "^4.13.13",
     "zod": "catalog:"
   },

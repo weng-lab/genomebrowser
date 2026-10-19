@@ -6,7 +6,8 @@ import { join } from "node:path";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { afterEach, beforeEach, expect, test } from "vitest";
 import { createBrowserServer } from "../src/server.ts";
-import type { CommandMessage, SessionSnapshot } from "../src/protocol.ts";
+import type { SessionSnapshot } from "@weng-lab/session-snapshot";
+import type { CommandMessage } from "../src/protocol.ts";
 import { createSqliteSessionRepository } from "../src/storage/sqlite.ts";
 
 let server: ReturnType<typeof createBrowserServer>;

@@ -1,6 +1,7 @@
 import type { Context, Hono, MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
-import { commandReplySchema, sessionIdSchema, sessionSnapshotSchema } from "../protocol.ts";
+import { sessionSnapshotSchema } from "@weng-lab/session-snapshot";
+import { commandReplySchema, sessionIdSchema } from "../protocol.ts";
 import type { SessionRepository } from "../storage/sessionRepository.ts";
 import type { TabConnections } from "../tabs.ts";
 import { handleHttpError, type HttpMiddleware } from "./middleware.ts";

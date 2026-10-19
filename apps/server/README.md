@@ -32,7 +32,7 @@ For the end-to-end paths, see [architecture and data flow](../web/docs/02-guides
 src/
   main.ts                       # Environment, database, listen, shutdown
   server.ts                     # Wire routes, tab connections, MCP, and the Node listener
-  protocol.ts                   # Shared browser-safe schemas for sessions and tab messages
+  protocol.ts                   # Shared browser-safe schemas for session IDs and tab messages
   commands/
     command.ts                  # The Command type and defineCommand
     setRegion.ts                # One file per command
@@ -50,7 +50,7 @@ src/
 
 Only the first tab to open a session's stream receives its commands; later tabs are rejected until it disconnects. Several tabs may still save the same session, and the last save wins. `pendingCommands.ts` registers each reply before sending and cleans up on reply, timeout, cancellation, or disconnect. Every command replies with the whole session snapshot on success, or a `{ ok: false, code, error }` failure.
 
-`@weng-lab/browser-server/protocol` and `@weng-lab/browser-server/commands` are browser-safe and export directly from source; the web app uses both. Frontend consumers must never import the Node.js implementation. Command files only import types from `@weng-lab/genomebrowser`, so the server never loads the browser library.
+The session snapshot schema comes from `@weng-lab/session-snapshot`, shared with the web app. `@weng-lab/browser-server/protocol` and `@weng-lab/browser-server/commands` are browser-safe and export directly from source; the web app uses both. Frontend consumers must never import the Node.js implementation. Command files only import types from `@weng-lab/genomebrowser`, so the server never loads the browser library.
 
 ## Add a command
 

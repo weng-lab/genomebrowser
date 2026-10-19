@@ -2,7 +2,7 @@
 
 Build a browser app around saved, user-owned sessions, with optional agent control. Keep feature interfaces small so new functionality does not require understanding database, request, or connection wiring.
 
-This section records the agreed target architecture. The implementation still persists sessions through `apps/server` and does not yet implement this Clerk/Drizzle design. These pages guide the refactor; app READMEs describe current setup.
+This section records the agreed target architecture. The browser still persists sessions through `apps/server`. The Next.js server has owner-checked session operations on Drizzle and PostgreSQL, but the browser does not use them yet. [Implementation order](implementation.md#progress) tracks what has landed. These pages guide the refactor; app READMEs describe current setup.
 
 ## Read next
 
@@ -22,7 +22,7 @@ The browser tab owns live browser and track stores. Feature modules expose data 
 
 UI controls and agent commands use the same browser store actions. Loading, editing, and saving sessions must work when MCP is disconnected or unavailable. The server needs hosting that supports persistent SSE connections.
 
-Use PostgreSQL on Google Cloud SQL in production and local PostgreSQL for development, with the same Drizzle schema and migrations. Local development can use mock identity through the same server-side identity boundary. See [feature boundaries](features.md) for composition. The PostgreSQL driver, cloud connection setup, and MCP hosting provider still need selection.
+Use PostgreSQL on Google Cloud SQL in production and local PostgreSQL for development, with the same Drizzle schema and migrations. Local development can use mock identity through the same server-side identity boundary. See [feature boundaries](features.md) for composition. The server uses the `pg` driver with a `DATABASE_URL` connection string. The MCP hosting provider still needs selection.
 
 For current implementation and setup, see the [web app guide](../../apps/web/README.md) and [server guide](../../apps/server/README.md).
 

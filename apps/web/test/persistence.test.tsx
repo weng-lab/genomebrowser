@@ -6,7 +6,7 @@ import { caveModule } from "@weng-lab/genomebrowser-tracks/cave";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { sessionSnapshotSchema, type SessionSnapshot } from "@weng-lab/browser-server/protocol";
+import { sessionSnapshotSchema, type SessionSnapshot } from "@weng-lab/session-snapshot";
 import {
   BrowserSessionProvider,
   useBrowserSession,
@@ -290,6 +290,16 @@ it("serializes saves and keeps newer edits unsaved until their own acknowledgeme
   expect(status()).toBe("Saved");
   await advance(2000);
   expect(save).toHaveBeenCalledTimes(2);
+});
+
+it("refuses to restore a session saved for another assembly", async () => {
+  const saved = savedSnapshot();
+  saved.browser.assembly = "mm10";
+  await act(async () => loaded(saved));
+  expect(status()).toBe("Could not load session. Retrying…");
+  await advance(1000);
+  expect(save).not.toHaveBeenCalled();
+  expect(session.useBrowserStore.getState().region).not.toEqual(saved.browser.region);
 });
 
 it("retries failed saves", async () => {
