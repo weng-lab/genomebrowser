@@ -16,7 +16,7 @@ This section records the implemented architecture and the decisions that guide f
 
 The app targets cloud deployment first, with Next.js in `apps/web` hosted on Vercel. Clerk owns authentication and user profiles. Next.js server-side code obtains the authenticated user ID and accesses feature-owned tables through Drizzle. Database credentials and queries stay server-side.
 
-The browser tab owns live browser and track stores. Feature modules expose data and complete operations to UI components, hiding request lifetimes and persistence coordination. Effect manages the session lifecycle and background autosave inside the session feature. The MCP server uses Hono, the MCP SDK, and explicit connection cleanup; adopting Effect there is not a requirement. Use it where it simplifies coordinated async lifetimes, without exposing that wiring to callers.
+The browser tab owns live browser and track stores. Feature modules expose data and complete operations to UI components, hiding request lifetimes and persistence coordination. Effect manages the session lifecycle and background autosave inside the session feature, and connection, reply, and retry lifetimes inside the agent feature. The MCP server uses Hono, the MCP SDK, and explicit connection cleanup; adopting Effect there is not a requirement. Use it where it simplifies coordinated async lifetimes, without exposing that wiring to callers.
 
 ## Optional MCP server
 

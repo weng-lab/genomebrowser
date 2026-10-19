@@ -115,7 +115,7 @@ shared/        # Generic workspace shell, panels, and theme
 composition/   # Concrete providers, navigation, and server dependencies
 ```
 
-Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns remote control and command handlers. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/01-project/02-feature-placement.md#product-behavior-belongs-in-the-web-app).
+Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns the Effect remote-control connection and command handlers. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/01-project/02-feature-placement.md#product-behavior-belongs-in-the-web-app).
 
 The workspace layout mounts one session provider per account. Use `useSession` with focused selectors and call its complete operations; panels should not coordinate saving, cancellation, or navigation themselves. Keep providers above routes so navigation preserves their state. See [data flow](docs/02-guides/dataFlow.md) for lifetimes and [routing](docs/02-guides/routing.md) for URL behavior.
 

@@ -80,6 +80,7 @@ beforeEach(async () => {
 afterEach(() => {
   probe?.unmount();
   probe = undefined;
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -180,6 +181,88 @@ it("keeps saving while the MCP server is unavailable, then reconnects", async ()
   await setRegion("chr2", 2000);
   expect(region()).toBe("chr2:2,001-3,000");
 });
+
+/** A real pending HTTP reply: aborting the request rejects it. */
+function holdReply() {
+  let release!: (response: Response) => void;
+  server.rpc.mockImplementationOnce(
+    (_url, { signal }) =>
+      new Promise<Response>((resolve, reject) => {
+        release = resolve;
+        if (signal?.aborted) reject(signal.reason);
+        else signal?.addEventListener("abort", () => reject(signal.reason), { once: true });
+      }),
+  );
+  return (status: number) => release(new Response(null, { status }));
+}
+
+it.each(["session replacement", "remote control disabled"])(
+  "cancels a pending command reply on %s",
+  async (reason) => {
+    await enableRemoteControl();
+    const finishReply = holdReply();
+    await setRegion("chr1", 1000);
+    const pending = server.rpc.mock.calls[0][1].signal!;
+    const first = latest();
+    expect(pending.aborted).toBe(false);
+
+    if (reason === "session replacement") {
+      await act(async () => route.push(`/browser/${beta}`));
+    } else {
+      await click('input[type="checkbox"]');
+    }
+    await vi.waitFor(() => expect(pending.aborted).toBe(true));
+    expect(first.closed).toBe(true);
+    const streams = Stream.opened.length;
+    await act(async () => finishReply(503));
+    expect(Stream.opened).toHaveLength(streams);
+    expect(server.rpc).toHaveBeenCalledTimes(1);
+  },
+);
+
+it("cancels a pending reconnect when remote control is disabled", async () => {
+  await enableRemoteControl();
+  const first = latest();
+  vi.useFakeTimers();
+  act(() => first.onerror!());
+  expect(first.closed).toBe(true);
+  await click('input[type="checkbox"]');
+  await act(async () => vi.advanceTimersByTimeAsync(2000));
+  expect(Stream.opened).toEqual([first]);
+  expect(text()).toContain("Off");
+});
+
+it.each([409, 503, "network failure"] as const)(
+  "does not replay edits after a command reply returns %s",
+  async (status) => {
+    await enableRemoteControl();
+    await act(async () => route.back());
+    let fail!: () => void;
+    if (status === "network failure") {
+      server.rpc.mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            fail = () => reject(new Error("Offline"));
+          }),
+      );
+    } else {
+      const finishReply = holdReply();
+      fail = () => finishReply(status);
+    }
+    await setRegion("chr1", 1000);
+    await click('button[aria-label="Pan right"]');
+    const edited = region();
+    expect(edited).not.toBe("chr1:1,001-2,000");
+    const first = latest();
+    vi.useFakeTimers();
+    await act(async () => fail());
+    await act(async () => vi.advanceTimersByTimeAsync(1100));
+    expect(Stream.opened).toHaveLength(status === 409 ? 1 : 2);
+    expect(first.closed).toBe(status !== 409);
+    expect(region()).toBe(edited);
+    expect(server.rpc).toHaveBeenCalledTimes(1);
+  },
+);
 
 let closedOnOpen: boolean | undefined;
 

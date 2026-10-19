@@ -1,4 +1,5 @@
 import { commandMessageSchema, type CommandResult } from "@weng-lab/contracts";
+import { Deferred, Effect, Exit, Scope } from "effect";
 import { executeCommand, type CommandCapabilities } from "./commands";
 
 export type RemoteControlState = "off" | "connecting" | "connected";
@@ -15,64 +16,100 @@ export function connectRemoteControl(
   signal: AbortSignal,
   onState: (state: RemoteControlState) => void,
 ) {
-  const abort = new AbortController();
-  const stopped = AbortSignal.any([abort.signal, signal]);
-  let source: EventSource | undefined;
-  let retry: ReturnType<typeof setTimeout> | undefined;
+  const lifetime = Scope.makeUnsafe();
+  let attached = true;
 
-  function open() {
-    if (stopped.aborted) return;
-    onState("connecting");
-    const current = new EventSource(rpcUrl);
-    source = current;
+  const stopped = Effect.callback<void>((resume) => {
+    const stop = () => resume(Effect.void);
+    if (signal.aborted) stop();
+    else signal.addEventListener("abort", stop, { once: true });
+    return Effect.sync(() => signal.removeEventListener("abort", stop));
+  });
 
-    function restart() {
-      if (stopped.aborted || source !== current) return;
-      current.close();
-      onState("connecting");
-      clearTimeout(retry);
-      retry = setTimeout(open, 1000);
-    }
+  const connection = Effect.scoped(
+    Effect.gen(function* () {
+      const scope = yield* Effect.scope;
+      const reconnect = yield* Deferred.make<void>();
+      const restart = () => Deferred.doneUnsafe(reconnect, Effect.void);
+      let receiving = true;
+      const source = yield* Effect.acquireRelease(
+        Effect.sync(() => {
+          onState("connecting");
+          return new EventSource(rpcUrl);
+        }),
+        (source) =>
+          Effect.sync(() => {
+            receiving = false;
+            source.close();
+          }),
+      );
 
-    current.onopen = () => {
-      if (!stopped.aborted && source === current) onState("connected");
-    };
-
-    current.addEventListener("command", (event: MessageEvent<string>) => {
-      if (abort.signal.aborted || source !== current) return;
-      try {
-        const command = commandMessageSchema.parse(JSON.parse(event.data));
-        if (Date.now() >= command.expiresAt) return;
-        // Its edits would no longer be saved, so the command must not report success.
-        const result: CommandResult = signal.aborted
-          ? { ok: false, code: "SESSION_CLOSED", error: "The session is no longer open" }
-          : executeCommand(app, command);
-        void fetch(rpcUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ commandId: command.commandId, result }),
-          signal: abort.signal,
-        }).then((response) => {
-          // A command can expire while this tab is suspended. Do not apply it again.
-          if (!response.ok && response.status !== 409) restart();
-        }, restart);
-      } catch {
-        restart();
+      function reply(commandId: string, result: CommandResult, closed: boolean) {
+        const send = Effect.tryPromise((signal) =>
+          fetch(rpcUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ commandId, result }),
+            signal,
+          }),
+        ).pipe(
+          Effect.match({
+            onFailure: () => {
+              if (!closed) restart();
+            },
+            onSuccess: (response) => {
+              // A failed reply only reconnects; executing a command again could duplicate edits.
+              if (!closed && !response.ok && response.status !== 409) restart();
+            },
+          }),
+        );
+        // Session abort closes the connection and its normal replies immediately.
+        // Until React detaches, late events still receive SESSION_CLOSED, in the
+        // attachment scope, without applying edits or reopening the connection.
+        Effect.runSync(Effect.forkIn(send, closed ? lifetime : scope));
       }
-    });
 
-    // EventSource closes on HTTP errors, including the 409 for a session open in another tab.
-    current.onerror = restart;
-  }
+      source.onopen = () => {
+        if (attached && receiving && !signal.aborted) onState("connected");
+      };
+      source.addEventListener("command", (event: MessageEvent<string>) => {
+        if (!attached || (!receiving && !signal.aborted)) return;
+        try {
+          const command = commandMessageSchema.parse(JSON.parse(event.data));
+          if (Date.now() >= command.expiresAt) return;
+          // This check must run synchronously, before React's effect cleanup.
+          const closed = signal.aborted;
+          const result: CommandResult = closed
+            ? { ok: false, code: "SESSION_CLOSED", error: "The session is no longer open" }
+            : executeCommand(app, command);
+          reply(command.commandId, result, closed);
+        } catch {
+          if (receiving && !signal.aborted) restart();
+        }
+      });
+      // HTTP errors include the 409 for a session open in another tab.
+      source.onerror = restart;
+      yield* Deferred.await(reconnect);
+    }),
+  );
+  const reconnecting = Effect.forever(
+    Effect.gen(function* () {
+      yield* connection;
+      onState("connecting");
+      yield* Effect.sleep("1 second");
+    }),
+  );
+  Effect.runSync(
+    Effect.forkIn(
+      Effect.raceFirst(stopped, reconnecting).pipe(
+        Effect.ensuring(Effect.sync(() => onState("off"))),
+      ),
+      lifetime,
+    ),
+  );
 
-  function stop() {
-    clearTimeout(retry);
-    source?.close();
-    onState("off");
-  }
-
-  stopped.addEventListener("abort", stop, { once: true });
-  open();
-  if (stopped.aborted) stop();
-  return () => abort.abort();
+  return () => {
+    attached = false;
+    Effect.runFork(Scope.close(lifetime, Exit.void));
+  };
 }
