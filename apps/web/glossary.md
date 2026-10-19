@@ -28,11 +28,11 @@ The browser route at `/browser/[sessionId]` has a Sessions panel on the left and
 
 ### MCP server
 
-The optional persistent Hono server in `apps/server`, also called the browser server. It exposes browser commands to agents over MCP and sends each command to the tab that has the session open over server-sent events, or SSE. It does not fetch genomic track files or own the live browser stores. Next.js rewrites `/mcp` and `/api/sessions/:id/rpc` to it. Its SQLite session storage is no longer used by the web app.
+The optional persistent Hono server in `apps/server`, also called the browser server. It exposes commands to agents over MCP and sends each call to the tab connected for the session over server-sent events, or SSE. It has no database. It does not fetch genomic track files or own the live browser stores. Next.js rewrites `/mcp` and `/rpc/:id` to it.
 
 ### Remote control
 
-A tab's SSE stream for one session, opened at `/api/sessions/:id/rpc`. Only the first tab to connect receives the session's commands; later tabs are rejected and retry until it disconnects. It is off by default and turned on in Settings. It attaches only to a loaded session. Saving does not depend on it.
+A tab's SSE stream for one session, opened at `/rpc/:id`. Only the first tab to connect receives the session's commands; later tabs are rejected and retry until it disconnects. It is off by default and turned on in Settings. It attaches only to a loaded session and detaches when that session stops being open or saving. Saving does not depend on it.
 
 ### Local access
 
@@ -40,7 +40,7 @@ The MCP server runs on loopback without tokens or login. Host and origin checks 
 
 ### Command and reply
 
-A command requests a browser-store action. Each command is one file in `apps/server/src/commands/` that defines its name, description, parameters, and the store action it runs. The registry in `commands/index.ts` makes each one an MCP tool of the same name. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the whole session snapshot on success, or the store's failure. Success means applied to the store, not finished loading track data or saved to the database.
+A command is an app action an agent can request. Its **command contract**, in `@weng-lab/agent-commands`, gives the MCP tool name, description, parameter schema, and result schema. The web app's **command handler** in `commands/commands.ts` carries it out. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
 
 A **pending command** has been sent to a tab and is waiting for its reply. The per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
 

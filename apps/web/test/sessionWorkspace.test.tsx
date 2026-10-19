@@ -6,7 +6,7 @@ import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../assemblies/assemblies";
-import { useRemoteControl } from "../browser/RemoteControl";
+import { useRemoteControl } from "../commands/RemoteControl";
 import { snapshot } from "../browser/snapshot";
 import { installSessionServer, type SessionServer } from "./sessionServer";
 

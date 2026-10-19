@@ -284,9 +284,9 @@ importers:
       '@modelcontextprotocol/server':
         specifier: ^2.3.1
         version: 2.3.1
-      '@weng-lab/session-snapshot':
+      '@weng-lab/agent-commands':
         specifier: workspace:*
-        version: link:../../packages/session-snapshot
+        version: link:../../packages/agent-commands
       hono:
         specifier: ^4.13.13
         version: 4.13.13
@@ -300,9 +300,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.2
-      '@weng-lab/genomebrowser':
-        specifier: workspace:*
-        version: link:../../packages/core
       oxfmt:
         specifier: 'catalog:'
         version: 0.61.0
@@ -342,9 +339,9 @@ importers:
       '@tanstack/react-hotkeys':
         specifier: ^0.13.0
         version: 0.13.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@weng-lab/browser-server':
+      '@weng-lab/agent-commands':
         specifier: workspace:*
-        version: link:../server
+        version: link:../../packages/agent-commands
       '@weng-lab/genomebrowser':
         specifier: workspace:*
         version: link:../../packages/core
@@ -421,6 +418,25 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(@vitest/coverage-v8@5.0.1)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.0(@types/node@26.6.2)(jiti@2.7.0))
+
+  packages/agent-commands:
+    dependencies:
+      '@weng-lab/session-snapshot':
+        specifier: workspace:*
+        version: link:../session-snapshot
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      oxfmt:
+        specifier: 'catalog:'
+        version: 0.61.0
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.76.0
+      typescript:
+        specifier: catalog:native
+        version: 7.0.2
 
   packages/core:
     dependencies:

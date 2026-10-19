@@ -4,20 +4,21 @@ The browser tab owns live browser state. Next.js serves the website and the save
 
 ## Ownership
 
-| Owner                                                         | Responsibility                                                    | Lifetime                                         |
-| ------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
-| `app/(workspace)/layout.tsx`, `AppProviders`                  | Resolve the account; mount session and remote-control providers   | Shared layout mount, per account                 |
-| `sessions/session.ts`                                         | Session list, open session and its stores, and session operations | Shared layout mount, per account                 |
-| `sessions/autosave.ts`                                        | Effect worker that saves the open session                         | From restoration until replaced or removed       |
-| `sessions/transport.ts`                                       | Cancellable requests to the session routes                        | Each request                                     |
-| `assemblies/assemblies.ts`                                    | Supported assemblies and their default stores                     | Module                                           |
-| `app/api/sessions/`, `server/sessions/`                       | Identity, validation, ownership checks, PostgreSQL                | Each request                                     |
-| `browser/RemoteControl.tsx`, `remoteControl.ts`, `execute.ts` | Command stream, store actions, and replies                        | While remote control is on and a session is open |
-| `components/workspace/`                                       | Navigation, theme, panel widths and collapsed state               | Panel state survives navigation                  |
-| `next.config.ts` rewrites                                     | Forward `/mcp` and `/api/sessions/:id/rpc` to the MCP server      | Each HTTP request                                |
-| Server `commands/`, `mcp.ts`, `tabs.ts`, `pendingCommands.ts` | Command definitions, MCP tools, open tabs, pending replies        | MCP server process, in memory                    |
+| Owner                                                           | Responsibility                                                    | Lifetime                                              |
+| --------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| `app/(workspace)/layout.tsx`, `AppProviders`                    | Resolve the account; mount session and remote-control providers   | Shared layout mount, per account                      |
+| `sessions/session.ts`                                           | Session list, open session and its stores, and session operations | Shared layout mount, per account                      |
+| `sessions/autosave.ts`                                          | Effect worker that saves the open session                         | From restoration until replaced or removed            |
+| `sessions/transport.ts`                                         | Cancellable requests to the session routes                        | Each request                                          |
+| `assemblies/assemblies.ts`                                      | Supported assemblies and their default stores                     | Module                                                |
+| `app/api/sessions/`, `server/sessions/`                         | Identity, validation, ownership checks, PostgreSQL                | Each request                                          |
+| `commands/RemoteControl.tsx`, `remoteControl.ts`, `commands.ts` | Command stream, command handlers, and replies                     | While remote control is on and the open session saves |
+| `components/workspace/`                                         | Navigation, theme, panel widths and collapsed state               | Panel state survives navigation                       |
+| `next.config.ts` rewrites                                       | Forward `/mcp` and `/rpc/:id` to the MCP server                   | Each HTTP request                                     |
+| `@weng-lab/agent-commands`                                      | Command contracts and wire schemas                                | Module                                                |
+| Server `mcp.ts`, `tabs.ts`, `pendingCommands.ts`                | MCP tools, open tabs, pending replies                             | MCP server process, in memory                         |
 
-The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The session snapshot schema comes from `@weng-lab/session-snapshot`, and tab message schemas from `@weng-lab/browser-server/protocol`. Browser code never imports server implementations.
+The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The session snapshot schema comes from `@weng-lab/session-snapshot`, and command contracts and tab message schemas from `@weng-lab/agent-commands`. The web app and the MCP server do not import each other.
 
 ```mermaid
 flowchart TD
@@ -40,15 +41,15 @@ flowchart TD
   View <-->|Genomic reader requests| Files
 ```
 
-The tab looks up each command in the shared registry, validates its parameters, and runs its `run` function through `browser/execute.ts`. The server never mutates the stores directly.
+The tab looks up each command's contract, validates its parameters, and runs its handler in `commands/commands.ts`. The server never mutates the stores directly.
 
 ## Apply a command
 
-1. An agent calls an MCP tool, such as `set_region`, with a `sessionId` and the command's parameters. The SDK validates them against the command's `params` schema.
+1. An agent calls an MCP tool, such as `set_region`, with a `sessionId` and the command's parameters. The SDK validates them against the contract's `params` schema.
 2. The server finds the tab connected for that session. Without one, the tool fails with `NOT_CONNECTED`.
 3. The tab's pending-command tracker registers a reply, assigns `commandId` and `expiresAt`, and sends an SSE `command` event.
-4. The tab ignores expired commands and rejects commands for a session it has replaced with `SESSION_CLOSED`. It runs the command's `run` function, and posts its reply to `/api/sessions/:id/rpc`: the whole snapshot on success, or the store's failure.
-5. The tracker clears its timer and returns the reply to the agent.
+4. The tab ignores expired commands and rejects commands for a session that is no longer open and saving with `SESSION_CLOSED`. It runs the command's handler and posts its reply to `/rpc/:id`: the command's result on success, or the store's failure.
+5. The tracker clears its timer. The server checks the result against the contract's `result` schema and returns it to the agent.
 
 ```mermaid
 sequenceDiagram
@@ -59,12 +60,12 @@ sequenceDiagram
   Server->>Tab: SSE command with ID and expiry
   Tab->>Tab: Apply store action
   Tab->>Server: POST result with command ID
-  Server-->>Agent: Session snapshot or failure
+  Server-->>Agent: Command result or failure
 ```
 
 The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. Commands expire after five seconds by default and are not replayed on reconnect. Timeout, cancellation, disconnect, and failed stream writes clear pending commands.
 
-Only the first tab to open a session's stream receives its commands. The server answers later tabs with 409, and they retry every second until the first tab disconnects. Turning off remote control in Settings closes the stream.
+Only the first tab to open a session's stream receives its commands. The server answers later tabs with 409, and they retry every second until the first tab disconnects. Turning off remote control in Settings closes the stream. So does the session's `signal` from `sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
 
 ## Save and restore
 
@@ -93,6 +94,6 @@ Opening another session saves the open one first and replaces the stores only on
 
 A local browser action or remote command changes the same stores. Core determines which tracks need data; their fetchers use genomic readers to request remote files directly from the browser. Neither server is on this data path. Fetched records, loading state, and runtime resources are not saved in the session snapshot. Source URLs and track configuration are saved.
 
-For extension points, see [Add a command](../../../server/README.md#add-a-command). Definitions live in the [app glossary](../../glossary.md#commands-and-persistence).
+For extension points, see [Add a command](../../../../packages/agent-commands/README.md#add-a-command). Definitions live in the [app glossary](../../glossary.md#commands-and-persistence).
 
 [Back to the docs home](../README.md)

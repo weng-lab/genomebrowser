@@ -11,8 +11,20 @@ export type SessionState = {
   status: "loading" | "ready" | "unavailable" | "signed-out";
   /** The account's saved sessions, sorted by name. */
   sessions: readonly Session[];
-  /** The restored session shown in the browser. Only open, create, and remove replace it. */
-  active: { id: string; name: string; stores: GenomeBrowserStores } | undefined;
+  /** The restored session shown in the browser. Only open, create, remove, and close replace it. */
+  active:
+    | {
+        id: string;
+        name: string;
+        stores: GenomeBrowserStores;
+        /**
+         * Aborts as soon as this session is replaced or closed, or its edits can no
+         * longer be saved, or while deletion is pending. Work on its stores outside the UI, such as agent
+         * commands, must stop then: its edits would not be saved.
+         */
+        signal: AbortSignal;
+      }
+    | undefined;
   /** Saving of the active session's edits. */
   saveStatus: SaveStatus | undefined;
   /** The open, create, remove, or close operation in progress. They run one at a time. */
@@ -42,7 +54,13 @@ export type SessionState = {
 
 type Active = NonNullable<SessionState["active"]>;
 type Pending = NonNullable<SessionState["pending"]>;
-type Current = { id: string; scope: Scope.Closeable; autosave: Autosave };
+type Current = {
+  id: string;
+  scope: Scope.Closeable;
+  autosave: Autosave;
+  /** Aborts the active session's `signal`. */
+  ended: AbortController;
+};
 
 const idle = {
   status: "loading",
@@ -167,6 +185,12 @@ export function createSession({
     );
   }
 
+  /** Change the session whose edits save. The previous one's `signal` aborts first. */
+  function setCurrent(next: Current | undefined) {
+    current?.ended.abort();
+    current = next;
+  }
+
   /** After a failed operation, show the session that is still open. */
   function stay() {
     if (current) navigation.show(current.id);
@@ -206,9 +230,10 @@ export function createSession({
   }
 
   /** Replace the active session once the previous one has no unsaved edits. */
-  const activate = (next: Active) =>
+  const activate = (next: Omit<Active, "signal">) =>
     Effect.gen(function* () {
       const sessionScope = yield* Scope.fork(scope!);
+      const ended = new AbortController();
       const autosave = yield* startAutosave({
         id: next.id,
         stores: next.stores,
@@ -227,6 +252,8 @@ export function createSession({
             saveError =
               "The latest changes are too large or invalid to save. Change them to keep saving.";
           else saveError = "Changes to this session can no longer be saved.";
+          // Only refused edits can still be saved, after a further edit.
+          if (failure.code !== "INVALID_INPUT") current.ended.abort();
           failed(failure, saveError);
         },
         onSaved(saved) {
@@ -236,8 +263,8 @@ export function createSession({
       let replaced = false;
       const replace = () => {
         replaced = true;
-        current = { id: next.id, scope: sessionScope, autosave };
-        set({ active: next, saveStatus: "saved" });
+        setCurrent({ id: next.id, scope: sessionScope, autosave, ended });
+        set({ active: { ...next, signal: ended.signal }, saveStatus: "saved" });
         navigation.show(next.id);
       };
       const previous = current;
@@ -341,14 +368,23 @@ export function createSession({
       const target = current?.id === id ? current : undefined;
       // A write the server already accepted finishes first, so no write follows the deletion.
       if (target) yield* target.autosave.pause;
+      // Stop commands before DELETE can commit, including while its response is delayed.
+      const renew = target && !target.ended.signal.aborted;
+      target?.ended.abort();
       const removed = yield* Effect.result(transport.remove(id));
       if (Result.isFailure(removed) && removed.failure.code !== "NOT_FOUND") {
-        if (target) yield* target.autosave.resume;
+        if (target) {
+          if (renew) {
+            target.ended = new AbortController();
+            set({ active: { ...get().active!, signal: target.ended.signal } });
+          }
+          yield* target.autosave.resume;
+        }
         return failed(removed.failure, `Could not delete “${name}”. Try again.`);
       }
       changeList((sessions) => sessions.filter((session) => session.id !== id));
       if (!target) return;
-      current = undefined;
+      setCurrent(undefined);
       set({ active: undefined, saveStatus: undefined });
       navigation.show(undefined);
       yield* Scope.close(target.scope, Exit.void);
@@ -365,7 +401,7 @@ export function createSession({
     const operation = Effect.gen(function* () {
       const target = current;
       const finish = () => {
-        current = undefined;
+        setCurrent(undefined);
         set({ active: undefined, saveStatus: undefined });
         navigation.show(undefined);
       };
@@ -400,7 +436,8 @@ export function createSession({
     return () => {
       window.removeEventListener("focus", refresh);
       window.removeEventListener("beforeunload", warn);
-      scope = current = opening = listing = undefined;
+      setCurrent(undefined);
+      scope = opening = listing = undefined;
       Effect.runFork(Scope.close(lifetime, Exit.void));
       set(idle);
     };

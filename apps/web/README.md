@@ -20,7 +20,7 @@ Open `http://localhost:3000/browser`. With no session open, the browser asks you
 
 `pnpm dev:web` starts only Next.js. Sessions load and save without the MCP server. `pnpm dev:server` starts only the MCP server. Both bind to loopback.
 
-Next.js rewrites `/mcp` and each tab's command stream, `/api/sessions/:id/rpc`, to the MCP server at `http://127.0.0.1:3001`. Set `GB_SERVER_URL` to use another address; rewrites are fixed when Next.js starts in development and when it builds for production. Every other `/api/sessions` route is this app's own.
+Next.js rewrites `/mcp` and each tab's command stream, `/rpc/:id`, to the MCP server at `http://127.0.0.1:3001`. Set `GB_SERVER_URL` to use another address; rewrites are fixed when Next.js starts in development and when it builds for production. The `/api/sessions` routes are this app's own.
 
 ## Sessions
 
@@ -80,7 +80,7 @@ In production, set `DATABASE_URL` to the Google Cloud SQL instance. The `pg` dri
 
 ### Sessions saved by the old server
 
-Before this app saved sessions, the MCP server kept them in SQLite by URL name, with no owner. The browser no longer reads that file, and nothing claims those sessions automatically. An administrator can copy them to one user:
+Before this app saved sessions, the MCP server kept them in SQLite by URL name, with no owner. Neither the browser nor the server reads that file now, and nothing claims those sessions automatically. An administrator can copy them to one user:
 
 ```sh
 pnpm web sessions:import-sqlite --sqlite ../server/data/browser.sqlite --owner <user ID>
@@ -90,9 +90,9 @@ Each copy gets a new UUID and keeps the old ID as its name. Add `--session <old 
 
 ## Control a browser tab
 
-Agents control the browser through MCP. Each browser command is an MCP tool that takes a `sessionId` and returns the whole session snapshot after the tab applies it. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
+Agents control the browser through MCP. Each command is an MCP tool that takes a `sessionId` and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
 
-Remote control is optional and off by default. Turn it on under **Remote control** in Settings. While on, the tab connects the open session once it has loaded, and moves the connection to each session it opens, closing the old stream first. Turning it off closes the stream; MCP calls for the session then fail. A command that arrives after the tab replaced its session fails with `SESSION_CLOSED` and changes nothing. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
+Remote control is optional and off by default. Turn it on under **Remote control** in Settings. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; MCP calls for the session then fail. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
 
 Connect an MCP client to `http://localhost:3000/mcp`, or to `http://127.0.0.1:3001/mcp` to skip Next.js. For example, with Claude Code:
 
@@ -102,9 +102,9 @@ claude mcp add --transport http genome-browser http://localhost:3000/mcp
 
 Then ask the agent to call `set_region` with the session ID from the URL, which the Agent panel also shows, and a zero-based, half-open region such as `{"chromosome":"chr1","start":100000,"end":200000}`. Success means the store accepted the region; it does not mean track data has finished rendering.
 
-A tool call fails with `NOT_CONNECTED` when no tab has the session open with remote control on, `TIMEOUT` when the tab does not reply within five seconds, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. A timeout or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
+A tool call fails with an MCP validation error for invalid parameters, `NOT_CONNECTED` when no tab has the session open with remote control on, `TIMEOUT` when the tab does not reply within five seconds, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. A timeout or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
 
-The tab opens an SSE stream at `/api/sessions/:id/rpc`, which Next.js forwards to the MCP server. The MCP server does not check session ownership; anyone who can reach it and knows a session ID can control a connected tab. Commands carry a unique `commandId` and `expiresAt`, and the tab posts its reply to the same path. Commands are not replayed after reconnection. The server tracks open tabs and pending commands in memory.
+The tab opens an SSE stream at `/rpc/:id`, which Next.js forwards to the MCP server. The MCP server has no database and does not check session ownership; anyone who can reach it and knows a session ID can control a connected tab. Commands carry a unique `commandId` and `expiresAt`, and the tab posts its reply to the same path. Commands are not replayed after reconnection. The server tracks open tabs and pending commands in memory.
 
 ## Change the product
 
@@ -116,7 +116,7 @@ const open = useSession((session) => session.open);
 void open(id); // Saves the open session first; reports failures in `error`.
 ```
 
-`open`, `create`, `rename`, `remove`, and `close` are complete operations; `close` saves or discards the open session before an account change. They save, request, replace stores, and update the URL themselves, so panels only call them. The session feature lives in `sessions/`: `session.ts` owns the lifecycle, `autosave.ts` the Effect save worker, and `transport.ts` the requests to the session routes. `assemblies/assemblies.ts` lists supported assemblies and creates their default stores. `browser/` holds snapshot conversion and the optional remote control: `RemoteControl.tsx` attaches `remoteControl.ts` to the open session and `execute.ts` runs commands. The browser page's views and panels belong in `app/(workspace)/browser/`.
+`open`, `create`, `rename`, `remove`, and `close` are complete operations; `close` saves or discards the open session before an account change. They save, request, replace stores, and update the URL themselves, so panels only call them. The session feature lives in `sessions/`: `session.ts` owns the lifecycle, `autosave.ts` the Effect save worker, and `transport.ts` the requests to the session routes. `assemblies/assemblies.ts` lists supported assemblies and creates their default stores. `browser/snapshot.ts` converts stores to and from snapshots. `commands/` holds the optional remote control: `RemoteControl.tsx` attaches `remoteControl.ts` to the open session, and `commands.ts` implements each command. The browser page's views and panels belong in `app/(workspace)/browser/`.
 
 Generic layout, panels, and theme live in `components/workspace/` and must not import domain code. `Workspace` owns the lifetime of panel state defined in `panels/panelState.tsx`. The `frame/` group contains the shared header, sidebar, and title rows. Panel sizing and collapse behavior belong in `panels/`, where `SidePanel` uses `Resizable`; transition enablement lives in `useTransitionEnabled.ts`.
 
@@ -128,7 +128,7 @@ To add a product page:
 
 There is no central page registry or page export step. See [Pages and panels](docs/02-guides/pages.md) for a route example.
 
-Each command is one file in `apps/server/src/commands/`, registered in its `index.ts`. That definition supplies both the MCP tool and the store action `browser/execute.ts` runs in the tab. Follow [Add a command](../server/README.md#add-a-command). Keep the protocol export browser-safe and live browser stores in the web app.
+A command's contract lives in `@weng-lab/agent-commands`, and its implementation in `commands/commands.ts`. The MCP server needs no change. Follow [Add a command](../../packages/agent-commands/README.md#add-a-command).
 
 Run `pnpm verify` for the workspace check. React changes also follow the [render verification guidance](../../docs/02-contributing/testing.md). The [app docs](docs/README.md) describe workspace components and route composition.
 

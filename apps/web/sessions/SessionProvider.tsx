@@ -53,8 +53,3 @@ function useSessionStore() {
 export function useSession<T>(selector: (state: SessionState) => T): T {
   return useStore(useSessionStore(), selector);
 }
-
-/** Read the current session state outside rendering, such as when a command arrives. */
-export function useSessionState(): () => SessionState {
-  return useSessionStore().getState;
-}

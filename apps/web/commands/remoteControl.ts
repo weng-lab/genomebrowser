@@ -1,31 +1,33 @@
-import { commandMessageSchema, type CommandResult } from "@weng-lab/browser-server/protocol";
-import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
-import { executeBrowserCommand } from "./execute";
+import { commandMessageSchema, type CommandResult } from "@weng-lab/agent-commands";
+import { executeCommand, type CommandCapabilities } from "./commands";
 
 export type RemoteControlState = "off" | "connecting" | "connected";
 
 /**
- * Accept commands for one session from the server. Only the first tab to connect receives
- * them; other tabs keep retrying until it closes. Commands are never replayed. `session`
- * returns the session's stores while it is open, and nothing once another replaces it.
+ * Accept agent commands for one session from the MCP server until `signal`
+ * aborts, then disconnect. Only the first tab to connect receives them; other
+ * tabs keep retrying until it closes. Commands are never replayed, and a command
+ * that arrives once `signal` has aborted fails without running.
  */
 export function connectRemoteControl(
   rpcUrl: string,
-  session: () => GenomeBrowserStores | undefined,
+  app: CommandCapabilities,
+  signal: AbortSignal,
   onState: (state: RemoteControlState) => void,
 ) {
   const abort = new AbortController();
-  let source: EventSource;
+  const stopped = AbortSignal.any([abort.signal, signal]);
+  let source: EventSource | undefined;
   let retry: ReturnType<typeof setTimeout> | undefined;
 
   function open() {
-    if (abort.signal.aborted) return;
+    if (stopped.aborted) return;
     onState("connecting");
     const current = new EventSource(rpcUrl);
     source = current;
 
     function restart() {
-      if (abort.signal.aborted || source !== current) return;
+      if (stopped.aborted || source !== current) return;
       current.close();
       onState("connecting");
       clearTimeout(retry);
@@ -33,7 +35,7 @@ export function connectRemoteControl(
     }
 
     current.onopen = () => {
-      if (!abort.signal.aborted && source === current) onState("connected");
+      if (!stopped.aborted && source === current) onState("connected");
     };
 
     current.addEventListener("command", (event: MessageEvent<string>) => {
@@ -41,11 +43,10 @@ export function connectRemoteControl(
       try {
         const command = commandMessageSchema.parse(JSON.parse(event.data));
         if (Date.now() >= command.expiresAt) return;
-        const stores = session();
-        // Its edits would no longer save, so the command must not report success.
-        const result: CommandResult = stores
-          ? executeBrowserCommand(stores, command)
-          : { ok: false, code: "SESSION_CLOSED", error: "The session is no longer open" };
+        // Its edits would no longer be saved, so the command must not report success.
+        const result: CommandResult = signal.aborted
+          ? { ok: false, code: "SESSION_CLOSED", error: "The session is no longer open" }
+          : executeCommand(app, command);
         void fetch(rpcUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -64,11 +65,14 @@ export function connectRemoteControl(
     current.onerror = restart;
   }
 
-  open();
-  return () => {
-    abort.abort();
+  function stop() {
     clearTimeout(retry);
-    source.close();
+    source?.close();
     onState("off");
-  };
+  }
+
+  stopped.addEventListener("abort", stop, { once: true });
+  open();
+  if (stopped.aborted) stop();
+  return () => abort.abort();
 }

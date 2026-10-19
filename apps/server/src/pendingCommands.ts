@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { CommandMessage, CommandReply, CommandResult } from "./protocol.ts";
+import type { CommandMessage, CommandReply, CommandResult } from "@weng-lab/agent-commands";
 
 export type CommandInput = Pick<CommandMessage, "name" | "params">;
 

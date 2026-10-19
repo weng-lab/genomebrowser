@@ -13,29 +13,35 @@ Use this as the starting context for bounded implementation threads. Read [app d
 
 ## Progress
 
-Steps 1 to 4 have landed in two slices. Step 3 is partial: the web app no longer uses the browser server's persistence, but that server still contains it.
+Steps 1 to 5 have landed in three slices.
 
 - `packages/session-snapshot` holds the snapshot schema. `browser.assembly` accepts any assembly ID; restoring into a store for another assembly fails.
 - `apps/web/server/sessions/` owns the `sessions` table and `createSessions({ db, identity })`. Operations derive the owner from identity on every call, validate input, report other users' sessions as not found, refuse to recreate deleted sessions, and check the stored assembly inside the `UPDATE` statement. Migrations live in `apps/web/drizzle/`.
 - `apps/web/server/identity.ts` selects Clerk or explicitly enabled mock users and refuses mock identity in production. A test sends requests through the real proxy and Clerk's `auth()` with locally signed tokens.
-- Route handlers under `apps/web/app/api/sessions/` expose those operations with a 1 MB body limit and coded errors; other failures return 500 without detail. The `/api/*` rewrite is gone. Only `/mcp` and `/api/sessions/:id/rpc` still go to the MCP server.
+- Route handlers under `apps/web/app/api/sessions/` expose those operations with a 1 MB body limit and coded errors; other failures return 500 without detail. The `/api/*` rewrite is gone. Only `/mcp` and `/rpc/:id` still go to the MCP server.
 - `apps/web/sessions/` owns the client lifecycle. One store per account, mounted by the workspace layout, holds the session list, the open session's stores, save status, and complete `open`, `create`, `rename`, `remove`, and `close` operations; components read it through `useSession`. Composition injects the HTTP transport, store construction from `assemblies/`, and navigation. Effect runs requests, the autosave worker, debounce, and retries; interruption aborts a request and its response body.
 - URLs carry the session UUID. Links, typed URLs, and history all call `open`, which saves the open session first and keeps it, with its edits, when saving or loading fails. `/browser` without an ID shows an empty state. Deleting the open session waits for an outstanding write.
 - Autosave keeps unsaved edits dirty whatever the failure. Refused input, such as a session over 1 MB, waits for a further edit; `NOT_FOUND` ends saving, and switching then fails until the user discards the edits.
 - The sidebar's account menu, for Clerk or mock users, signs out or switches only after `close` saves and closes the open session. If saving fails, it offers to stay, retry, or discard. The session provider is keyed by user, so an account change made elsewhere stops the previous user's requests and saving.
 - `pnpm web sessions:import-sqlite` copies old SQLite sessions to one named owner with new UUIDs, keeping the old ID as the name. It never runs automatically and leaves the SQLite file unchanged.
+- `apps/server` has no database, persistence routes, or session list. It starts without credentials and serves `/mcp`, `/health`, and each tab's stream at `/rpc/:id`, keeping the local host, origin, body-size, and timeout checks. The session ID only routes calls.
+- `packages/agent-commands` holds browser-safe command contracts: tool name, description, parameter schema, and result schema, plus the tab message schemas. The MCP server makes each contract a tool and checks the tab's result against it. The web app implements each contract in `commands/commands.ts` against `CommandCapabilities`, which today holds the open session's stores. A command that needs other app capabilities adds them there. `set_region` returns the region shown and whether it was clamped.
+- The active session has a `signal` that aborts synchronously when the session is replaced, removed, closed, or stopped, and when its edits can no longer be saved. Remote control closes its stream on that signal and answers a late command with `SESSION_CLOSED` without running it, so no command succeeds on stores whose edits will not be saved. Deletion aborts the attachment before sending DELETE; if deletion fails, the same stores keep their edits and receive a new signal. Refused edits that a further edit can fix do not end it.
 
 Known limitations, with their impact:
 
 - Sign-in against a real Clerk instance is untested; no credentials were available. Account switching is tested with mock users, and sign-out with Clerk's hooks replaced. Smoke-test a Clerk development instance before relying on it.
 - An account change made outside the account menu, such as signing out in another tab or the Clerk session ending, discards unsaved edits. They cannot be saved with the new credentials, and keeping them would show them to the new account. Clerk's multi-session switching is not offered. Closing the tab with unsaved edits asks for confirmation but does not save.
 - Several tabs may edit one session; the last write wins.
-- Remote control detaches from the previous session in a React effect after the stores are replaced. Until then, the tab checks before each command that its session is still open and otherwise replies `SESSION_CLOSED`. The MCP slice should make detachment part of replacement.
 - While another session opens, the browser keeps showing the open one under the new URL until restoration finishes.
 - Only hg38 can be created.
 - Merged gene tracks store their data-dependent height in the track configuration. A new session therefore saves once shortly after its first render without a user edit. This is harmless but means saved height follows loaded data.
 
-The next slice must remove persistence and its database from `apps/server`, separate shared command contracts, and start MCP with a single region tool attached to the ready session, as step 5 describes.
+- MCP has no authentication or authorization. Anyone who can reach the server and knows a session ID can control a connected tab, so it stays on loopback. Design both before cloud deployment, along with hosting that keeps SSE connections open.
+- After the session's saving ends, such as when it was deleted elsewhere, the Agent panel says agents cannot control it. Remote control reconnects only when another session opens.
+- A timed-out or disconnected command may still have changed the tab's stores before its reply arrived.
+
+Step 6 is next: remove any remaining superseded wiring and documentation claims.
 
 Production pool sizing for serverless functions on Cloud SQL is untested. The pool uses `pg` defaults.
 

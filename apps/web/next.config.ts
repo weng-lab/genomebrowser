@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
   experimental: {
     useTypeScriptCli: true,
   },
-  transpilePackages: ["@weng-lab/browser-server"],
   agentRules: false,
   // The optional MCP server owns agent connections and each tab's command stream.
   // Saved sessions are this app's own routes under /api/sessions.
@@ -14,7 +13,7 @@ const nextConfig: NextConfig = {
     const server = process.env.GB_SERVER_URL ?? "http://127.0.0.1:3001";
     return [
       { source: "/mcp", destination: `${server}/mcp` },
-      { source: "/api/sessions/:id/rpc", destination: `${server}/api/sessions/:id/rpc` },
+      { source: "/rpc/:id", destination: `${server}/rpc/:id` },
     ];
   },
 };

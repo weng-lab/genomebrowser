@@ -109,8 +109,8 @@ export function installSessionServer() {
 
   async function fetch(input: string, init: RequestInit = {}) {
     const url = new URL(input, "http://localhost");
+    if (url.pathname.startsWith("/rpc/")) return server.rpc(input, init);
     if (!url.pathname.startsWith("/api/sessions")) throw new Error(`Unexpected request ${input}`);
-    if (url.pathname.endsWith("/rpc")) return server.rpc(input, init);
     const request: Request = {
       method: init.method ?? "GET",
       id: url.pathname.split("/")[3],

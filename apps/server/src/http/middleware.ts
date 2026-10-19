@@ -22,15 +22,14 @@ export function createHttpMiddleware(options: { allowedOrigins?: readonly string
     await next();
   };
 
-  // Session saves and command replies both carry a full session snapshot.
-  const limitSnapshotBody = bodyLimit({
+  const limitReplyBody = bodyLimit({
     maxSize: 1_048_576,
     onError: (c) => c.json({ error: "Request body is too large" }, 413),
   });
 
   return {
     checkLocalRequest,
-    limitSnapshotBody,
+    limitReplyBody,
   };
 }
 

@@ -20,7 +20,7 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 Private applications live under `apps/`:
 
 - [Web app](apps/web/README.md) (`@weng-lab/web`) owns the browser, collections, and settings routes, browser session, workspace layout, and command proxy.
-- [Browser server](apps/server/README.md) (`@weng-lab/browser-server`) relays commands to connected browser tabs.
+- [Browser server](apps/server/README.md) (`@weng-lab/browser-server`) is the optional MCP server. It relays agent commands to connected browser tabs and stores nothing.
 
 Archived applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace and its development and verification commands.
 

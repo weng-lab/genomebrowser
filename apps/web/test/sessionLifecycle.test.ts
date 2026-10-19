@@ -294,13 +294,28 @@ it("deletes the active session after its outstanding write and never writes it a
 it("resumes saving when deleting the active session fails", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  server.fail("DELETE");
-  await state().remove(id);
+  const previous = state().active!;
+  setRegion(3000);
+  const deletion = server.hold("DELETE");
+  const removing = state().remove(id);
+  await vi.waitFor(() => expect(writes()).toContain("DELETE"));
+  expect(previous.signal.aborted).toBe(true);
+  expect(closeTab()).toBe(true);
+  deletion.fail();
+  await removing;
   expect(state().active!.id).toBe(id);
+  expect(stores()).toBe(previous.stores);
+  expect(stores().useBrowserStore.getState().region.start).toBe(3000);
+  expect(state().active!.signal).not.toBe(previous.signal);
+  expect(state().active!.signal.aborted).toBe(false);
   expect(state().error).toBe("Could not delete “Session”. Try again.");
 
   setRegion(4000);
   await vi.waitFor(() => expect(savedRegion(id)).toBe(4000));
+  // Terminal save failure must also abort the renewed attachment.
+  server.stored.delete(id);
+  setRegion(5000);
+  await vi.waitFor(() => expect(state().active!.signal.aborted).toBe(true));
 });
 
 it("keeps edits to a session deleted elsewhere unsaved until they are discarded", async () => {
@@ -308,9 +323,11 @@ it("keeps edits to a session deleted elsewhere unsaved until they are discarded"
   const other = server.add("Other", defaults());
   await state().open(id);
   server.stored.delete(id);
+  const { signal } = state().active!;
   setRegion(1000);
   await vi.waitFor(() => expect(state().saveStatus).toBe("failed"));
   expect(state().error).toBe("This session was deleted elsewhere. Its changes cannot be saved.");
+  expect(signal.aborted).toBe(true);
   setRegion(2000);
   await advance(5000);
   expect(writes()).toEqual(["PUT"]);
@@ -331,6 +348,30 @@ it("keeps edits to a session deleted elsewhere unsaved until they are discarded"
   expect(writes()).toEqual(["PUT"]);
 });
 
+it("aborts the active session's signal as it is replaced, removed, closed, or stopped", async () => {
+  const a = server.add("A", defaults());
+  const b = server.add("B", defaults());
+  // Record whether each session's signal had aborted when it stopped being active.
+  const abortedWhenReplaced: boolean[] = [];
+  session.store.subscribe((next, previous) => {
+    if (previous.active && next.active?.signal !== previous.active.signal)
+      abortedWhenReplaced.push(previous.active.signal.aborted);
+  });
+
+  await state().open(a);
+  const first = state().active!.signal;
+  state().rename("Renamed");
+  expect(state().active!.signal).toBe(first);
+  await state().open(b);
+  await state().remove(b);
+  await state().open(a);
+  await state().close();
+  await state().open(a);
+  stop();
+  expect(abortedWhenReplaced).toEqual([true, true, true, true]);
+  start();
+});
+
 it("refuses to resend edits too large to save, and saves once they are changed", async () => {
   const id = server.add("Session", defaults());
   const other = server.add("Other", defaults());
@@ -344,6 +385,8 @@ it("refuses to resend edits too large to save, and saves once they are changed",
   expect(state().error).toBe(
     "The latest changes are too large or invalid to save. Change them to keep saving.",
   );
+  // A further edit can still save, so work on the stores may continue.
+  expect(state().active!.signal.aborted).toBe(false);
   await advance(5000);
   expect(puts()).toHaveLength(1);
   expect(closeTab()).toBe(true);

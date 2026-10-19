@@ -3,14 +3,18 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { useRemoteControl } from "../../../browser/RemoteControl";
+import { useRemoteControl } from "../../../commands/RemoteControl";
 import { useSession } from "../../../sessions/SessionProvider";
 
 export function AgentPanel() {
   const { state, enabled } = useRemoteControl();
   const sessionId = useSession((session) => session.active?.id);
+  // The session updates its state whenever the signal aborts, so this stays current.
+  const ended = useSession((session) => session.active?.signal.aborted);
   let message = "Remote control is off. Turn it on in Settings.";
   if (enabled && !sessionId) message = "Open a session to connect it to agents.";
+  else if (enabled && ended)
+    message = "This session's changes can no longer be saved, so agents cannot control it.";
   else if (enabled && state === "connected")
     message = `Connected. MCP tools called with sessionId "${sessionId}" run in this tab.`;
   else if (enabled) message = "Connecting… If this session is open in another tab, close that tab.";
