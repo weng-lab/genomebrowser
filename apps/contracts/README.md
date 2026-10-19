@@ -27,4 +27,4 @@ Build with `pnpm exec turbo run build --filter=@weng-lab/contracts`. The package
 
 3. Add a web test that sends the command to the tab, following `apps/web/test/remoteControl.test.tsx`.
 
-The MCP server picks up the new tool on restart. Turbo builds this package before either app and tracks it as a workspace dependency. The MCP server does not depend on the web app build.
+Rebuild contracts and restart the dev processes after changing a contract; the current dev command builds dependencies once rather than watching their source. The MCP server registers tools from the compiled definitions. Turbo builds this package before either app and tracks it as a workspace dependency. The MCP server does not depend on the web app build.

@@ -1,6 +1,6 @@
 # Pages and panels
 
-A route owns its title, optional side panels, and center content. The generic workspace components own their placement, sizing, and animation. Keep domain components in their owning `features/` folder; `shared/workspace/` must not import them or browser stores.
+A feature page composes its title, optional side panels, and center content; the Next.js route imports it. Small routes can compose that content directly. The generic workspace components own their placement, sizing, and animation. Keep domain components in their owning `features/` folder; `shared/workspace/` must not import them or browser stores.
 
 ## Add a page
 
@@ -20,7 +20,7 @@ export default function ReportsPage() {
 }
 ```
 
-Add the route's link to `composition/navigation.tsx` using `href`, `label`, `icon`, and optional `placement: "bottom"`. Entries appear in list order within their group. Titles and panel elements stay in the route. No central page registry or export is required.
+Add the route's link to `composition/navigation.tsx` using `href`, `label`, `icon`, and optional `placement: "bottom"`. Entries appear in list order within their group. Titles and panel elements stay in the feature page or its thin route composition. No central page registry or export is required.
 
 Every route has center content. Use a left panel for navigation within the page and a right panel for a tool used alongside it. An absent side panel has no toggle. A supplied panel can be collapsed and reopened by the user.
 
@@ -38,7 +38,7 @@ import Box from "@mui/material/Box";
 
 Use MUI `Typography` for text so the workspace theme applies consistently. See [Styling and text](styling.md).
 
-State shared by a route's panels belongs in its domain components or an appropriate store or provider. State that must survive navigation belongs above those routes, as the browser session does in `AppProviders`. Do not depend on page component state surviving a Next.js route change. Panel widths and collapsed state persist in the shared workspace layout, separately from panel content state.
+State shared by a route's panels belongs in its domain components or an appropriate store or provider. State that must survive navigation belongs to a feature mounted above those routes, as the session feature is through `AppProviders`. Do not depend on page component state surviving a Next.js route change. Panel widths and collapsed state persist in the shared workspace layout, separately from panel content state.
 
 For widths, shortcuts, and resize controls, see the [component reference](../03-reference.md#side-panel-behavior).
 

@@ -108,31 +108,20 @@ The tab opens an SSE stream at `/rpc/:id`, which Next.js forwards to the MCP ser
 
 ## Change the product
 
-`app/` owns Next.js routes and layout orchestration. `features/` owns product UI and operations. `composition/` wires concrete providers, navigation, and server dependencies; features do not import it.
-
-The shared `app/(workspace)/layout.tsx` resolves the account, then wraps route children in `AppProviders` and `Workspace`. `AppProviders` mounts one `SessionProvider` per account, which owns saved sessions and the open session for the workspace's lifetime. Components read it with `useSession`, selecting one value at a time:
-
-```tsx
-const sessions = useSession((session) => session.sessions);
-const open = useSession((session) => session.open);
-void open(id); // Saves the open session first; reports failures in `error`.
+```text
+app/           # Next.js routes and layout composition
+features/      # Product UI, operations, schemas, and feature server code
+shared/        # Generic workspace shell, panels, and theme
+composition/   # Concrete providers, navigation, and server dependencies
 ```
 
-`open`, `create`, `rename`, `remove`, and `close` are complete operations; `close` saves or discards the open session before an account change. They save, request, replace stores, and update the URL themselves, so panels only call them. The session feature lives in `features/sessions/`: `session.ts` owns the lifecycle, `autosave.ts` the Effect save worker, and `transport.ts` the requests to the session routes. `features/assemblies/assemblies.ts` lists supported assemblies and creates their default stores. `features/sessions/storeSnapshot.ts` converts stores to and from snapshots. `features/agent/` holds the optional remote control: `RemoteControl.tsx` attaches `remoteControl.ts` to the open session, and `commands.ts` implements each command. Browser views belong in `features/browser/`; session and agent panels belong to their respective features.
+Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns remote control and command handlers. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/01-project/02-feature-placement.md#product-behavior-belongs-in-the-web-app).
 
-Generic layout, panels, and theme live in `shared/workspace/` and must not import domain code. `Workspace` owns the lifetime of panel state defined in `panels/panelState.tsx`. The `frame/` group contains the shared header, sidebar, and title rows. Panel sizing and collapse behavior belong in `panels/`, where `SidePanel` uses `Resizable`; transition enablement lives in `useTransitionEnabled.ts`.
+The workspace layout mounts one session provider per account. Use `useSession` with focused selectors and call its complete operations; panels should not coordinate saving, cancellation, or navigation themselves. Keep providers above routes so navigation preserves their state. See [data flow](docs/02-guides/dataFlow.md) for lifetimes and [routing](docs/02-guides/routing.md) for URL behavior.
 
-To add a product page:
+To add a product page, put its UI in `features/`, import it from a thin `app/` route, and add its navigation entry in `composition/navigation.tsx`. Follow [Pages and panels](docs/02-guides/pages.md). To add an agent command, define its contract in `@weng-lab/contracts` and its handler in `features/agent/commands.ts`; follow [Add a command](../contracts/README.md#add-a-command).
 
-1. Create `app/(workspace)/<name>/page.tsx` as a normal Next.js server page. Render `WorkspacePage` with the page's title, optional subtitle and side panels, and center children. Keep domain components in `features/<name>/components/` and mark interactive components as client components.
-2. Add a link to `composition/navigation.tsx` with `href`, `label`, `icon`, and optional `placement: "bottom"`. Navigation contains no panel definitions or page components.
-3. Keep the existing shared layout so navigation preserves the open session and panel state. Route-local component state may reset when navigating away. Refreshing restores the session in the URL from its last save.
-
-There is no central page registry or page export step. See [Pages and panels](docs/02-guides/pages.md) for a route example.
-
-A command's contract lives in `@weng-lab/contracts`, and its implementation in `features/agent/commands.ts`. The MCP server needs no change. Follow [Add a command](../contracts/README.md#add-a-command).
-
-Run `pnpm verify` for the workspace check. React changes also follow the [render verification guidance](../../docs/02-contributing/testing.md). The [app docs](docs/README.md) describe workspace components and route composition.
+Run `pnpm verify` for the workspace check. React changes also follow the [render verification guidance](../../docs/02-contributing/testing.md).
 
 ## Build and host
 

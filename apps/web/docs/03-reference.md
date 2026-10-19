@@ -8,7 +8,7 @@ Mounts `SessionProvider` and `RemoteControlProvider` for the signed-in account; 
 
 ## `Workspace`
 
-Renders the generic full-window frame, theme, sidebar navigation, and panel controls. It receives navigation entries and children. Navigation entries contain `href`, `label`, `icon`, and optional `placement` of `top` or `bottom`. They contain no domain components or panel metadata.
+Renders the generic full-window frame, theme, sidebar navigation, and panel controls. It receives navigation entries, children, and an optional `footer` slot. Composition supplies account controls through that slot, keeping domain imports out of the workspace. Navigation entries contain `href`, `label`, `icon`, and optional `placement` of `top` or `bottom`. They contain no domain components or panel metadata.
 
 ## `WorkspacePage`
 

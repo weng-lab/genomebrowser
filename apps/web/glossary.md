@@ -42,7 +42,7 @@ The MCP server runs on loopback without tokens or login. Host and origin checks 
 
 A command is an app action an agent can request. Its **command contract**, in `@weng-lab/contracts`, gives the MCP tool name, description, parameter schema, and result schema. The web app's **command handler** in `features/agent/commands.ts` carries it out. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
 
-A **pending command** has been sent to a tab and is waiting for its reply. The per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
+A **pending command** has been sent to a tab and is waiting for its reply. The MCP server's per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
 
 ### Session snapshot
 

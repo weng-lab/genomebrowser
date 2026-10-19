@@ -47,7 +47,7 @@ The tab looks up each command's contract, validates its parameters, and runs its
 
 1. An agent calls an MCP tool, such as `set_region`, with a `sessionId` and the command's parameters. The SDK validates them against the contract's `params` schema.
 2. The server finds the tab connected for that session. Without one, the tool fails with `NOT_CONNECTED`.
-3. The tab's pending-command tracker registers a reply, assigns `commandId` and `expiresAt`, and sends an SSE `command` event.
+3. The server's per-tab pending-command tracker registers a reply, assigns `commandId` and `expiresAt`, and sends an SSE `command` event.
 4. The tab ignores expired commands and rejects commands for a session that is no longer open and saving with `SESSION_CLOSED`. It runs the command's handler and posts its reply to `/rpc/:id`: the command's result on success, or the store's failure.
 5. The tracker clears its timer. The server checks the result against the contract's `result` schema and returns it to the agent.
 
