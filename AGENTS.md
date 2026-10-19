@@ -8,6 +8,7 @@ Read the guidance relevant to the change:
 
 - Shared project terminology: [glossary](docs/glossary.md). Use its terms consistently and suggest additions when new project-specific terms arise, grouping related terms under existing entries where possible.
 - Project structure and feature ownership: [architecture](docs/01-project/01-architecture.md) and [feature placement](docs/01-project/02-feature-placement.md).
+- App refactor direction and implementation context: [app direction](docs/05-app/README.md). Read it before session, persistence, authentication, assembly-selection, or MCP work; it distinguishes the target architecture from current code.
 - New or substantially changed module responsibilities and interfaces: use the [architecture-design skill](.agents/skills/architecture-design/SKILL.md) before settling on a design or delegating implementation. Small fixes within an established design do not require a separate design exercise.
 - Application UI in `packages/ui` or `apps/*`: [interface design](docs/01-project/03-design.md).
 - Tests and verification: [testing](docs/02-contributing/testing.md) and [verification](docs/02-contributing/verify.md). Use `pnpm verify` for the workspace check.

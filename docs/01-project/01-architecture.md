@@ -1,5 +1,7 @@
 # Architecture
 
+For the app refactor, follow [app direction](../05-app/README.md). The app and server descriptions below reflect the current implementation, not the target Clerk, Drizzle, and optional-MCP boundaries.
+
 Genomebrowser is built primarily for embedding in Weng Lab websites. It also supports a standalone browser and developers building their own applications. Real integration needs should guide its design.
 
 Applications should be able to add visualizations, supply data, and configure scientific workflows through public APIs. First-party tracks should cover common formats and let applications reuse their fetchers and renderers. Application-specific behavior should not require changes to the browser's internals.
