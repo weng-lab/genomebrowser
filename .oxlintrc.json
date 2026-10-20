@@ -1,17 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": [
-    "**/dist/**",
-    "**/node_modules/**"
-  ],
-  "plugins": [
-    "unicorn",
-    "typescript",
-    "oxc",
-    "react",
-    "jsx-a11y",
-    "vitest"
-  ],
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**"],
+  "plugins": ["unicorn", "typescript", "oxc", "react", "jsx-a11y", "vitest", "import"],
   "rules": {
     "react/rules-of-hooks": "error",
     "react/jsx-key": "error",
@@ -25,18 +15,30 @@
     "jsx-a11y/aria-role": "error",
     "jsx-a11y/role-has-required-aria-props": "error",
     "jsx-a11y/tabindex-no-positive": "error",
-    "vitest/no-focused-tests": "error"
+    "vitest/no-focused-tests": "error",
+    "no-unused-vars": "error",
+    "react/exhaustive-deps": "error",
+    "typescript/await-thenable": "off",
+    "typescript/no-array-delete": "off",
+    "typescript/no-base-to-string": "off",
+    "typescript/no-duplicate-type-constituents": "off",
+    "typescript/no-floating-promises": "off",
+    "typescript/no-for-in-array": "off",
+    "typescript/no-implied-eval": "off",
+    "typescript/no-meaningless-void-operator": "off",
+    "typescript/no-misused-spread": "off",
+    "typescript/no-redundant-type-constituents": "off",
+    "typescript/no-unsafe-unary-minus": "off",
+    "typescript/no-useless-default-assignment": "off",
+    "typescript/prefer-string-starts-ends-with": "off",
+    "typescript/require-array-sort-compare": "off",
+    "typescript/restrict-template-expressions": "off",
+    "typescript/unbound-method": "off"
   },
   "overrides": [
     {
-      "files": [
-        "packages/core/src/**"
-      ],
-      "excludeFiles": [
-        "**/*.test.*",
-        "**/*.spec.*",
-        "**/__tests__/**"
-      ],
+      "files": ["packages/core/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -73,14 +75,8 @@
       }
     },
     {
-      "files": [
-        "packages/reader/src/**"
-      ],
-      "excludeFiles": [
-        "**/*.test.*",
-        "**/*.spec.*",
-        "**/__tests__/**"
-      ],
+      "files": ["packages/reader/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -121,14 +117,8 @@
       }
     },
     {
-      "files": [
-        "packages/tracks/src/**"
-      ],
-      "excludeFiles": [
-        "**/*.test.*",
-        "**/*.spec.*",
-        "**/__tests__/**"
-      ],
+      "files": ["packages/tracks/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -161,14 +151,8 @@
       }
     },
     {
-      "files": [
-        "packages/ui/src/**"
-      ],
-      "excludeFiles": [
-        "**/*.test.*",
-        "**/*.spec.*",
-        "**/__tests__/**"
-      ],
+      "files": ["packages/ui/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -199,8 +183,203 @@
       }
     },
     {
+      "files": ["apps/web/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
+                "message": "Web and MCP communicate through contracts, never through each other's source."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/server/src/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)apps/web/|^(?:\\.\\./)+web/(?:app|features|composition|shared)(?:/|$)|^@weng-lab/web(?:/|$)",
+                "message": "Web and MCP communicate through contracts, never through each other's source."
+              },
+              {
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "The MCP server delivers commands; session persistence belongs in the web app."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/web/features/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
+                "message": "Web and MCP communicate through contracts, never through each other's source."
+              },
+              {
+                "regex": "(?:^|/)(?:app|composition)(?:/|$)",
+                "message": "Features expose capabilities to routes and composition; they must not import those callers."
+              },
+              {
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "Database access belongs in feature server modules and server composition."
+              }
+            ]
+          }
+        ]
+      },
+      "excludeFiles": ["apps/web/features/**/server/**", "**/*.test.*", "**/*.spec.*"]
+    },
+    {
+      "files": ["apps/web/shared/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
+                "message": "Web and MCP communicate through contracts, never through each other's source."
+              },
+              {
+                "regex": "(?:^|/)(?:features|app|composition)(?:/|$)",
+                "message": "Shared presentation must not depend on product features, routes, or composition."
+              },
+              {
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "Database access belongs in feature server modules and server composition."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/web/shared/workspace/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@weng-lab/*"],
+                "message": "Workspace components own presentation; product behavior belongs in features."
+              },
+              {
+                "regex": "(?:^|/)(?:app|session|commands|server)(?:/|$)",
+                "message": "Keep the workspace shell independent of domain pages, session state, and server implementation."
+              },
+              {
+                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
+                "message": "Web and MCP communicate through contracts, never through each other's source."
+              },
+              {
+                "regex": "(?:^|/)(?:features|composition)(?:/|$)",
+                "message": "Keep workspace presentation independent of product features and composition."
+              },
+              {
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "Database access belongs in feature server modules and server composition."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/contracts/src/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["*", "!zod", "!zod/**", "!./**"],
+                "message": "Contracts contain protocol schemas and types; only schema dependencies belong here."
+              },
+              {
+                "regex": "(?:^|/)(?:apps|packages|web|server)(?:/|$)",
+                "message": "Contracts must not import app implementations or browser libraries."
+              },
+              {
+                "regex": "^\\.\\./",
+                "message": "Keep contract schemas within contracts/src; parent imports escape the schema owner."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": [
-        "apps/web/components/workspace/**"
+        "apps/web/{app,composition,features,shared}/**",
+        "apps/server/src/**",
+        "apps/contracts/src/**"
+      ],
+      "rules": {
+        "import/no-cycle": "error"
+      }
+    },
+    {
+      "files": ["apps/web/**", "apps/server/**"],
+      "rules": {
+        "typescript/no-floating-promises": [
+          "error",
+          {
+            "ignoreVoid": false
+          }
+        ],
+        "typescript/no-misused-promises": "error"
+      }
+    },
+    {
+      "files": ["apps/web/app/**", "apps/web/composition/**"],
+      "excludeFiles": [
+        "apps/web/composition/server.ts",
+        "apps/web/composition/server/**",
+        "**/*.test.*",
+        "**/*.spec.*"
       ],
       "rules": {
         "no-restricted-imports": [
@@ -208,19 +387,48 @@
           {
             "patterns": [
               {
-                "group": [
-                  "@weng-lab/*"
-                ],
-                "message": "Workspace components own presentation; product behavior belongs in pages, session, and commands."
+                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
+                "message": "Web and MCP communicate through contracts, never through each other's source."
               },
               {
-                "regex": "(?:^|/)(?:app|session|commands|server)(?:/|$)",
-                "message": "Keep the workspace shell independent of domain pages, session state, and server implementation."
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "Database access belongs in feature server modules and server composition."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/web/features/**/server/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
+                "message": "Web and MCP communicate through contracts, never through each other's source."
+              },
+              {
+                "regex": "(?:^|/)(?:app|composition)(?:/|$)",
+                "message": "Features expose capabilities to routes and composition; they must not import those callers."
               }
             ]
           }
         ]
       }
     }
-  ]
+  ],
+  "options": {
+    "reportUnusedDisableDirectives": "error",
+    "typeAware": true
+  }
 }

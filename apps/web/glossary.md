@@ -1,24 +1,24 @@
 # Web app glossary
 
-Terms for the Next.js browser product, browser server, and generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
+Terms for the Next.js browser product, saved sessions, the MCP server, and generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
 
 ## Application and session
 
 ### Workspace
 
-The generic full-window layout in `components/workspace/`. It renders navigation and owns panel state and the theme. It does not import domain components or browser state.
+The generic full-window layout in `shared/workspace/`. It renders navigation and owns panel state and the theme. It does not import domain components or browser state.
 
 ### WorkspacePage
 
-The route composition component. Each route supplies a title, optional subtitle and side panels, and center children. Domain components live beside their route's `page.tsx`.
+The route composition component. Each route supplies a title, optional subtitle and side panels, and center children. Domain components and operations live in `features/`; `app/` owns thin Next.js routes and layout orchestration. `composition/` wires concrete providers, navigation, and server dependencies.
 
 ### AppProviders
 
-The shared client provider composition above routes. It owns browser-only initialization, the browser session, and `BrowserServer`, which saves the session and runs remote control.
+The shared client provider composition above routes. For each account, it mounts the session owner and the optional remote control.
 
-### Browser session
+### Session owner
 
-The live browser and track stores shared through `browser/BrowserSession.tsx`. They survive client navigation within the shared layout. A session snapshot is the serializable form used for saving and restoration. See [Shared session](README.md#shared-session) for persistence behavior.
+`createSession` in `features/sessions/session.ts`, provided by `SessionProvider` and read with `useSession`. It lives as long as the workspace for one account. It lists saved sessions, owns the **open session** and its live browser and track stores, runs autosave, and performs open, create, rename, remove, and close as complete operations. See [Sessions](README.md#sessions).
 
 ### Product pages
 
@@ -26,35 +26,31 @@ The browser route at `/browser/[sessionId]` has a Sessions panel on the left and
 
 ## Commands and persistence
 
-### Browser server
+### MCP server
 
-The persistent Hono server in `apps/server`. It loads and saves sessions through a session repository, exposes browser commands to agents over MCP, and sends each command to the tab that has the session open over server-sent events, or SSE. It does not fetch genomic track files or own the live browser stores. Next.js rewrites `/api/*` and `/mcp` to it.
+The optional persistent Hono server in `apps/server`, also called the browser server. It exposes commands to agents over MCP and sends each call to the tab connected for the session over server-sent events, or SSE. It has no database. It does not fetch genomic track files or own the live browser stores. Next.js rewrites `/mcp` and `/rpc/:id` to it.
 
 ### Remote control
 
-A tab's SSE stream for one session, opened at `/api/sessions/:id/rpc`. Only the first tab to connect receives the session's commands; later tabs are rejected and retry until it disconnects. It is on by default and can be turned off in Settings. Saving does not depend on it.
+A tab's SSE stream for one session, opened at `/rpc/:id`. Only the first tab to connect receives the session's commands; later tabs are rejected and retry until it disconnects. It is off by default and turned on in Settings. It attaches only to a loaded session and detaches when that session stops being open or saving. Saving does not depend on it.
 
 ### Local access
 
-The web app and server run on loopback without tokens or login. Host and origin checks restrict browser access to the local setup. Any local caller can control a connected tab or save a session. Account authentication and ownership checks are future work.
+The MCP server runs on loopback without tokens or login. Host and origin checks restrict browser access to the local setup. Any local caller can control a connected tab. Saved sessions are owner-checked by the web app; MCP authentication is future work.
 
 ### Command and reply
 
-A command requests a browser-store action. Each command is one file in `apps/server/src/commands/` that defines its name, description, parameters, and the store action it runs. The registry in `commands/index.ts` makes each one an MCP tool of the same name. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the whole session snapshot on success, or the store's failure. Success means applied to the store, not finished loading track data or saved to the database.
+A command is an app action an agent can request. Its **command contract**, in `@weng-lab/contracts`, gives the MCP tool name, description, parameter schema, and result schema. The web app's **command handler** in `features/agent/commands.ts` carries it out. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
 
-A **pending command** has been sent to a tab and is waiting for its reply. The per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
+A **pending command** has been sent to a tab and is waiting for its reply. The MCP server's per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
 
 ### Session snapshot
 
-The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. A **session** is a snapshot saved in SQLite under a session ID. The URL `/browser/[sessionId]` selects it; `local` is the default until there is a session picker. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
-
-### Session repository
-
-The server's injected `SessionRepository`, with asynchronous `load(id)` and `save(id, snapshot)` operations. SQLite is the current implementation.
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `features/sessions/snapshot.ts`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
 
 ### Save status
 
-The client indicator at the top left of the browser center panel. It reports restoration, saving, successful persistence, or failure and retry. A command reply and save completion are separate events.
+The client indicator at the top left of the browser center panel. It reports saving, the newest edits saved, retrying after a failed write, or that the session can no longer be saved. A command reply and save completion are separate events.
 
 See [Architecture and data flow](docs/02-guides/dataFlow.md) for the paths connecting these terms.
 
@@ -124,7 +120,7 @@ The border of a side panel that faces the center panel. Drag it to resize the pa
 
 ### Navigation entry
 
-A sidebar link in `app/(workspace)/navigation.tsx` containing `href`, `label`, `icon`, and optional `placement`. Entries contain no page or panel components. Next.js owns routes, redirects, and unknown-route 404s.
+A sidebar link in `composition/navigation.tsx` containing `href`, `label`, `icon`, and optional `placement`. Entries contain no page or panel components. Next.js owns routes, redirects, and unknown-route 404s.
 
 ### Route
 

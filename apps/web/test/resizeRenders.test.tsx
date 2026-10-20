@@ -3,8 +3,8 @@
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { Workspace } from "../components/workspace/Workspace";
-import { WorkspacePage } from "../components/workspace/WorkspacePage";
+import { Workspace } from "../shared/workspace/Workspace";
+import { WorkspacePage } from "../shared/workspace/WorkspacePage";
 import { setTestPathname } from "./workspaceFixture";
 
 function CenterContent() {

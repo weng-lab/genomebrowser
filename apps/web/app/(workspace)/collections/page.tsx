@@ -1,5 +1,5 @@
-import { WorkspacePage } from "../../../components/workspace/WorkspacePage";
-import { CollectionsView } from "./CollectionsView";
+import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
+import { CollectionsView } from "../../../features/collections/components/CollectionsView";
 
 export default function CollectionsPage() {
   return (

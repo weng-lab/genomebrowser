@@ -1,5 +1,7 @@
 # Architecture
 
+See [app direction](../05-app/README.md) for the session, identity, and optional MCP boundaries.
+
 Genomebrowser is built primarily for embedding in Weng Lab websites. It also supports a standalone browser and developers building their own applications. Real integration needs should guide its design.
 
 Applications should be able to add visualizations, supply data, and configure scientific workflows through public APIs. First-party tracks should cover common formats and let applications reuse their fetchers and renderers. Application-specific behavior should not require changes to the browser's internals.
@@ -24,21 +26,24 @@ A track module supplies the behavior for its visualization, including fetching, 
 | `packages/tracks`       | First-party modules and shared track-specific presentation. Modules use core's public contracts and reader for genomic files. |
 | `packages/reader`       | Genomic file reading, usable independently of the browser.                                                                    |
 | `packages/ui`           | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
-| `apps/web`              | Next.js product routes, browser session, generic workspace layout, and command proxy.                                         |
-| `apps/server`           | Persistent Node.js server: SQLite sessions, MCP, command delivery to tabs, and browser-safe protocol schemas.                 |
+| `apps/web`              | Next.js product routes, saved sessions, generic workspace layout, command handlers, and command proxy.                        |
+| `apps/contracts`        | Private app command contracts, wire schemas, and shared region schema.                                                        |
+| `apps/server`           | Optional persistent MCP server: MCP tools and command delivery to tabs. No database.                                          |
 | `packages/create`       | A starter generator for developers building a browser application.                                                            |
 | `packages/render-probe` | Internal test utility that measures React render counts for render budgets. Private and unpublished.                          |
 
 Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The web app is one such application, not the source of every shared component's requirements.
 
+`packages/` contains the embeddable browser libraries and their tooling. `apps/` contains the applications and private packages shared by those applications, including `apps/contracts`. Applications import that package through `@weng-lab/contracts`, never through another app's source. Saved-session schemas and runtime behavior stay with their app owners.
+
 The archived playground and standalone applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace. Ongoing product development belongs in `apps/web` and `apps/server`.
 
-The web app owns concrete Next.js routes for `/browser/[sessionId]`, `/collections`, and `/settings`; its root and `/browser` redirect to the current or default session, and unknown routes return 404. Domain components live beside their route's `page.tsx`. Generic layout and panel components in `components/workspace/` do not import domain components or browser state.
+The web app owns concrete Next.js routes for `/browser/[sessionId]`, `/collections`, and `/settings`; its root redirects to `/browser`, which shows the open session or an empty state, and unknown routes return 404. Domain components and operations live in `features/`; `app/` owns thin Next.js routes and layout orchestration. `composition/` wires concrete providers, navigation, and server dependencies. Generic layout and panel components in `shared/workspace/` do not import domain components or browser state.
 
-The shared route layout composes `AppProviders`, `Workspace`, and route children. `AppProviders` owns the browser session and command connection above the routes. `Workspace` owns navigation and panel state, while each route supplies its title, panels, and center content through `WorkspacePage`. Navigation entries contain links and labels, not page components. The shared layout preserves the session and panel state across route changes; page-local component state may reset. Refreshing creates new stores and restores the shared saved hg38 session before the browser view appears.
+The shared route layout composes `AppProviders`, `Workspace`, and route children. `AppProviders` owns the browser session and command connection above the routes. `Workspace` owns navigation and panel state, while each route supplies its title, panels, and center content through `WorkspacePage`. Navigation entries contain links and labels, not page components. The shared layout preserves the session and panel state across route changes; page-local component state may reset. Refreshing creates new stores and restores the session named in the URL before the browser view appears.
 
-The persistent browser server uses Hono on Node.js. It saves sessions, exposes browser commands to agents as MCP tools, and delivers each command over SSE to the tab that has the session open. `server.ts` wires the routes, tab connections, and MCP endpoint together. Commands are listed once in the protocol export, which also defines their MCP tools; the web app executes them against the same browser stores as the UI. Open tabs and pending replies live in memory, keyed by session ID, and only the first tab to connect receives a session's commands. Live genome state stays in the browser; serializable snapshots of browser settings, highlights, and ordered track configurations persist in SQLite by session ID through an injected asynchronous session repository. Next.js rewrites `/api/*` and `/mcp` to the server. The protocol export contains browser-safe Zod schemas; Node.js server code stays out of the frontend.
+The web app saves sessions in PostgreSQL through its own routes. The optional MCP server uses Hono on Node.js. It exposes commands to agents as MCP tools and delivers each call over SSE to the tab connected for that session. `server.ts` wires the routes, tab connections, and MCP endpoint together. Command contracts, wire schemas, and the shared region schema live in the private `@weng-lab/contracts` package in `apps/contracts`. Both apps depend on it through the workspace; the web app's handlers run them against the same browser stores as the UI. Open tabs and pending replies live in memory, keyed by session ID, and only the first tab to connect receives a session's commands. The server has no database. Next.js rewrites `/mcp` and `/rpc/:id` to it.
 
-The local server requires no credentials. The last saved snapshot wins across tabs. Authentication, conflict resolution, ACP, and Eve integrations are not implemented. See the [web app guide](../../apps/web/README.md) for development and deployment instructions.
+The local MCP server requires no credentials. The last saved snapshot wins across tabs. MCP authentication, conflict resolution, ACP, and Eve integrations are not implemented. See the [web app guide](../../apps/web/README.md) for development and deployment instructions.
 
 For decisions about extending these parts, see [Where features belong](02-feature-placement.md).

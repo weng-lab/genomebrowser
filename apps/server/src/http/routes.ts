@@ -1,7 +1,6 @@
-import type { Context, Hono, MiddlewareHandler } from "hono";
+import type { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { commandReplySchema, sessionIdSchema, sessionSnapshotSchema } from "../protocol.ts";
-import type { SessionRepository } from "../storage/sessionRepository.ts";
+import { commandReplySchema, sessionIdSchema } from "@weng-lab/contracts";
 import type { TabConnections } from "../tabs.ts";
 import { handleHttpError, type HttpMiddleware } from "./middleware.ts";
 
@@ -9,20 +8,11 @@ export function registerRoutes(
   app: Hono,
   dependencies: {
     tabs: TabConnections;
-    sessions: SessionRepository;
     mcp: { fetch: (request: Request) => Promise<Response> };
     middleware: HttpMiddleware;
   },
 ) {
-  const { tabs, sessions, mcp, middleware: access } = dependencies;
-
-  const requireSessionId: MiddlewareHandler = async (c, next) => {
-    if (!sessionIdSchema.safeParse(c.req.param("sessionId")).success) {
-      return c.json({ error: "Invalid session ID" }, 400);
-    }
-    return next();
-  };
-  const sessionId = (c: Context) => c.req.param("sessionId")!;
+  const { tabs, mcp, middleware: access } = dependencies;
 
   app.use("*", access.checkLocalRequest);
   app.onError(handleHttpError);
@@ -31,33 +21,16 @@ export function registerRoutes(
   app.get("/health", (c) => c.json({ ok: true }));
   app.all("/mcp", (c) => mcp.fetch(c.req.raw));
 
-  app.get("/api/sessions", async (c) => {
-    c.header("Cache-Control", "no-store");
-    return c.json(await sessions.list());
+  app.use("/rpc/:sessionId", async (c, next) => {
+    if (!sessionIdSchema.safeParse(c.req.param("sessionId")).success) {
+      return c.json({ error: "Invalid session ID" }, 400);
+    }
+    return next();
   });
 
-  app.get("/api/sessions/:sessionId", requireSessionId, async (c) => {
-    const snapshot = await sessions.load(sessionId(c));
-    return snapshot ? c.json(snapshot) : c.json({ error: "Session not found" }, 404);
-  });
-
-  app.put("/api/sessions/:sessionId", requireSessionId, access.limitSnapshotBody, async (c) => {
-    const parsed = sessionSnapshotSchema.safeParse(await c.req.json());
-    if (!parsed.success) return c.json({ error: "Invalid session snapshot" }, 400);
-    await sessions.save(sessionId(c), parsed.data);
-    return c.json({ ok: true });
-  });
-
-  app.delete("/api/sessions/:sessionId", requireSessionId, async (c) => {
-    const id = sessionId(c);
-    if (id === "local") return c.json({ error: "The local session cannot be deleted" }, 403);
-    await sessions.remove(id);
-    return c.json({ ok: true });
-  });
-
-  // A tab opens this stream to accept remote commands. The first tab keeps the session.
-  app.get("/api/sessions/:sessionId/rpc", requireSessionId, (c) => {
-    const id = sessionId(c);
+  // A tab opens this stream to accept commands for its session. The first tab keeps it.
+  app.get("/rpc/:sessionId", (c) => {
+    const id = c.req.param("sessionId");
     if (tabs.isConnected(id)) {
       return c.json({ error: "The session is already connected in another tab" }, 409);
     }
@@ -67,17 +40,12 @@ export function registerRoutes(
     return response;
   });
 
-  app.post(
-    "/api/sessions/:sessionId/rpc",
-    requireSessionId,
-    access.limitSnapshotBody,
-    async (c) => {
-      const parsed = commandReplySchema.safeParse(await c.req.json());
-      if (!parsed.success) return c.json({ error: "Invalid command result" }, 400);
-      if (!tabs.acknowledge(sessionId(c), parsed.data)) {
-        return c.json({ error: "Command is not pending for this session" }, 409);
-      }
-      return c.json({ ok: true });
-    },
-  );
+  app.post("/rpc/:sessionId", access.limitReplyBody, async (c) => {
+    const parsed = commandReplySchema.safeParse(await c.req.json());
+    if (!parsed.success) return c.json({ error: "Invalid command reply" }, 400);
+    if (!tabs.acknowledge(c.req.param("sessionId"), parsed.data)) {
+      return c.json({ error: "Command is not pending for this session" }, 409);
+    }
+    return c.json({ ok: true });
+  });
 }

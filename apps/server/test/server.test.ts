@@ -1,24 +1,21 @@
 import { request } from "node:http";
-import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { spawn, spawnSync } from "node:child_process";
+import { once } from "node:events";
+import { connect, createServer, type AddressInfo } from "node:net";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import type { CommandMessage } from "@weng-lab/contracts";
 import { afterEach, beforeEach, expect, test } from "vitest";
 import { createBrowserServer } from "../src/server.ts";
-import type { CommandMessage, SessionSnapshot } from "../src/protocol.ts";
-import { createSqliteSessionRepository } from "../src/storage/sqlite.ts";
 
 let server: ReturnType<typeof createBrowserServer>;
 let origin: string;
 let base: string;
-let sqlite: ReturnType<typeof createSqliteSessionRepository>;
 let agent: Client;
 const streams: AbortController[] = [];
 
 beforeEach(async () => {
-  sqlite = createSqliteSessionRepository(":memory:");
-  server = createBrowserServer({ commandTimeoutMs: 500, sessions: sqlite });
+  // A long shutdown timeout, so that forcing connections closed cannot hide a stuck one.
+  server = createBrowserServer({ commandTimeoutMs: 500, shutdownTimeoutMs: 60_000 });
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", resolve);
@@ -26,7 +23,7 @@ beforeEach(async () => {
   const address = server.address();
   if (!address || typeof address === "string") throw new Error("Missing server address");
   origin = `http://127.0.0.1:${address.port}`;
-  base = `${origin}/api/sessions`;
+  base = `${origin}/rpc`;
   agent = new Client({ name: "test-agent", version: "0.0.0" });
   await agent.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`)));
 });
@@ -34,18 +31,14 @@ beforeEach(async () => {
 afterEach(async () => {
   await agent.close();
   for (const stream of streams.splice(0)) stream.abort();
-  const closed = new Promise<void>((resolve) => server.close(() => resolve()));
-  // Aborted fetch streams can linger in the client's keep-alive pool.
-  server.closeAllConnections();
-  await closed;
-  sqlite.close();
+  await new Promise<void>((resolve) => server.close(() => resolve()));
 });
 
 /** Open a session's command stream the way a browser tab does. */
 async function openTab(sessionId = "local") {
   const abort = new AbortController();
   streams.push(abort);
-  const response = await fetch(`${base}/${sessionId}/rpc`, { signal: abort.signal });
+  const response = await fetch(`${base}/${sessionId}`, { signal: abort.signal });
   if (!response.ok) {
     await response.body?.cancel();
     return { status: response.status } as const;
@@ -68,7 +61,7 @@ async function openTab(sessionId = "local") {
     }
   }
   function reply(commandId: string, result: unknown) {
-    return send("POST", `/${sessionId}/rpc`, { commandId, result });
+    return send("POST", `/${sessionId}`, { commandId, result });
   }
   return { status: response.status, command, reply, abort } as const;
 }
@@ -87,38 +80,15 @@ function send(method: string, path: string, body: unknown) {
   });
 }
 
-function setRegion(sessionId = "local", signal?: AbortSignal) {
+function setRegion(sessionId = "local", signal?: AbortSignal, params: object = { region }) {
   return agent.callTool(
-    { name: "set_region", arguments: { sessionId, region } },
+    { name: "set_region", arguments: { sessionId, ...params } },
     { signal, timeout: 5_000 },
   );
 }
 
 const region = { chromosome: "chr1", start: 10, end: 100 };
-const snapshot: SessionSnapshot = {
-  version: 1,
-  browser: {
-    assembly: "hg38",
-    region,
-    basePairDetail: { maxVisibleBases: 100 },
-    marginWidth: 50,
-    trackWidth: 1000,
-    fontSize: 10,
-    titleSize: 12,
-    highlights: [{ id: "highlight", region: { start: 20, end: 30 }, color: "red" }],
-    selectionMode: "pan",
-    selectionHighlight: { color: "blue" },
-  },
-  tracks: [
-    {
-      type: "ruler",
-      base: { id: "ruler", title: "Coordinates", display: "full", height: 30, color: "#000000" },
-      config: {},
-      source: "host",
-    },
-  ],
-  pinnedTrackIds: ["ruler"],
-};
+const applied = { ok: true, value: { region, clamped: false } };
 
 // Node's HTTP client preserves the supplied Host; fetch can replace it with the URL authority.
 function getWithHost(path: string, host: string) {
@@ -141,22 +111,58 @@ function getWithHost(path: string, host: string) {
   });
 }
 
-test("an MCP tool call runs in the session's tab and returns the tab's state", async () => {
+test("an MCP tool call runs in the session's tab and returns the tab's result", async () => {
   const tab = await connectedTab();
   const call = setRegion();
   const command = await tab.command();
   expect(command).toMatchObject({ name: "set_region", params: { region } });
   expect(command.expiresAt).toBeGreaterThan(Date.now());
-  expect((await tab.reply(command.commandId, { ok: true, state: snapshot })).status).toBe(200);
+  expect((await tab.reply(command.commandId, applied)).status).toBe(200);
   const result = await call;
   expect(result.isError).toBeFalsy();
-  expect(result.structuredContent).toEqual({ state: snapshot });
+  expect(result.structuredContent).toEqual({ region, clamped: false });
 });
 
-test("lists every browser command as an MCP tool with a session ID", async () => {
+test("lists the region tool, with a session ID and its result schema", async () => {
   const { tools } = await agent.listTools();
   expect(tools.map((tool) => tool.name)).toEqual(["set_region"]);
   expect(tools[0].inputSchema.required).toEqual(expect.arrayContaining(["sessionId", "region"]));
+  expect(tools[0].outputSchema?.required).toEqual(["region", "clamped"]);
+});
+
+test.each([
+  { region: { chromosome: "chr1", start: 100, end: 100 } },
+  { region: { chromosome: "chr1", start: -1, end: 100 } },
+  { region: { chromosome: "chr1", start: 0.5, end: 100 } },
+  { region, extra: true },
+  {},
+])("rejects invalid parameters %j before reaching a tab", async (params) => {
+  const tab = await connectedTab();
+  const result = await setRegion("local", undefined, params);
+  expect(result.isError).toBe(true);
+  const next = await Promise.race([
+    tab.command(),
+    new Promise((resolve) => setTimeout(resolve, 50, "none")),
+  ]);
+  expect(next).toBe("none");
+});
+
+test("reports a tab result that does not match the tool's result schema", async () => {
+  const tab = await connectedTab();
+  const call = setRegion();
+  const command = await tab.command();
+  await tab.reply(command.commandId, { ok: true, value: { region } });
+  const result = await call;
+  expect(result.isError).toBe(true);
+  expect(JSON.stringify(result.content)).toContain("INVALID_REPLY");
+});
+
+test("has no session persistence routes", async () => {
+  for (const method of ["GET", "PUT", "DELETE"]) {
+    expect((await fetch(`${origin}/api/sessions/local`, { method })).status).toBe(404);
+  }
+  expect((await fetch(`${origin}/api/sessions`)).status).toBe(404);
+  expect((await fetch(`${origin}/api/sessions/local/rpc`)).status).toBe(404);
 });
 
 test("reports the tab's rejection as a tool error", async () => {
@@ -187,74 +193,12 @@ test("the first tab keeps the session and a second tab is rejected", async () =>
   await expect.poll(async () => (await openTab()).status).toBe(200);
 });
 
-test("saves and loads sessions by ID, independent of tab connections", async () => {
-  expect((await fetch(`${base}/local`)).status).toBe(404);
-  expect((await send("PUT", "/local", snapshot)).status).toBe(200);
-  expect(await (await fetch(`${base}/local`)).json()).toEqual(snapshot);
-  expect((await fetch(`${base}/other`)).status).toBe(404);
-  expect((await send("PUT", "/local", { ...snapshot, version: 2 })).status).toBe(400);
-  expect((await send("PUT", "/bad%20id", snapshot)).status).toBe(400);
-});
-
-test("lists saved sessions alphabetically without duplicates or unsaved connections", async () => {
-  expect(await (await fetch(base)).json()).toEqual([]);
-  await connectedTab("unsaved");
-  await send("PUT", "/testsession", snapshot);
-  await send("PUT", "/niship", snapshot);
-  await send("PUT", "/testsession", snapshot);
-  const response = await fetch(base);
-  expect(response.status).toBe(200);
-  expect(response.headers.get("Cache-Control")).toBe("no-store");
-  expect(await response.json()).toEqual(["niship", "testsession"]);
-});
-
-test("deletes a saved session while protecting local and validating IDs", async () => {
-  await send("PUT", "/local", snapshot);
-  await send("PUT", "/niship", snapshot);
-  expect((await fetch(`${base}/local`, { method: "DELETE" })).status).toBe(403);
-  expect(await (await fetch(`${base}/local`)).json()).toEqual(snapshot);
-  expect((await fetch(`${base}/niship`, { method: "DELETE" })).status).toBe(200);
-  expect((await fetch(`${base}/niship`)).status).toBe(404);
-  expect(await (await fetch(base)).json()).toEqual(["local"]);
-  expect((await fetch(`${base}/niship`, { method: "DELETE" })).status).toBe(200);
-  expect((await fetch(`${base}/bad%20id`, { method: "DELETE" })).status).toBe(400);
-});
-
-test("session saves accept large track configuration up to 1 MB", async () => {
-  const withConfig = (length: number): SessionSnapshot => ({
-    ...snapshot,
-    tracks: [{ ...snapshot.tracks[0], config: { description: "x".repeat(length) } }],
-  });
-  expect((await send("PUT", "/local", withConfig(20_000))).status).toBe(200);
-  expect((await send("PUT", "/local", withConfig(1_048_576))).status).toBe(413);
-});
-
-test("SQLite keeps sessions after closing and reopening the file", async () => {
-  const directory = mkdtempSync(join(tmpdir(), "browser-session-"));
-  const path = join(directory, "session.sqlite");
-  const initial = createSqliteSessionRepository(path);
-  try {
-    await initial.save("local", snapshot);
-  } finally {
-    initial.close();
-  }
-  const reopened = createSqliteSessionRepository(path);
-  try {
-    expect(await reopened.load("local")).toEqual(snapshot);
-    expect(await reopened.list()).toEqual(["local"]);
-    expect(await reopened.load("other")).toBeNull();
-  } finally {
-    reopened.close();
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
-
 test("times out without storing a command for later replay", async () => {
   const tab = await connectedTab();
   const call = setRegion();
   const command = await tab.command();
   expect(JSON.stringify((await call).content)).toContain("TIMEOUT");
-  expect((await tab.reply(command.commandId, { ok: true, state: snapshot })).status).toBe(409);
+  expect((await tab.reply(command.commandId, applied)).status).toBe(409);
 });
 
 test("closing the tab fails its pending commands and frees the session", async () => {
@@ -273,9 +217,7 @@ test("agent cancellation removes the pending command before a late reply", async
   const command = await tab.command();
   cancel.abort();
   await expect(call).rejects.toThrow(/abort/i);
-  await expect
-    .poll(async () => (await tab.reply(command.commandId, { ok: true, state: snapshot })).status)
-    .toBe(409);
+  await expect.poll(async () => (await tab.reply(command.commandId, applied)).status).toBe(409);
 });
 
 test("shutdown ends open streams and fails pending commands", async () => {
@@ -285,26 +227,47 @@ test("shutdown ends open streams and fails pending commands", async () => {
   const closed = new Promise<void>((resolve) => server.close(() => resolve()));
   expect(JSON.stringify((await call).content)).toContain("NOT_CONNECTED");
   await expect(tab.command()).rejects.toThrow("Stream ended");
-  server.closeAllConnections();
+  // The tab's and agent's keep-alive connections close without forcing them.
   await closed;
-});
+}, 1_000);
+
+test("shutdown ends a connection whose request never finishes after its timeout", async () => {
+  const stuck = createBrowserServer({ shutdownTimeoutMs: 100 });
+  await new Promise<void>((resolve) => stuck.listen(0, "127.0.0.1", resolve));
+  const { port } = stuck.address() as AddressInfo;
+  const socket = connect(port, "127.0.0.1");
+  await once(socket, "connect");
+  // The reply body never arrives.
+  socket.write(
+    "POST /rpc/local HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n{",
+  );
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const closed = new Promise<void>((resolve) => stuck.close(() => resolve()));
+  await once(socket, "close");
+  await closed;
+}, 1_000);
 
 test("rejects replies for another session and malformed results", async () => {
   const tab = await connectedTab();
   const other = await connectedTab("other");
   const call = setRegion();
   const command = await tab.command();
-  expect((await other.reply(command.commandId, { ok: true, state: snapshot })).status).toBe(409);
-  expect((await tab.reply(command.commandId, { ok: true })).status).toBe(400);
-  await tab.reply(command.commandId, { ok: true, state: snapshot });
+  expect((await other.reply(command.commandId, applied)).status).toBe(409);
+  expect((await tab.reply(command.commandId, { ok: true, state: {}, value: {} })).status).toBe(400);
+  await tab.reply(command.commandId, applied);
   expect((await call).isError).toBeFalsy();
 });
 
-test("rejects foreign origins and malformed JSON", async () => {
+test("rejects foreign origins, malformed JSON, invalid session IDs, and large replies", async () => {
   expect(
-    (await fetch(`${base}/local/rpc`, { headers: { Origin: "https://untrusted.example" } })).status,
+    (await fetch(`${base}/local`, { headers: { Origin: "https://untrusted.example" } })).status,
   ).toBe(403);
-  expect((await fetch(`${base}/local`, { method: "PUT", body: "{" })).status).toBe(400);
+  expect((await fetch(`${base}/local`, { method: "POST", body: "{" })).status).toBe(400);
+  expect((await fetch(`${base}/bad%20id`)).status).toBe(400);
+  const large = { ok: false, code: "LARGE", error: "x".repeat(1_048_576) };
+  expect(
+    (await send("POST", "/local", { commandId: crypto.randomUUID(), result: large })).status,
+  ).toBe(413);
 });
 
 test.each(["localhost", "localhost:3001", "127.0.0.1:3001", "[::1]", "[::1]:3001"])(
@@ -320,12 +283,58 @@ test.each([
   "127.0.0.1.hostile.example",
   "0.0.0.0:3001",
 ])("rejects Host %s even when forwarded headers claim localhost", async (host) => {
-  const response = await getWithHost("/api/sessions/local/rpc", host);
+  const response = await getWithHost("/rpc/local", host);
   expect(response.status).toBe(403);
   expect(await response.json()).toEqual({ error: "Host is not allowed" });
 });
 
-test("local startup rejects a public bind address before opening storage", () => {
+test("starts without a database or credentials", async () => {
+  const probe = createServer().listen(0, "127.0.0.1");
+  await once(probe, "listening");
+  const { port } = probe.address() as AddressInfo;
+  await new Promise((resolve) => probe.close(resolve));
+  const child = spawn(process.execPath, ["src/main.ts"], {
+    env: { PATH: process.env.PATH, GB_SERVER_PORT: String(port) },
+    stdio: ["ignore", "pipe", "inherit"],
+  });
+  try {
+    const [line] = await once(child.stdout, "data");
+    expect(String(line)).toContain(`listening at http://127.0.0.1:${port}`);
+    expect((await fetch(`http://127.0.0.1:${port}/health`)).status).toBe(200);
+  } finally {
+    child.kill();
+  }
+});
+
+test("one SIGTERM stops the process while a tab is connected and a command is pending", async () => {
+  const probe = createServer().listen(0, "127.0.0.1");
+  await once(probe, "listening");
+  const { port } = probe.address() as AddressInfo;
+  await new Promise((resolve) => probe.close(resolve));
+  const child = spawn(process.execPath, ["src/main.ts"], {
+    env: { PATH: process.env.PATH, GB_SERVER_PORT: String(port) },
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+  const exited = once(child, "exit");
+  const local = new Client({ name: "shutdown-agent", version: "0.0.0" });
+  try {
+    await once(child.stdout, "data");
+    const stream = await fetch(`http://127.0.0.1:${port}/rpc/local`);
+    const reader = stream.body!.getReader();
+    await local.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/mcp`)));
+    const call = local.callTool({ name: "set_region", arguments: { sessionId: "local", region } });
+    while (!new TextDecoder().decode((await reader.read()).value).includes("event: command"));
+    child.kill("SIGTERM");
+    expect(JSON.stringify((await call).content)).toContain("NOT_CONNECTED");
+    const [code] = await exited;
+    expect(code).toBe(0);
+  } finally {
+    child.kill("SIGKILL");
+  }
+  // Well before the client's keep-alive or the server's shutdown timeout would end it.
+}, 2_000);
+
+test("local startup rejects a public bind address", () => {
   const result = spawnSync(process.execPath, ["src/main.ts"], {
     env: { ...process.env, GB_SERVER_HOST: "0.0.0.0" },
     encoding: "utf8",

@@ -3,8 +3,8 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it } from "vitest";
 import { setTestPathname } from "./workspaceFixture";
-import { Workspace } from "../components/workspace/Workspace";
-import { WorkspacePage } from "../components/workspace/WorkspacePage";
+import { Workspace } from "../shared/workspace/Workspace";
+import { WorkspacePage } from "../shared/workspace/WorkspacePage";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 let root: Root | undefined;

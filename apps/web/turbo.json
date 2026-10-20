@@ -3,6 +3,9 @@
   "tasks": {
     "build": {
       "env": ["GB_SERVER_URL"]
+    },
+    "test": {
+      "env": ["$TURBO_EXTENDS$", "GB_TEST_DATABASE_URL"]
     }
   }
 }

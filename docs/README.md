@@ -10,9 +10,9 @@ These docs contain repository guidance for maintainers and agents. Repository-lo
 
 Start with [architecture](01-project/01-architecture.md) for the project's purpose and structure. Use [feature placement](01-project/02-feature-placement.md) to decide where a change belongs and [interface design](01-project/03-design.md) for shared UI expectations. Use [module design](01-project/module-design.md) for responsibilities and interfaces within a package.
 
-## Plan the gb app
+## Understand the app
 
-The [gb app proposal](05-gb-app-proposal/README.md) describes the planned January release. Its [reference notes](05-gb-app-proposal/references/README.md) preserve earlier ideas for discussion, not additional requirements.
+[App direction](05-app/README.md) records the agreed architecture: Clerk identity, Next.js database access through Drizzle, feature modules composed through dependency injection, and optional MCP. Start there for the implemented session model, feature boundaries, verification status, and remaining limitations.
 
 ## Contribute a change
 

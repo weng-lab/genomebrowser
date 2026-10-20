@@ -3,8 +3,8 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { Workspace } from "../components/workspace/Workspace";
-import { WorkspacePage } from "../components/workspace/WorkspacePage";
+import { Workspace } from "../shared/workspace/Workspace";
+import { WorkspacePage } from "../shared/workspace/WorkspacePage";
 import { setTestPathname } from "./workspaceFixture";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -110,7 +110,9 @@ it("keeps resizing instant and restores motion for later toggles", () => {
   const handle = container!.querySelector<HTMLElement>(
     '[role="separator"][aria-controls="left-panel"]',
   )!;
-  act(() => handle.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true })));
+  act(() => {
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+  });
   expect(handle.getAttribute("aria-valuenow")).toBe("480");
   expect(transition()).toBe("none");
   paintReset();
@@ -118,7 +120,9 @@ it("keeps resizing instant and restores motion for later toggles", () => {
   toggle();
   expect(getComputedStyle(container!.querySelector("#left-panel")!).width).toBe("480px");
   expect(transition()).toContain("width");
-  act(() => handle.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })));
+  act(() => {
+    handle.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+  });
   expect(handle.getAttribute("aria-valuenow")).toBe("240");
   expect(transition()).toBe("none");
 });

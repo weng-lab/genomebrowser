@@ -1,5 +1,5 @@
 import WorkspaceLayout from "./(workspace)/layout";
-import { NotFoundPage } from "../components/workspace/NotFoundPage";
+import { NotFoundPage } from "../shared/workspace/NotFoundPage";
 
 export default function NotFound() {
   return (

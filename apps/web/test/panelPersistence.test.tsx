@@ -3,8 +3,8 @@
 import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
-import { Workspace } from "../components/workspace/Workspace";
-import { WorkspacePage } from "../components/workspace/WorkspacePage";
+import { Workspace } from "../shared/workspace/Workspace";
+import { WorkspacePage } from "../shared/workspace/WorkspacePage";
 import { setTestPathname } from "./workspaceFixture";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -47,7 +47,9 @@ it("retains panel state across page remounts and resets them with the workspace"
   try {
     render("a");
     act(() => counter().click());
-    act(() => handle().dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true })));
+    act(() => {
+      handle().dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    });
     expect(handle().getAttribute("aria-valuenow")).toBe("480");
     expect(counter().textContent).toBe("Count 1");
 
