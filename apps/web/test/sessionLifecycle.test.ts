@@ -163,19 +163,17 @@ it("keeps a revert unsaved after a write whose response was lost, until that wri
   const id = server.add("Session", defaults());
   await state().open(id);
   const original = stores().useBrowserStore.getState().region;
-  // The server applies the write, but the tab never learns that it did.
   server.lose("PUT");
   setRegion(1000);
   await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
   expect(savedRegion(id)).toBe(1000);
 
-  // The revert matches what was last acknowledged, but not what the server holds.
   stores().useBrowserStore.getState().setRegion(original);
   expect(state().saveStatus).toBe("retrying");
   expect(closeTab()).toBe(true);
-  await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+  await advance(1000);
+  expect(state().saveStatus).toBe("saved");
 
-  // The lost write is sent again unchanged and not applied twice; then the revert saves.
   expect(puts().map(({ body }) => body!.snapshot.browser.region.start)).toEqual([
     1000,
     1000,
@@ -188,7 +186,6 @@ it("keeps a revert unsaved after a write whose response was lost, until that wri
   expect(savedRegion(id)).toBe(original.start);
   expect(closeTab()).toBe(false);
 
-  // A fresh failure starts at the first retry delay again.
   server.fail("PUT");
   setRegion(2000);
   expect(state().saveStatus).toBe("saving");
@@ -216,7 +213,6 @@ it("keeps retry backoff independent of edits during the wait", async () => {
   }
   setRegion(7000);
   await advance(200);
-  // The retry sends the failed write unchanged, then the newest edits follow.
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
   expect(puts().map(({ body }) => body!.snapshot.browser.region.start)).toEqual([1000, 1000, 7000]);
   expect(savedRegion(id)).toBe(7000);
@@ -255,7 +251,8 @@ it("resends a failed write after a revert, because it may have been applied", as
   write.fail();
   await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
   expect(closeTab()).toBe(true);
-  await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+  await advance(1000);
+  expect(state().saveStatus).toBe("saved");
   expect(puts()).toHaveLength(3);
   expect(saveIds()[1]).toBe(saveIds()[0]);
   expect(savedRegion(id)).toBe(original.start);
@@ -299,13 +296,11 @@ it("retries failed writes with backoff, keeping edits made meanwhile pending unt
   setRegion(1000);
   await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
   setRegion(3000);
-  // The second attempt is applied, but its response is lost too.
   await vi.waitFor(() => expect(savedRegion(id)).toBe(1000));
   const retry = server.hold("PUT");
   await vi.waitFor(() => expect(puts()).toHaveLength(3), { timeout: 5000 });
   expect(state().saveStatus).toBe("retrying");
   retry.release();
-  // Acknowledging the retried write does not acknowledge the newer edit.
   await vi.waitFor(() => expect(puts()).toHaveLength(4));
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
   expect(new Set(saveIds().slice(0, 3)).size).toBe(1);
@@ -718,7 +713,6 @@ it("asks before closing the tab only while edits are unsaved", async () => {
   expect(closeTab()).toBe(false);
 });
 
-/** Another tab of the same account, against the same server. Stop it when done. */
 function otherTab() {
   const tab = createSession({
     transport: createSessionTransport(),
@@ -753,14 +747,12 @@ it("reports a write from another tab as a conflict and saves over it only when a
     expect(state().error).toBe(
       "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.",
     );
-    // The edits stay, and work on the stores may continue: they can still be saved.
     expect(state().active!.signal.aborted).toBe(false);
     expect(closeTab()).toBe(true);
     setRegion(3000);
     await advance(5000);
     expect(puts()).toHaveLength(2);
 
-    // Switching or closing keeps them here rather than dropping them.
     await state().open(other);
     expect(state().active!.id).toBe(id);
     expect(await state().close()).toBe(false);
@@ -773,7 +765,6 @@ it("reports a write from another tab as a conflict and saves over it only when a
     expect(state().error).toBeUndefined();
     expect(closeTab()).toBe(false);
 
-    // The other tab now conflicts in turn instead of overwriting silently.
     tab.setRegion(4000);
     await vi.waitFor(() => expect(tab.state().saveStatus).toBe("conflict"));
     expect(savedRegion(id)).toBe(3000);
@@ -823,7 +814,6 @@ it("abandons saving over a conflict once the session is closed without saving", 
     await overwriting;
     await advance(5000);
 
-    // The reopened session is unaffected, and the discarded edits are not saved.
     expect(state().saveStatus).toBe("saved");
     expect(stores().useBrowserStore.getState().region.start).toBe(2000);
     expect(puts()).toHaveLength(2);
@@ -844,7 +834,6 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
     setRegion(1000);
     await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
 
-    // Both loads read revision 2; the second response arrives after the save over it.
     const loaded = server.stored.get(id)!;
     const outdated = Response.json({
       id,
@@ -869,7 +858,6 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
     await overwriting[1];
     expect(state()).toMatchObject({ saveStatus: "saved", error: undefined });
 
-    // The next edit is based on the save over the conflict, not the outdated load.
     setRegion(5000);
     await vi.waitFor(() => expect(savedRegion(id)).toBe(5000));
     await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
@@ -891,7 +879,6 @@ it("never applies a lost write again after another tab saved over it", async () 
     await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
     expect(savedRegion(id)).toBe(1000);
 
-    // The other tab loads the applied write and saves over it before the retry.
     await tab.state().close({ discard: true });
     await tab.state().open(id);
     tab.setRegion(2000);
@@ -916,7 +903,6 @@ it("saves a write whose response was lost, once, before switching sessions", asy
   expect(state().active!.id).toBe(a);
   expect(state().error).toBe("Could not save “A”. Its changes are kept here.");
 
-  // The same write is retried; the newer edit is saved after it.
   setRegion(2000);
   await state().open(b);
   expect(state().active!.id).toBe(b);

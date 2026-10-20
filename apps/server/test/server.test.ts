@@ -329,7 +329,7 @@ test("one SIGTERM stops the process while a tab is connected and a command is pe
     expect(JSON.stringify((await call).content)).toContain("NOT_CONNECTED");
     const [code] = await exited;
     expect(code).toBe(0);
-    expect(performance.now() - shutdownStarted).toBeLessThan(defaultShutdownTimeoutMs);
+    expect(performance.now() - shutdownStarted).toBeLessThan(defaultShutdownTimeoutMs / 2);
   } finally {
     child.kill("SIGKILL");
   }
