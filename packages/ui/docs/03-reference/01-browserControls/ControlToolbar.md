@@ -120,7 +120,7 @@ Renders the Navigate fieldset with pan and zoom buttons and magnitude selectors.
 
 ### InteractionControls
 
-Renders the Interaction fieldset around `SelectionControls`, with the toolbar's compact button sizes. `InteractionControlsProps` is exported from the package root.
+Renders the Interaction fieldset around `SelectionControls`, with uniform 32px icon buttons. `InteractionControlsProps` is exported from the package root.
 
 | Prop           | Type                   | Default  | Description                                         |
 | -------------- | ---------------------- | -------- | --------------------------------------------------- |

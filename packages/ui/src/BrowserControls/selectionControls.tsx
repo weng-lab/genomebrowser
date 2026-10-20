@@ -1,6 +1,9 @@
 import ToggleButton from "@mui/material/ToggleButton";
 import Tooltip from "@mui/material/Tooltip";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import HighlightIcon from "@mui/icons-material/Highlight";
+import PanToolIcon from "@mui/icons-material/PanTool";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
 
 export type SelectionControlsProps = {
@@ -20,23 +23,27 @@ export function SelectionControls({ browserStore, disabled = false }: SelectionC
       value={mode}
       disabled={disabled}
     >
-      <Tooltip title="Drag to pan the region" describeChild disableHoverListener={disabled}>
-        <ToggleButton value="pan" onClick={() => setMode("pan")}>
-          Pan
+      <Tooltip title="Pan: drag to move the region" describeChild disableHoverListener={disabled}>
+        <ToggleButton value="pan" aria-label="Pan" onClick={() => setMode("pan")}>
+          <PanToolIcon fontSize="small" />
         </ToggleButton>
       </Tooltip>
       <Tooltip
-        title="Drag to select a region to zoom into"
+        title="Zoom: drag to select a region to zoom into"
         describeChild
         disableHoverListener={disabled}
       >
-        <ToggleButton value="zoom" onClick={() => setMode("zoom")}>
-          Zoom
+        <ToggleButton value="zoom" aria-label="Zoom" onClick={() => setMode("zoom")}>
+          <ZoomInIcon fontSize="small" />
         </ToggleButton>
       </Tooltip>
-      <Tooltip title="Drag to highlight a region" describeChild disableHoverListener={disabled}>
-        <ToggleButton value="highlight" onClick={() => setMode("highlight")}>
-          Highlight
+      <Tooltip
+        title="Highlight: drag to highlight a region"
+        describeChild
+        disableHoverListener={disabled}
+      >
+        <ToggleButton value="highlight" aria-label="Highlight" onClick={() => setMode("highlight")}>
+          <HighlightIcon fontSize="small" />
         </ToggleButton>
       </Tooltip>
     </ToggleButtonGroup>

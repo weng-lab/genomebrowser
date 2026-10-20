@@ -33,7 +33,7 @@ The package exports `SelectionControls` and `SelectionControlsProps` from its ro
 
 ## Accessibility
 
-The MUI toggle group has the name **Region interaction**. Each button has a visible label and exposes its selected state. Tooltips describe the drag action for each mode on hover or keyboard focus. Buttons work with Tab, Enter and Space. The genome browser SVG does not take focus or register keyboard shortcuts; applications can implement bindings using the browser store.
+The MUI toggle group has the name **Region interaction**. Each button shows an icon instead of text, is named **Pan**, **Zoom** or **Highlight**, and exposes its selected state. Tooltips name the mode and describe its drag action on hover or keyboard focus. Buttons work with Tab, Enter and Space. The genome browser SVG does not take focus or register keyboard shortcuts; applications can implement bindings using the browser store.
 
 ## Notes
 
