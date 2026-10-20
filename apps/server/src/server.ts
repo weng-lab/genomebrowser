@@ -15,6 +15,8 @@ export type BrowserServerOptions = {
   shutdownTimeoutMs?: number;
 };
 
+export const defaultShutdownTimeoutMs = 5_000;
+
 /** Compose HTTP routing, tab connections, MCP, and Node server lifetime. */
 export function createBrowserServer(options: BrowserServerOptions = {}) {
   const tabs = createTabConnections(options);
@@ -64,7 +66,7 @@ export function createBrowserServer(options: BrowserServerOptions = {}) {
       for (const socket of idle) socket.end();
       const force = setTimeout(
         () => server.closeAllConnections(),
-        options.shutdownTimeoutMs ?? 5_000,
+        options.shutdownTimeoutMs ?? defaultShutdownTimeoutMs,
       ).unref();
       server.once("close", () => clearTimeout(force));
       tabs.close();
