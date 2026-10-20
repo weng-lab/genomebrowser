@@ -229,11 +229,16 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     /**
      * After a conflict, base the edits on the version saved elsewhere and save
      * them over it at once. Fails, keeping the conflict, if that version cannot
-     * be read; saving ends if the session no longer exists.
+     * be read; saving ends if the session no longer exists. Does nothing once
+     * that conflict is resolved, even by another call while this one loads.
      */
     overwrite: Effect.gen(function* () {
-      if (!conflict || ended) return;
+      const resolving = conflict;
+      if (!resolving || ended) return;
       const loaded = yield* Effect.result(transport.load(id));
+      // Another call resolved the conflict meanwhile, and its write may already be
+      // acknowledged at a newer revision than this one loaded.
+      if (conflict !== resolving || ended) return;
       if (Result.isFailure(loaded)) {
         if (loaded.failure.code !== "UNAVAILABLE") {
           ended = loaded.failure;

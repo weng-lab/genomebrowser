@@ -833,6 +833,53 @@ it("abandons saving over a conflict once the session is closed without saving", 
   }
 });
 
+it("saves over a conflict once when asked twice, ignoring the later outdated load", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  const tab = otherTab();
+  try {
+    await tab.state().open(id);
+    tab.setRegion(2000);
+    await vi.waitFor(() => expect(tab.state().saveStatus).toBe("saved"));
+    setRegion(1000);
+    await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
+
+    // Both loads read revision 2; the second response arrives after the save over it.
+    const loaded = server.stored.get(id)!;
+    const outdated = Response.json({
+      id,
+      name: loaded.name,
+      createdAt: loaded.createdAt,
+      updatedAt: loaded.updatedAt,
+      revision: loaded.revision,
+      snapshot: loaded.snapshot,
+    });
+    const first = server.hold("GET");
+    const second = server.hold("GET");
+    const loads = server.requests.filter(({ method }) => method === "GET").length;
+    const overwriting = [state().overwrite(), state().overwrite()];
+    await vi.waitFor(() =>
+      expect(server.requests.filter(({ method }) => method === "GET")).toHaveLength(loads + 2),
+    );
+    first.release();
+    await overwriting[0];
+    await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+    expect(server.stored.get(id)).toMatchObject({ revision: 3 });
+    second.respond(outdated);
+    await overwriting[1];
+    expect(state()).toMatchObject({ saveStatus: "saved", error: undefined });
+
+    // The next edit is based on the save over the conflict, not the outdated load.
+    setRegion(5000);
+    await vi.waitFor(() => expect(savedRegion(id)).toBe(5000));
+    await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+    expect(server.stored.get(id)).toMatchObject({ revision: 4 });
+    expect(puts()).toHaveLength(4);
+  } finally {
+    tab.stop();
+  }
+});
+
 it("never applies a lost write again after another tab saved over it", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);

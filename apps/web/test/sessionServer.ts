@@ -57,7 +57,8 @@ export function installSessionServer() {
     writes: (): Request[] => requests.filter(({ method }) => method !== "GET"),
     /**
      * Hold the next request of `method` until released, failed without being
-     * applied, or applied with its response lost to a network failure.
+     * applied, applied with its response lost to a network failure, or answered
+     * with `response` instead.
      */
     hold(method: string) {
       let open!: (outcome: Outcome) => void;
@@ -66,6 +67,7 @@ export function installSessionServer() {
         release: () => open(undefined),
         fail: (status = 503) => open(Response.json({ message: "Unavailable" }, { status })),
         lose: () => open("lost"),
+        respond: (response: Response) => open(response),
       };
     },
     /** Replies to tab command results posted for remote control. */
