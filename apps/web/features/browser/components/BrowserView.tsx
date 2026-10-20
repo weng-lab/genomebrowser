@@ -34,12 +34,14 @@ function SessionAlert() {
   const conflict = useSession((session) => session.saveStatus === "conflict");
   const overwrite = useSession((session) => session.overwrite);
   const close = useSession((session) => session.close);
-  if (!error) return null;
+  if (!error && !unsaveable) return null;
   return (
     <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1, mb: 1 }}>
-      <Typography role="alert" variant="body2" color="error">
-        {error}
-      </Typography>
+      {error && (
+        <Typography role="alert" variant="body2" color="error">
+          {error}
+        </Typography>
+      )}
       {conflict && (
         <Button size="small" color="error" onClick={() => void overwrite()}>
           Save over it
