@@ -1,11 +1,15 @@
 import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { vi } from "vitest";
-import { maxSessionBytes, sessionInputSchema } from "../features/sessions/schema";
+import {
+  maxSessionBytes,
+  sessionInputSchema,
+  sessionUpdateSchema,
+} from "../features/sessions/schema";
 
 type Request = {
   method: string;
   id?: string;
-  body?: { name: string; snapshot: SessionSnapshot };
+  body?: { name: string; snapshot: SessionSnapshot; revision?: number; saveId?: string };
   bytes: number;
 };
 type Stored = {
@@ -14,18 +18,23 @@ type Stored = {
   snapshot: SessionSnapshot;
   createdAt: Date;
   updatedAt: Date;
+  revision: number;
+  saveId?: string;
 };
+/** How a held request ends: with this response, by its normal handling, or applied with its response lost. */
+type Outcome = Response | undefined | "lost";
 
 /**
  * The `/api/sessions` contract in memory, installed as `fetch`: owner-scoped
- * list, load, create, update, and delete with the same status codes, error
- * bodies, and size limit as the route handlers. Tests can hold or fail the next request of a
+ * list, load, create, revision-checked update with save-ID replay, and delete
+ * with the same status codes, error bodies, and size limit as the route
+ * handlers. Tests can hold, fail, or lose the response of the next request of a
  * method. Requests honor their abort signal, including while a body is read.
  */
 export function installSessionServer() {
   const stored = new Map<string, Stored>();
   const requests: Request[] = [];
-  const gates: { method: string; gate: Promise<Response | undefined> }[] = [];
+  const gates: { method: string; gate: Promise<Outcome> }[] = [];
   const server = {
     user: "user_alice" as string | null,
     requests,
@@ -40,18 +49,23 @@ export function installSessionServer() {
         snapshot,
         createdAt: now,
         updatedAt: now,
+        revision: 1,
       });
       return id;
     },
     /** Writes and deletions sent so far, oldest first. */
     writes: (): Request[] => requests.filter(({ method }) => method !== "GET"),
-    /** Hold the next request of `method` until released or failed. */
+    /**
+     * Hold the next request of `method` until released, failed without being
+     * applied, or applied with its response lost to a network failure.
+     */
     hold(method: string) {
-      let open!: (response?: Response) => void;
+      let open!: (outcome: Outcome) => void;
       gates.push({ method, gate: new Promise((resolve) => (open = resolve)) });
       return {
-        release: () => open(),
+        release: () => open(undefined),
         fail: (status = 503) => open(Response.json({ message: "Unavailable" }, { status })),
+        lose: () => open("lost"),
       };
     },
     /** Replies to tab command results posted for remote control. */
@@ -62,6 +76,10 @@ export function installSessionServer() {
     fail(method: string, status = 503): void {
       server.hold(method).fail(status);
     },
+    /** Apply the next request of `method`, then fail it as if its response were lost. */
+    lose(method: string): void {
+      server.hold(method).lose();
+    },
   };
 
   function json(body: unknown, status = 200) {
@@ -70,8 +88,8 @@ export function installSessionServer() {
   function rejected(code: string, status: number) {
     return json({ code, message: code }, status);
   }
-  function metadata(id: string, { name, createdAt, updatedAt }: Stored) {
-    return { id, name, createdAt, updatedAt };
+  function metadata(id: string, { name, createdAt, updatedAt, revision }: Stored) {
+    return { id, name, createdAt, updatedAt, revision };
   }
 
   function handle({ method, id, body, bytes }: Request) {
@@ -99,11 +117,15 @@ export function installSessionServer() {
       stored.delete(id);
       return new Response(null, { status: 204 });
     }
-    const input = sessionInputSchema.safeParse(body);
-    if (!input.success) return rejected("INVALID_INPUT", 400);
-    if (input.data.snapshot.browser.assembly !== session.snapshot.browser.assembly)
+    const parsed = sessionUpdateSchema.safeParse(body);
+    if (!parsed.success) return rejected("INVALID_INPUT", 400);
+    const { revision, saveId, ...input } = parsed.data;
+    if (session.saveId === saveId && session.revision === revision + 1)
+      return json(metadata(id, session));
+    if (input.snapshot.browser.assembly !== session.snapshot.browser.assembly)
       return rejected("ASSEMBLY_CHANGED", 409);
-    Object.assign(session, { ...input.data, updatedAt: new Date() });
+    if (session.revision !== revision) return rejected("CONFLICT", 409);
+    Object.assign(session, { ...input, revision: revision + 1, saveId, updatedAt: new Date() });
     return json(metadata(id, session));
   }
 
@@ -126,7 +148,9 @@ export function installSessionServer() {
     const index = gates.findIndex((gate) => gate.method === request.method);
     const gated =
       index < 0 ? undefined : await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
-    return gated ?? handle(request);
+    if (gated !== "lost") return gated ?? handle(request);
+    handle(request);
+    throw new TypeError("Failed to fetch");
   }
 
   vi.stubGlobal("fetch", vi.fn(fetch));

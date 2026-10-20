@@ -287,6 +287,31 @@ it("offers to close a session deleted elsewhere without saving its edits", async
   expect(closeTab()).toBe(false);
 });
 
+it("offers to save over a version saved elsewhere, keeping the edits until then", async () => {
+  const a = server.add("Alpha", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const status = () => document.querySelector("main output")?.textContent;
+  expect(status()).toBe("Saved");
+  // Another tab saves first.
+  Object.assign(server.stored.get(a)!, { name: "Elsewhere", revision: 2 });
+  await click(button("Pan right"));
+  const edited = region();
+  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  expect(document.querySelector('[role="alert"]')?.textContent).toBe(
+    "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.",
+  );
+  expect(server.stored.get(a)!.name).toBe("Elsewhere");
+  expect(closeTab()).toBe(true);
+
+  await click(withText("button", "Save over it"));
+  await vi.waitFor(() => expect(status()).toBe("Saved"));
+  expect(document.querySelector('[role="alert"]')).toBeNull();
+  expect(server.stored.get(a)).toMatchObject({ name: "Alpha", revision: 3 });
+  expect(region()).toBe(edited);
+  expect(closeTab()).toBe(false);
+});
+
 it("asks a signed-out user to sign in", async () => {
   server.user = null;
   await visit("/browser");
@@ -296,8 +321,9 @@ it("asks a signed-out user to sign in", async () => {
 });
 
 // Session panel subscriptions: a region edit changes neither the session list nor the
-// selection. Acknowledgements only change timestamps, which the panel does not
-// display. BrowserView and BrowserContent show the same stores.
+// selection. Acknowledgements only change timestamps and revisions, which the panel
+// does not display. BrowserView and BrowserContent show the same stores. The save
+// status shows saving after the edit and saved after the acknowledgement.
 it("budgets session readers for an edit and its save acknowledgement", async () => {
   const id = server.add("Alpha", defaults());
   await visit(`/browser/${id}`);
@@ -309,23 +335,35 @@ it("budgets session readers for an edit and its save acknowledgement", async () 
     pan.click();
     await vi.waitFor(() => expect(server.requests.at(-1)?.method).toBe("PUT"));
   });
-  expect(edit.pick("SessionPanel", "SessionName", "BrowserView")).toMatchInlineSnapshot(`
-    {
-      "BrowserView": 0,
-      "SessionName": 0,
-      "SessionPanel": 0,
-    }
-  `);
+  expect(edit.pick("SessionPanel", "SessionName", "BrowserView", "SessionAlert", "SaveStatus"))
+    .toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "SaveStatus": 1,
+        "SessionAlert": 0,
+        "SessionName": 0,
+        "SessionPanel": 0,
+      }
+    `);
 
   const acknowledgement = await probe!.measure(async () => {
     write.release();
     await vi.waitFor(() => expect(closeTab()).toBe(false));
   });
-  expect(acknowledgement.pick("BrowserView", "BrowserContent", "SessionPanel"))
-    .toMatchInlineSnapshot(`
+  expect(
+    acknowledgement.pick(
+      "BrowserView",
+      "BrowserContent",
+      "SessionPanel",
+      "SessionAlert",
+      "SaveStatus",
+    ),
+  ).toMatchInlineSnapshot(`
     {
       "BrowserContent": 0,
       "BrowserView": 0,
+      "SaveStatus": 1,
+      "SessionAlert": 0,
       "SessionPanel": 0,
     }
   `);

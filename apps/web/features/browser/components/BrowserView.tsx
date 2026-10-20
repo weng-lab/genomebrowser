@@ -11,6 +11,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
+import { SaveStatus } from "../../sessions/components/SaveStatus";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -18,6 +19,7 @@ export function BrowserView({ sessionId }: { sessionId?: string }) {
   const stores = useSession((session) => session.active?.stores);
   return (
     <Box>
+      <SaveStatus />
       <SessionAlert />
       {stores ? <BrowserContent key={id} stores={stores} /> : <NoSession sessionId={sessionId} />}
     </Box>
@@ -26,7 +28,11 @@ export function BrowserView({ sessionId }: { sessionId?: string }) {
 
 function SessionAlert() {
   const error = useSession((session) => session.error);
-  const unsaveable = useSession((session) => session.saveStatus === "failed");
+  const unsaveable = useSession(
+    (session) => session.saveStatus === "failed" || session.saveStatus === "conflict",
+  );
+  const conflict = useSession((session) => session.saveStatus === "conflict");
+  const overwrite = useSession((session) => session.overwrite);
   const close = useSession((session) => session.close);
   if (!error) return null;
   return (
@@ -34,6 +40,11 @@ function SessionAlert() {
       <Typography role="alert" variant="body2" color="error">
         {error}
       </Typography>
+      {conflict && (
+        <Button size="small" color="error" onClick={() => void overwrite()}>
+          Save over it
+        </Button>
+      )}
       {unsaveable && (
         <Button size="small" color="error" onClick={() => void close({ discard: true })}>
           Close without saving

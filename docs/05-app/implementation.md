@@ -4,6 +4,6 @@ The planned refactor is complete. [App direction](README.md), [sessions](session
 
 No compatibility aliases or automatic ownership claims for old SQLite data are part of this design.
 
-Session import/export UI, user settings, incremental writes, and advanced conflict handling remain deferred. MCP authentication, user-scoped discovery tools, and the Vercel Eve agent panel are proposed in [agent authentication](agent-auth.md); they are not part of the completed refactor. The current Agent panel only shows connection information.
+Session import/export UI, user settings, incremental writes, and merging conflicting edits remain deferred. MCP authentication, user-scoped discovery tools, and the Vercel Eve agent panel are proposed in [agent authentication](agent-auth.md); they are not part of the completed refactor. The current Agent panel only shows connection information.
 
 [Back to app direction](README.md)
