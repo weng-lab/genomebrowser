@@ -11,9 +11,7 @@ import {
 
 /**
  * A failed session request. `UNAVAILABLE` covers network failures, server errors,
- * and unexpected responses; retrying may succeed. A write that failed this way
- * may still have been applied. Every other code is final, and means the request
- * changed nothing.
+ * and unexpected responses; retrying may succeed. Every other code is final.
  */
 export class SessionRequestError extends Data.TaggedError("SessionRequestError")<{
   code: SessionErrorCode | "UNAVAILABLE";
@@ -66,11 +64,7 @@ export function createSessionTransport(base = "/api/sessions") {
     list: () => request("", z.array(sessionSchema)),
     load: (id: string) => request(`/${encodeURIComponent(id)}`, savedSessionSchema),
     create: (input: SessionInput) => request("", sessionSchema, json("POST", input)),
-    /**
-     * Fails with `NOT_FOUND` for a deleted session rather than recreating it, and
-     * with `CONFLICT` when the session moved past `input.revision`. Sending the
-     * same `saveId` again returns the result of the update it already applied.
-     */
+    /** Fails with `NOT_FOUND` for a deleted session rather than recreating it. */
     update: (id: string, input: SessionUpdate) =>
       request(`/${encodeURIComponent(id)}`, sessionSchema, json("PUT", input)),
     remove: (id: string) => request(`/${encodeURIComponent(id)}`, z.null(), { method: "DELETE" }),

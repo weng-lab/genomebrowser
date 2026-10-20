@@ -11,12 +11,6 @@ export const sessionInputSchema = z.strictObject({
 });
 export type SessionInput = z.input<typeof sessionInputSchema>;
 
-/**
- * What a client sends to replace a session. `revision` is the revision the edits
- * were based on, and the update fails with `CONFLICT` if the session has moved
- * on. `saveId` names this logical update: sending it again after its outcome was
- * unknown never applies it twice.
- */
 export const sessionUpdateSchema = sessionInputSchema.extend({
   revision: z.number().int().positive(),
   saveId: z.uuid(),
@@ -29,7 +23,6 @@ export const sessionSchema = z.strictObject({
   name: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-  /** Increases with each saved update. */
   revision: z.number().int().positive(),
 });
 export type Session = z.infer<typeof sessionSchema>;

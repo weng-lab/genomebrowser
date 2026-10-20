@@ -6,12 +6,10 @@ import { SessionRequestError, type SessionTransport } from "./transport";
 
 /**
  * `saving` while edits are unsaved or a write is outstanding, `retrying` after a
- * write failed transiently, `conflict` after the session was saved elsewhere
- * since the edits were based on it, and `failed` while the latest edits cannot
- * be saved. Edits that were refused, for example for exceeding the size limit,
- * can be changed so that they save. Edits in conflict save only once
- * `overwrite` replaces the other version. A session deleted elsewhere can no
- * longer be saved.
+ * write failed transiently, `conflict` after another save, and `failed` while the
+ * latest edits cannot be saved. Edits that were refused, for example for
+ * exceeding the size limit, can be changed so that they save. A session deleted
+ * elsewhere can no longer be saved.
  */
 export type SaveStatus = "saved" | "saving" | "retrying" | "conflict" | "failed";
 
@@ -29,19 +27,12 @@ const unserializable = "";
  * Save one restored session in the background until the enclosing scope closes.
  * Edits to its stores and name are written as whole snapshots, one write at a
  * time; edits made during a write are saved by the next one. A write is
- * acknowledged only for the snapshot it sent, and is based on the revision of
- * the last acknowledged one.
- *
- * A write that fails transiently may still have been applied, so it is sent
- * again unchanged, under the same save ID, with backoff until the server
- * settles it; only then are newer edits sent, even edits that revert it.
- * Refused edits wait for a further edit. A conflict with a version saved
- * elsewhere keeps the edits unsaved until `overwrite`. Other failures,
- * including `NOT_FOUND` after deletion, end saving; the edits stay unsaved.
+ * acknowledged only for the snapshot it sent. Transient failures retry with
+ * backoff. Refused edits wait for a further edit. Other failures, including
+ * `NOT_FOUND` after deletion, end saving; the edits stay unsaved.
  */
 export const startAutosave = Effect.fnUntraced(function* (options: {
   id: string;
-  /** The revision of the restored snapshot. */
   revision: number;
   stores: GenomeBrowserStores;
   name: () => string;
@@ -52,18 +43,15 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
 }) {
   const { id, stores, transport, onStatus, onSaved } = options;
   const current = (): SessionInput => ({ name: options.name(), snapshot: snapshot(stores) });
-  // JSON of the input the server holds at `revision`, unknown after a conflict,
-  // and of the newest edits.
+  // JSON of the last acknowledged input, unknown after a conflict, and of the newest edits.
   let saved: string | undefined = JSON.stringify(current());
   let latest = saved;
   let revision = options.revision;
-  // The write sent, or being sent, whose outcome is not yet known. It is sent
-  // again unchanged until the server applies or rejects it.
+  // Retried unchanged until the server applies or rejects it.
   let unsettled: { body: string; revision: number; saveId: string } | undefined;
   let failures = 0;
   // Edits the server or serialization refused. They are not written again.
   let refused: { body: string; failure: SessionRequestError } | undefined;
-  // The session was saved elsewhere; nothing is written until `overwrite`.
   let conflict: SessionRequestError | undefined;
   let ended: SessionRequestError | undefined;
   let waiters: Deferred.Deferred<void, SessionRequestError>[] = [];
@@ -197,8 +185,8 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     /** Save the session's new name with its next write. */
     renamed: changed,
     /**
-     * Whether any edit is not yet acknowledged, including a write whose outcome
-     * is unknown and edits that cannot be saved.
+     * Whether any edit is not yet acknowledged, including the snapshot being
+     * written and edits that cannot be saved.
      */
     dirty() {
       changed();
@@ -226,12 +214,6 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       changed();
       if (!settled()) Queue.offerUnsafe(edits, undefined);
     }),
-    /**
-     * After a conflict, base the edits on the version saved elsewhere and save
-     * them over it at once. Fails, keeping the conflict, if that version cannot
-     * be read; saving ends if the session no longer exists. Does nothing once
-     * that conflict is resolved, even by another call while this one loads.
-     */
     overwrite: Effect.gen(function* () {
       const resolving = conflict;
       if (!resolving || ended) return;

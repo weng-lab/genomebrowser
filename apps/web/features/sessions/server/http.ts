@@ -39,7 +39,6 @@ export async function readSessionInput(request: Request) {
   return parseSessionInput(await readJson(request));
 }
 
-/** Read and validate a session update of at most 1 MB. */
 export async function readSessionUpdate(request: Request) {
   return parseSessionUpdate(await readJson(request));
 }

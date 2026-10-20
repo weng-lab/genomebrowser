@@ -16,7 +16,6 @@ function as(userId: string | null) {
   return createSessions({ db, identity: { userId: async () => userId } });
 }
 
-/** An update based on `revision`, under a new save ID unless one is given. */
 function at(revision: number, input: SessionInput, saveId = crypto.randomUUID()): SessionUpdate {
   return { ...input, revision, saveId };
 }
@@ -172,14 +171,12 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     const write = at(1, { name: "Edited", snapshot: snapshot({ fontSize: 20 }) });
     const first = await alice().update(saved.id, write);
 
-    // Retrying it, even from several requests at once, changes nothing.
     const retries = await Promise.all(
       Array.from({ length: 5 }, () => alice().update(saved.id, write)),
     );
     for (const retry of retries) expect(retry).toEqual(first);
     expect(await alice().load(saved.id)).toEqual({ ...first, snapshot: write.snapshot });
 
-    // Concurrent first attempts of one save also apply it once.
     const next = at(2, { name: "Again", snapshot: snapshot({ fontSize: 21 }) });
     const attempts = await Promise.all(
       Array.from({ length: 5 }, () => alice().update(saved.id, next)),
@@ -197,7 +194,6 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     );
 
     await expect(alice().update(saved.id, stale)).rejects.toMatchObject({ code: "CONFLICT" });
-    // A new save ID at an old revision conflicts too.
     await expect(
       alice().update(saved.id, at(1, { name: "Old base", snapshot: snapshot() })),
     ).rejects.toMatchObject({ code: "CONFLICT" });

@@ -21,14 +21,12 @@ type Stored = {
   revision: number;
   saveId?: string;
 };
-/** How a held request ends: with this response, by its normal handling, or applied with its response lost. */
 type Outcome = Response | undefined | "lost";
 
 /**
  * The `/api/sessions` contract in memory, installed as `fetch`: owner-scoped
- * list, load, create, revision-checked update with save-ID replay, and delete
- * with the same status codes, error bodies, and size limit as the route
- * handlers. Tests can hold, fail, or lose the response of the next request of a
+ * list, load, create, update, and delete with the same status codes, error
+ * bodies, and size limit as the route handlers. Tests can hold or fail the next request of a
  * method. Requests honor their abort signal, including while a body is read.
  */
 export function installSessionServer() {
@@ -55,11 +53,7 @@ export function installSessionServer() {
     },
     /** Writes and deletions sent so far, oldest first. */
     writes: (): Request[] => requests.filter(({ method }) => method !== "GET"),
-    /**
-     * Hold the next request of `method` until released, failed without being
-     * applied, applied with its response lost to a network failure, or answered
-     * with `response` instead.
-     */
+    /** Hold the next request of `method` until released or failed. */
     hold(method: string) {
       let open!: (outcome: Outcome) => void;
       gates.push({ method, gate: new Promise((resolve) => (open = resolve)) });

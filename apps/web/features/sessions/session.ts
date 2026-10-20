@@ -41,10 +41,6 @@ export type SessionState = {
   create(input: { name: string; assembly: string }): Promise<void>;
   /** Rename the active session. The name saves with its next autosave. */
   rename(name: string): void;
-  /**
-   * When the active session's save status is `conflict`, save its edits over the
-   * version saved elsewhere. `close({ discard: true })` instead drops them.
-   */
   overwrite(): Promise<void>;
   /** Delete a session. For the active session, an outstanding write finishes first. */
   remove(id: string): Promise<void>;
@@ -115,7 +111,6 @@ export function createSession({
   }));
   const { getState: get, setState: set } = store;
 
-  /** Run in the workspace, or in `within`, such as one session's lifetime. */
   function run(effect: Effect.Effect<void>, within = scope) {
     if (!within) return undefined;
     const fiber = Effect.runSync(Effect.forkIn(effect, within));

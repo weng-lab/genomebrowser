@@ -34,7 +34,6 @@ function parse<T extends z.ZodType>(schema: T, input: unknown): z.output<T> {
 
 /** Validate a session's name and snapshot, failing with `INVALID_INPUT`. */
 export const parseSessionInput = (input: unknown) => parse(sessionInputSchema, input);
-/** Validate an update's name, snapshot, base revision, and save ID, failing with `INVALID_INPUT`. */
 export const parseSessionUpdate = (input: unknown) => parse(sessionUpdateSchema, input);
 
 /**
@@ -46,13 +45,7 @@ export type Sessions = {
   /** Metadata only, alphabetically by name. */
   list(): Promise<Session[]>;
   load(id: string): Promise<SavedSession>;
-  /**
-   * Replace the name and snapshot of an existing session at `input.revision`,
-   * advancing its revision. Never recreates a deleted one. Fails with `CONFLICT`
-   * when the session is at another revision, unless `input.saveId` produced its
-   * current revision: that update already applied, and its result is returned
-   * without applying it again.
-   */
+  /** Replace the name and snapshot of an existing session. Never recreates a deleted one. */
   update(id: string, input: SessionUpdate): Promise<Session>;
   remove(id: string): Promise<void>;
 };

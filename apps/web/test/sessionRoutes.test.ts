@@ -73,7 +73,6 @@ describe.skipIf(!testServerUrl)("session routes", () => {
       snapshot: edited,
       revision: 2,
     });
-    // A retry returns the same result; a write based on an older revision conflicts.
     expect(await (await update(session.id, write)).json()).toMatchObject({ revision: 2 });
     const stale = await update(session.id, { ...write, saveId: crypto.randomUUID() });
     expect(stale.status).toBe(409);

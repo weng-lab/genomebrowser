@@ -293,7 +293,6 @@ it("offers to save over a version saved elsewhere, keeping the edits until then"
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   const status = () => document.querySelector("main output")?.textContent;
   expect(status()).toBe("Saved");
-  // Another tab saves first.
   Object.assign(server.stored.get(a)!, { name: "Elsewhere", revision: 2 });
   await click(button("Pan right"));
   const edited = region();
@@ -366,9 +365,8 @@ it("asks a signed-out user to sign in", async () => {
 });
 
 // Session panel subscriptions: a region edit changes neither the session list nor the
-// selection. Acknowledgements only change timestamps and revisions, which the panel
-// does not display. BrowserView and BrowserContent show the same stores. The save
-// status shows saving after the edit and saved after the acknowledgement.
+// selection. Acknowledgements only change timestamps, which the panel does not
+// display. BrowserView and BrowserContent show the same stores.
 it("budgets session readers for an edit and its save acknowledgement", async () => {
   const id = server.add("Alpha", defaults());
   await visit(`/browser/${id}`);
