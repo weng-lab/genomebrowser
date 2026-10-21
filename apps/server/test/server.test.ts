@@ -315,7 +315,6 @@ test("one SIGTERM stops the process while a tab is connected and a command is pe
     env: { PATH: process.env.PATH, GB_SERVER_PORT: String(port) },
     stdio: ["ignore", "pipe", "ignore"],
   });
-  const exited = once(child, "exit");
   const local = new Client({ name: "shutdown-agent", version: "0.0.0" });
   try {
     await once(child.stdout, "data");
@@ -324,15 +323,19 @@ test("one SIGTERM stops the process while a tab is connected and a command is pe
     await local.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/mcp`)));
     const call = local.callTool({ name: "set_region", arguments: { sessionId: "local", region } });
     while (!new TextDecoder().decode((await reader.read()).value).includes("event: command"));
+    // Measure shutdown after startup and the MCP handshake. The process must
+    // still exit before its five-second forced-connection shutdown fallback.
+    const exited = once(child, "exit", { signal: AbortSignal.timeout(2_000) });
     child.kill("SIGTERM");
-    expect(JSON.stringify((await call).content)).toContain("NOT_CONNECTED");
-    const [code] = await exited;
+    const [result, [code]] = await Promise.all([call, exited]);
+    expect(JSON.stringify(result.content)).toContain("NOT_CONNECTED");
     expect(code).toBe(0);
   } finally {
     child.kill("SIGKILL");
   }
-  // Well before the client's keep-alive or the server's shutdown timeout would end it.
-}, 2_000);
+  // Allow a cold Node process and HTTP/MCP setup time on a busy CI runner;
+  // the separate two-second deadline above still bounds the actual shutdown.
+}, 10_000);
 
 test("local startup rejects a public bind address", () => {
   const result = spawnSync(process.execPath, ["src/main.ts"], {
