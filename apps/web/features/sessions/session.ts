@@ -41,6 +41,7 @@ export type SessionState = {
   create(input: { name: string; assembly: string }): Promise<void>;
   /** Rename the active session. The name saves with its next autosave. */
   rename(name: string): void;
+  overwrite(): Promise<void>;
   /** Delete a session. For the active session, an outstanding write finishes first. */
   remove(id: string): Promise<void>;
   /**
@@ -104,14 +105,15 @@ export function createSession({
     open,
     create,
     rename,
+    overwrite,
     remove,
     close,
   }));
   const { getState: get, setState: set } = store;
 
-  function run(effect: Effect.Effect<void>) {
-    if (!scope) return undefined;
-    const fiber = Effect.runSync(Effect.forkIn(effect, scope));
+  function run(effect: Effect.Effect<void>, within = scope) {
+    if (!within) return undefined;
+    const fiber = Effect.runSync(Effect.forkIn(effect, within));
     const done = new Promise<void>((resolve) =>
       fiber.addObserver((exit) => {
         if (Exit.isFailure(exit) && !Cause.hasInterruptsOnly(exit.cause))
@@ -230,34 +232,41 @@ export function createSession({
   }
 
   /** Replace the active session once the previous one has no unsaved edits. */
-  const activate = (next: Omit<Active, "signal">) =>
+  const activate = ({ revision, ...next }: Omit<Active, "signal"> & { revision: number }) =>
     Effect.gen(function* () {
       const sessionScope = yield* Scope.fork(scope!);
       const ended = new AbortController();
       const autosave = yield* startAutosave({
         id: next.id,
+        revision,
         stores: next.stores,
         transport,
         name: () => (get().active?.id === next.id ? get().active!.name : next.name),
+        // Only while this instance is active: the session may be closed and reopened.
         onStatus(saveStatus, failure) {
-          if (current?.id !== next.id) return;
+          if (current?.scope !== sessionScope) return;
           set({ saveStatus });
           // Once every edit is saved, a failure to save them no longer applies.
           if (saveStatus === "saved" && saveError && get().error === saveError)
             set({ error: undefined });
-          if (saveStatus !== "failed" || !failure) return;
+          if ((saveStatus !== "failed" && saveStatus !== "conflict") || !failure) return;
           if (failure.code === "NOT_FOUND")
             saveError = "This session was deleted elsewhere. Its changes cannot be saved.";
           else if (failure.code === "INVALID_INPUT")
             saveError =
               "The latest changes are too large or invalid to save. Change them to keep saving.";
+          else if (failure.code === "CONFLICT")
+            saveError =
+              "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.";
           else saveError = "Changes to this session can no longer be saved.";
-          // Only refused edits can still be saved, after a further edit.
-          if (failure.code !== "INVALID_INPUT") current.ended.abort();
+          // Refused edits can still be saved after a further edit, and edits in
+          // conflict after `overwrite`.
+          if (failure.code !== "INVALID_INPUT" && failure.code !== "CONFLICT")
+            current.ended.abort();
           failed(failure, saveError);
         },
         onSaved(saved) {
-          if (current?.id === next.id) remember(saved);
+          if (current?.scope === sessionScope) remember(saved);
         },
       }).pipe(Scope.provide(sessionScope));
       let replaced = false;
@@ -313,7 +322,7 @@ export function createSession({
         set({ error: "This session's saved state cannot be restored." });
         return stay();
       }
-      yield* activate({ id, name: session.name, stores });
+      yield* activate({ id, name: session.name, revision: session.revision, stores });
     });
     const task = run(
       exclusive(pending, operation).pipe(
@@ -343,7 +352,8 @@ export function createSession({
         );
       }
       remember(created.success);
-      yield* activate({ id: created.success.id, name: created.success.name, stores });
+      const { id, name: createdName, revision } = created.success;
+      yield* activate({ id, name: createdName, revision, stores });
     });
     return run(exclusive({ operation: "create" }, operation))?.done ?? Promise.resolve();
   }
@@ -360,6 +370,23 @@ export function createSession({
       ),
     );
     current.autosave.renamed();
+  }
+
+  function overwrite(): Promise<void> {
+    const target = current;
+    if (!target) return Promise.resolve();
+    const operation = target.autosave.overwrite.pipe(
+      Effect.catch((error) =>
+        Effect.sync(() => {
+          // Other failures end saving, which the save status reports.
+          if (current !== target || !unavailable(error)) return;
+          saveError = "Could not reach saved sessions. Try again.";
+          set({ error: saveError });
+        }),
+      ),
+    );
+    // Closing the session interrupts it, so it cannot save a later instance.
+    return run(operation, target.scope)?.done ?? Promise.resolve();
   }
 
   function remove(id: string): Promise<void> {

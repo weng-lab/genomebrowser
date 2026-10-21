@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { identityMode } from "../features/account/server/identity";
 import { createSessions } from "../features/sessions/server/sessions";
-import type { SessionInput } from "../features/sessions/schema";
+import type { SessionInput, SessionUpdate } from "../features/sessions/schema";
 import { sessionsTable } from "../features/sessions/server/table";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
@@ -14,6 +14,10 @@ let db: NodePgDatabase;
 
 function as(userId: string | null) {
   return createSessions({ db, identity: { userId: async () => userId } });
+}
+
+function at(revision: number, input: SessionInput, saveId = crypto.randomUUID()): SessionUpdate {
+  return { ...input, revision, saveId };
 }
 
 const alice = () => as("user_alice");
@@ -44,6 +48,7 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
       name: "Promoter scan",
       createdAt: expect.any(Date),
       updatedAt: saved.createdAt,
+      revision: 1,
     });
     expect(saved.createdAt.getTime()).toBeGreaterThanOrEqual(before - 1000);
     expect(await alice().load(saved.id)).toEqual({ ...saved, snapshot: snapshot() });
@@ -60,7 +65,7 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
 
   it("hides another user's session from every operation", async () => {
     const saved = await alice().create({ name: "Private", snapshot: snapshot() });
-    const edit: SessionInput = { name: "Taken", snapshot: snapshot({ fontSize: 30 }) };
+    const edit = at(1, { name: "Taken", snapshot: snapshot({ fontSize: 30 }) });
 
     await expect(bob().load(saved.id)).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(bob().update(saved.id, edit)).rejects.toMatchObject({ code: "NOT_FOUND" });
@@ -77,7 +82,7 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
       anonymous.create(input),
       anonymous.list(),
       anonymous.load(saved.id),
-      anonymous.update(saved.id, input),
+      anonymous.update(saved.id, at(1, input)),
       anonymous.remove(saved.id),
     ])
       await expect(attempt).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
@@ -92,7 +97,10 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
       code: "INVALID_INPUT",
     });
     await expect(
-      alice().update(saved.id, { name: "Valid", snapshot: invalid as never }),
+      alice().update(saved.id, at(1, { name: "Valid", snapshot: invalid as never })),
+    ).rejects.toMatchObject({ code: "INVALID_INPUT" });
+    await expect(
+      alice().update(saved.id, { name: "Valid", snapshot: snapshot() } as never),
     ).rejects.toMatchObject({ code: "INVALID_INPUT" });
     expect(await alice().list()).toEqual([saved]);
   });
@@ -108,9 +116,14 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     // Timestamps have millisecond precision in JavaScript.
     await new Promise((resolve) => setTimeout(resolve, 5));
 
-    const updated = await alice().update(saved.id, { name: "Final", snapshot: edited });
+    const updated = await alice().update(saved.id, at(1, { name: "Final", snapshot: edited }));
 
-    expect(updated).toMatchObject({ id: saved.id, name: "Final", createdAt: saved.createdAt });
+    expect(updated).toMatchObject({
+      id: saved.id,
+      name: "Final",
+      createdAt: saved.createdAt,
+      revision: 2,
+    });
     expect(updated.updatedAt.getTime()).toBeGreaterThan(saved.updatedAt.getTime());
     expect(await alice().load(saved.id)).toEqual({ ...updated, snapshot: edited });
   });
@@ -120,24 +133,80 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     const mouse = snapshot({ assembly: "mm10", region: { chromosome: "chr1", start: 0, end: 10 } });
 
     await expect(
-      alice().update(saved.id, { name: "Mouse", snapshot: mouse }),
+      alice().update(saved.id, at(1, { name: "Mouse", snapshot: mouse })),
     ).rejects.toMatchObject({ code: "ASSEMBLY_CHANGED" });
 
     const writes = await Promise.allSettled(
       Array.from({ length: 10 }, (_, index) =>
-        alice().update(saved.id, {
-          name: `Write ${index}`,
-          snapshot: index % 2 ? mouse : snapshot({ fontSize: index + 1 }),
-        }),
+        alice().update(
+          saved.id,
+          at(1, { name: `Write ${index}`, snapshot: index % 2 ? mouse : snapshot() }),
+        ),
       ),
     );
-    expect(writes.filter(({ status }) => status === "fulfilled")).toHaveLength(5);
+    const codes = writes.map((write) => (write.status === "rejected" ? write.reason.code : "OK"));
+    expect(codes.filter((code, index) => index % 2 && code !== "ASSEMBLY_CHANGED")).toEqual([]);
+    expect(codes.filter((code) => code === "OK")).toHaveLength(1);
     expect((await alice().load(saved.id)).snapshot.browser.assembly).toBe("hg38");
+  });
+
+  it("applies one of several concurrent writes at the same revision, and rejects the rest as conflicts", async () => {
+    const saved = await alice().create({ name: "Shared", snapshot: snapshot() });
+    const writes = await Promise.allSettled(
+      Array.from({ length: 10 }, (_, index) =>
+        alice().update(saved.id, at(1, { name: `Tab ${index}`, snapshot: snapshot() })),
+      ),
+    );
+
+    const applied = writes.flatMap((write) => (write.status === "fulfilled" ? [write.value] : []));
+    expect(applied).toHaveLength(1);
+    expect(applied[0].revision).toBe(2);
+    const rejected = writes.flatMap((write) => (write.status === "rejected" ? [write.reason] : []));
+    expect(rejected.map(({ code }) => code)).toEqual(Array(9).fill("CONFLICT"));
+    expect(await alice().load(saved.id)).toMatchObject({ name: applied[0].name, revision: 2 });
+  });
+
+  it("returns the result of a retried save without applying it again", async () => {
+    const saved = await alice().create({ name: "Draft", snapshot: snapshot() });
+    const write = at(1, { name: "Edited", snapshot: snapshot({ fontSize: 20 }) });
+    const first = await alice().update(saved.id, write);
+
+    const retries = await Promise.all(
+      Array.from({ length: 5 }, () => alice().update(saved.id, write)),
+    );
+    for (const retry of retries) expect(retry).toEqual(first);
+    expect(await alice().load(saved.id)).toEqual({ ...first, snapshot: write.snapshot });
+
+    const next = at(2, { name: "Again", snapshot: snapshot({ fontSize: 21 }) });
+    const attempts = await Promise.all(
+      Array.from({ length: 5 }, () => alice().update(saved.id, next)),
+    );
+    expect(new Set(attempts.map(({ revision }) => revision))).toEqual(new Set([3]));
+  });
+
+  it("refuses a retried save after a newer write, leaving the newer one", async () => {
+    const saved = await alice().create({ name: "Draft", snapshot: snapshot() });
+    const stale = at(1, { name: "Stale", snapshot: snapshot({ fontSize: 20 }) });
+    await alice().update(saved.id, stale);
+    const newer = await alice().update(
+      saved.id,
+      at(2, { name: "Newer", snapshot: snapshot({ fontSize: 30 }) }),
+    );
+
+    await expect(alice().update(saved.id, stale)).rejects.toMatchObject({ code: "CONFLICT" });
+    await expect(
+      alice().update(saved.id, at(1, { name: "Old base", snapshot: snapshot() })),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    expect(await alice().load(saved.id)).toEqual({
+      ...newer,
+      snapshot: snapshot({ fontSize: 30 }),
+    });
+    expect(newer.revision).toBe(3);
   });
 
   it("never recreates a missing or deleted session", async () => {
     const saved = await alice().create({ name: "Short-lived", snapshot: snapshot() });
-    const input = { name: "Autosave", snapshot: snapshot() };
+    const input = at(1, { name: "Autosave", snapshot: snapshot() });
     await alice().remove(saved.id);
 
     await expect(alice().update(saved.id, input)).rejects.toMatchObject({ code: "NOT_FOUND" });

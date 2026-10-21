@@ -5,7 +5,7 @@ import { connect, createServer, type AddressInfo } from "node:net";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import type { CommandMessage } from "@weng-lab/contracts";
 import { afterEach, beforeEach, expect, test } from "vitest";
-import { createBrowserServer } from "../src/server.ts";
+import { createBrowserServer, defaultShutdownTimeoutMs } from "../src/server.ts";
 
 let server: ReturnType<typeof createBrowserServer>;
 let origin: string;
@@ -324,15 +324,16 @@ test("one SIGTERM stops the process while a tab is connected and a command is pe
     await local.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/mcp`)));
     const call = local.callTool({ name: "set_region", arguments: { sessionId: "local", region } });
     while (!new TextDecoder().decode((await reader.read()).value).includes("event: command"));
+    const shutdownStarted = performance.now();
     child.kill("SIGTERM");
     expect(JSON.stringify((await call).content)).toContain("NOT_CONNECTED");
     const [code] = await exited;
     expect(code).toBe(0);
+    expect(performance.now() - shutdownStarted).toBeLessThan(defaultShutdownTimeoutMs / 2);
   } finally {
     child.kill("SIGKILL");
   }
-  // Well before the client's keep-alive or the server's shutdown timeout would end it.
-}, 2_000);
+}, 15_000);
 
 test("local startup rejects a public bind address", () => {
   const result = spawnSync(process.execPath, ["src/main.ts"], {

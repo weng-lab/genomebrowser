@@ -30,11 +30,13 @@ The Sessions panel lists the signed-in user's sessions by name and marks the ope
 
 A snapshot saves the region, browser settings, highlights, selection settings, ordered track configurations with their source ownership, and pinned track IDs. Runtime loading state, fetched data, and registered modules stay in the tab. Every first-party track module is registered so saved tracks of any of those types restore.
 
-Edits apply immediately. About 200 ms after an edit, the tab saves the whole snapshot and name. It sends one write at a time and saves edits made during a write with the next one. Failed writes retry with backoff, from one to ten seconds, while you keep working. Edits the routes refuse, such as a session over 1 MB, are not sent again; the tab reports them and saves after a further edit. A session deleted elsewhere is never recreated. Its edits stay in the tab, unsaved, until **Close without saving** discards them.
+Edits apply immediately. About 200 ms after an edit, the tab saves the whole snapshot and name. It sends one write at a time and saves edits made during a write with the next one. A failed write may still have been saved, so the tab sends that same write again, with backoff from one to ten seconds, while you keep working; the server never applies it twice. Newer edits follow once it settles. The status above the browser shows Saving, Saved, Retrying, or Not saved. Edits the routes refuse, such as a session over 1 MB, are not sent again; the tab reports them and saves after a further edit. A session deleted elsewhere is never recreated. Its edits stay in the tab, unsaved, until **Close without saving** discards them.
 
 Opening another session first saves every edit to the open one, including edits made while the next session loads. If that save fails, or the next session cannot be loaded, the open session stays with its edits and an error, and the URL returns to it. Deleting the open session waits for a write in progress, then deletes it, and the browser shows no session. If deletion fails, the session stays open and keeps saving. A session that fails to load is never overwritten; the browser offers to try again.
 
-Closing or reloading the tab while edits are unsaved, including edits that cannot be saved, asks for confirmation. The tab does not try to save during unload. Several tabs may edit one session, and the last write wins.
+Closing or reloading the tab while edits are unsaved, including edits that cannot be saved, asks for confirmation. The tab does not try to save during unload.
+
+Several tabs may edit one session. When another tab or window saved it after this tab's edits were based on it, this tab reports a conflict instead of overwriting, and keeps its edits. **Save over it** saves them on top of the other version; **Close without saving** discards them. Until then they count as edits that cannot be saved: switching sessions or accounts keeps them here. Tabs do not merge each other's edits.
 
 The saved-session list refreshes when the window regains focus. Visiting Settings or Collections keeps the open session and its stores.
 
@@ -57,17 +59,24 @@ The browser calls these route handlers. Each derives the user from the request a
 | `GET /api/sessions`        | The user's sessions, without snapshots, sorted by name. |
 | `POST /api/sessions`       | Create a session from `{ name, snapshot }`.             |
 | `GET /api/sessions/:id`    | The session with its snapshot.                          |
-| `PUT /api/sessions/:id`    | Replace its name and snapshot. Never recreates it.      |
+| `PUT /api/sessions/:id`    | Replace its name and snapshot at a revision.            |
 | `DELETE /api/sessions/:id` | Delete it. Responds 204.                                |
 
-Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `INVALID_INPUT`, 401 `UNAUTHENTICATED`, 404 `NOT_FOUND` (including another user's session), or 409 `ASSEMBLY_CHANGED`. Other failures return 500 without detail and log the error on the server.
+Sessions carry a `revision`, starting at 1. `PUT` takes `{ name, snapshot, revision, saveId }`: the revision the edits were based on and a new UUID for each logical save. It never recreates a deleted session. It applies only at the current revision and returns the metadata with the next one. Sending the same `saveId` again after its response was lost returns that result without applying it twice.
+
+Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `INVALID_INPUT`, 401 `UNAUTHENTICATED`, 404 `NOT_FOUND` (including another user's session), 409 `ASSEMBLY_CHANGED`, or 409 `CONFLICT` when the session is at another revision. Other failures return 500 without detail and log the error on the server.
 
 Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
 ```ts
 const sessions = getSessions();
 const saved = await sessions.create({ name: "Promoter scan", snapshot });
-await sessions.update(saved.id, { name: saved.name, snapshot: edited });
+await sessions.update(saved.id, {
+  name: saved.name,
+  snapshot: edited,
+  revision: saved.revision,
+  saveId: crypto.randomUUID(),
+});
 ```
 
 ### Database

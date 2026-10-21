@@ -287,6 +287,75 @@ it("offers to close a session deleted elsewhere without saving its edits", async
   expect(closeTab()).toBe(false);
 });
 
+it("offers to save over a version saved elsewhere, keeping the edits until then", async () => {
+  const a = server.add("Alpha", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const status = () => document.querySelector("main output")?.textContent;
+  expect(status()).toBe("Saved");
+  Object.assign(server.stored.get(a)!, { name: "Elsewhere", revision: 2 });
+  await click(button("Pan right"));
+  const edited = region();
+  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  expect(document.querySelector('[role="alert"]')?.textContent).toBe(
+    "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.",
+  );
+  expect(server.stored.get(a)!.name).toBe("Elsewhere");
+  expect(closeTab()).toBe(true);
+
+  await click(withText("button", "Save over it"));
+  await vi.waitFor(() => expect(status()).toBe("Saved"));
+  expect(document.querySelector('[role="alert"]')).toBeNull();
+  expect(server.stored.get(a)).toMatchObject({ name: "Alpha", revision: 3 });
+  expect(region()).toBe(edited);
+  expect(closeTab()).toBe(false);
+});
+
+it("keeps conflict recovery after another session is deleted", async () => {
+  const alpha = server.add("Alpha", defaults());
+  const beta = server.add("Beta", defaults());
+  const gamma = server.add("Gamma", defaults());
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const status = () => document.querySelector("main output")?.textContent;
+  const saveOver = () => withText("button", "Save over it");
+  const discard = () => withText("button", "Close without saving");
+
+  Object.assign(server.stored.get(alpha)!, { name: "Elsewhere", revision: 2 });
+  await click(button("Pan right"));
+  const kept = region();
+  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  await click(button("Delete session Beta"));
+  await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha", "Gamma"]));
+  expect(server.stored.has(beta)).toBe(false);
+  expect(saveOver()).toBeTruthy();
+  expect(discard()).toBeTruthy();
+
+  await click(saveOver());
+  await vi.waitFor(() => expect(status()).toBe("Saved"));
+  expect(saveOver()).toBeUndefined();
+  expect(discard()).toBeUndefined();
+  expect(server.stored.get(alpha)).toMatchObject({ name: "Alpha", revision: 3 });
+  expect(region()).toBe(kept);
+  expect(closeTab()).toBe(false);
+  const saved = savedRegion(alpha);
+
+  Object.assign(server.stored.get(alpha)!, { revision: 4 });
+  await click(button("Pan right"));
+  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  await click(button("Delete session Gamma"));
+  await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
+  expect(server.stored.has(gamma)).toBe(false);
+  expect(saveOver()).toBeTruthy();
+  expect(discard()).toBeTruthy();
+
+  await click(discard());
+  await vi.waitFor(() => expect(route.pathname()).toBe("/browser"));
+  expect(closeTab()).toBe(false);
+  expect(savedRegion(alpha)).toEqual(saved);
+  expect(server.stored.get(alpha)!.revision).toBe(4);
+});
+
 it("asks a signed-out user to sign in", async () => {
   server.user = null;
   await visit("/browser");
@@ -309,23 +378,35 @@ it("budgets session readers for an edit and its save acknowledgement", async () 
     pan.click();
     await vi.waitFor(() => expect(server.requests.at(-1)?.method).toBe("PUT"));
   });
-  expect(edit.pick("SessionPanel", "SessionName", "BrowserView")).toMatchInlineSnapshot(`
-    {
-      "BrowserView": 0,
-      "SessionName": 0,
-      "SessionPanel": 0,
-    }
-  `);
+  expect(edit.pick("SessionPanel", "SessionName", "BrowserView", "SessionAlert", "SaveStatus"))
+    .toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "SaveStatus": 1,
+        "SessionAlert": 0,
+        "SessionName": 0,
+        "SessionPanel": 0,
+      }
+    `);
 
   const acknowledgement = await probe!.measure(async () => {
     write.release();
     await vi.waitFor(() => expect(closeTab()).toBe(false));
   });
-  expect(acknowledgement.pick("BrowserView", "BrowserContent", "SessionPanel"))
-    .toMatchInlineSnapshot(`
+  expect(
+    acknowledgement.pick(
+      "BrowserView",
+      "BrowserContent",
+      "SessionPanel",
+      "SessionAlert",
+      "SaveStatus",
+    ),
+  ).toMatchInlineSnapshot(`
     {
       "BrowserContent": 0,
       "BrowserView": 0,
+      "SaveStatus": 1,
+      "SessionAlert": 0,
       "SessionPanel": 0,
     }
   `);

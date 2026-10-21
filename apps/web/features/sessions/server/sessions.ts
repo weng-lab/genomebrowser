@@ -6,10 +6,12 @@ import { z } from "zod";
 import {
   sessionIdSchema,
   sessionInputSchema,
+  sessionUpdateSchema,
   type SavedSession,
   type Session,
   type SessionErrorCode,
   type SessionInput,
+  type SessionUpdate,
 } from "../schema";
 import type { Identity } from "../../account/server/identity";
 import { sessionsTable } from "./table";
@@ -24,12 +26,15 @@ export class SessionError extends Error {
   }
 }
 
-/** Validate a session's name and snapshot, failing with `INVALID_INPUT`. */
-export function parseSessionInput(input: unknown) {
-  const result = sessionInputSchema.safeParse(input);
+function parse<T extends z.ZodType>(schema: T, input: unknown): z.output<T> {
+  const result = schema.safeParse(input);
   if (!result.success) throw new SessionError("INVALID_INPUT", z.prettifyError(result.error));
   return result.data;
 }
+
+/** Validate a session's name and snapshot, failing with `INVALID_INPUT`. */
+export const parseSessionInput = (input: unknown) => parse(sessionInputSchema, input);
+export const parseSessionUpdate = (input: unknown) => parse(sessionUpdateSchema, input);
 
 /**
  * Saved sessions of the acting user. Every operation resolves the user from
@@ -41,7 +46,7 @@ export type Sessions = {
   list(): Promise<Session[]>;
   load(id: string): Promise<SavedSession>;
   /** Replace the name and snapshot of an existing session. Never recreates a deleted one. */
-  update(id: string, input: SessionInput): Promise<Session>;
+  update(id: string, input: SessionUpdate): Promise<Session>;
   remove(id: string): Promise<void>;
 };
 
@@ -50,6 +55,7 @@ const metadata = {
   name: sessionsTable.name,
   createdAt: sessionsTable.createdAt,
   updatedAt: sessionsTable.updatedAt,
+  revision: sessionsTable.revision,
 };
 
 export function createSessions({
@@ -103,27 +109,48 @@ export function createSessions({
 
     async update(id, input) {
       const owner = await actingUser();
-      const { name, snapshot } = parseSessionInput(input);
-      // Checking the stored assembly in the same statement keeps concurrent writes from changing it.
+      const { name, snapshot, revision, saveId } = parseSessionUpdate(input);
+      // One statement checks the revision and stored assembly and records the
+      // save ID, so concurrent writes cannot interleave between them.
       const [updated] = await db
         .update(sessionsTable)
-        .set({ name, snapshot, updatedAt: sql`now()` })
+        .set({
+          name,
+          snapshot,
+          revision: sql`${sessionsTable.revision} + 1`,
+          saveId,
+          updatedAt: sql`now()`,
+        })
         .where(
           and(
             owned(owner, id),
+            eq(sessionsTable.revision, revision),
             sql`${sessionsTable.snapshot}->'browser'->>'assembly' = ${snapshot.browser.assembly}`,
           ),
         )
         .returning(metadata);
       if (updated) return updated;
+      // Nothing was written. Any state read now is one the update could have met.
       const [existing] = await db
-        .select({ id: sessionsTable.id })
+        .select({
+          ...metadata,
+          saveId: sessionsTable.saveId,
+          assembly: sql<string>`${sessionsTable.snapshot}->'browser'->>'assembly'`,
+        })
         .from(sessionsTable)
         .where(owned(owner, id));
       if (!existing) throw notFound();
+      const { saveId: lastSaveId, assembly, ...session } = existing;
+      if (lastSaveId === saveId && session.revision === revision + 1) return session;
+      if (assembly !== snapshot.browser.assembly) {
+        throw new SessionError(
+          "ASSEMBLY_CHANGED",
+          "A session's assembly cannot change; create a new session instead",
+        );
+      }
       throw new SessionError(
-        "ASSEMBLY_CHANGED",
-        "A session's assembly cannot change; create a new session instead",
+        "CONFLICT",
+        "This session was saved elsewhere since these changes were based on it",
       );
     },
 
