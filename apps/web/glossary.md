@@ -46,11 +46,13 @@ A **pending command** has been sent to a tab and is waiting for its reply. The M
 
 ### Session snapshot
 
-The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `features/sessions/snapshot.ts`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. Its schema lives in `features/sessions/snapshot.ts`, and `browser.assembly` is the session's only assembly value. A **session** is a named snapshot saved in PostgreSQL for one owner, under a generated UUID. The URL `/browser/<uuid>` opens it. Every tab with the session open saves to it. Each save advances the session's **revision**, and names the revision it was based on, so a save from a tab behind another tab's save is a **conflict** rather than an overwrite. Tabs do not receive or merge each other's edits.
 
 ### Save status
 
-The client indicator at the top left of the browser center panel. It reports saving, the newest edits saved, retrying after a failed write, or that the session can no longer be saved. A command reply and save completion are separate events.
+The client indicator at the top left of the browser center panel. It reports saving, the newest edits saved, retrying after a failed write, a conflict with a version saved elsewhere, or that the session can no longer be saved. A command reply and save completion are separate events.
+
+A failed write is retried under its **save ID**, a UUID the tab chooses for each logical save, so the server recognizes a retry of a save it already applied and does not apply it twice.
 
 See [Architecture and data flow](docs/02-guides/dataFlow.md) for the paths connecting these terms.
 

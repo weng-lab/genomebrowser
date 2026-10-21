@@ -6,6 +6,7 @@ import {
   sessionSchema,
   type SessionErrorCode,
   type SessionInput,
+  type SessionUpdate,
 } from "./schema";
 
 /**
@@ -54,14 +55,17 @@ export function createSessionTransport(base = "/api/sessions") {
     );
   }
 
-  const json = (method: string, input: SessionInput) => ({ method, body: JSON.stringify(input) });
+  const json = (method: string, input: SessionInput | SessionUpdate) => ({
+    method,
+    body: JSON.stringify(input),
+  });
   return {
     /** The acting user's sessions, sorted by name. */
     list: () => request("", z.array(sessionSchema)),
     load: (id: string) => request(`/${encodeURIComponent(id)}`, savedSessionSchema),
     create: (input: SessionInput) => request("", sessionSchema, json("POST", input)),
     /** Fails with `NOT_FOUND` for a deleted session rather than recreating it. */
-    update: (id: string, input: SessionInput) =>
+    update: (id: string, input: SessionUpdate) =>
       request(`/${encodeURIComponent(id)}`, sessionSchema, json("PUT", input)),
     remove: (id: string) => request(`/${encodeURIComponent(id)}`, z.null(), { method: "DELETE" }),
   };

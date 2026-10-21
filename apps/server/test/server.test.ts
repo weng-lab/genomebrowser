@@ -5,7 +5,7 @@ import { connect, createServer, type AddressInfo } from "node:net";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import type { CommandMessage } from "@weng-lab/contracts";
 import { afterEach, beforeEach, expect, test } from "vitest";
-import { createBrowserServer } from "../src/server.ts";
+import { createBrowserServer, defaultShutdownTimeoutMs } from "../src/server.ts";
 
 let server: ReturnType<typeof createBrowserServer>;
 let origin: string;
@@ -324,18 +324,20 @@ test("one SIGTERM stops the process while a tab is connected and a command is pe
     const call = local.callTool({ name: "set_region", arguments: { sessionId: "local", region } });
     while (!new TextDecoder().decode((await reader.read()).value).includes("event: command"));
     // Measure shutdown after startup and the MCP handshake. The process must
-    // still exit before its five-second forced-connection shutdown fallback.
+    // still exit before its forced-connection shutdown fallback.
     const exited = once(child, "exit", { signal: AbortSignal.timeout(2_000) });
+    const shutdownStarted = performance.now();
     child.kill("SIGTERM");
     const [result, [code]] = await Promise.all([call, exited]);
     expect(JSON.stringify(result.content)).toContain("NOT_CONNECTED");
     expect(code).toBe(0);
+    expect(performance.now() - shutdownStarted).toBeLessThan(defaultShutdownTimeoutMs / 2);
   } finally {
     child.kill("SIGKILL");
   }
   // Allow a cold Node process and HTTP/MCP setup time on a busy CI runner;
   // the separate two-second deadline above still bounds the actual shutdown.
-}, 10_000);
+}, 15_000);
 
 test("local startup rejects a public bind address", () => {
   const result = spawnSync(process.execPath, ["src/main.ts"], {

@@ -71,7 +71,7 @@ Only the first tab to open a session's stream receives its commands. The server 
 
 Opening a session loads `GET /api/sessions/:id`, creates stores for its assembly, and restores the snapshot. Only then does autosave subscribe to the stores. A failed or missing load never writes.
 
-Each edit to the stores or the name produces a snapshot. About 200 ms later, the worker sends `PUT /api/sessions/:id` with the whole snapshot and name. It sends one write at a time and keeps the newest edits for the next one. A write acknowledges only the snapshot it sent. Transient failures retry with backoff. Refused input is not sent again until a further edit. `NOT_FOUND` ends saving rather than recreating the session; its edits stay unsaved and keep the tab from opening another session until they are discarded.
+Each edit to the stores or the name produces a snapshot. About 200 ms later, the worker sends `PUT /api/sessions/:id` with the whole snapshot and name, the revision it was based on, and a new save ID. It sends one write at a time and keeps the newest edits for the next one. A write acknowledges only the snapshot it sent, and its response gives the revision for the next write. A transient failure may hide a write that was applied, so the same write is retried, under the same save ID, before any newer edits. Refused input is not sent again until a further edit. `CONFLICT` keeps the edits unsaved until the user saves over the other version or discards them. `NOT_FOUND` ends saving rather than recreating the session; its edits stay unsaved and keep the tab from opening another session until they are discarded.
 
 ```mermaid
 sequenceDiagram
@@ -84,7 +84,7 @@ sequenceDiagram
   Routes-->>Owner: Snapshot, or 404
   Owner->>Owner: Restore into new stores, then start worker
   Worker->>Routes: PUT snapshot after delay
-  Routes->>DB: Update by ID, owner, and assembly
+  Routes->>DB: Update by ID, owner, assembly, and revision
   Routes-->>Worker: Metadata
 ```
 

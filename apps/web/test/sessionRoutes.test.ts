@@ -57,21 +57,29 @@ describe.skipIf(!testServerUrl)("session routes", () => {
       name: "Promoter scan",
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      revision: 1,
     });
 
     expect(await (await collection.GET()).json()).toEqual([session]);
     expect(await (await load(session.id)).json()).toEqual({ ...session, snapshot: snapshot() });
 
     const edited = snapshot({ region: { chromosome: "chr3", start: 10, end: 20 } });
-    const saved = await update(session.id, { name: "Renamed", snapshot: edited });
+    const write = { name: "Renamed", snapshot: edited, revision: 1, saveId: crypto.randomUUID() };
+    const saved = await update(session.id, write);
     expect(saved.status).toBe(200);
+    expect(await saved.json()).toMatchObject({ revision: 2 });
     expect(await (await load(session.id)).json()).toMatchObject({
       name: "Renamed",
       snapshot: edited,
+      revision: 2,
     });
+    expect(await (await update(session.id, write)).json()).toMatchObject({ revision: 2 });
+    const stale = await update(session.id, { ...write, saveId: crypto.randomUUID() });
+    expect(stale.status).toBe(409);
+    expect(await stale.json()).toMatchObject({ code: "CONFLICT" });
 
     expect((await remove(session.id)).status).toBe(204);
-    const missing = await update(session.id, { name: "Renamed", snapshot: edited });
+    const missing = await update(session.id, { ...write, revision: 2 });
     expect(missing.status).toBe(404);
     expect(await missing.json()).toEqual({ code: "NOT_FOUND", message: "Session not found" });
     expect(await (await collection.GET()).json()).toEqual([]);
@@ -85,7 +93,12 @@ describe.skipIf(!testServerUrl)("session routes", () => {
     expect(await (await collection.GET()).json()).toEqual([]);
     for (const response of [
       await load(id),
-      await update(id, { name: "Taken", snapshot: snapshot() }),
+      await update(id, {
+        name: "Taken",
+        snapshot: snapshot(),
+        revision: 1,
+        saveId: crypto.randomUUID(),
+      }),
       await remove(id),
     ])
       expect(response.status).toBe(404);
@@ -134,9 +147,13 @@ describe.skipIf(!testServerUrl)("session routes", () => {
     expect(await streamed.json()).toMatchObject({ message: "Sessions are limited to 1 MB" });
 
     const { id } = await (await create({ name: "Human", snapshot: snapshot() })).json();
+    const unversioned = await update(id, { name: "Human", snapshot: snapshot() });
+    expect(unversioned.status).toBe(400);
     const changed = await update(id, {
       name: "Human",
       snapshot: snapshot({ assembly: "mm10" }),
+      revision: 1,
+      saveId: crypto.randomUUID(),
     });
     expect(changed.status).toBe(409);
     expect(await changed.json()).toMatchObject({ code: "ASSEMBLY_CHANGED" });

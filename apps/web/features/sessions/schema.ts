@@ -11,12 +11,19 @@ export const sessionInputSchema = z.strictObject({
 });
 export type SessionInput = z.input<typeof sessionInputSchema>;
 
+export const sessionUpdateSchema = sessionInputSchema.extend({
+  revision: z.number().int().positive(),
+  saveId: z.uuid(),
+});
+export type SessionUpdate = z.input<typeof sessionUpdateSchema>;
+
 /** Saved session metadata. The owner stays on the server. */
 export const sessionSchema = z.strictObject({
   id: sessionIdSchema,
   name: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+  revision: z.number().int().positive(),
 });
 export type Session = z.infer<typeof sessionSchema>;
 
@@ -28,6 +35,7 @@ export const sessionErrorCodeSchema = z.enum([
   "UNAUTHENTICATED",
   "NOT_FOUND",
   "ASSEMBLY_CHANGED",
+  "CONFLICT",
 ]);
 export type SessionErrorCode = z.infer<typeof sessionErrorCodeSchema>;
 
