@@ -7,6 +7,10 @@ import { formatZodError, parsePublicInput } from "../../modules/schemas";
 
 export type Highlight = {
   id: string;
+  /** False hides the overlay while retaining the saved region. Defaults to true. */
+  visible?: boolean;
+  /** Temporary feedback such as hover overlays. Hosts should omit it from saved state. */
+  transient?: boolean;
   region: {
     chromosome?: string;
     start: number;
@@ -94,6 +98,8 @@ export type BrowserStoreInstance = UseBoundStore<StoreApi<BrowserStore>>;
 
 const highlightSchema = z.object({
   id: z.string().min(1),
+  visible: z.boolean().optional(),
+  transient: z.boolean().optional(),
   region: z
     .object({
       chromosome: z.string().min(1).optional(),

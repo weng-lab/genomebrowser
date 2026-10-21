@@ -61,16 +61,24 @@ describe("HighlightDialog", () => {
 
   it("edits all highlight fields in place without changing other highlights", () => {
     const browserStore = createTestStore();
-    browserStore
-      .getState()
-      .addHighlight({ id: "Original", region: { start: 100, end: 200 }, color: "#3366cc" });
+    browserStore.getState().addHighlight({
+      id: "Original",
+      region: { start: 100, end: 200 },
+      color: "#3366cc",
+      visible: false,
+    });
     browserStore
       .getState()
       .addHighlight({ id: "Other", region: { start: 400, end: 500 }, color: "#ff0000" });
     const other = browserStore.getState().highlights[1];
-    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
-
-    clickButton("Edit Original");
+    mount(
+      <HighlightDialog
+        browserStore={browserStore}
+        open
+        onClose={vi.fn()}
+        initialEditingId="Original"
+      />,
+    );
     expect(getInput("ID").value).toBe("Original");
     expect(getInput("Region").value).toBe("chr1:101-200");
     expect(getInput("Opacity (%)").value).toBe("20");
@@ -90,6 +98,7 @@ describe("HighlightDialog", () => {
     expect(browserStore.getState().highlights).toEqual([
       {
         id: "Renamed",
+        visible: false,
         region: { chromosome: "chr2", start: 300, end: 450 },
         color: "#00aa66",
         opacity: 0.75,

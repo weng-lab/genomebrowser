@@ -16,6 +16,7 @@ describe("highlight rendering", () => {
       assembly: { id: "test", chromosomes: { chr1: 1000 } },
       region,
       highlights: [
+        { id: "hidden", region: { start: 110, end: 190 }, color: "green", visible: false },
         { id: "filled", region: { start: 120, end: 140 }, color: "red" },
         { id: "outline", region: { start: 150, end: 180 }, color: "blue", type: "outlined" },
       ],
@@ -48,6 +49,10 @@ describe("highlight rendering", () => {
     );
     const container = document.createElement("div");
     container.innerHTML = html;
+    expect(container.querySelector('rect[fill="green"]')).toBeNull();
+    expect(browserStore.getState().highlights.find(({ id }) => id === "hidden")?.visible).toBe(
+      false,
+    );
     const filled = container.querySelector('rect[fill="red"]')!;
     expect(filled.getAttribute("fill-opacity")).toBe("0.2");
     const outline = container.querySelector('rect[stroke="blue"]')!;

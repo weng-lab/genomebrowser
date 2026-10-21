@@ -38,6 +38,14 @@ Closing or reloading the tab while edits are unsaved, including edits that canno
 
 The saved-session list refreshes when the window regains focus. Visiting Settings or Collections keeps the open session and its stores.
 
+### Regions of interest
+
+The browser's left panel has **Sessions** and **Regions** tabs. Regions belong to the open session; its name appears above the list. **Save current region** adds the viewport using the current selection highlight style. **Add region by coordinates** opens the existing highlight dialog, where **Add New Highlight** accepts a named region and its style. The ID field is the region's unique name within that session.
+
+The Regions tab has a single row of icon controls: plus to save the current region, search to show or hide the filter, and a location-edit icon to add coordinates. Each has a tooltip. Closing the filter clears it. Entries appear in creation order and can be filtered by name or displayed coordinates. Clicking an entry navigates to its region. The card matching the current viewport has a blue border and title. Its color square toggles the highlight: filled means shown and outlined means hidden. Each checkbox shows or hides its highlight without removing the saved region. The item menu edits its name, coordinates, color, opacity, or style, or deletes it. Drawing a highlight in the browser adds it to the same list. Temporary ruler hover overlays are excluded from the list and saved state.
+
+Regions and their visibility save automatically with the session and return when it reopens. Switching sessions replaces the list. Without an open session, the tab asks you to open one.
+
 ### Accounts
 
 Without `GB_IDENTITY`, the app uses Clerk. `proxy.ts` runs `clerkMiddleware()` on every route except static files, the root layout renders `ClerkProvider`, and `/sign-in` shows Clerk's sign-in form. The sidebar's account menu saves and closes the current session before opening Clerk's account management or signing out, or the sidebar shows a sign-in link when signed out. It replaces Clerk's user button, whose sign-out cannot wait for saving. Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` at runtime. `CLERK_JWT_KEY`, the instance's PEM public key, lets Clerk verify session tokens without fetching its keys. Without keys in development, Clerk starts its keyless mode, which creates a temporary Clerk application. The root layout renders on each request, so builds need no Clerk keys. Sign-in through a real Clerk instance has not been tested yet.

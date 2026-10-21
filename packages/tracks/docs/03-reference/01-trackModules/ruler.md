@@ -75,7 +75,7 @@ The **Sequence letters** section shares its setting with all participating track
 
 ## Hover highlights
 
-Hovering a base adds a one-base highlight across the browser. Moving to another base replaces it. Leaving, dragging, navigating, losing window focus, or removing the ruler clears it while preserving user-created highlights. No application callback is required.
+Hovering a base adds a one-base highlight across the browser. These entries have `transient: true`; applications should exclude them from saved-region lists and snapshots. Moving to another base replaces it. Leaving, dragging, navigating, losing window focus, or removing the ruler clears it while preserving user-created highlights. No application callback is required.
 
 The temporary highlight appears in the browser's shared highlights list. Application UI and persistence that read that list can observe it. Bases have no individual tooltips.
 

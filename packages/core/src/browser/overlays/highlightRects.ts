@@ -23,6 +23,7 @@ export function getHighlightRects({
   const xScale = createXScale(region, width);
 
   return highlights.flatMap((highlight) => {
+    if (highlight.visible === false) return [];
     const chromosome = highlight.region.chromosome ?? region.chromosome;
     if (chromosome !== region.chromosome) return [];
 

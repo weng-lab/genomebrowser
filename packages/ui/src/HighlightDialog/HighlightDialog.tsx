@@ -16,9 +16,16 @@ export type HighlightDialogProps = {
   browserStore: BrowserStoreInstance;
   open: boolean;
   onClose: () => void;
+  /** Highlight to edit when the dialog content mounts. */
+  initialEditingId?: string;
 };
 
-export function HighlightDialog({ browserStore, open, onClose }: HighlightDialogProps) {
+export function HighlightDialog({
+  browserStore,
+  open,
+  onClose,
+  initialEditingId,
+}: HighlightDialogProps) {
   return (
     <Dialog
       fullWidth
@@ -29,14 +36,17 @@ export function HighlightDialog({ browserStore, open, onClose }: HighlightDialog
     >
       <HighlightDialogHeader onClose={onClose} />
       <DialogContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <HighlightDialogContent browserStore={browserStore} />
+        <HighlightDialogContent browserStore={browserStore} initialEditingId={initialEditingId} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function HighlightDialogContent({ browserStore }: { browserStore: BrowserStoreInstance }) {
-  const [editingId, setEditingId] = useState<string | null>(null);
+function HighlightDialogContent({
+  browserStore,
+  initialEditingId,
+}: Pick<HighlightDialogProps, "browserStore" | "initialEditingId">) {
+  const [editingId, setEditingId] = useState<string | null>(initialEditingId ?? null);
   const useBrowserStore = browserStore;
   const highlight = useBrowserStore((state) =>
     state.highlights.find((item) => item.id === editingId),

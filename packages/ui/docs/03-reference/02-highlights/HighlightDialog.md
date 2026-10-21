@@ -41,6 +41,8 @@ Choosing a type sets opacity to 20% for Filled or 100% for Outlined. Adjust the 
 
 Select a highlight's pencil action to edit its ID, region, type, color, and opacity inside the dialog. The form starts with the existing values. **Save changes** updates that highlight in place. The back arrow, **Cancel**, or closing the dialog discard unsaved edits. IDs must remain unique, but keeping the highlight's current ID is allowed. Invalid input stays in the form for correction.
 
+Editing preserves the highlight's `visible` setting. Hidden entries stay available for editing and navigation.
+
 Highlights appear newest first, using the reverse of their order in the browser store. Editing a highlight keeps its position; initial highlights follow the order supplied by the application. Drag-created highlights have region-based IDs, with numeric suffixes when needed to keep IDs unique.
 
 Selecting a highlight's arrow action sets the browser viewport to that highlight's exact region.
@@ -49,11 +51,14 @@ Selecting a highlight's arrow action sets the browser viewport to that highlight
 
 ### HighlightDialogProps
 
-| Prop           | Type                   | Default  | Description                                                                     |
-| -------------- | ---------------------- | -------- | ------------------------------------------------------------------------------- |
-| `browserStore` | `BrowserStoreInstance` | Required | Browser store whose current region and highlights the dialog reads and updates. |
-| `open`         | `boolean`              | Required | Whether the dialog is open.                                                     |
-| `onClose`      | `() => void`           | Required | Called when the user requests that the dialog close.                            |
+| Prop               | Type                   | Default  | Description                                                                     |
+| ------------------ | ---------------------- | -------- | ------------------------------------------------------------------------------- |
+| `browserStore`     | `BrowserStoreInstance` | Required | Browser store whose current region and highlights the dialog reads and updates. |
+| `initialEditingId` | `string`               | Omitted  | ID of the highlight to edit on content mount.                                   |
+| `open`             | `boolean`              | Required | Whether the dialog is open.                                                     |
+| `onClose`          | `() => void`           | Required | Called when the user requests that the dialog close.                            |
+
+`initialEditingId` selects a highlight to edit when the dialog content mounts. If it is absent or does not match an entry, the list is shown. Mount a fresh dialog (or change its React key) to start editing a different entry; changes to this prop do not replace an in-progress draft.
 
 ## Accessibility
 

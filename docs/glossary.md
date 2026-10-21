@@ -10,6 +10,10 @@ One mounted `GenomeBrowser`, with its own rendering, fetched results, and track 
 
 The two application-owned stores controlling a browser. The **browser store** holds the assembly, viewport region, highlights, and browser settings. The **track store** holds registered modules, track instances, their order, and their configuration. Sharing a store lets multiple browser instances or controls operate on the same state. A **session** is the application's saved or restorable browsing setup, rather than either store object itself.
 
+### Region of interest
+
+A named genomic region saved within a session, represented by a browser highlight. Hiding its highlight keeps the region in the saved list; selecting the entry navigates the viewport to it.
+
 ### Viewport
 
 The genomic span currently visible in the browser, also called the **visible region**. Use viewport when discussing what the user sees. **Zoom** changes that genomic span; **scale** changes the physical size of the drawing and controls.

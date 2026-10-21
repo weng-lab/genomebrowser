@@ -134,6 +134,7 @@ export function HighlightForm({
     }
 
     const nextHighlight: Highlight = {
+      ...initialHighlight,
       id: trimmedName,
       region: regionResult.region,
       color,

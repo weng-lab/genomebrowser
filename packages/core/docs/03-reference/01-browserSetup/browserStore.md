@@ -203,8 +203,13 @@ Highlights mark genomic regions across the track area. Add them programmatically
 | `id`      | `string`                                              | Required                           | Non-empty identifier used for addition and removal.                                                                                    |
 | `region`  | `{ chromosome?: string; start: number; end: number }` | Required                           | Integer bounds with `start < end`. Omit chromosome to show this coordinate range on any chromosome; a supplied name must be non-empty. |
 | `color`   | `string`                                              | Required                           | Non-empty color string. Validation does not check CSS color syntax.                                                                    |
+| `visible` | `boolean`                                             | `true`                             | Set to `false` to hide the overlay while retaining the entry and its style in the store.                                               |
 | `opacity` | `number`                                              | `0.2` for filled; `1` for outlined | Value from zero to one, applied to fill or border at rendering time.                                                                   |
 | `type`    | `"filled"` or `"outlined"`                            | `"filled"`                         | Fill behind track data or transparent interior with a two-unit SVG border above track data.                                            |
+
+`transient?: boolean` marks temporary feedback such as ruler hover overlays. It defaults to `false` and does not change rendering. Hosts should exclude transient entries when listing or serializing saved regions.
+
+Visibility does not affect navigation to the saved region. Applications can toggle it by updating the matching highlight in the browser store; `removeHighlight` deletes the entry instead.
 
 Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type` and `opacity` stay optional in stored entries; rendering applies their defaults.
 

@@ -39,6 +39,7 @@ export function useRulerHoverHighlight(
     activePosition.current = position;
     addHighlight({
       id: highlightId,
+      transient: true,
       region: { chromosome, start: position, end: position + 1 },
       color,
       opacity: 0.2,

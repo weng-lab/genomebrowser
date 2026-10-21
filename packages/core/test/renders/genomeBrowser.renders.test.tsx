@@ -1003,3 +1003,58 @@ function pointerEvent(type: string, clientX: number) {
   });
   return event;
 }
+
+// Changing visibility retains the saved entry and style. Only the two overlay
+// layers need to render; track data and the browser layout do not change.
+it("hides and restores a saved highlight without rendering tracks", async () => {
+  const { probe, browserStore } = await mountBrowser();
+  await probe.measure(() =>
+    browserStore.getState().addHighlight({
+      id: "saved",
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      color: "#123456",
+    }),
+  );
+  expect(document.querySelector('rect[fill="#123456"]')).not.toBeNull();
+  const hidden = await probe.measure(() =>
+    browserStore.setState((state) => ({
+      highlights: state.highlights.map((item) => ({ ...item, visible: false })),
+    })),
+  );
+  expect(document.querySelector('rect[fill="#123456"]')).toBeNull();
+  expect(browserStore.getState().highlights).toHaveLength(1);
+  const shown = await probe.measure(() =>
+    browserStore.setState((state) => ({
+      highlights: state.highlights.map((item) => ({ ...item, visible: true })),
+    })),
+  );
+  expect(document.querySelector('rect[fill="#123456"]')).not.toBeNull();
+  expect(budget(hidden)).toMatchInlineSnapshot(`
+    {
+      "BrowserCanvas": 0,
+      "BrowserProvider": 0,
+      "Highlights": 2,
+      "PanTrack": 0,
+      "TestRenderer": 0,
+      "TrackContent": 0,
+      "TrackControls": 0,
+      "TrackFrame": 0,
+      "TrackRow": 0,
+      "TrackStack": 0,
+    }
+  `);
+  expect(budget(shown)).toMatchInlineSnapshot(`
+    {
+      "BrowserCanvas": 0,
+      "BrowserProvider": 0,
+      "Highlights": 2,
+      "PanTrack": 0,
+      "TestRenderer": 0,
+      "TrackContent": 0,
+      "TrackControls": 0,
+      "TrackFrame": 0,
+      "TrackRow": 0,
+      "TrackStack": 0,
+    }
+  `);
+});

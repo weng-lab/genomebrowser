@@ -5,13 +5,15 @@ A session is a saved browsing setup for one assembly. The saved data and session
 ## Saved data
 
 - Assembly, fixed at creation for the session's lifetime.
-- Persistent browser configuration, including region and highlights.
+- Persistent browser configuration, including the viewport and regions of interest stored as highlights with per-entry visibility.
 - Track configurations, display order, and pinned tracks.
 - Metadata: stable session ID, Clerk owner ID, name, creation time, and update time.
 
 Assembly already belongs to browser configuration. Keep one authoritative value rather than duplicating it at the session root. Another assembly requires a new session. Enforce this on updates as well as in the UI.
 
 The browser-safe snapshot schema lives in `apps/web/features/sessions/snapshot.ts` and uses Zod and the shared region schema from `@weng-lab/contracts`. It accepts any assembly ID; the web app decides which assemblies it supports, and restoring into stores for another assembly fails. Command contracts use the same shared region schema. Start from this `SessionSnapshot` schema and configuration types. Infer types from authoritative schemas and align database and application shapes. Avoid separate row, DTO, model, and view representations unless their data actually differs.
+
+Exclude transient highlights, such as ruler hover feedback, from saved configuration.
 
 Keep `snapshot()` and `restore()` as the boundary between serializable data and live stores. Actions, registered modules, fetched data, loading flags, and connections are runtime details. Do not copy live store state into another session store.
 

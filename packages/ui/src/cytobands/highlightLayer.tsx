@@ -201,6 +201,7 @@ function getRenderedHighlights({
 
   return highlights
     .flatMap((highlight): renderedHighlight[] => {
+      if (highlight.visible === false) return [];
       const highlightChromosome = highlight.region.chromosome ?? chromosome;
       const { start, end } = highlight.region;
       if (

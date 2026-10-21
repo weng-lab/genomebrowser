@@ -119,13 +119,16 @@ export function installSessionServer() {
     };
     requests.push(request);
     const signal = init.signal ?? undefined;
+    signal?.throwIfAborted();
+    const index = gates.findIndex((gate) => gate.method === request.method);
+    // Immediate responses need no cancellation promise. An unobserved one would
+    // reject later when Effect interrupts the request after its response arrives.
+    if (index < 0) return handle(request);
     const aborted = new Promise<never>((_, reject) => {
       if (signal?.aborted) reject(signal.reason);
       signal?.addEventListener("abort", () => reject(signal.reason));
     });
-    const index = gates.findIndex((gate) => gate.method === request.method);
-    const gated =
-      index < 0 ? undefined : await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
+    const gated = await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
     return gated ?? handle(request);
   }
 

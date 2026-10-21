@@ -164,6 +164,18 @@ describe("Cytobands rendering", () => {
 });
 
 describe("Cytobands highlights", () => {
+  it("keeps hidden highlights out of the ideogram and its interaction targets", () => {
+    render({
+      chromosome: "chr1",
+      chromosomeLength: 1000,
+      bands: [],
+      width: 500,
+      height: 20,
+      highlights: [highlight("shown", 10, 30), { ...highlight("hidden", 40, 60), visible: false }],
+    });
+    expect(renderedHighlightIds()).toEqual(["shown"]);
+  });
+
   it.each([undefined, 0, 0.5, 1])(
     "renders outlined intervals and narrow markers with opacity %s",
     (opacity) => {

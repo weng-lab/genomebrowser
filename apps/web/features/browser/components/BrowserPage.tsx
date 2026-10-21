@@ -2,7 +2,7 @@ import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
 import { AgentPanel } from "../../agent/components/AgentPanel";
 import { BrowserView } from "./BrowserView";
 import { SessionName } from "../../sessions/components/SessionName";
-import { SessionPanel } from "../../sessions/components/SessionPanel";
+import { SessionRegionsPanel } from "../../sessions/components/SessionRegionsPanel";
 
 /** `sessionId` is the session in the URL, which may still be opening. */
 export function BrowserPage({ sessionId }: { sessionId?: string }) {
@@ -10,7 +10,7 @@ export function BrowserPage({ sessionId }: { sessionId?: string }) {
     <WorkspacePage
       title="Browser"
       subtitle={<SessionName />}
-      left={{ title: "Sessions", children: <SessionPanel /> }}
+      left={{ title: "Sessions", children: <SessionRegionsPanel /> }}
       right={{ title: "Agent", children: <AgentPanel /> }}
     >
       <BrowserView sessionId={sessionId} />

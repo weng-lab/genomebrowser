@@ -156,6 +156,7 @@ it("owns hover highlights and clears them without removing user or other ruler h
     await point(0, 100);
     expect(highlights()).toHaveLength(2);
     expect(highlights()[1]?.color).toBe("#ff8800");
+    expect(highlights()[1]?.transient).toBe(true);
     expect(highlights()[1]?.region).toEqual({ chromosome: "chr1", start: 100, end: 101 });
     await act(async () => {
       trackStore.getState().updateTrack("one", { config: { sequenceHighlightColor: "#00aa88" } });

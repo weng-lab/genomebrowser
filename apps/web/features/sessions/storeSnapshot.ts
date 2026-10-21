@@ -19,7 +19,9 @@ export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
       trackWidth: browser.trackWidth,
       fontSize: browser.fontSize,
       titleSize: browser.titleSize,
-      highlights: browser.highlights,
+      highlights: browser.highlights.flatMap(({ transient, ...highlight }) =>
+        transient ? [] : [highlight],
+      ),
       selectionMode: browser.selectionMode,
       selectionHighlight: browser.selectionHighlight,
     },
