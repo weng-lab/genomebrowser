@@ -58,6 +58,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+// This workflow edits, autosaves, switches sessions twice, and remounts the
+// workspace. Allow the real UI and autosave to finish on slower CI runners.
 it("saves the viewport, hides and edits its highlight, navigates, and restores it per session", async () => {
   const initial = defaults();
   const a = server.add("Alpha", initial);
@@ -122,7 +124,7 @@ it("saves the viewport, hides and edits its highlight, navigates, and restores i
   await click(button("Actions for Promoter"));
   await click(withText('[role="menuitem"]', "Delete region"));
   await vi.waitFor(() => expect(server.stored.get(a)!.snapshot.browser.highlights).toEqual([]));
-});
+}, 15_000);
 
 it("shows an empty state without a session and includes existing highlights in creation order", async () => {
   await visit();
