@@ -17,19 +17,37 @@ async function admin(statement: string) {
   }
 }
 
+/** Owns a test pool until every connection has actually closed. */
+export function createTestPool(connectionString: string) {
+  const pool = new Pool({ connectionString });
+  const connections: Promise<void>[] = [];
+  pool.on("connect", (client) => {
+    connections.push(new Promise<void>((resolve) => client.once("end", resolve)));
+  });
+  return {
+    pool,
+    async close() {
+      // pg-pool resolves end() after starting to close idle clients. Wait for
+      // their end events before DROP DATABASE can terminate those connections.
+      await pool.end();
+      await Promise.all(connections);
+    },
+  };
+}
+
 /** Creates a database with the committed migrations applied. Call `drop` when done. */
 export async function createTestDatabase() {
   const name = `gb_test_${process.pid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   await admin(`CREATE DATABASE ${name}`);
   const url = new URL(testServerUrl!);
   url.pathname = `/${name}`;
-  const pool = new Pool({ connectionString: url.toString() });
+  const { pool, close } = createTestPool(url.toString());
   try {
     await migrate(drizzle({ client: pool }), {
       migrationsFolder: new URL("../drizzle", import.meta.url).pathname,
     });
   } finally {
-    await pool.end();
+    await close();
   }
   return {
     url: url.toString(),

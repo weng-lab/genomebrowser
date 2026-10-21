@@ -1,15 +1,14 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { identityMode } from "../features/account/server/identity";
 import { createSessions } from "../features/sessions/server/sessions";
 import type { SessionInput } from "../features/sessions/schema";
 import { sessionsTable } from "../features/sessions/server/table";
-import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
+import { createTestDatabase, createTestPool, snapshot, testServerUrl } from "./sessionFixtures";
 
 // Real PostgreSQL with the committed migrations; see sessionFixtures.ts.
 let database: Awaited<ReturnType<typeof createTestDatabase>>;
-let pool: Pool;
+let connection: ReturnType<typeof createTestPool>;
 let db: NodePgDatabase;
 
 function as(userId: string | null) {
@@ -22,12 +21,12 @@ const bob = () => as("user_bob");
 describe.skipIf(!testServerUrl)("saved sessions", () => {
   beforeAll(async () => {
     database = await createTestDatabase();
-    pool = new Pool({ connectionString: database.url });
-    db = drizzle({ client: pool });
+    connection = createTestPool(database.url);
+    db = drizzle({ client: connection.pool });
   });
 
   afterAll(async () => {
-    await pool?.end();
+    await connection?.close();
     await database?.drop();
   });
 
