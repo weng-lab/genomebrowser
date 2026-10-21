@@ -71,4 +71,6 @@ jobs:
         run: pnpm build
 
       - name: Test
-        run: pnpm test
+        # Turbo runs packages concurrently, and each Vitest process starts workers.
+        # Keep both levels within the runner's CPU budget to avoid timer starvation.
+        run: pnpm test --concurrency=2 -- --maxWorkers=1
