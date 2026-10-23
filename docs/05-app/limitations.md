@@ -1,13 +1,13 @@
 # App limitations
 
-These are current constraints and deployment gaps, not unfinished refactor steps. Setup and supported operations are documented in the [web app guide](../../apps/web/README.md) and [MCP server guide](../../apps/server/README.md).
+These are current implementation constraints and deployment gaps. They do not redefine the [MVP scope](mvp.md): missing authorization, for example, is work needed for launch rather than a product exclusion. Setup and supported operations are documented in the [web app guide](../../apps/web/README.md) and [MCP server guide](../../apps/server/README.md).
 
 ## Identity and deployment
 
 - Real Clerk frontend sign-in is unverified because credentials were unavailable. Mock account switching, replaced Clerk sign-out hooks, and server requests through the real proxy with locally signed tokens have coverage. Verify a Clerk development instance before relying on frontend sign-in.
 - App account controls save or ask the user to discard before changing accounts. External account changes, such as another tab signing out or the Clerk session ending, may discard unsaved state. Old credentials cannot save it, and a new account must not see it. Clerk multi-session switching is not offered.
 - Cloud SQL deployment and serverless pool sizing are unverified. The `pg` pool uses its defaults; validate connection limits before production deployment.
-- MCP has no authentication or session authorization and stays on loopback. Any caller that can reach it and knows a session ID can control a connected tab. The cloud variant targets [Google Cloud Run](README.md#optional-mcp-server); deployment still needs access controls and changes to the loopback-only listener and Host checks. Its in-memory tab registry requires a single instance, which Cloud Run's maximum-instances setting does not strictly guarantee, and SSE connections close at Cloud Run's request timeout, after which the tab reconnects and in-flight commands fail.
+- MCP has no authentication or session authorization and stays on loopback. Any caller that can reach it and knows a session ID can control a connected tab. The cloud variant targets [Google Cloud Run](README.md#mcp-server); deployment still needs access controls and changes to the loopback-only listener and Host checks. Its in-memory tab registry requires a single instance, which Cloud Run's maximum-instances setting does not strictly guarantee, and SSE connections close at Cloud Run's request timeout, after which the tab reconnects and in-flight commands fail.
 - Next.js binds to `localhost` for Clerk request handling. This can resolve only to `::1`, so IPv4 clients or SSH forwarding to `127.0.0.1` may fail. Use the documented localhost URL and check the listening address before configuring a tunnel.
 
 ## Session behavior

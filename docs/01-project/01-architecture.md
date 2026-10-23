@@ -44,6 +44,6 @@ The shared route layout composes `AppProviders`, `Workspace`, and route children
 
 The web app saves sessions in PostgreSQL through its own routes. The optional MCP server uses Hono on Node.js. It exposes commands to agents as MCP tools and delivers each call over SSE to the tab connected for that session. `server.ts` wires the routes, tab connections, and MCP endpoint together. Command contracts, wire schemas, and the shared region schema live in the private `@weng-lab/contracts` package in `apps/contracts`. Both apps depend on it through the workspace; the web app's handlers run them against the same browser stores as the UI. Open tabs and pending replies live in memory, keyed by session ID, and only the first tab to connect receives a session's commands. The server has no database. Next.js rewrites `/mcp` and `/rpc/:id` to it.
 
-The local MCP server requires no credentials. The last saved snapshot wins across tabs. MCP authentication, conflict resolution, ACP, and Eve integrations are not implemented. See the [web app guide](../../apps/web/README.md) for development and deployment instructions.
+The local MCP server requires no credentials. Session writes use revision checks; stale writes produce a conflict that the user resolves by saving over the newer version or discarding their edits. MCP authentication, ACP, and Eve integrations are not implemented. See the [web app guide](../../apps/web/README.md) for development and deployment instructions.
 
 For decisions about extending these parts, see [Where features belong](02-feature-placement.md).

@@ -49,7 +49,7 @@ jobs:
             https://models.opencode.ai/api.json \
             -o "$RUNNER_TEMP/opencode-models.json"
 
-          jq --exit-status '.vercel.models["openai/gpt-6.1-sol"]' \
+          jq --exit-status '.vercel.models["openai/gpt-6-luna"]' \
             "$RUNNER_TEMP/opencode-models.json" > /dev/null
 
       - name: Review PR
@@ -62,5 +62,5 @@ jobs:
         run: |
           opencode run --standalone --auto \
             --agent review \
-            --model vercel/openai/gpt-6.1-sol \
+            --model vercel/openai/gpt-6-luna \
             "Review PR #$PR_NUMBER in $GH_REPO and publish your findings according to your instructions."

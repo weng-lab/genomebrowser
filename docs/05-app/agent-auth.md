@@ -1,43 +1,43 @@
-# Agent authentication and user-scoped tools
+# Agent access and control
 
-Proposed direction; authentication and Eve integration are not implemented yet. Keep `@weng-lab/mcp` independent of persistence, with the same user ownership checks for external clients and the embedded agent panel.
+This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and one `set_region` tool. Integrated chat, authenticated MCP access, and exclusive human/agent control are not implemented yet.
 
-## Two ways to authorize an agent
+## A control surface for the active session
 
-External MCP clients use the standard MCP OAuth flow through Clerk: the user signs in and grants access, and the client receives a token intended for our MCP server.
+The integrated panel helps set up and operate the session open in its browser tab. Agent commands and manual controls act on the same browser and track stores. A run targets the session where it started; switching sessions cannot silently redirect its commands.
 
-The planned embedded panel will use [Vercel Eve](https://eve.dev). It should reuse the user's existing Clerk app session without another sign-in or consent screen. Sharing the frontend location does not itself authenticate MCP requests.
+Control is exclusive: either the researcher or the agent can edit the browser. The researcher can stop the agent and take control. Already-completed changes remain, and no further mutations from that run are accepted. A failed or interrupted request can therefore leave useful partial work. History and undo are outside the MVP.
 
-Both paths produce verified user identity and permissions. Tools never accept an acting `userId` from the agent. Keep credential verification and transport wiring behind injected capabilities, reusing existing session models and command contracts.
+Chats are ephemeral. Reloading may reset the conversation without resetting saved browser state. Conversation restoration and durable agent runs are not launch requirements. Even an ephemeral conversation needs authorization while it exists; its identifier does not grant access to a browser session.
 
-## Eve integration
+## Launch capabilities
 
-Eve's [Next.js integration](https://eve.dev/docs/guides/frontend/nextjs) uses `withEve()` and `useEveAgent()`. Requests share the app origin and carry its cookies, but the agent runs as a separate service. Configure its channel with a custom `AuthFn` that verifies Clerk credentials and returns a user principal. Do not assume Next.js middleware protects the agent service.
+The [MVP agent scope](mvp.md#the-integrated-agent) is the source of the action list. It includes state inspection, URL tracks, manipulation of loaded tracks, navigation, saved regions, image export, and gene/SNP/cCRE lookup.
 
-For outbound access, use `defineMcpClientConnection` with a non-interactive, user-scoped auth provider (`credentialOwner: "user"`). Its `getToken` resolves a short-lived MCP credential from the verified principal. Eve supports this [per-user credential pattern](https://eve.dev/docs/patterns/multi-tenant-auth); our application owns credential issuance and renewal. Keep tokens out of prompts and session metadata. External clients will use OAuth against the same MCP server.
+The lookup tools will wrap selected GraphQL queries to return API data for requested names or IDs. Their contracts and execution location are still to be designed. They are distinct from commands that mutate the browser tab.
 
-Eve [route authentication does not enforce conversation ownership](https://eve.dev/docs/guides/auth-and-route-protection). Our integration must check ownership for conversation continuation, history streams, and control operations. An Eve conversation and a saved browser session are distinct resources; keep their authorized association explicit. Use the app's stable mock identities locally so account isolation remains testable.
+Collection search and agent loading from collections are follow-ups. Account-wide session discovery, agent session creation, and parallel work across sessions are not prerequisites for the integrated panel.
 
-## Saved data and live browser control
+## Identity and access
 
-Only `set_region` exists today. The discovery tools and all authorization described below are proposed.
+Signed-in agent access belongs to the authenticated user and their authorized session. The server verifies identity rather than trusting an acting user ID supplied by the model. Browser attachments, commands, and replies need authorization as well as the agent endpoint. Knowing a session ID is not sufficient.
 
-| Tool                                           | Responsibility                                                          | Open browser required? |
-| ---------------------------------------------- | ----------------------------------------------------------------------- | ---------------------- |
-| `get_sessions`, `get_session`                  | Call the existing Next.js session feature through an authenticated API. | No                     |
-| `get_connected_sessions`, `get_active_session` | Discover the user's authorized browser connections.                     | Yes, for a live result |
-| `set_region`                                   | Execute the existing action in an authorized browser tab.               | Yes                    |
+Guests can use the agent with a small allowance keyed to their guest session. The guest credential and attachment design is open; the product still needs to distinguish an authorized guest tab from a caller who merely knows its session ID. The allowance is a trial limit, not a reliable per-person identity check.
 
-Next.js retains database access and session ownership checks. MCP-to-app requests need authenticated delegation intended for the app API; do not simply forward an incoming MCP token or trust an unsigned user ID.
+The current repository keeps saved-session ownership and database access in Next.js. The MCP server handles tool calls and command delivery without database access. Authenticated delegation or attachment credentials can connect those responsibilities; the precise issuance, expiry, and revocation mechanism is unresolved.
 
-Browser attachments and command replies also require authorization. Next.js can check session ownership and issue a short-lived attachment credential. MCP binds that connection to the verified user and session, checks access before dispatch, and handles expiry and disconnects. A session ID alone grants no access.
+## Enabled by default, with a hard off switch
 
-## Which session is active?
+Agent features start enabled. The agent can read browser state, track metadata, source URLs, and the current locus. There is no required first-use consent gate in the MVP. Exported images go to the user, not into model context.
 
-Bind an Eve run to the session from which it started. Switching sessions must not silently redirect that run's commands to another browser.
+The account-wide setting disables all LLM operations. It closes MCP connections and prevents reconnection, new reads, and commands across the user's tabs. It also stops active agent work from applying further changes. Hiding the panel alone does not meet this requirement. Disabling access cannot recall data already sent or reverse completed changes.
 
-For an external client without an explicit target, define active as connected with agent control enabled: return no active session when none is connected, use the sole connected session when there is one, and require an explicit selection when several are connected. Keep connection state ephemeral rather than adding a global active-session field to the user record.
+Guest preference storage and enforcement details belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited.
 
-Before implementation, choose credential issuance, renewal/revocation for durable runs, conversation ownership storage, and MCP-to-app delegation. Check the installed Eve version's bundled docs before coding. Start with authentication, authorized browser attachment, and session discovery before adding more tools.
+## Integration choices still open
+
+Vercel Eve is an option for the embedded panel, not a product requirement. The provider and SDK integration need evaluation against ephemeral chat, session authorization, interruption, and the hard off switch. An app cookie or a shared origin alone does not establish authorization for a separate agent service.
+
+External MCP clients are a follow-up, or optional work if time allows. They require OAuth and access restricted to the user's own session. Their discovery and target-selection ergonomics do not need to be built before the integrated panel.
 
 [Back to app direction](README.md)

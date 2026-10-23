@@ -1,35 +1,39 @@
 # Feature boundaries
 
-Features own their data and operations. Compose them through dependency injection, with small interfaces that hide meaningful work. The goal is simple feature development, not more wrappers around existing code.
+The app separates live browser state, saved sessions, identity, and agent command delivery. That lets product features grow without making a UI component coordinate database requests or connection lifetimes. This page describes those responsibilities; [MVP scope](mvp.md) decides which features ship.
 
-## Source organization
+## Where responsibilities live
 
-In `apps/web`, `features/` owns product UI, domain operations, and feature-specific server code. `app/` contains thin Next.js routes and layout composition. `shared/` contains generic infrastructure used across features; it must not become a home for unrelated helpers. `composition/` selects concrete dependencies and mounts providers. Features do not import composition, and shared workspace code does not import features.
+In `apps/web`, `features/` owns product UI, operations, and feature-specific server code. `app/` contains Next.js routes and layout composition. `shared/` contains infrastructure and presentation used across features. `composition/` selects concrete dependencies and mounts providers.
 
-Features may consume each other through focused interfaces without circular dependencies. Keep server-only operations separate from client entry points; do not combine them in one barrel export. Start small rather than giving every feature the same empty subfolders. See [feature placement](../01-project/02-feature-placement.md#product-behavior-belongs-in-the-web-app) for current ownership.
+Features expose operations to routes and composition. Shared workspace components handle layout rather than genome-browser behavior. The dependency direction keeps a feature usable without importing its callers and keeps generic presentation independent of product state.
 
-## Identity and data
+## Identity and saved data
 
-Clerk owns user identity, name, and email. Do not duplicate that profile in an application user table without an app-specific need. Sessions store the Clerk user ID as their owner; query sessions by owner instead of maintaining another list on a user record.
+Clerk owns account identity and profile data. Current saved sessions record the Clerk user ID as owner; server operations derive the acting identity and check ownership. The browser does not select the acting account.
 
-Each feature owns its persistence. Sessions have their own table. Future user settings can have a separate table and module when needed. Server-side operations obtain the acting user through an injected identity capability and enforce ownership. Clerk supplies that identity in production; an explicit local development mock supplies stable test users. The browser never chooses the acting user.
+Sessions own their persistence and autosave lifecycle. The MVP also needs personal collections, the account-wide agent setting, and guest restoration. Their implementation details remain open. Guest sessions need a separate access model; they cannot simply be treated as authenticated Clerk accounts.
 
-## Dependency injection
+The session feature owns complete operations such as opening, switching, saving, and deleting. That is where coordination between outstanding writes and store replacement belongs. UI components consume those operations without reproducing their ordering rules.
 
-Choose concrete collaborators where the app is assembled. Next.js server composition supplies database access and authenticated identity to feature operations. Client composition supplies browser stores and the session data operations to the session lifecycle. The MCP connection attaches independently to the ready browser session.
+## Composition and lifetimes
 
-Production targets Clerk and PostgreSQL on Google Cloud SQL; deployment validation is tracked in [limitations](limitations.md). Local composition uses mock identity and local PostgreSQL. Both run the same feature operations, ownership checks, Drizzle schema, and migrations. Select these dependencies at server startup; resolve authenticated identity per request. Keep local mock identity unavailable in production.
+Next.js server composition supplies database access and authenticated identity. Client composition supplies browser stores and session data operations. Local development uses mock identity and local PostgreSQL through the same feature operations; production targets Clerk and PostgreSQL on Cloud SQL. Deployment validation is tracked in [limitations](limitations.md).
 
-Inject complete capabilities, not callbacks for every internal step. UI components consume feature operations without supplying database clients, Effect scopes, transport details, or retry policies. Keep client and server composition separate; server credentials and database dependencies never enter the browser.
+The browser tab owns live browser and track stores. Effect manages session restoration and background saving, and the agent feature owns its connection lifecycle. The intended agent-control and off-setting behavior is described in [agent access and control](agent-auth.md); an existing connection is not evidence that those controls are implemented.
 
-Reuse existing interfaces where they fit. Add a seam for a real responsibility, variation, or testing need. DI does not require a service container, a provider per dependency, or an interface around every helper. A provider should establish a necessary shared lifetime. Internal helpers remain private.
+## Assemblies, tracks, and contracts
 
-## Assemblies and tracks
+Assemblies resolve supported genomes and their starting configuration. Track modules and the registry provide creation and configuration validation. Sessions persist track configurations and restore them through those capabilities. Supported assemblies and starter tracks are application policy.
 
-Assemblies own supported-genome discovery and resolution using existing assembly definitions. Session creation asks which assemblies are supported and resolves the chosen assembly and its defaults through that feature. Keep assembly-specific setup out of panels and session persistence.
+The private `@weng-lab/contracts` package contains browser-safe command schemas and types. The web app implements browser commands against its stores; the MCP server delivers them to connected tabs. The server has no session database. This keeps transport separate from both persistence and live browser behavior.
 
-Tracks own creation and configuration validation through existing track modules and the registry. Sessions persist their configurations and restore through those capabilities. Extend existing modules before introducing parallel track models or registries.
+## Enforcement and working guidance
 
-Application policy, such as supported assemblies and starter tracks, belongs in the app. Reusable browser capabilities remain in the packages. Shared command contracts must be browser-safe and independent of the MCP server implementation.
+Import restrictions and cycle checks live in [the root lint configuration](../../.oxlintrc.json). They cover feature-to-composition imports, shared presentation dependencies, database access locations, cross-app imports, and contract dependencies. [Policy tests](../../tools/lint/policy.test.mjs) exercise allowed and forbidden imports through the actual lint CLI. `pnpm lint` and `pnpm verify` include these checks.
+
+Those checks enforce dependency structure, not product behavior. Session ownership, revisions, and snapshot validity are enforced by runtime operations and schemas and exercised by tests. Planned behavior such as guest authorization and the agent off switch still needs corresponding implementation and tests.
+
+The [app-development skill](../../.agents/skills/app-development/SKILL.md) guides app changes through the relevant product context and verification. The [architecture-design skill](../../.agents/skills/architecture-design/SKILL.md) covers responsibilities and interface choices that require judgment. Detailed placement guidance remains in [feature placement](../01-project/02-feature-placement.md).
 
 [Back to app direction](README.md)

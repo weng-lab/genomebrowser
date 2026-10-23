@@ -12,7 +12,7 @@ Start with [architecture](01-project/01-architecture.md) for the project's purpo
 
 ## Understand the app
 
-[App direction](05-app/README.md) records the agreed architecture: Clerk identity, Next.js database access through Drizzle, feature modules composed through dependency injection, and optional MCP. Start there for the implemented session model, feature boundaries, verification status, and remaining limitations.
+[MVP scope](05-app/mvp.md) owns the app product vision and launch scope. [App direction](05-app/README.md) connects that vision to feature context, current implementation, and deployment limitations. Repository skills guide implementation work; lint, schemas, runtime checks, and tests enforce the rules they can express.
 
 ## Contribute a change
 
