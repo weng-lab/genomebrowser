@@ -1,12 +1,12 @@
 # Documentation and agent guidance
 
-Maintainer documentation is shared by people and agents. Repository documents own project requirements, policies, and their rationale. Keep each topic in one canonical location so changing a policy does not require finding copies in several agent instructions.
+Maintainer documentation is shared by people and agents. Product documents own intended behavior and its rationale. Repository context explains current implementation and constraints. Working procedures belong in repository skills; mechanically checkable rules belong in lint, schemas, runtime validation, or tests. Keep each topic in one canonical location so changing a policy does not require finding copies in several agent instructions.
 
 ## Skills start common workflows
 
 Repository skills let users and agents start common workflows. Keep each skill short. State when it applies, which repository documents to read, and how to complete the task. A short skill is useful even when its main job is to load the right guidance.
 
-Put shared reference material in the repository documentation rather than inside a skill's references directory. These skills are specific to this repository; they do not need to carry a portable copy of its policies. Developers should be able to find and follow the same guidance without invoking a skill.
+Put shared product context and rationale in repository documentation rather than inside a skill's references directory. Do not turn product pages into instruction checklists: link to enforcement for deterministic rules and use a focused skill for workflows that require judgment. These skills are specific to this repository; they do not need to carry a portable copy of its policies. Developers should be able to find and follow the same guidance without invoking a skill.
 
 Personal skills may supplement an individual's workflow. Repository docs and skills must work without skills installed on a contributor's computer. When a principle becomes a project expectation, document it in the repository so maintainers and agents can follow the same guidance.
 

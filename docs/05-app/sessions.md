@@ -1,8 +1,18 @@
 # Sessions
 
-A session is a saved browsing setup for one assembly. The saved data and session operations below are implemented in `apps/web`.
+A session is a saved browsing setup for one assembly. The persistence behavior below is implemented in `apps/web` for account-owned sessions. [MVP scope](mvp.md) owns the product requirements; guest restoration and session copying are planned extensions, not capabilities implied by this page.
 
-## Saved data
+## Planned product behavior
+
+The open session supplies app-wide context within a browser tab, including on pages other than the browser. Session-aware UI identifies that session and uses it as the default target. Navigation to collections or settings preserves the active session and its authorized MCP connection; the agent-off setting still takes precedence. Actions targeting an inactive session must be explicit rather than silently retargeting the active session. Those workflows remain to be defined.
+
+Guests get one session restored in the same browser, with work preserved when signing in. The guest storage mechanism is unresolved. Signed-in sessions support cross-device restoration.
+
+"Save a copy" duplicates the current setup into an independent session, including tracks, order, settings, and saved regions. Saved regions use highlights rather than a separate bookmark model. Chats are ephemeral and do not form part of the saved browser setup.
+
+History is outside the MVP. The follow-up idea is bounded linear undo/redo stored with the session and preserved in copies. No history schema or command framework is settled by this plan.
+
+## Current saved data
 
 - Assembly, fixed at creation for the session's lifetime.
 - Persistent browser configuration, including region and highlights.
@@ -10,15 +20,15 @@ A session is a saved browsing setup for one assembly. The saved data and session
 - Metadata: stable session ID, Clerk owner ID, name, creation time, update time, and revision.
 - The save ID of the update that produced the current revision.
 
-Assembly already belongs to browser configuration. Keep one authoritative value rather than duplicating it at the session root. Another assembly requires a new session. Enforce this on updates as well as in the UI.
+Assembly belongs to browser configuration rather than a duplicate field at the session root. Another assembly requires a new session; updates enforce the same constraint as creation and restoration.
 
-The browser-safe snapshot schema lives in `apps/web/features/sessions/snapshot.ts` and uses Zod and the shared region schema from `@weng-lab/contracts`. It accepts any assembly ID; the web app decides which assemblies it supports, and restoring into stores for another assembly fails. Command contracts use the same shared region schema. Start from this `SessionSnapshot` schema and configuration types. Infer types from authoritative schemas and align database and application shapes. Avoid separate row, DTO, model, and view representations unless their data actually differs.
+The browser-safe snapshot schema lives in `apps/web/features/sessions/snapshot.ts` and uses Zod and the shared region schema from `@weng-lab/contracts`. It accepts any assembly ID; the web app decides which assemblies it supports, and restoring into stores for another assembly fails. Command contracts use the same shared region schema. This schema and the configuration types define the saved representation shared by persistence and restoration.
 
-Keep `snapshot()` and `restore()` as the boundary between serializable data and live stores. Actions, registered modules, fetched data, loading flags, and connections are runtime details. Do not copy live store state into another session store.
+`snapshot()` and `restore()` form the boundary between serializable data and live stores. Actions, registered modules, fetched data, loading flags, and connections are runtime details. A portable snapshot contains configuration, not live store actions or resources.
 
 ## Session operations
 
-A workspace-lived session module owns initialization, metadata, restoration, autosave, switching, and deletion. `useSession` is the React interface, with focused subscriptions and complete operations. Panels should not coordinate flushes, request cancellation, list refreshes, store replacement, or fallback navigation.
+A workspace-lived session module owns initialization, metadata, restoration, autosave, switching, and deletion. `useSession` is the React interface, with focused subscriptions and complete operations. Its operations coordinate outstanding writes, request cancellation, store replacement, and fallback navigation for their callers.
 
 Next.js derives ownership from the server-side identity capability, backed by Clerk in production or mock identity locally, and validates each operation. Create and update are distinct: an autosave must not recreate a deleted session. The client does not choose the acting user.
 
@@ -26,9 +36,9 @@ Each update names the revision its edits were based on and a client-chosen save 
 
 ## Background autosave
 
-Edits update the browser immediately. Observe changes to persisted configuration and editable metadata, debounce briefly, and save one snapshot at a time. Retain the newest edits during a write and save again afterward if needed. Acknowledging an older snapshot must not mark newer edits saved.
+Edits update the browser immediately. Autosave observes persisted configuration and editable metadata, debounces changes, and saves one snapshot at a time. It retains newer edits during a write and saves again afterward when needed. Acknowledging an older snapshot does not mark newer edits saved.
 
-Effect owns the worker lifetime, delays, and retries. Failed writes retain unsaved state and retry without blocking browsing. Expose save status to the UI. Start autosave after restoration succeeds; never overwrite a failed load with defaults.
+Effect owns the worker lifetime, delays, and retries. Failed writes retain unsaved state and retry without blocking browsing. The UI receives save status. Autosave starts after successful restoration, so a failed load is not overwritten with defaults.
 
 ### Save guarantees
 
@@ -47,8 +57,6 @@ The app saves whole snapshots. Switching saves outstanding edits before replacin
 
 ## Future sharing
 
-Track collection JSON shares track configurations. Session JSON should reuse the versioned snapshot to restore the complete browsing setup, including assembly. Export portable metadata such as the name, not account ownership or database identity. A future import should create a new session owned by the importing user.
-
-Keep the model ready for this without implementing sharing yet.
+Collection sharing and session import/export are outside the MVP. The existing snapshot provides a possible basis for portable session configuration, including assembly and name. Account ownership and database identity are not portable research state; an import would create a new session belonging to the importing user. The sharing format and workflow remain future design work.
 
 [Back to app direction](README.md)

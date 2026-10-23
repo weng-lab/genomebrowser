@@ -9,7 +9,9 @@ All changes go through a pull request to keep main's history clean. Aim for one 
 
 ## Issues and ownership
 
-Prefer an issue before code changes so the intended work has a place for discussion and can be linked to its PR. A missing issue does not prevent a contribution. State the desired outcome first, then the context, constraints, or blockers needed to understand it. Use the [bug report template](../../.github/ISSUE_TEMPLATE/bug_report.md) for incorrect behavior and the [change template](../../.github/ISSUE_TEMPLATE/change.md) for proposed work.
+Prefer an issue before code changes so the intended work has a place for discussion and can be linked to its PR. A missing issue does not prevent a contribution. Use the [feature template](../../.github/ISSUE_TEMPLATE/feature.md) for a user-facing feature, the [bug report template](../../.github/ISSUE_TEMPLATE/bug_report.md) for incorrect behavior, and the [change template](../../.github/ISSUE_TEMPLATE/change.md) for a focused technical change.
+
+Each feature has one issue with user stories, Figma links or mockups, and any useful context or open questions. Keep it short. Use checkboxes or sub-issues when the work needs breaking down, and link children back to the parent design. Separate scope, acceptance-criteria, and planning sections are not required.
 
 Apply relevant repository labels to issues and PRs. Assign the contributor responsible for the work. When an agent acts for someone, identify that person's GitHub account rather than defaulting to the repository maintainer or the agent's account. Preserve contributor credit and leave uncertain metadata unset until the identity or label is established.
 
