@@ -42,7 +42,7 @@ Report failures, checks that could not run, and any remaining uncertainty about 
 
 ## Automated PR review
 
-The PR review workflow uses OpenCode and GPT-6.1 Sol through Vercel AI Gateway to review repository conformity, code quality, and PR scope. Add a Vercel AI Gateway API key as the `AI_GATEWAY_API_KEY` repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
+The PR review workflow uses OpenCode and GPT-6 Luna through Vercel AI Gateway to review repository conformity, code quality, and PR scope. Add a Vercel AI Gateway API key as the `AI_GATEWAY_API_KEY` repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
 
 Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comments, starting with instructions from the base revision.
 
@@ -55,7 +55,7 @@ Blocking labels are recommendations for the team, not an automatic merge gate. I
 To preview a review from a worktree containing the agent, authenticate `gh`, provide Vercel AI Gateway credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
 
 ```sh
-opencode run --standalone --auto --agent review --model vercel/openai/gpt-6.1-sol \
+opencode run --standalone --auto --agent review --model vercel/openai/gpt-6-luna \
   "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comments and their locations; do not post or change anything on GitHub."
 ```
 
