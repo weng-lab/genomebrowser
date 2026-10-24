@@ -13,7 +13,7 @@ Prefer an issue before code changes so the intended work has a place for discuss
 
 Each feature has one issue with user stories, Figma links or mockups, and any useful context or open questions. Keep it short. Use checkboxes or sub-issues when the work needs breaking down, and link children back to the parent design. Separate scope, acceptance-criteria, and planning sections are not required.
 
-Apply relevant repository labels to issues and PRs. Assign the contributor responsible for the work. When an agent acts for someone, identify that person's GitHub account rather than defaulting to the repository maintainer or the agent's account. Preserve contributor credit and leave uncertain metadata unset until the identity or label is established.
+Use the native issue Type field: Feature for user-facing capabilities, Task for implementation or technical work, and Bug for incorrect behavior. A sub-issue uses the type that describes its own work. Labels describe areas such as app, core, or UI; do not recreate the retired feature label. The January MVP milestone tracks launch commitments. Apply relevant repository labels to issues and PRs. Assign the contributor responsible for the work. When an agent acts for someone, identify that person's GitHub account rather than defaulting to the repository maintainer or the agent's account. Preserve contributor credit and leave uncertain metadata unset until the identity or label is established.
 
 ### Resolve the contributor's GitHub account
 

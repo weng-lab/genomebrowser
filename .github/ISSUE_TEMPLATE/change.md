@@ -2,6 +2,7 @@
 name: Change request
 about: Propose a focused change
 title: ""
+type: Task
 labels: ""
 assignees: ""
 ---
