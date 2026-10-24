@@ -2,6 +2,7 @@
 name: Bug report
 about: Report incorrect behavior
 title: ""
+type: Bug
 labels: ""
 assignees: ""
 ---

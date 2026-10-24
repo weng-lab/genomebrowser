@@ -2,7 +2,8 @@
 name: Feature
 about: User stories, designs, and context for a feature
 title: ""
-labels: "feature"
+type: Feature
+labels: ""
 assignees: ""
 ---
 
