@@ -7,7 +7,7 @@ export type InteractionControlsProps = SelectionControlsProps;
 export function InteractionControls(props: InteractionControlsProps) {
   return (
     <LabeledGroup title="Interaction">
-      <Box sx={{ "& .MuiToggleButton-root": { height: 32, px: 1 } }}>
+      <Box sx={{ "& .MuiToggleButton-root": { width: 32, height: 32, p: 0 } }}>
         <SelectionControls {...props} />
       </Box>
     </LabeledGroup>
