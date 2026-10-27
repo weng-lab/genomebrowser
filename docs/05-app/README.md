@@ -11,6 +11,7 @@ The pages here provide product context and explain the repository behind it. The
 - [Feature boundaries](features.md): where app responsibilities live and why.
 - [Agent access and control](agent-auth.md): the launch control model, authorization needs, and open implementation choices.
 - [Limitations](limitations.md): known constraints and deployment gaps in the current app.
+- [Production deployment](production.md): development resources the beta Production environment shares with previews, and what to replace before launch.
 
 Implementation workflows belong in repository skills. Import boundaries are checked by lint; behavior belongs in schemas, runtime checks, and tests. [Feature boundaries](features.md#enforcement-and-working-guidance) links to those mechanisms.
 
