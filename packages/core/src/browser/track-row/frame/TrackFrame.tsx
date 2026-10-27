@@ -66,6 +66,7 @@ export function TrackFrame({
   return (
     <g
       data-track-id={isDragClone ? undefined : track.base.id}
+      data-track-export-exclude={isDragClone ? "" : undefined}
       data-track-width={trackWidth}
       data-track-height={wrapperHeight}
       data-track-margin={marginWidth}

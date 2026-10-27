@@ -12,6 +12,7 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
 import { SaveStatus } from "../../sessions/components/SaveStatus";
+import { TempBrowserImageDownload } from "./TempBrowserImageDownload";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -98,6 +99,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         />
         <NavigationControls browserStore={useBrowserStore} />
         <InteractionControls browserStore={useBrowserStore} />
+        <TempBrowserImageDownload browserStore={useBrowserStore} />
       </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
     </>
