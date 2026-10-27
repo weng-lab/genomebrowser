@@ -34,7 +34,7 @@ The MCP server keeps connected tabs and their pending commands in process memory
 
 The server holds a persistent SSE connection to each browser tab. Cloud Run closes it at the [request timeout](https://docs.cloud.google.com/run/docs/configuring/request-timeout), 5 minutes by default and at most 60. The tab then reconnects, possibly to another instance. Commands in flight when the stream closes fail and are not replayed.
 
-The deployment plan uses PostgreSQL on Google Cloud SQL in production and local PostgreSQL for development, with the same Drizzle schema and migrations. Local development can use mock identity through the same server-side identity boundary. See [feature boundaries](features.md) for composition. The Next.js app uses the `pg` driver with a `DATABASE_URL` connection string.
+The deployment plan uses PostgreSQL on Google Cloud SQL in production and local PostgreSQL for development, with the same Drizzle schema and migrations. Local development can use mock identity through the same server-side identity boundary. See [feature boundaries](features.md) for composition. The Next.js app uses the `pg` driver, connecting locally with a `DATABASE_URL` connection string and on Vercel through Google's Cloud SQL connector with Vercel OIDC credentials.
 
 For current implementation and setup, see the [web app guide](../../apps/web/README.md) and [server guide](../../apps/server/README.md).
 
