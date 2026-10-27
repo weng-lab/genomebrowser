@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { BrowserStoreInstance } from "../state/browserStore";
+import type { GenomicRegion } from "../../genome/region";
 import { getMountedBrowser } from "./browserRegistry";
 import { createBrowserSvg, saveTrackImage, svgToPng } from "./trackImage";
 import type { TrackImageFormat } from "./useTrackDownload";
@@ -7,6 +8,12 @@ import type { TrackImageFormat } from "./useTrackDownload";
 export type BrowserDownloadOptions = {
   /** PNG pixels per browser unit. Defaults to 1. Ignored for SVG. */
   scale?: number;
+  /** Include each track's title. Defaults to true. */
+  includeTitles?: boolean;
+  /** Include ruler tracks. Defaults to true. */
+  includeRuler?: boolean;
+  /** File name without its extension. Defaults to `defaultFilename` when blank. */
+  filename?: string;
 };
 
 export type BrowserDownload = {
@@ -14,6 +21,8 @@ export type BrowserDownload = {
   isDownloading: boolean;
   /** Most recent failure, cleared when another download starts. */
   error: string | null;
+  /** Name, without extension, used when no `filename` is given. Follows the current region. */
+  defaultFilename: string;
   /** Resolves true when a download is initiated, false on failure or cancellation. */
   download(format: TrackImageFormat, options?: BrowserDownloadOptions): Promise<boolean>;
 };
@@ -23,6 +32,8 @@ export type BrowserDownload = {
  * Works outside the GenomeBrowser tree, such as in a host toolbar.
  */
 export function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserDownload {
+  const useBrowserStore = browserStore;
+  const defaultFilename = useBrowserStore((state) => getDefaultFilename(state.region));
   const active = useRef<AbortController | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +73,16 @@ export function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserD
         throw new Error("Wait for the tracks to finish loading before downloading.");
       }
       // Tracks with data errors are exported as rendered, with their error message.
-      const snapshot = createBrowserSvg(svg, marginWidth);
+      const { registry } = tracks;
+      const rulerIds = tracks.order.filter((id) => {
+        const track = tracks.getTrack(id);
+        return track !== undefined && registry.get(track.type).isRuler;
+      });
+      const snapshot = createBrowserSvg(svg, {
+        marginWidth,
+        omitTrackIds: new Set(options.includeRuler === false ? rulerIds : []),
+        includeTitles: options.includeTitles ?? true,
+      });
       // Track changes during PNG encoding would make the pending image stale.
       unsubscribe = trackStore.subscribe((next) => {
         if (
@@ -75,9 +95,7 @@ export function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserD
       const blob =
         format === "svg" ? snapshot.blob : await svgToPng(snapshot, controller.signal, scale);
       controller.signal.throwIfAborted();
-      const name = `genome-browser_${region.chromosome}_${region.start + 1}-${region.end}`
-        .replace(/[^a-zA-Z0-9._-]+/g, "_")
-        .slice(0, 180);
+      const name = cleanFilename(options.filename ?? "", format) || getDefaultFilename(region);
       saveTrackImage(blob, `${name}.${format}`);
       return true;
     } catch (cause) {
@@ -92,5 +110,19 @@ export function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserD
     }
   };
 
-  return { download, isDownloading, error };
+  return { download, isDownloading, error, defaultFilename };
+}
+
+function getDefaultFilename(region: GenomicRegion) {
+  return `genome-browser_${region.chromosome}_${region.start + 1}-${region.end}`
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")
+    .slice(0, 180);
+}
+
+// Keep a typed name readable, but drop its extension and characters file systems reject.
+function cleanFilename(filename: string, format: TrackImageFormat) {
+  const name = Array.from(filename.trim().replace(new RegExp(`\\.${format}$`, "i"), ""), (char) =>
+    char < " " || char === "\u007f" || '<>:"/\\|?*'.includes(char) ? "_" : char,
+  ).join("");
+  return name.replace(/^[\s.]+|[\s.]+$/g, "").slice(0, 180);
 }

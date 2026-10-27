@@ -143,7 +143,11 @@ const CULL_TOLERANCE = 8;
  * copy reproduces through its attributes, its copied parent, or element defaults are not
  * repeated, and painted elements outside `visible` (in browser units) are dropped.
  */
-function createCopier(browser: SVGSVGElement, visible: { x: number; width: number }) {
+function createCopier(
+  browser: SVGSVGElement,
+  visible: { x: number; width: number },
+  includeTitles: boolean,
+) {
   const document = browser.ownerDocument;
   const defaults = measureDefaults(document);
   const probe = document.createElementNS(SVG_NS, "g");
@@ -207,7 +211,12 @@ function createCopier(browser: SVGSVGElement, visible: { x: number; width: numbe
     const childReferenced = referenced || referencedContainers.has(tag);
     for (const child of source.childNodes) {
       if (child instanceof Element) {
-        if (child.hasAttribute("data-track-export-exclude")) continue;
+        if (
+          child.hasAttribute("data-track-export-exclude") ||
+          (!includeTitles && child.hasAttribute("data-export-title"))
+        ) {
+          continue;
+        }
         const childCopy = copy(child, inherited, childReferenced);
         if (childCopy) element.append(childCopy);
       } else {
@@ -282,7 +291,7 @@ export function createTrackSvg(browser: SVGSVGElement, trackIds: readonly string
 
   const image = createImage(width, height, margin);
   const background = image.firstChild;
-  const copyElement = createCopier(browser, { x: margin, width });
+  const copyElement = createCopier(browser, { x: margin, width }, true);
   // Keep shared definitions; each selected frame carries its own definitions.
   for (const definitions of browser.querySelectorAll("defs")) {
     if (!frames.some(({ frame }) => frame.contains(definitions))) {
@@ -304,24 +313,89 @@ export function createTrackSvg(browser: SVGSVGElement, trackIds: readonly string
   return serializeImage(image, width, height);
 }
 
-/** Capture every rendered track and the browser-wide highlights, without the margin controls. */
-export function createBrowserSvg(browser: SVGSVGElement, marginWidth: number) {
-  const [, , browserWidth, height] = (browser.getAttribute("viewBox") ?? "")
+export type BrowserImageOptions = {
+  marginWidth: number;
+  /** Tracks to leave out; the tracks below move up to close the gap. */
+  omitTrackIds?: ReadonlySet<string>;
+  /** Defaults to true. Without titles, each track's title strip is removed. */
+  includeTitles?: boolean;
+};
+
+/** Capture the rendered tracks in display order with the browser-wide highlights. */
+export function createBrowserSvg(
+  browser: SVGSVGElement,
+  { marginWidth, omitTrackIds = new Set(), includeTitles = true }: BrowserImageOptions,
+) {
+  const [, , browserWidth, browserHeight] = (browser.getAttribute("viewBox") ?? "")
     .split(/[\s,]+/)
     .map(Number);
-  const width = browserWidth - marginWidth;
-  if (!(width > 0 && height > 0) || !Number.isFinite(width + height + marginWidth)) {
+  const trackWidth = browserWidth - marginWidth;
+  if (
+    !(trackWidth > 0 && browserHeight > 0) ||
+    !Number.isFinite(trackWidth + browserHeight + marginWidth)
+  ) {
     throw new Error("The browser has no exportable dimensions.");
   }
-  if (!browser.querySelector("[data-track-id]")) throw new Error("Add a track before downloading.");
-  const image = createImage(width, height, marginWidth);
-  const copyElement = createCopier(browser, { x: marginWidth, width });
-  for (const child of browser.children) {
-    if (child.hasAttribute("data-track-export-exclude")) continue;
-    const copy = copyElement(child);
-    if (copy) image.append(copy);
-  }
-  return serializeImage(image, width, height);
+  const rendered = Array.from(browser.querySelectorAll<SVGGElement>("[data-track-id]"));
+  if (!rendered.length) throw new Error("Add a track before downloading.");
+  // Frames render in display order.
+  const frames = rendered
+    .filter((frame) => !omitTrackIds.has(frame.getAttribute("data-track-id")!))
+    .map((frame) => {
+      const height = Number(frame.getAttribute("data-track-height"));
+      const title = includeTitles ? 0 : Number(frame.getAttribute("data-track-title-height")) || 0;
+      return { frame, title, height: height - title };
+    })
+    .filter(({ height }) => height > 0);
+  if (!frames.length) throw new Error("Choose at least one track to include in the image.");
+
+  const height = frames.reduce((sum, frame) => sum + frame.height, 0);
+  const image = createImage(trackWidth, height, marginWidth);
+  const copyElement = createCopier(browser, { x: marginWidth, width: trackWidth }, includeTitles);
+
+  // Highlights span every track, so stretch them to the image's new height.
+  const appendHighlights = (type: "filled" | "outlined") => {
+    const source = browser.querySelector(`[data-export-highlights="${type}"]`);
+    const copy = source && copyElement(source);
+    if (!copy) return;
+    if (height === browserHeight) {
+      image.append(copy);
+      return;
+    }
+    const stretch = document.createElementNS(SVG_NS, "g");
+    stretch.setAttribute("transform", `scale(1,${height / browserHeight})`);
+    stretch.append(copy);
+    image.append(stretch);
+  };
+
+  appendHighlights("filled");
+  const definitions = document.createElementNS(SVG_NS, "defs");
+  let y = 0;
+  frames.forEach(({ frame, title, height: frameHeight }, index) => {
+    const track = copyElement(frame) as SVGGElement;
+    // Restack complete frames, irrespective of omitted tracks.
+    track.removeAttribute("transform");
+    track.style.removeProperty("transform");
+    if (title) {
+      // Lift the plot into the title strip and clip away what the strip held.
+      const clipId = `genomebrowser-export-frame-${index}`;
+      const clip = document.createElementNS(SVG_NS, "clipPath");
+      clip.setAttribute("id", clipId);
+      const area = document.createElementNS(SVG_NS, "rect");
+      area.setAttribute("y", String(title));
+      area.setAttribute("width", String(browserWidth));
+      area.setAttribute("height", String(frameHeight));
+      clip.append(area);
+      definitions.append(clip);
+      track.setAttribute("clip-path", `url(#${clipId})`);
+    }
+    if (y - title) track.setAttribute("transform", `translate(0,${y - title})`);
+    image.append(track);
+    y += frameHeight;
+  });
+  if (definitions.hasChildNodes()) image.insertBefore(definitions, image.firstChild);
+  appendHighlights("outlined");
+  return serializeImage(image, trackWidth, height);
 }
 
 function createImage(width: number, height: number, margin: number) {

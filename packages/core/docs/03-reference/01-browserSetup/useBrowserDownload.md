@@ -37,28 +37,35 @@ Pass the same `browserStore` given to a mounted `GenomeBrowser`. When no browser
 ```ts
 type BrowserDownloadOptions = {
   scale?: number;
+  includeTitles?: boolean;
+  includeRuler?: boolean;
+  filename?: string;
 };
 
 type BrowserDownload = {
   isDownloading: boolean;
   error: string | null;
+  defaultFilename: string;
   download(format: TrackImageFormat, options?: BrowserDownloadOptions): Promise<boolean>;
 };
 
 function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserDownload;
 ```
 
-| Input          | Type                   | Default  | Description                                                    |
-| -------------- | ---------------------- | -------- | -------------------------------------------------------------- |
-| `browserStore` | `BrowserStoreInstance` | Required | Store of the mounted browser to export.                        |
-| `format`       | `TrackImageFormat`     | Required | `"svg"` vector image or `"png"` raster image.                  |
-| `scale`        | `number`               | `1`      | PNG pixels per browser unit. Must be positive. SVG ignores it. |
+| Input           | Type                   | Default  | Description                                                                                              |
+| --------------- | ---------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `browserStore`  | `BrowserStoreInstance` | Required | Store of the mounted browser to export.                                                                  |
+| `format`        | `TrackImageFormat`     | Required | `"svg"` vector image or `"png"` raster image.                                                            |
+| `scale`         | `number`               | `1`      | PNG pixels per browser unit. Must be positive. SVG ignores it.                                           |
+| `includeTitles` | `boolean`              | `true`   | Include each track's title. Without titles, the title strips are removed and the plots move up.          |
+| `includeRuler`  | `boolean`              | `true`   | Include tracks whose module declares `isRuler`. When `false`, the tracks below move up to close the gap. |
+| `filename`      | `string`               | —        | File name without its extension. A matching extension is dropped, and blank names use `defaultFilename`. |
 
-`download` resolves `true` after requesting a browser download, and `false` on failure, cancellation, or a concurrent call through the same hook. It refuses while any track is loading. Tracks with data errors are exported as rendered. A pending PNG is cancelled when tracks are added, removed, reordered, or changed. The filename contains the chromosome and one-based visible coordinates captured when `download` is called, such as `genome-browser_chr1_1001-2000.png`.
+`download` resolves `true` after requesting a browser download, and `false` on failure, cancellation, or a concurrent call through the same hook. It refuses while any track is loading. Tracks with data errors are exported as rendered. A pending PNG is cancelled when tracks are added, removed, reordered, or changed. `defaultFilename` contains the chromosome and one-based visible coordinates, such as `genome-browser_chr1_1001-2000`, and updates as the region changes. Use it as a placeholder for a file name field. Without a `filename`, `download` uses the default for the region captured when it is called. Characters that file systems reject are replaced with `_`, and the format's extension is added.
 
 ## Image contents and size
 
-Images contain every track in display order with its title and overlays, plus browser-wide highlights, on a white background. Margin controls, tooltips, selection guides, and the loading shield are excluded. The image is the track width wide and the browser's full height tall, regardless of the `GenomeBrowser` `scale` prop.
+Images contain every track in display order with its overlays, plus browser-wide highlights, on a white background. Titles and rulers are included by default. The margin column with track colors and controls, tooltips, hover shading, selection guides, and the loading shield are always excluded. Highlights stretch to the full image height when titles or rulers are left out. The image is the track width wide and as tall as the included tracks, regardless of the `GenomeBrowser` `scale` prop.
 
 Features drawn outside the visible region, such as content preloaded for panning, are left out. Styles are written only where the standalone image would otherwise render differently.
 

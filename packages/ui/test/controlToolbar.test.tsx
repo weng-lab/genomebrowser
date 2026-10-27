@@ -136,11 +136,19 @@ it("shows only supplied management actions and calls the host", () => {
   const onSelectTracks = vi.fn();
   const onSortTracks = vi.fn();
   mount({ onSelectTracks, onSortTracks });
-  click("Tracks");
+  click("Manage tracks");
   expect(onSelectTracks).toHaveBeenCalledOnce();
-  click("Sort");
+  click("Sort tracks");
   expect(onSortTracks).toHaveBeenCalledOnce();
-  expect(container.textContent).not.toContain("Highlights");
+  expect(container.querySelector('[aria-label="Manage highlights"]')).toBeNull();
+  expect(container.querySelector('[aria-label="Download image"]')).toBeNull();
+});
+
+it("passes the download action through the toolbar", () => {
+  const onDownloadImage = vi.fn();
+  mount({ onDownloadImage });
+  click("Download image");
+  expect(onDownloadImage).toHaveBeenCalledOnce();
 });
 
 it.each(["Pan magnitude", "Zoom magnitude"])(
@@ -210,7 +218,7 @@ it("composes standalone sections without a toolbar and isolates stores", () => {
   click("Submit test result");
   expect(second.getState().region).toEqual({ chromosome: "chr1", start: 40, end: 60 });
   expect(first.getState().region).toEqual({ chromosome: "chr1", start: 25, end: 45 });
-  click("Highlights");
+  click("Manage highlights");
   expect(onManageHighlights).toHaveBeenCalledOnce();
 });
 

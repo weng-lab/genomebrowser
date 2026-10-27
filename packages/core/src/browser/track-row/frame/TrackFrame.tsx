@@ -69,6 +69,7 @@ export function TrackFrame({
       data-track-export-exclude={isDragClone ? "" : undefined}
       data-track-width={trackWidth}
       data-track-height={wrapperHeight}
+      data-track-title-height={titleMargin}
       data-track-margin={marginWidth}
       transform={`translate(0,${y + previewOffsetY})`}
     >
@@ -101,7 +102,11 @@ export function TrackFrame({
           pointerEvents="none"
         />
       </g>
-      <g transform={`translate(${marginWidth},0)`} onContextMenu={handleContextMenu}>
+      <g
+        data-export-title=""
+        transform={`translate(${marginWidth},0)`}
+        onContextMenu={handleContextMenu}
+      >
         <PanTrack panDrag={panDrag} width={trackWidth} height={titleMargin}>
           <text
             fill="#000000"

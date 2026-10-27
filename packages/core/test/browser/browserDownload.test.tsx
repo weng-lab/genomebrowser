@@ -46,6 +46,14 @@ const module = defineTrackModule({
   render: { full: Renderer },
 });
 
+const rulerModule = defineTrackModule({
+  type: "browser-export-ruler",
+  isRuler: true,
+  configSchema: z.object({}),
+  fetch: async () => null,
+  render: { full: Renderer },
+});
+
 // Lives outside the GenomeBrowser tree, like an application toolbar.
 function Toolbar({ browserStore }: { browserStore: BrowserStoreInstance }) {
   api = useBrowserDownload(browserStore);
@@ -102,7 +110,7 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
-async function mount({ withBrowser = true } = {}) {
+async function mount({ withBrowser = true, withRuler = false } = {}) {
   const useBrowserStore = createBrowserStore({
     assembly: { id: "test", chromosomes: { chr1: 10000 } },
     region: { chromosome: "chr1", start: 1000, end: 2000 },
@@ -112,8 +120,11 @@ async function mount({ withBrowser = true } = {}) {
     highlights: [{ id: "peak", region: { start: 1200, end: 1400 }, color: "#ff0000" }],
   });
   const useTrackStore = createTrackStore({
-    modules: [module],
+    modules: [module, rulerModule],
     tracks: [
+      ...(withRuler
+        ? [rulerModule.create({ base: { id: "ruler", title: "Ruler", height: 30 }, config: {} })]
+        : []),
       module.create({ base: { id: "first", title: "First", height: 40 }, config: {} }),
       module.create({ base: { id: "second", title: "Second", height: 60 }, config: {} }),
     ],
@@ -140,6 +151,14 @@ async function mount({ withBrowser = true } = {}) {
   const svg = container.querySelector<SVGSVGElement>("#browserSVG");
   const height = svg ? Number(svg.getAttribute("viewBox")!.split(" ")[3]) : 0;
   return { root, container, useBrowserStore, useTrackStore, height };
+}
+
+function frameAttribute(container: HTMLElement, id: string, name: string) {
+  return Number(container.querySelector(`[data-track-id="${id}"]`)!.getAttribute(name));
+}
+
+async function exported(index: number) {
+  return new DOMParser().parseFromString(await text(blobs[index]), "image/svg+xml");
 }
 
 function text(blob: Blob): Promise<string> {
@@ -170,6 +189,7 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     ).toHaveLength(2);
     expect(document.querySelector('rect[fill="#ff0000"]')).not.toBeNull();
     expect(document.querySelector("[data-track-export-exclude]")).toBeNull();
+    expect(document.querySelector('[aria-label^="Settings for"]')).toBeNull();
     expect(api.error).toBeNull();
   });
 
@@ -263,5 +283,60 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     });
     expect(api.error).toContain("too large to export");
     expect(saved).toHaveLength(0);
+  });
+
+  it("omits ruler tracks, closing the gap and stretching highlights to the new height", async () => {
+    const { container, height } = await mount({ withRuler: true });
+    const rulerHeight = frameAttribute(container, "ruler", "data-track-height");
+    await act(async () => {
+      expect(await api.download("svg", { includeRuler: false })).toBe(true);
+    });
+    const image = await exported(0);
+    expect(image.querySelector('[data-track-id="ruler"]')).toBeNull();
+    expect(image.documentElement.getAttribute("height")).toBe(String(height - rulerHeight));
+    expect(image.querySelector('[data-track-id="first"]')?.getAttribute("transform")).toBeNull();
+    const stretch = image.querySelector('[data-export-highlights="filled"]')?.parentElement;
+    expect(stretch?.getAttribute("transform")).toBe(`scale(1,${(height - rulerHeight) / height})`);
+
+    await act(async () => {
+      expect(await api.download("svg")).toBe(true);
+    });
+    expect((await exported(1)).querySelector('[data-track-id="ruler"]')).not.toBeNull();
+  });
+
+  it("removes title strips and lifts each plot into the space", async () => {
+    const { container, height } = await mount();
+    const titles = ["first", "second"].map((id) =>
+      frameAttribute(container, id, "data-track-title-height"),
+    );
+    expect(titles.every((title) => title > 0)).toBe(true);
+    await act(async () => {
+      expect(await api.download("svg", { includeTitles: false })).toBe(true);
+    });
+    const image = await exported(0);
+    expect(image.documentElement.getAttribute("height")).toBe(
+      String(height - titles[0] - titles[1]),
+    );
+    expect(image.querySelector("[data-export-title]")).toBeNull();
+    const second = image.querySelector('[data-track-id="second"]')!;
+    expect(second.getAttribute("clip-path")).toMatch(/^url\(#genomebrowser-export-frame-1\)$/);
+    const firstPlot = frameAttribute(container, "first", "data-track-height") - titles[0];
+    expect(second.getAttribute("transform")).toBe(`translate(0,${firstPlot - titles[1]})`);
+    expect(image.querySelectorAll("[data-feature]")).toHaveLength(2);
+  });
+
+  it("names files after the region unless a name is given", async () => {
+    const { useBrowserStore } = await mount();
+    expect(api.defaultFilename).toBe("genome-browser_chr1_1001-2000");
+    await act(async () =>
+      useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 4000, end: 5000 }),
+    );
+    expect(api.defaultFilename).toBe("genome-browser_chr1_4001-5000");
+    for (const filename of ["  My figure: v2.SVG ", "   "]) {
+      await act(async () => {
+        expect(await api.download("svg", { filename })).toBe(true);
+      });
+    }
+    expect(saved).toEqual(["My figure_ v2.svg", "genome-browser_chr1_4001-5000.svg"]);
   });
 });

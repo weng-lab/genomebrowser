@@ -6,7 +6,7 @@ The application owns runtime stores, collection data, and dialog visibility. Sto
 
 ## Browse by area
 
-- [Browser controls](01-browserControls/README.md): Pan, zoom, and choose region interaction modes.
+- [Browser controls](01-browserControls/README.md): Pan, zoom, choose region interaction modes, and download browser images.
 - [Highlights](02-highlights/README.md): Manage browser highlights.
 - [Track selection](03-trackSelection/README.md): Browse collections, customize columns, and attach application callbacks.
 - [Chromosome overview](04-chromosomeOverview/README.md): Display cytobands, the viewport, and interactive highlights.
@@ -29,6 +29,7 @@ Every current public export has one canonical destination below.
 | Browser controls    | `NavigationButton`, `NavigationButtonProps`               | [Navigation button](01-browserControls/NavigationButton.md#navigationbuttonprops)                                     |
 | Browser controls    | `NavigationAction`                                        | [Navigation actions](01-browserControls/NavigationButton.md#navigationaction)                                         |
 | Browser controls    | `SelectionControls`, `SelectionControlsProps`             | [Selection controls](01-browserControls/SelectionControls.md#selectioncontrolsprops)                                  |
+| Browser controls    | `DownloadImageDialog`, `DownloadImageDialogProps`         | [Download image dialog](01-browserControls/DownloadImageDialog.md#downloadimagedialogprops)                           |
 | Highlights          | `HighlightDialog`, `HighlightDialogProps`                 | [Highlight dialog](02-highlights/HighlightDialog.md#highlightdialogprops)                                             |
 | Chromosome overview | `Cytobands`, `CytobandsProps`                             | [Cytobands](04-chromosomeOverview/Cytobands.md#cytobandsprops)                                                        |
 | Track sorting       | `TrackSortDialog`, `TrackSortDialogProps`                 | [TrackSortDialog](06-trackSorting/TrackSortDialog.md#tracksortdialogprops)                                            |
