@@ -69,7 +69,7 @@ Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `
 Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
 ```ts
-const sessions = getSessions();
+const sessions = await getSessions();
 const saved = await sessions.create({ name: "Promoter scan", snapshot });
 await sessions.update(saved.id, {
   name: saved.name,
@@ -89,7 +89,18 @@ In production, sessions use Google Cloud SQL through Google's Cloud SQL connecto
 
 On Vercel, the connector authenticates as a Google service account through Workload Identity Federation, using the deployment's OIDC token, so no Google key is stored. Enable team OIDC federation for the Vercel project, and set `GCP_PROJECT_NUMBER`, `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID`, and `GCP_SERVICE_ACCOUNT_EMAIL`. The pool's OIDC provider uses the issuer `https://oidc.vercel.com/<team slug>` and its default audience, which the app requests from Vercel. The service account needs `roles/cloudsql.client`, and the deployment's OIDC subject, such as `owner:<team slug>:project:genomebrowser:environment:preview`, needs `roles/iam.workloadIdentityUser` on it. Each Vercel environment that connects needs its own subject binding and variables.
 
-Each server process keeps a pool of at most five connections. Run `pnpm web db:migrate` against the database before deploying code that needs a new migration; builds do not run migrations. The server reads credentials only when an operation first runs, so builds do not need them.
+Each server process keeps a pool of at most five connections. The server reads credentials only when an operation first runs, so builds do not need them.
+
+Builds do not run migrations. `pnpm web db:migrate` reads only `DATABASE_URL`, not the Cloud SQL variables, so apply reviewed migrations to Cloud SQL through the [Cloud SQL Auth Proxy](https://docs.cloud.google.com/sql/docs/postgres/connect-auth-proxy) before deploying code that needs them. Use a Google identity with Cloud SQL Client access and a PostgreSQL login allowed to change the schema:
+
+```sh
+gcloud auth application-default login
+cloud-sql-proxy --address=127.0.0.1 --port=55433 <project>:<region>:<instance>
+# In another terminal. URL-encode special characters in the password.
+DATABASE_URL='postgres://<user>:<password>@127.0.0.1:55433/<database>' pnpm web db:migrate
+```
+
+Setting `DATABASE_URL` on the command overrides the local database in `.env.local`, so the migration cannot reach the wrong server by accident.
 
 ### Sessions saved by the old server
 

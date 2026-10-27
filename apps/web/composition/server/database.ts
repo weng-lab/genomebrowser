@@ -45,7 +45,6 @@ function vercelGoogleAuth(env: Env) {
 export async function connectDatabase(env: Env): Promise<Pool> {
   const onVercel = env.VERCEL === "1";
   const instanceConnectionName = env.INSTANCE_CONNECTION_NAME;
-  let connector: Connector | undefined;
   let config: PoolConfig;
   if (instanceConnectionName) {
     const login = {
@@ -53,17 +52,14 @@ export async function connectDatabase(env: Env): Promise<Pool> {
       password: required(env, "DB_PASSWORD"),
       database: required(env, "DB_NAME"),
     };
-    connector = new Connector(onVercel ? { auth: vercelGoogleAuth(env) } : undefined);
-    try {
-      const options = await connector.getOptions({
-        instanceConnectionName,
-        ipType: IpAddressTypes.PUBLIC,
-      });
-      config = { ...options, ...login };
-    } catch (error) {
-      connector.close();
-      throw error;
-    }
+    const connector = new Connector(onVercel ? { auth: vercelGoogleAuth(env) } : undefined);
+    // A failed first refresh schedules nothing, so the connector needs no cleanup.
+    // Its close() would also leave an unhandled rejection for the failed instance.
+    const options = await connector.getOptions({
+      instanceConnectionName,
+      ipType: IpAddressTypes.PUBLIC,
+    });
+    config = { ...options, ...login };
   } else {
     const url = env.DATABASE_URL;
     if (!url)

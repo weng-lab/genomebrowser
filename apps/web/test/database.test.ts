@@ -99,10 +99,11 @@ it("uses local Google credentials for Cloud SQL outside Vercel", async () => {
   expect(mocks.attach).not.toHaveBeenCalled();
 });
 
-it("closes the connector when Cloud SQL is unavailable", async () => {
+it("reports Cloud SQL being unavailable without closing the failed connector", async () => {
+  // The connector's close() rejects unhandled after a failed first refresh, which can end the process.
   mocks.getOptions.mockRejectedValueOnce(new Error("Google temporarily unavailable"));
   await expect(connectDatabase(cloudEnv)).rejects.toThrow("Google temporarily unavailable");
-  expect(mocks.close).toHaveBeenCalledTimes(1);
+  expect(mocks.close).not.toHaveBeenCalled();
   expect(mocks.pool).not.toHaveBeenCalled();
 });
 
