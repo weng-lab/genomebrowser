@@ -12,7 +12,7 @@ This page lists what to replace before Production serves real users. For how the
 | `DB_NAME`                                                                                       | `genomebrowser-dev`                                                     | A separate production database                                                      |
 | `DB_USER`, `DB_PASSWORD`                                                                        | Development login                                                       | A production login with only the privileges the app needs                           |
 | `GCP_SERVICE_ACCOUNT_EMAIL`                                                                     | `genomebrowser-preview@devenv-215523.iam.gserviceaccount.com`           | A production service account                                                        |
-| `GCP_PROJECT_NUMBER`, `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | `devenv-215523` project, `genomebrowser-vercel` pool, `vercel` provider | Can stay; change only if production moves to another Google Cloud project           |
+| `GCP_PROJECT_NUMBER`, `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | `devenv-215523` project, `vercel` pool, `vercel` provider | Can stay; change only if production moves to another Google Cloud project           |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`                                         | Clerk development instance                                              | Clerk production instance keys                                                      |
 
 Set the replacements on the Production environment only, and leave Preview on the development resources.

@@ -22,20 +22,16 @@ function vercelGoogleAuth(env: Env) {
   const poolId = required(env, "GCP_WORKLOAD_IDENTITY_POOL_ID");
   const providerId = required(env, "GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID");
   const serviceAccount = required(env, "GCP_SERVICE_ACCOUNT_EMAIL");
-  // Google's token exchange names the provider by resource name. The provider's
-  // default audience, which Vercel must set on its OIDC token, is that name over HTTPS.
-  const provider = `//iam.googleapis.com/projects/${projectNumber}/locations/global/workloadIdentityPools/${poolId}/providers/${providerId}`;
-  const tokenAudience = `https:${provider}`;
   return new IdentityPoolClient({
-    audience: provider,
+    // Google's token exchange names the provider by its resource name.
+    audience: `//iam.googleapis.com/projects/${projectNumber}/locations/global/workloadIdentityPools/${poolId}/providers/${providerId}`,
     subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
     token_url: "https://sts.googleapis.com/v1/token",
     service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${serviceAccount}:generateAccessToken`,
     scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    // The provider allows the audience of Vercel's own token, `https://vercel.com/<team slug>`.
     // Vercel rotates the token, so read it again whenever Google credentials refresh.
-    subject_token_supplier: {
-      getSubjectToken: () => getVercelOidcToken({ audience: tokenAudience }),
-    },
+    subject_token_supplier: { getSubjectToken: () => getVercelOidcToken() },
   });
 }
 
