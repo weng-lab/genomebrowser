@@ -79,16 +79,17 @@ it("uses Cloud SQL on Vercel with a fresh OIDC token on each credential refresh"
   expect(mocks.attach).toHaveBeenCalledTimes(1);
 
   const auth = mocks.auth.mock.calls[0][0];
-  expect(auth.audience).toBe(
-    "https://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/vercel/providers/preview",
-  );
+  const provider =
+    "//iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/vercel/providers/preview";
+  // Google's token exchange takes the resource name; the OIDC token carries its HTTPS form.
+  expect(auth.audience).toBe(provider);
   expect(auth.service_account_impersonation_url).toBe(
     `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${cloudEnv.GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
   );
   mocks.token.mockResolvedValueOnce("first-token").mockResolvedValueOnce("refreshed-token");
   await expect(auth.subject_token_supplier.getSubjectToken()).resolves.toBe("first-token");
   await expect(auth.subject_token_supplier.getSubjectToken()).resolves.toBe("refreshed-token");
-  expect(mocks.token).toHaveBeenCalledWith({ audience: auth.audience });
+  expect(mocks.token).toHaveBeenCalledWith({ audience: `https:${provider}` });
 });
 
 it("uses local Google credentials for Cloud SQL outside Vercel", async () => {
