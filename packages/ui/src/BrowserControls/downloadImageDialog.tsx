@@ -151,6 +151,8 @@ function DownloadImageContent({
     await nextPaint();
     if (!isOpen.current) return;
     const options = { ...contents, filename };
+    // The guard below checks whether the dialog closed during the download.
+    // react-doctor-disable-next-line react-doctor/async-defer-await
     const downloaded = await download(format, format === "png" ? { ...options, scale } : options);
     if (!isOpen.current) return;
     setIsStarting(false);

@@ -94,18 +94,17 @@ export function connectRemoteControl(
             reply(command.commandId, { ok: false, code: "SESSION_CLOSED", error }, true);
             return;
           }
-          void executeCommand(app, command, commandSignal(command.expiresAt))
-            .catch(
-              (): CommandResult => ({
-                ok: false,
-                code: "COMMAND_FAILED",
-                error: "The command failed in the browser tab",
-              }),
-            )
-            .then((result) => {
-              // The connection may have closed while the command ran.
-              if (attached) reply(command.commandId, result, signal.aborted || !receiving);
-            });
+          // The connection may have closed while the command ran.
+          const finish = (result: CommandResult) => {
+            if (attached) reply(command.commandId, result, signal.aborted || !receiving);
+          };
+          executeCommand(app, command, commandSignal(command.expiresAt)).then(finish, () =>
+            finish({
+              ok: false,
+              code: "COMMAND_FAILED",
+              error: "The command failed in the browser tab",
+            }),
+          );
         } catch {
           if (receiving && !signal.aborted) restart();
         }
