@@ -2,7 +2,7 @@ import { getSessions } from "../../../../composition/server";
 import { readSessionUpdate, respond } from "../../../../features/sessions/server/http";
 
 export function GET(_request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
-  return respond(async () => getSessions().load((await params).id));
+  return respond(async () => (await getSessions()).load((await params).id));
 }
 
 /**
@@ -11,10 +11,10 @@ export function GET(_request: Request, { params }: RouteContext<"/api/sessions/[
  */
 export function PUT(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
   return respond(async () =>
-    getSessions().update((await params).id, await readSessionUpdate(request)),
+    (await getSessions()).update((await params).id, await readSessionUpdate(request)),
   );
 }
 
 export function DELETE(_request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
-  return respond(async () => getSessions().remove((await params).id));
+  return respond(async () => (await getSessions()).remove((await params).id));
 }

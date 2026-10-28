@@ -69,7 +69,7 @@ Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `
 Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
 ```ts
-const sessions = getSessions();
+const sessions = await getSessions();
 const saved = await sessions.create({ name: "Promoter scan", snapshot });
 await sessions.update(saved.id, {
   name: saved.name,
@@ -85,7 +85,22 @@ await sessions.update(saved.id, {
 
 The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a connection that may create databases, such as `postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postgres` with the compose database. Each run creates and drops its own database. Without the variable, the tests are skipped locally and fail in CI, which runs a PostgreSQL service.
 
-In production, set `DATABASE_URL` to the Google Cloud SQL instance. The `pg` driver accepts standard PostgreSQL URLs, including SSL options such as `sslmode` and `sslrootcert` for a public IP, or a Unix socket host such as `/cloudsql/<project>:<region>:<instance>` when the Cloud SQL Auth Proxy provides one. Run `pnpm web db:migrate` against that database before deploying code that needs a new migration. The server reads credentials only when an operation first runs, so builds do not need them.
+In production, sessions use Google Cloud SQL through Google's Cloud SQL connector, which encrypts the connection to the instance's public IP without authorized networks. Set `INSTANCE_CONNECTION_NAME` (`<project>:<region>:<instance>`), `DB_NAME`, `DB_USER`, and `DB_PASSWORD`; `DATABASE_URL` is then ignored, and missing Cloud SQL settings fail instead of falling back to it. Outside Vercel, the connector uses the machine's Google application default credentials.
+
+On Vercel, the connector authenticates as a Google service account through Workload Identity Federation, using the deployment's OIDC token, so no Google key is stored. Enable team OIDC federation for the Vercel project, and set `GCP_PROJECT_NUMBER`, `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID`, and `GCP_SERVICE_ACCOUNT_EMAIL`. The pool's OIDC provider uses the issuer `https://oidc.vercel.com/<team slug>` and allows the audience `https://vercel.com/<team slug>`, which Vercel's OIDC token carries. The service account needs `roles/cloudsql.client`, and the deployment's OIDC subject, such as `owner:<team slug>:project:genomebrowser:environment:preview`, needs `roles/iam.workloadIdentityUser` on it. Each Vercel environment that connects needs its own subject binding and variables.
+
+Each server process keeps a pool of at most five connections. The server reads credentials only when an operation first runs, so builds do not need them.
+
+Builds do not run migrations. `pnpm web db:migrate` reads only `DATABASE_URL`, not the Cloud SQL variables, so apply reviewed migrations to Cloud SQL through the [Cloud SQL Auth Proxy](https://docs.cloud.google.com/sql/docs/postgres/connect-auth-proxy) before deploying code that needs them. Use a Google identity with Cloud SQL Client access and a PostgreSQL login allowed to change the schema:
+
+```sh
+gcloud auth application-default login
+cloud-sql-proxy --address=127.0.0.1 --port=55433 <project>:<region>:<instance>
+# In another terminal. URL-encode special characters in the password.
+DATABASE_URL='postgres://<user>:<password>@127.0.0.1:55433/<database>' pnpm web db:migrate
+```
+
+Setting `DATABASE_URL` on the command overrides the local database in `.env.local`, so the migration cannot reach the wrong server by accident.
 
 ### Sessions saved by the old server
 
@@ -143,6 +158,6 @@ pnpm --filter @weng-lab/mcp start
 
 Run Next.js and, for agent control, the MCP server as separate processes. Set `GB_SERVER_URL` before `next build` if the server is not at `http://127.0.0.1:3001`. For an HPC deployment reached through an SSH tunnel, forwarding web port 3000 is sufficient because the rewrites reach the server on loopback. Set `GB_ALLOWED_ORIGINS` if the browser uses a different web origin.
 
-For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. Sessions need only Next.js and PostgreSQL; MCP needs the separate server.
+For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. Sessions need Next.js, PostgreSQL, and Clerk: set the [Cloud SQL variables](#database), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, and `CLERK_SECRET_KEY` for each Vercel environment. The publishable key is embedded at build time, so redeploy after changing it. MCP needs the separate server.
 
 The MCP server has no authentication and rejects non-loopback hosts. Add authentication and session authorization for tab streams and MCP before deploying it beyond loopback. It needs a persistent process for long-lived SSE streams and pending commands.
