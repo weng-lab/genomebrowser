@@ -1,4 +1,5 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
+const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 // Preserve presentation inherited from the embedding page in a standalone image.
 const presentationProperties = [
@@ -232,12 +233,15 @@ function createCopier(
 
 // Measure each element's non-inherited defaults in one detached-from-layout batch.
 function measureDefaults(document: Document) {
-  const host = document.createElementNS(SVG_NS, "svg");
+  const host = document.createElementNS(HTML_NS, "div") as HTMLDivElement;
   host.setAttribute("aria-hidden", "true");
   host.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none";
+  // Page stylesheets do not reach a shadow tree, so these match a standalone image's defaults.
+  const reference = document.createElementNS(SVG_NS, "svg");
+  host.attachShadow({ mode: "closed" }).append(reference);
   const elements = defaultTags.map((tag) => {
     const element = document.createElementNS(SVG_NS, tag);
-    host.append(element);
+    reference.append(element);
     return [tag, element] as const;
   });
   (document.body ?? document.documentElement).append(host);
