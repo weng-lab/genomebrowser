@@ -11,6 +11,7 @@ The pages here provide product context and explain the repository behind it. The
 - [Feature boundaries](features.md): where app responsibilities live and why.
 - [Agent access and control](agent-auth.md): the launch control model, authorization needs, and open implementation choices.
 - [Limitations](limitations.md): known constraints and deployment gaps in the current app.
+- [Production deployment](production.md): development resources the beta Production environment shares with previews, and what to replace before launch.
 
 Implementation workflows belong in repository skills. Import boundaries are checked by lint; behavior belongs in schemas, runtime checks, and tests. [Feature boundaries](features.md#enforcement-and-working-guidance) links to those mechanisms.
 
@@ -34,7 +35,7 @@ The MCP server keeps connected tabs and their pending commands in process memory
 
 The server holds a persistent SSE connection to each browser tab. Cloud Run closes it at the [request timeout](https://docs.cloud.google.com/run/docs/configuring/request-timeout), 5 minutes by default and at most 60. The tab then reconnects, possibly to another instance. Commands in flight when the stream closes fail and are not replayed.
 
-The deployment plan uses PostgreSQL on Google Cloud SQL in production and local PostgreSQL for development, with the same Drizzle schema and migrations. Local development can use mock identity through the same server-side identity boundary. See [feature boundaries](features.md) for composition. The Next.js app uses the `pg` driver with a `DATABASE_URL` connection string.
+The deployment plan uses PostgreSQL on Google Cloud SQL in production and local PostgreSQL for development, with the same Drizzle schema and migrations. Local development can use mock identity through the same server-side identity boundary. See [feature boundaries](features.md) for composition. The Next.js app uses the `pg` driver, connecting locally with a `DATABASE_URL` connection string and on Vercel through Google's Cloud SQL connector with Vercel OIDC credentials.
 
 For current implementation and setup, see the [web app guide](../../apps/web/README.md) and [server guide](../../apps/server/README.md).
 

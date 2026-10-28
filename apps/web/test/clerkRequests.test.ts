@@ -118,6 +118,8 @@ describe.skipIf(!testServerUrl)("Clerk requests", () => {
 
   it("fails clearly when a route is outside the proxy", async () => {
     routeHeaders = new Headers();
-    await expect(getSessions().list()).rejects.toThrow("can't detect usage of clerkMiddleware()");
+    await expect((await getSessions()).list()).rejects.toThrow(
+      "can't detect usage of clerkMiddleware()",
+    );
   });
 });
