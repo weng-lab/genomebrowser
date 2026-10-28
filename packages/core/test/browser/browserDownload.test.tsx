@@ -9,6 +9,8 @@ import {
   createBrowserStore,
   createTrackStore,
   defineTrackModule,
+  exportBrowserImage,
+  saveBrowserImage,
   useBrowserDownload,
   type BrowserDownload,
   type BrowserStoreInstance,
@@ -222,7 +224,7 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     expect(saved).toHaveLength(0);
   });
 
-  it("cancels a pending PNG when a track is removed", async () => {
+  it("cancels a pending PNG when a track is removed and says why", async () => {
     const { useTrackStore } = await mount();
     let result: Promise<boolean>;
     await act(async () => {
@@ -234,7 +236,7 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     await act(async () => useTrackStore.getState().removeTrack("second"));
     expect(await result!).toBe(false);
     expect(saved).toHaveLength(0);
-    expect(api.error).toBeNull();
+    expect(api.error).toBe("The tracks changed while the image was being prepared.");
   });
 
   it("reports loading tracks and a browser that is not mounted", async () => {
@@ -323,6 +325,37 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     const firstPlot = frameAttribute(container, "first", "data-track-height") - titles[0];
     expect(second.getAttribute("transform")).toBe(`translate(0,${firstPlot - titles[1]})`);
     expect(image.querySelectorAll("[data-feature]")).toHaveLength(2);
+  });
+
+  it("prepares an image without saving it until asked, and stops when cancelled", async () => {
+    const { useBrowserStore, height } = await mount();
+    let pending: Promise<Awaited<ReturnType<typeof exportBrowserImage>>>;
+    await act(async () => {
+      pending = exportBrowserImage(useBrowserStore, "png", { scale: 2, filename: "Figure" });
+    });
+    await act(async () => image.onload?.());
+    const png = await pending!;
+    expect(png).toMatchObject({
+      format: "png",
+      filename: "Figure.png",
+      width: 1600,
+      height: Math.ceil(height * 2),
+    });
+    expect(png.blob.type).toBe("image/png");
+    expect(saved).toEqual([]);
+    saveBrowserImage(png);
+    expect(saved).toEqual(["Figure.png"]);
+
+    const controller = new AbortController();
+    let cancelled: Promise<unknown>;
+    await act(async () => {
+      cancelled = exportBrowserImage(useBrowserStore, "png", {}, controller.signal);
+    });
+    controller.abort(new Error("Stopped"));
+    await expect(cancelled!).rejects.toThrow("Stopped");
+    await expect(exportBrowserImage(useBrowserStore, "svg", {}, controller.signal)).rejects.toThrow(
+      "Stopped",
+    );
   });
 
   it("names files after the region unless a name is given", async () => {

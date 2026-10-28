@@ -30,7 +30,7 @@ export function ExportButtons({ browserStore }: { browserStore: BrowserStoreInst
 }
 ```
 
-Pass the same `browserStore` given to a mounted `GenomeBrowser`. When no browser is mounted with that store, `download` reports an error.
+Pass the same `browserStore` given to a mounted `GenomeBrowser`. When no browser is mounted with that store, `download` reports an error. To show the image before saving it, use [exportBrowserImage](exportBrowserImage.md).
 
 ## API
 
@@ -61,7 +61,7 @@ function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserDownload
 | `includeRuler`  | `boolean`              | `true`   | Include tracks whose module declares `isRuler`. When `false`, the tracks below move up to close the gap. |
 | `filename`      | `string`               | —        | File name without its extension. A matching extension is dropped, and blank names use `defaultFilename`. |
 
-`download` resolves `true` after requesting a browser download, and `false` on failure, cancellation, or a concurrent call through the same hook. It refuses while any track is loading. Tracks with data errors are exported as rendered. A pending PNG is cancelled when tracks are added, removed, reordered, or changed. `defaultFilename` contains the chromosome and one-based visible coordinates, such as `genome-browser_chr1_1001-2000`, and updates as the region changes. Use it as a placeholder for a file name field. Without a `filename`, `download` uses the default for the region captured when it is called. Characters that file systems reject are replaced with `_`, and the format's extension is added.
+`download` resolves `true` after requesting a browser download, and `false` on failure, cancellation, or a concurrent call through the same hook. It refuses while any track is loading. Tracks with data errors are exported as rendered. A pending PNG is cancelled when tracks are added, removed, reordered, or changed, and `error` says so. `defaultFilename` contains the chromosome and one-based visible coordinates, such as `genome-browser_chr1_1001-2000`, and updates as the region changes. Use it as a placeholder for a file name field. Without a `filename`, `download` uses the default for the region captured when it is called. Characters that file systems reject are replaced with `_`, and the format's extension is added.
 
 ## Image contents and size
 

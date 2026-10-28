@@ -182,6 +182,77 @@ it("keeps saving while the MCP server is unavailable, then reconnects", async ()
   expect(region()).toBe("chr2:2,001-3,000");
 });
 
+const exportImage = (params: object, expiresAt = Date.now() + 5000) =>
+  act(async () => latest().send({ commandId, name: "export_image", expiresAt, params }));
+const preview = () => document.querySelector('[aria-labelledby="agent-image-preview-title"]');
+
+/** Object URLs and anchor clicks are the download boundary; jsdom has neither. */
+function stubDownloads() {
+  const saved: string[] = [];
+  vi.stubGlobal(
+    "URL",
+    class extends URL {
+      static createObjectURL = () => "blob:export";
+      static revokeObjectURL = vi.fn<(url: string) => void>();
+    },
+  );
+  const click = HTMLAnchorElement.prototype.click;
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
+    function (this: HTMLAnchorElement) {
+      if (this.download) saved.push(this.download);
+      else click.call(this);
+    },
+  );
+  return saved;
+}
+
+it("shows an exported image to the user and saves it only when they download it", async () => {
+  const saved = stubDownloads();
+  await enableRemoteControl();
+  await act(async () => route.back());
+  await exportImage({ format: "svg", filename: "Figure 1", includeTitles: false });
+  await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
+  const { result } = reply();
+  expect(result).toMatchObject({ ok: true, value: { filename: "Figure 1.svg", format: "svg" } });
+  expect(result.value.width).toBeGreaterThan(0);
+  expect(preview()?.textContent).toContain("Figure 1.svg · SVG");
+  expect(preview()?.querySelector("img")?.getAttribute("src")).toBe("blob:export");
+  expect(saved).toEqual([]);
+
+  await act(async () =>
+    [...preview()!.querySelectorAll("button")]
+      .find((button) => button.textContent === "Download SVG")!
+      .click(),
+  );
+  expect(saved).toEqual(["Figure 1.svg"]);
+  await vi.waitFor(() => expect(preview()).toBeNull());
+});
+
+it("reports an export failure to the agent without showing a preview", async () => {
+  stubDownloads();
+  await enableRemoteControl();
+  // The Settings page is open, so no browser is rendered to capture.
+  await exportImage({});
+  await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
+  expect(reply().result).toEqual({
+    ok: false,
+    code: "EXPORT_FAILED",
+    error: "The genome browser is not currently rendered.",
+  });
+  expect(preview()).toBeNull();
+});
+
+it("cancels an export that outlasts its command, without showing a preview", async () => {
+  // jsdom never loads the image that PNG encoding waits for.
+  stubDownloads();
+  await enableRemoteControl();
+  await act(async () => route.back());
+  await exportImage({ format: "png" }, Date.now() + 100);
+  await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
+  expect(reply().result).toMatchObject({ ok: false, code: "CANCELLED" });
+  expect(preview()).toBeNull();
+});
+
 /** A real pending HTTP reply: aborting the request rejects it. */
 function holdReply() {
   let release!: (response: Response) => void;

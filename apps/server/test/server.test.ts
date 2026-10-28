@@ -123,11 +123,17 @@ test("an MCP tool call runs in the session's tab and returns the tab's result", 
   expect(result.structuredContent).toEqual({ region, clamped: false });
 });
 
-test("lists the region tool, with a session ID and its result schema", async () => {
+test("lists each tool, with a session ID and its result schema", async () => {
   const { tools } = await agent.listTools();
-  expect(tools.map((tool) => tool.name)).toEqual(["set_region"]);
-  expect(tools[0].inputSchema.required).toEqual(expect.arrayContaining(["sessionId", "region"]));
-  expect(tools[0].outputSchema?.required).toEqual(["region", "clamped"]);
+  expect(tools.map((tool) => tool.name)).toEqual(["set_region", "export_image"]);
+  const [region, image] = tools;
+  expect(region.inputSchema.required).toEqual(expect.arrayContaining(["sessionId", "region"]));
+  expect(region.outputSchema?.required).toEqual(["region", "clamped"]);
+  // Image settings have defaults, so agents only need the session.
+  expect(image.inputSchema.required).toEqual(["sessionId"]);
+  expect(Object.keys(image.inputSchema.properties ?? {})).toEqual(
+    expect.arrayContaining(["format", "scale", "includeTitles", "includeRuler", "filename"]),
+  );
 });
 
 test.each([

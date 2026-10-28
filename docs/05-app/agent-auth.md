@@ -1,6 +1,6 @@
 # Agent access and control
 
-This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and one `set_region` tool. Integrated chat, authenticated MCP access, and exclusive human/agent control are not implemented yet.
+This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and two tools: `set_region` and `export_image`, which shows the user an image preview with a Download button. Integrated chat, authenticated MCP access, and exclusive human/agent control are not implemented yet.
 
 ## A control surface for the active session
 

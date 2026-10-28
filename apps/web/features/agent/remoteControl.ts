@@ -8,7 +8,9 @@ export type RemoteControlState = "off" | "connecting" | "connected";
  * Accept agent commands for one session from the MCP server until `signal`
  * aborts, then disconnect. Only the first tab to connect receives them; other
  * tabs keep retrying until it closes. Commands are never replayed, and a command
- * that arrives once `signal` has aborted fails without running.
+ * that arrives once `signal` has aborted fails without running. A command still
+ * running when the session closes, the tab detaches, or the command expires is
+ * cancelled.
  */
 export function connectRemoteControl(
   rpcUrl: string,
@@ -17,7 +19,16 @@ export function connectRemoteControl(
   onState: (state: RemoteControlState) => void,
 ) {
   const lifetime = Scope.makeUnsafe();
+  const detached = new AbortController();
   let attached = true;
+
+  // The server stops waiting at `expiresAt`, so later effects would contradict its reply.
+  const commandSignal = (expiresAt: number) =>
+    AbortSignal.any([
+      signal,
+      detached.signal,
+      AbortSignal.timeout(Math.max(0, expiresAt - Date.now())),
+    ]);
 
   const stopped = Effect.callback<void>((resume) => {
     const stop = () => resume(Effect.void);
@@ -77,12 +88,24 @@ export function connectRemoteControl(
         try {
           const command = commandMessageSchema.parse(JSON.parse(event.data));
           if (Date.now() >= command.expiresAt) return;
-          // This check must run synchronously, before React's effect cleanup.
-          const closed = signal.aborted;
-          const result: CommandResult = closed
-            ? { ok: false, code: "SESSION_CLOSED", error: "The session is no longer open" }
-            : executeCommand(app, command);
-          reply(command.commandId, result, closed);
+          // This check, and any edit, must run synchronously, before React's effect cleanup.
+          if (signal.aborted) {
+            const error = "The session is no longer open";
+            reply(command.commandId, { ok: false, code: "SESSION_CLOSED", error }, true);
+            return;
+          }
+          void executeCommand(app, command, commandSignal(command.expiresAt))
+            .catch(
+              (): CommandResult => ({
+                ok: false,
+                code: "COMMAND_FAILED",
+                error: "The command failed in the browser tab",
+              }),
+            )
+            .then((result) => {
+              // The connection may have closed while the command ran.
+              if (attached) reply(command.commandId, result, signal.aborted || !receiving);
+            });
         } catch {
           if (receiving && !signal.aborted) restart();
         }
@@ -110,6 +133,7 @@ export function connectRemoteControl(
 
   return () => {
     attached = false;
+    detached.abort();
     Effect.runFork(Scope.close(lifetime, Exit.void));
   };
 }

@@ -32,10 +32,9 @@ export type {
   TrackImageFormat,
 } from "./browser/download/useTrackDownload";
 export { useBrowserDownload } from "./browser/download/useBrowserDownload";
-export type {
-  BrowserDownload,
-  BrowserDownloadOptions,
-} from "./browser/download/useBrowserDownload";
+export type { BrowserDownload } from "./browser/download/useBrowserDownload";
+export { exportBrowserImage, saveBrowserImage } from "./browser/download/browserImage";
+export type { BrowserDownloadOptions, BrowserImage } from "./browser/download/browserImage";
 
 // Assemblies and regions
 export { createAssemblyDefinition } from "./genome/assembly";
