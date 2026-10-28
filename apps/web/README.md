@@ -42,7 +42,7 @@ The saved-session list refreshes when the window regains focus. Visiting Setting
 
 ### Accounts
 
-Without `GB_IDENTITY`, the app uses Clerk. `proxy.ts` runs `clerkMiddleware()` on every route except static files, the root layout renders `ClerkProvider`, and `/sign-in` shows Clerk's sign-in form. The sidebar's account menu saves and closes the current session before opening Clerk's account management or signing out, or the sidebar shows a sign-in link when signed out. It replaces Clerk's user button, whose sign-out cannot wait for saving. Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` at runtime. `CLERK_JWT_KEY`, the instance's PEM public key, lets Clerk verify session tokens without fetching its keys. Without keys in development, Clerk starts its keyless mode, which creates a temporary Clerk application. The root layout renders on each request, so builds need no Clerk keys. Sign-in through a real Clerk instance has not been tested yet.
+Without `GB_IDENTITY`, the app uses Clerk. `proxy.ts` runs `clerkMiddleware()` on every route except static files, the root layout renders `ClerkProvider`, and `/sign-in` shows Clerk's sign-in form. The sidebar's account menu saves and closes the current session before opening Clerk's account management or signing out, or the sidebar shows a sign-in link when signed out. It replaces Clerk's user button, whose sign-out cannot wait for saving. Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` at runtime. `CLERK_JWT_KEY`, the instance's PEM public key, lets Clerk verify session tokens without fetching its keys. Without keys in development, Clerk starts its keyless mode, which creates a temporary Clerk application. The root layout renders on each request, so builds need no Clerk keys. Sign-in through the Clerk development instance works on Vercel deployments. A production instance accepts only its own domain; see [Deploy to Vercel](docs/02-guides/deployment.md#configure-clerk).
 
 `GB_IDENTITY=mock` makes requests act as local mock users, with no Clerk keys or Clerk service. Requests act as `mock_user_1` by default. The sidebar's person button switches to `mock_user_2` or to signed out: it closes the open session, then sets the `gb_mock_user` cookie and reloads. `/sign-in` returns 404 in this mode. Mock identity is refused when `NODE_ENV` is `production`, which includes `next start`; every request then fails with that error.
 
@@ -87,20 +87,9 @@ The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a con
 
 In production, sessions use Google Cloud SQL through Google's Cloud SQL connector, which encrypts the connection to the instance's public IP without authorized networks. Set `INSTANCE_CONNECTION_NAME` (`<project>:<region>:<instance>`), `DB_NAME`, `DB_USER`, and `DB_PASSWORD`; `DATABASE_URL` is then ignored, and missing Cloud SQL settings fail instead of falling back to it. Outside Vercel, the connector uses the machine's Google application default credentials.
 
-On Vercel, the connector authenticates as a Google service account through Workload Identity Federation, using the deployment's OIDC token, so no Google key is stored. Enable team OIDC federation for the Vercel project, and set `GCP_PROJECT_NUMBER`, `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID`, and `GCP_SERVICE_ACCOUNT_EMAIL`. The pool's OIDC provider uses the issuer `https://oidc.vercel.com/<team slug>` and allows the audience `https://vercel.com/<team slug>`, which Vercel's OIDC token carries. The service account needs `roles/cloudsql.client`, and the deployment's OIDC subject, such as `owner:<team slug>:project:genomebrowser:environment:preview`, needs `roles/iam.workloadIdentityUser` on it. Each Vercel environment that connects needs its own subject binding and variables.
+On Vercel, the connector authenticates as a Google service account through Workload Identity Federation, using the deployment's OIDC token, so no Google key is stored. Each server process keeps a pool of at most five connections. The server reads credentials only when an operation first runs, so builds do not need them.
 
-Each server process keeps a pool of at most five connections. The server reads credentials only when an operation first runs, so builds do not need them.
-
-Builds do not run migrations. `pnpm web db:migrate` reads only `DATABASE_URL`, not the Cloud SQL variables, so apply reviewed migrations to Cloud SQL through the [Cloud SQL Auth Proxy](https://docs.cloud.google.com/sql/docs/postgres/connect-auth-proxy) before deploying code that needs them. Use a Google identity with Cloud SQL Client access and a PostgreSQL login allowed to change the schema:
-
-```sh
-gcloud auth application-default login
-cloud-sql-proxy --address=127.0.0.1 --port=55433 <project>:<region>:<instance>
-# In another terminal. URL-encode special characters in the password.
-DATABASE_URL='postgres://<user>:<password>@127.0.0.1:55433/<database>' pnpm web db:migrate
-```
-
-Setting `DATABASE_URL` on the command overrides the local database in `.env.local`, so the migration cannot reach the wrong server by accident.
+Builds do not run migrations. `pnpm web db:migrate` reads only `DATABASE_URL`, so apply migrations to Cloud SQL through the Cloud SQL Auth Proxy. [Deploy to Vercel](docs/02-guides/deployment.md) covers the Google Cloud, Vercel, and Clerk setup, migrations, and the errors a misconfiguration produces.
 
 ### Sessions saved by the old server
 
@@ -158,6 +147,6 @@ pnpm --filter @weng-lab/mcp start
 
 Run Next.js and, for agent control, the MCP server as separate processes. Set `GB_SERVER_URL` before `next build` if the server is not at `http://127.0.0.1:3001`. For an HPC deployment reached through an SSH tunnel, forwarding web port 3000 is sufficient because the rewrites reach the server on loopback. Set `GB_ALLOWED_ORIGINS` if the browser uses a different web origin.
 
-For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. Sessions need Next.js, PostgreSQL, and Clerk: set the [Cloud SQL variables](#database), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, and `CLERK_SECRET_KEY` for each Vercel environment. The publishable key is embedded at build time, so redeploy after changing it. MCP needs the separate server.
+For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. Sessions need Next.js, Cloud SQL, and Clerk; follow [Deploy to Vercel](docs/02-guides/deployment.md) to configure them. MCP needs the separate server.
 
 The MCP server has no authentication and rejects non-loopback hosts. Add authentication and session authorization for tab streams and MCP before deploying it beyond loopback. It needs a persistent process for long-lived SSE streams and pending commands.
