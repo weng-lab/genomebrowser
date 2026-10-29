@@ -8,8 +8,8 @@ description: Use when writing, refactoring, or reviewing React/TypeScript compon
 Implement the smallest correct React design that fits this repo.
 
 1. Inspect nearby components, hooks, types, and the installed React/Next versions.
-2. Read [code standards](../../../docs/code_standards.md) and, when ownership moves, [feature placement](../../../docs/feature-placement.md) / [module design](../../../docs/module-design.md). Before changing a Next.js app, read that app's `node_modules/next/dist/docs/index.md`.
-3. Prefer deriving during render, effects only for external sync, current props unless initial-only is explicit, and abstractions earned from real callers. Memoization is performance, never correctness; check compiler behavior first.
+2. Read [React review guidance](../../../docs/react.md) and [code standards](../../../docs/code_standards.md) and, when ownership moves, [feature placement](../../../docs/feature-placement.md) / [module design](../../../docs/module-design.md). Before changing a Next.js app, read that app's `node_modules/next/dist/docs/index.md`.
+3. Trace current props, draft ownership, Effect cleanup, provider scope, and store subscriptions through the affected callers using that guidance.
 4. For render-count work, use the verify-renders skill.
 5. Verify with the repo's lint, typecheck, test, and [verify](../../../docs/contributing/verify.md) commands.
 

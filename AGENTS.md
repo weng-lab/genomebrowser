@@ -19,3 +19,5 @@ Read what the change needs:
 Consumer docs live in `packages/*/docs/` and ship with packages. Update them when public behavior changes. Before changing a Next.js app, read that app's installed `node_modules/next/dist/docs/index.md` and follow its version.
 
 Skills under `.agents/skills/` are thin routers into this knowledge base plus agent-only steps. Do not treat a skill as a second policy store.
+
+Before including changes from outside this session in a commit, ask the user whether to include them.

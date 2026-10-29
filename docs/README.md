@@ -23,6 +23,7 @@ If a skill and a doc disagree, fix the skill. If a doc restates what the code al
 | Where a feature belongs              | [feature-placement.md](feature-placement.md)                                                         |
 | Embedding UI conventions             | [interface-design.md](interface-design.md)                                                           |
 | Designing a module or hook           | [module-design.md](module-design.md)                                                                 |
+| React components and hooks           | [react.md](react.md)                                                                                 |
 | Issues, PRs, commits                 | [contributing/](contributing/README.md)                                                              |
 | Tests and `pnpm verify`              | [contributing/testing.md](contributing/testing.md), [contributing/verify.md](contributing/verify.md) |
 | Turbo, deps, schemas, releases       | [tooling/](tooling/README.md)                                                                        |
