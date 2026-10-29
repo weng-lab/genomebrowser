@@ -2,26 +2,20 @@
 
 pnpm monorepo for an embeddable React genome browser.
 
-## Where to look
+## Knowledge base
 
-Read the guidance relevant to the change:
+Start at [docs/README.md](docs/README.md). It is the genome browser knowledge base for agents and maintainers: decisions, vocabulary, product intent, and contribution judgment the code cannot show.
 
-- Shared project terminology: [glossary](docs/glossary.md). Use its terms consistently and suggest additions when new project-specific terms arise, grouping related terms under existing entries where possible.
-- Project structure and feature ownership: [architecture](docs/01-project/01-architecture.md) and [feature placement](docs/01-project/02-feature-placement.md).
-- App product vision and context: [app direction](docs/05-app/README.md) separates agreed MVP scope from current implementation and open choices.
-- New or substantially changed module responsibilities and interfaces: use the [architecture-design skill](.agents/skills/architecture-design/SKILL.md) before settling on a design or delegating implementation. Small fixes within an established design do not require a separate design exercise.
-- Application UI in `packages/ui` or `apps/*`: [interface design](docs/01-project/03-design.md).
-- Tests and verification: [testing](docs/02-contributing/testing.md) and [verification](docs/02-contributing/verify.md). Use `pnpm verify` for the workspace check.
-- React render behavior, re-renders, or performance in core, tracks, or UI: the `verify-renders` skill and the render budgets section of [testing](docs/02-contributing/testing.md).
-- Package scripts, Turbo, or CI orchestration: [builds](docs/03-tooling/builds.md). Shared dependency changes: [dependencies](docs/03-tooling/dependencies.md).
+Read what the change needs:
 
-Maintainer guidance lives in `docs/`. Consumer docs in `packages/*/docs/` ship with their packages; keep them self-contained and update them when public behavior changes.
+- Terms: [glossary](docs/glossary.md)
+- Principles lint cannot enforce: [code standards](docs/code_standards.md)
+- Package roles and philosophy: [architecture](docs/architecture.md), [feature placement](docs/feature-placement.md)
+- Module boundaries: [module design](docs/module-design.md); use the architecture-design skill before a substantial new seam
+- App product intent: [product](docs/product/README.md)
+- Tests and handoff: [testing](docs/contributing/testing.md), [verify](docs/contributing/verify.md)
+- Recorded decisions: [ADRs](docs/adr/README.md)
 
-Before changing a Next.js app, read that app's installed `node_modules/next/dist/docs/index.md`, then the relevant pages. Follow the installed version's guidance and deprecation warnings.
+Consumer docs live in `packages/*/docs/` and ship with packages. Update them when public behavior changes. Before changing a Next.js app, read that app's installed `node_modules/next/dist/docs/index.md` and follow its version.
 
-## Constraints
-
-- Zustand store hooks must have names starting with `use` so the React compiler recognizes them.
-- Do not invent track URLs. Use `YOUR_URL_HERE` or an existing repository URL.
-- Do not introduce compatibility layers, aliases, or temporary exports for older package versions unless explicitly asked to. If compatibility support would help, explain why before proposing it.
-- Before including changes from outside this session in a commit, ask the user whether to include them.
+Skills under `.agents/skills/` are thin routers into this knowledge base plus agent-only steps. Do not treat a skill as a second policy store.

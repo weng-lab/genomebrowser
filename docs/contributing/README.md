@@ -47,6 +47,6 @@ Use the [PR template](../../.github/pull_request_template.md). Include brief man
 
 End the description with `Closes #123` when the PR resolves that issue. Before handoff, follow [verification guidance](verify.md) and update the description, labels, and assignee to reflect the final scope. Maintainers handle merging.
 
-For changes to shared dependencies, follow the [dependency policy](../03-tooling/dependencies.md).
+For changes to shared dependencies, follow the [dependency policy](../tooling/dependencies.md).
 
-Return to [Parent documentation](../README.md).
+Return to [Knowledge base](../README.md).
