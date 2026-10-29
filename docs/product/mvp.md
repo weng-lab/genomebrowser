@@ -80,6 +80,14 @@ These are follow-ups worth keeping, not requirements hidden in the MVP:
 - **External MCP clients:** optional if time allows, otherwise later. Access needs OAuth and authorization to the user's own session.
 - **Collection sharing and chat persistence.**
 
+Other ideas retained from the former roadmap are follow-ups, not launch commitments:
+
+- **Reference data and readers:** host 2bit reference files and improve 2bit reading performance.
+- **Manual controls:** refine toolbar and highlight settings, interaction-mode buttons, cursor and vertical-guide feedback, Escape cancellation, highlight names, range ticks, and a hotkey guide. Evaluate horizontal scrolling for panning.
+- **Track workflows:** multi-select with Ctrl/Shift and mixed-value settings, aggregate or stacked tracks, track hub support, and raw data downloads. Grouped-track ownership remains [unresolved](../feature-placement.md#open-example-grouped-tracks).
+- **Embedding integrations:** refine PsychSCREEN LD/Manhattan labels, low-value SNP opacity, SNP pinning, full-width layout, and track naming. These belong to the embedding workflow rather than the product launch scope.
+- **Assembly context and settings:** evaluate assembly-specific data access and keep each settings form with its module's owner.
+
 There is no guaranteed undo in the MVP. Stopping the agent leaves completed changes in place. Users can make a session copy before experimenting, but that is not a substitute for automatic recovery.
 
 ## Still to decide

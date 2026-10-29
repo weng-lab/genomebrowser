@@ -1,6 +1,6 @@
 # Weng Lab Genome Browser
 
-This pnpm monorepo contains independently versioned packages for the Weng Lab Genome Browser. See the [release guide](docs/03-tooling/releases.md) for version selection and publication.
+This pnpm monorepo contains independently versioned packages for the Weng Lab Genome Browser. See the [release guide](docs/tooling/releases.md) for version selection and publication.
 
 ## Package map
 
@@ -25,7 +25,7 @@ Applications and their private shared packages live under `apps/`:
 
 Archived applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace and its development and verification commands.
 
-See the [maintainer docs](docs/README.md) and [contribution guide](docs/02-contributing/README.md) for repository guidance.
+See the [maintainer docs](docs/README.md) and [contribution guide](docs/contributing/README.md) for repository guidance.
 
 ## Install
 
@@ -78,7 +78,7 @@ focused work.
 
 Turborepo runs each task in the workspace
 projects that define it, follows package dependencies, and reuses results from
-its local cache. See the [build orchestration guide](docs/03-tooling/builds.md) for
+its local cache. See the [build orchestration guide](docs/tooling/builds.md) for
 filters, cache behavior, and task configuration.
 
 | Task             | Workspace           | Focused example                                                            |

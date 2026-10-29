@@ -8,7 +8,7 @@ A Vercel function reaches Cloud SQL without a stored Google key. Vercel issues e
 
 Clerk is independent of that chain. The browser loads Clerk from the instance named by the publishable key, and the server verifies sessions with the secret key from the same instance.
 
-Preview and Production currently share one Cloud SQL database and one service account, while each environment can use its own Clerk instance. [Production deployment](../../../../docs/05-app/production.md) lists what to replace before launch.
+Preview and Production currently share one Cloud SQL database and one service account, while each environment can use its own Clerk instance. [Production deployment](../../../../docs/product/production.md) lists what to replace before launch.
 
 The commands below use placeholders such as `PROJECT_ID` and `INSTANCE_CONNECTION_NAME`. The values for the current deployment are in the Vercel project's environment variables, which team members can read under **Settings → Environment Variables**, and in the Google Cloud console. Keep them out of this repository, which is public.
 

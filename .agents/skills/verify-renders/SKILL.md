@@ -5,21 +5,11 @@ description: Use whenever changing, refactoring, or reviewing React components, 
 
 # Verify renders
 
-Render budgets are exact, inline-snapshot counts of committed renders for common interactions. A higher count fails `pnpm verify`, so an unintended re-render cannot land silently. A lower count is accepted by updating the snapshot and shows up as a smaller number in the diff. Core's budgets live in `packages/core/test/renders/`. The API and counting rules are in [render-probe's README](../../../packages/render-probe/README.md).
+Render budgets are exact inline-snapshot counts of committed renders. Higher counts fail `pnpm verify`. Core scenarios: `packages/core/test/renders/`. API: [render-probe README](../../../packages/render-probe/README.md). Policy: [testing](../../../docs/contributing/testing.md).
 
-## Workflow
-
-1. **Measure first.** Run the relevant budgets before changing code, such as `pnpm core test renders`, or the affected package's render tests. A known baseline is the only way to tell whether a change helped.
-2. **Cover the interaction.** If the change affects an interaction that no scenario covers, add one before changing code: mount with `renderWithProbe`, drive the interaction through the store actions an application would call inside `probe.measure`, and snapshot the relevant components with `pick`. Explain above the scenario which store action it exercises.
-3. **Classify every render** in the affected snapshots as necessary, meaning the component shows new data, a new region, or new configuration, or as wasteful. Use `report.why(name)` and `console.log(String(report))` to see which prop, state, context, or parent render caused each one. Update the necessary-render comment above the snapshot when that judgment changes.
-4. **Fix root causes** in this order of preference, because earlier fixes remove work without adding comparison overhead:
-   - Narrow Zustand selectors, or subscribe lower in the tree so that only the component showing a value reads it.
-   - Keep context values stable. Move frequently changing values into a store read through selectors.
-   - Stop creating new objects and functions during render when they pass through props or context.
-   - Move state down, or pass JSX as `children` so that a parent's state change does not re-render them.
-   - Use `memo` last, and only when a measurement shows it prevents renders.
-5. **Update budgets deliberately.** Run `vitest -u` only after confirming that every changed number is intended. A higher number needs a justification in the PR description. A lower number is a result to report.
-6. **Report** a before and after table of changed counts for each scenario in the PR description.
-7. Run `pnpm verify` before handoff, following [verifying changes](../../../docs/02-contributing/verify.md).
-
-For broader React design guidance, use the `react-best-practices` skill rather than repeating it here.
+1. Measure before changing (`pnpm core test renders` or the package's render tests).
+2. If the interaction has no scenario, add one (`renderWithProbe`, drive via real store actions inside `probe.measure`, `pick` components).
+3. Classify each render as necessary (new data/region/config) or wasteful (`report.why`).
+4. Fix causes in order: narrower selectors; stable context; avoid new objects/functions as props; state down / children; `memo` last.
+5. Update snapshots with `vitest -u` only when every changed number is intended. Report before/after in the PR.
+6. Run `pnpm verify` before handoff ([verify](../../../docs/contributing/verify.md)).

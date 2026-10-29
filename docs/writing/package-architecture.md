@@ -65,4 +65,4 @@ Update the affected canonical pages and export index when behavior changes. Reor
 
 Retire legacy pages after their useful tutorial, guide, or troubleshooting content has a current home or has deliberately been retired, and update inbound links. Complete export coverage alone does not replace those workflows.
 
-For API grouping and completeness, see [API reference writing](apiReference.md). Repository-only guidance follows [Maintainer documentation](maintainerDocs.md).
+For API grouping and completeness, see [API reference writing](api-reference.md). Repository-only guidance follows [Knowledge base](../README.md).

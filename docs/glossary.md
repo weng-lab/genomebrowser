@@ -1,106 +1,41 @@
 # Project glossary
 
+Prefer these terms in issues, docs, and discussion. Preserve exact API names in code talk. Suggest additions when a recurring project concept needs a shared name; prefer nesting under an existing entry.
+
 ## Browser and coordinates
 
-### Browser instance
+**Browser instance** - One mounted `GenomeBrowser` with its own rendering and track resources. Instances may share application-owned stores. The **host application** embeds the browser. **Browser context** (`useGenomeBrowser()`) gives hosted UI access to that instance's stores.
 
-One mounted `GenomeBrowser`, with its own rendering, fetched results, and track resources. Instances can share application-owned stores while retaining separate rendering and data lifetimes. The **host application** is the website embedding the browser. **Browser context** gives hosted renderers, settings, and tooltips access to that instance's stores through `useGenomeBrowser()`.
+**Browser store / track store** - Application-owned stores: assembly, viewport, highlights, and settings versus modules, instances, order, and config. A **session** is the app's saved browsing setup, not either store object.
 
-### Browser store and track store
+**Viewport** - Visible genomic span. **Zoom** changes that span; **scale** changes drawing/control size. **Render region** is the span prepared for drawing, including **overscan** beyond the viewport for panning.
 
-The two application-owned stores controlling a browser. The **browser store** holds the assembly, viewport region, highlights, and browser settings. The **track store** holds registered modules, track instances, their order, and their configuration. Sharing a store lets multiple browser instances or controls operate on the same state. A **session** is the application's saved or restorable browsing setup, rather than either store object itself.
+**Coordinate space** - Genomic bases, logical SVG units, or screen pixels; say which. Internal regions are zero-based half-open ([ADR 0006](adr/0006-internal-zero-based-coordinates.md)). **Display coordinates** are one-based inclusive text people type (UCSC-style); convert only at human boundaries.
 
-### Viewport
+## Tracks
 
-The genomic span currently visible in the browser, also called the **visible region**. Use viewport when discussing what the user sees. **Zoom** changes that genomic span; **scale** changes the physical size of the drawing and controls.
+**Track / track instance** - One configured visualization (runtime object with id, type, config, optional interactions). **Pinned** means excluded from ordinary drag reorder, not sticky scroll.
 
-### Render region
+**Track module** - Reusable type implementation (fetcher, renderers, validation, optional settings/tooltips). The **module registry** maps type ids to modules (the store's registration map, not an ad hoc global).
 
-The genomic span prepared for drawing, including **overscan**, the extra coverage beyond the viewport used during panning. Each track has its own render region, the span its current data covers, so tracks can differ while one is still loading. A renderer positions its data using the region and width supplied with that data. The visible region can differ from this render region.
+**Display mode** - Module drawing choice (`base.display`). Distinct from a **collection view** (catalog organization).
 
-### Overscan
+**Base-pair detail** - Per-base glyphs; gated by visible-span cutoff and width via `useBasePairDetail`.
 
-The extra genomic coverage prepared beyond the viewport’s edges, allowing existing track content to move into view immediately during panning while new data loads. A drag stops where a track’s overscan ends, and a pan that leaves at least half a viewport of overscan on each side needs no new request.
+**Track configuration** - `base` (id, title, color, height, display) plus module `config`. **Source ownership** (`host` | `user`) records who controls the data source; core does not enforce which fields are editable.
 
-> viewport = visible coverage; render region = viewport plus overscan.
+**Track anatomy** - **Frame** (core chrome), **margin** (color/controls/drag), **plot** (data area), **overlay** (`TrackOverlay`, viewport-anchored).
 
-### Coordinate space
+**Row layout** - Packing items into rows inside a track; **row height** vs **track height**; distinct from track order.
 
-The system used to express positions and sizes. **Genomic coordinates** locate bases, **logical SVG coordinates** position the drawing before UI scale is applied, and **screen pixels** describe its displayed size. Specify the space when discussing widths, pointer movement, or alignment.
+## Collections and fetching
 
-Inside the browser, genomic regions are zero-based and half-open: `[100, 200)` starts at the 101st base and excludes position 200. Stores, track fetchers, renderers, and interaction callbacks all use this convention. **Display coordinates** are the one-based, inclusive positions people read and type, as in the UCSC Genome Browser, so the same region appears as `chr1:101-200`. Convert only where positions meet people, using `formatDisplayRegion` and `parseDisplayRegion`.
+**Track collection** - Catalog of configured tracks for one assembly. Entries are not loaded until selected. **Qualified track id** (`collection::entry`) identifies selection in `TrackSelect`.
 
-File readers must return zero-based, half-open records whatever convention the format uses. Current readers need no conversion. A reader for a one-based format, such as SAM text, VCF, or GTF, must convert its positions before returning them.
+**Render demand** - Region and width core asks a fetcher to satisfy. **Fetch-affecting config** is marked `fetchOnChange`.
 
-## Tracks and presentation
-
-### Track
-
-One configured visualization in the browser. **Track instance** specifically means its runtime object, with an ID, type, configuration, and optional interaction callbacks. One track can contain several internal rows or combine several datasets. A **pinned track** is excluded from ordinary drag reordering; pinning does not mean sticky scrolling.
-
-### Track module
-
-The reusable implementation of a track type. Its **fetcher** produces data for a request, and its **renderers** draw that data. The module also defines configuration validation and can provide settings and tooltips. Fetchers can return local data without a network request. The **module registry** maps registered type identifiers to their modules. Several track instances can use the same module.
-
-### Display mode
-
-A module-supported way to draw a track's data, selected by `base.display`. Each mode has a renderer. Use display mode for a visualization choice, and collection view for a way of organizing a catalog.
-
-### Base-pair detail
-
-Per-base content such as ruler reference letters, BAM sequence letters, or dynseq nucleotide glyphs. The browser's **base-pair detail gate** combines a configurable visible-span cutoff with a width guard. Fetch demand reports eligibility from the bp cutoff; renderers use `useBasePairDetail` for the width-aware decision. The width guard has separate entry and exit thresholds to avoid repeated switching during small resizes.
-
-### Track configuration
-
-The configured values for one track. **Base settings**, stored in `base`, include ID, title, color, height, and display mode. Reserve **config** for the module-specific `config` object, such as source URLs and filtering thresholds. A module's **config schema** defines valid values and defaults. **Track settings** can refer to the controls used to edit these values.
-
-### Track anatomy
-
-The named parts of a displayed track:
-
-- **Frame**: the structure supplied by core around the drawing, including its title, margin, and controls.
-- **Margin**: the strip left of the data containing the color indicator and controls, also used for drag reordering.
-- **Plot**: the genomic drawing area, excluding the margin and title. Also called the data area.
-- **Overlay**: drawing anchored to the visible plot instead of moving with panning content, as provided by `TrackOverlay`.
-
-Use these names to identify where a change belongs, such as "add a control to the margin" or "keep the label in an overlay."
-
-### Row layout
-
-The arrangement of items into rows inside a track. **Packing** places items into rows to avoid overlap. **Row height** is the vertical space for one internal row; **track height** is the height allocated to the track's plot. Use track order for the arrangement of whole tracks, so "row" does not ambiguously refer to both levels.
-
-## Collections and ownership
-
-### Track collection
-
-A reusable catalog of configured tracks for one assembly. A **collection entry** describes an available track; a **track instance** is the runtime object created from it. Listing an entry does not load it into the browser.
-
-**Metadata** describes and organizes entries separately from runtime config. A **collection view** specifies catalog grouping and columns. **Track selection** chooses entries to load; in `TrackSelect`, a draft selection becomes committed on Submit. A **qualified track ID**, such as `signals::sample`, combines collection and entry IDs for selection and runtime identity in `TrackSelect`.
-
-### Source ownership
-
-Whether the application or user controls a track's data source. Runtime tracks record this as `source: "host"` or `source: "user"`. Settings can use it to disable source editing for **host-owned tracks** while allowing display changes. Core records ownership but does not enforce which config fields are editable. Source ownership is distinct from the source URL itself.
-
-## Fetching and reuse
-
-### Render demand
-
-The region and logical drawing width core asks a track's fetcher to satisfy. A demand can include overscan beyond the viewport. The fetcher receives it alongside an assembly and track snapshot. **Fetch-affecting config** means config fields marked with `fetchOnChange`; changes to those values require fetching or fetch-time processing again.
-
-### Track resources
-
-Reusable values retained between fetches for one track type and ID in one browser instance, such as a file reader or cache. Resources are separate from track configuration and the current fetch result. The fetcher manages their validity when sources change; removing the track, replacing either application-owned store, or unmounting the browser releases core's references to them.
+**Track resources** - Reusable per-track values (readers, caches) retained between fetches; released when the track or hosting stores go away.
 
 ## Testing
 
-### Render budget
-
-The exact number of committed React renders per component that a test allows for one interaction, such as a region change, recorded as an inline snapshot. A higher count fails the test. Each budget notes which renders are necessary, where a component shows new data, a new region, or new configuration, so wasteful renders are easy to spot.
-
-## Keep the vocabulary useful
-
-Prefer these terms in discussions, issues, and documentation. Qualify ambiguous words: region selection versus track selection, display mode versus collection view, and track height versus row height. Preserve exact API names when discussing code.
-
-When a recurring project concept needs a shared name, suggest an addition here. Prefer placing related vocabulary under an existing entry, and add a main entry only when it captures a distinct concept. Avoid expanding the glossary with general biology or software terminology unless this project gives it a specific meaning.
-
-Return to [Maintainer documentation](README.md).
+**Render budget** - Exact allowed committed React renders for an interaction (inline snapshot via `@weng-lab/render-probe`). Higher fails; lower updates the snapshot.
