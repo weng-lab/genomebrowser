@@ -13,15 +13,20 @@ import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import { saveBrowserImage, type BrowserImage } from "@weng-lab/genomebrowser";
 
-/** Shows an image an agent exported. Nothing is saved until the user selects Download. */
+/**
+ * Shows an image an agent exported. Nothing is saved until the user selects Download.
+ * `onExited` runs once the dialog has finished closing, so the image can be released.
+ */
 export function ImagePreviewDialog({
   image,
   open,
   onClose,
+  onExited,
 }: {
   image: BrowserImage | null;
   open: boolean;
   onClose: () => void;
+  onExited: () => void;
 }) {
   return (
     <Dialog
@@ -30,7 +35,7 @@ export function ImagePreviewDialog({
       open={open && image !== null}
       onClose={onClose}
       aria-labelledby="agent-image-preview-title"
-      slotProps={{ paper: { sx: { borderRadius: 1.5 } } }}
+      slotProps={{ paper: { sx: { borderRadius: 1.5 } }, transition: { onExited } }}
     >
       <DialogTitle
         id="agent-image-preview-title"

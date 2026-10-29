@@ -29,7 +29,7 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
   const svgRef = useBrowserSvgRef();
   const [enabled, setEnabled] = useState(false);
   const [state, setState] = useState<RemoteControlState>("off");
-  // The image stays while the preview animates closed.
+  // The image stays while the preview animates closed, then is released.
   const [preview, setPreview] = useState<{ image: BrowserImage; open: boolean } | null>(null);
   const id = useSession((session) => session.active?.id);
   const stores = useSession((session) => session.active?.stores);
@@ -55,6 +55,8 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
         image={preview?.image ?? null}
         open={preview?.open ?? false}
         onClose={() => setPreview((current) => current && { ...current, open: false })}
+        // A new export can open while the previous one animates closed; keep it.
+        onExited={() => setPreview((current) => (current?.open ? current : null))}
       />
     </RemoteControlContext>
   );
