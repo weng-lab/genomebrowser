@@ -6,6 +6,7 @@ export {
   InteractionControls,
   ManagementControls,
   SelectionControls,
+  DownloadImageDialog,
   NavigationButton,
 } from "./BrowserControls";
 export type {
@@ -15,6 +16,7 @@ export type {
   InteractionControlsProps,
   ManagementControlsProps,
   SelectionControlsProps,
+  DownloadImageDialogProps,
   NavigationButtonProps,
   NavigationAction,
 } from "./BrowserControls";

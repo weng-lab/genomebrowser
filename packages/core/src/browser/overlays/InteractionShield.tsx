@@ -12,6 +12,7 @@ export function InteractionShield({ width, height }: { width: number; height: nu
 
   return (
     <g
+      data-track-export-exclude=""
       role="status"
       aria-live="polite"
       aria-label="Genome browser is updating track data"

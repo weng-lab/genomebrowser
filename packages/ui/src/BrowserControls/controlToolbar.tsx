@@ -14,6 +14,7 @@ export function ControlToolbar({
   onManageHighlights,
   onSelectTracks,
   onSortTracks,
+  onDownloadImage,
   navigationActions,
   managementActions,
 }: ControlToolbarProps) {
@@ -35,6 +36,7 @@ export function ControlToolbar({
         onManageHighlights={onManageHighlights}
         onSelectTracks={onSelectTracks}
         onSortTracks={onSortTracks}
+        onDownloadImage={onDownloadImage}
         managementActions={managementActions}
       />
     </Box>

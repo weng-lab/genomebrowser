@@ -152,7 +152,7 @@ export function RegionSelection({
       />
       {children}
       {selectionActive && hasValidDimensions && (
-        <g>
+        <g data-track-export-exclude="">
           <rect
             data-selection-overlay=""
             x={marginWidth}
@@ -208,7 +208,7 @@ function SelectionPreview({ selection }: { selection: Selection }) {
   const { region, marginWidth, trackWidth, totalHeight, highlightStyle } = selection.context;
   const selectedRegion = getSelectedRegion(selection, region, marginWidth, trackWidth);
   return (
-    <g pointerEvents="none">
+    <g data-track-export-exclude="" pointerEvents="none">
       <rect
         data-region-selection=""
         fill={selection.mode === "highlight" ? highlightStyle.color : "#2563eb"}

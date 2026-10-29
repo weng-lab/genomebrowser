@@ -16,7 +16,7 @@ Look up an export below to find its documentation. Store methods and module memb
 
 ### Browser setup
 
-Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `TrackImageFormat`](01-browserSetup/useTrackDownload.md#api).
+Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `TrackImageFormat`](01-browserSetup/useTrackDownload.md#api). Experimental whole-browser downloads: [`useBrowserDownload`, `BrowserDownload`, `BrowserDownloadOptions`](01-browserSetup/useBrowserDownload.md#api), [`exportBrowserImage`, `saveBrowserImage`, `BrowserImage`](01-browserSetup/exportBrowserImage.md#api).
 
 | Exports                                                                             | Reference                                                                                                            |
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |

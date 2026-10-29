@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { BrowserSvgContext } from "./svg/browserSvgState";
 import { useGenomeBrowser } from "./state/browserContextState";
@@ -13,9 +13,19 @@ import { useContentTransform } from "./viewport/useContentTransform";
 import { PanStatusContext, useBrowserPan } from "./viewport/useBrowserPan";
 
 /** Owns the SVG layers and the layout shared by tracks and overlays. */
-export function BrowserCanvas({ trackWidth, scale }: { trackWidth: number; scale: number }) {
+export function BrowserCanvas({
+  trackWidth,
+  scale,
+  svgRef: hostSvgRef,
+}: {
+  trackWidth: number;
+  scale: number;
+  svgRef?: Ref<SVGSVGElement>;
+}) {
   const { useBrowserStore } = useGenomeBrowser();
   const svgRef = useRef<SVGSVGElement>(null);
+  // The SVG renders whenever this component does, so the host ref is never null while mounted.
+  useImperativeHandle(hostSvgRef, () => svgRef.current as SVGSVGElement, []);
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   // Publish the attached SVG after mount, preserving the existing attachment timing.
   useEffect(() => {

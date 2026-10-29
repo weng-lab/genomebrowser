@@ -10,6 +10,8 @@ export { ManagementControls } from "./managementControls";
 export type { ManagementControlsProps } from "./managementControls";
 export { SelectionControls } from "./selectionControls";
 export type { SelectionControlsProps } from "./selectionControls";
+export { DownloadImageDialog } from "./downloadImageDialog";
+export type { DownloadImageDialogProps } from "./downloadImageDialog";
 export { NavigationButton } from "./navigationButton";
 export type { NavigationButtonProps } from "./navigationButton";
 export type { NavigationAction } from "./navigationButton";

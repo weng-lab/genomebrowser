@@ -83,14 +83,15 @@ Renderers retain SVG font-size attributes for their existing layout. CSS rules t
 
 ## API
 
-| Prop           | Type                      | Default        | Description                                                                                                             |
-| -------------- | ------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `browserStore` | `BrowserStoreInstance`    | Required       | Stable store for assembly, region, configured fixed track width, margin, typography, selection, and highlights.         |
-| `trackStore`   | `TrackStoreInstance`      | Required       | Stable store for registered modules, tracks, and ordering.                                                              |
-| `sizing`       | `"responsive" \| "fixed"` | `"responsive"` | Follow the wrapper's content width, or use the browser store's configured track width. Can change while mounted.        |
-| `scale`        | `number`                  | `1`            | Finite positive magnification factor for the entire SVG. Invalid values throw a `RangeError`. Can change while mounted. |
-| `className`    | `string`                  | None           | Additional CSS class on the outer `div`, alongside `genomebrowser`.                                                     |
-| `style`        | `CSSProperties`           | None           | Inline styles on the outer `div`, merged after the default wrapper styles.                                              |
+| Prop           | Type                      | Default        | Description                                                                                                                                                                   |
+| -------------- | ------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `browserStore` | `BrowserStoreInstance`    | Required       | Stable store for assembly, region, configured fixed track width, margin, typography, selection, and highlights.                                                               |
+| `trackStore`   | `TrackStoreInstance`      | Required       | Stable store for registered modules, tracks, and ordering.                                                                                                                    |
+| `sizing`       | `"responsive" \| "fixed"` | `"responsive"` | Follow the wrapper's content width, or use the browser store's configured track width. Can change while mounted.                                                              |
+| `scale`        | `number`                  | `1`            | Finite positive magnification factor for the entire SVG. Invalid values throw a `RangeError`. Can change while mounted.                                                       |
+| `className`    | `string`                  | None           | Additional CSS class on the outer `div`, alongside `genomebrowser`.                                                                                                           |
+| `style`        | `CSSProperties`           | None           | Inline styles on the outer `div`, merged after the default wrapper styles.                                                                                                    |
+| `svgRef`       | `Ref<SVGSVGElement>`      | None           | Receives the browser's `<svg>` while it renders, and `null` otherwise. Pass it to [exportBrowserImage](exportBrowserImage.md) or [useBrowserDownload](useBrowserDownload.md). |
 
 `GenomeBrowserProps` is exported from `@weng-lab/genomebrowser`.
 

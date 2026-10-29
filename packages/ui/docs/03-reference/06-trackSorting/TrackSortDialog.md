@@ -57,7 +57,7 @@ export function BrowserWithTrackSorting() {
 }
 ```
 
-`ControlToolbar` and `ManagementControls` provide a Sort button through `onSortTracks`, so `onSortTracks={() => setOpen(true)}` can replace the button above.
+`ControlToolbar` and `ManagementControls` provide a **Sort tracks** icon button through `onSortTracks`, so `onSortTracks={() => setOpen(true)}` can replace the button above.
 
 ## Examples
 

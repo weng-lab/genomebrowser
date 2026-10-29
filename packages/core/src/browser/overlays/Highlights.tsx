@@ -55,7 +55,7 @@ export function Highlights({
   if (rects.length === 0) return null;
 
   return (
-    <g pointerEvents="none">
+    <g data-export-highlights={type} pointerEvents="none">
       <defs>
         <clipPath id={clipId}>
           <rect x={marginWidth} y={0} width={trackWidth} height={totalHeight} />

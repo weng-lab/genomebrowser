@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import type { ReactNode } from "react";
 import { RemoteControlProvider } from "../features/agent/RemoteControl";
+import { BrowserSvgProvider } from "../features/browser/BrowserSvg";
 import { WorkspaceSkeleton } from "../shared/workspace/WorkspaceSkeleton";
 import { SessionProvider } from "../features/sessions/SessionProvider";
 import type { Account } from "../features/account/components/AccountControls";
@@ -31,7 +32,9 @@ function AccountSessions({ userId, children }: { userId: string | null; children
   // Never let one account's open session, list, or pending saves reach another account.
   return (
     <SessionProvider key={userId ?? "signed-out"}>
-      <RemoteControlProvider>{children}</RemoteControlProvider>
+      <BrowserSvgProvider>
+        <RemoteControlProvider>{children}</RemoteControlProvider>
+      </BrowserSvgProvider>
     </SessionProvider>
   );
 }
