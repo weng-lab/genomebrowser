@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -28,6 +28,8 @@ import {
 
 export type DownloadImageDialogProps = {
   browserStore: BrowserStoreInstance;
+  /** The same ref passed to the GenomeBrowser's `svgRef`. */
+  svgRef: RefObject<SVGSVGElement | null>;
   open: boolean;
   onClose: () => void;
 };
@@ -51,7 +53,12 @@ const scales = [
 ];
 
 /** Choose a format and resolution, then download every track of the browser as one image. */
-export function DownloadImageDialog({ browserStore, open, onClose }: DownloadImageDialogProps) {
+export function DownloadImageDialog({
+  browserStore,
+  svgRef,
+  open,
+  onClose,
+}: DownloadImageDialogProps) {
   // Choices outlive the dialog content so reopening keeps them.
   const [format, setFormat] = useState<TrackImageFormat>("svg");
   const [scale, setScale] = useState(2);
@@ -93,6 +100,7 @@ export function DownloadImageDialog({ browserStore, open, onClose }: DownloadIma
       </DialogTitle>
       <DownloadImageContent
         browserStore={browserStore}
+        svgRef={svgRef}
         open={open}
         format={format}
         scale={scale}
@@ -109,6 +117,7 @@ export function DownloadImageDialog({ browserStore, open, onClose }: DownloadIma
 // Unmounted after the dialog closes, which cancels a pending PNG.
 function DownloadImageContent({
   browserStore,
+  svgRef,
   open,
   format,
   scale,
@@ -119,6 +128,7 @@ function DownloadImageContent({
   onClose,
 }: {
   browserStore: BrowserStoreInstance;
+  svgRef: RefObject<SVGSVGElement | null>;
   open: boolean;
   format: TrackImageFormat;
   scale: number;
@@ -130,7 +140,10 @@ function DownloadImageContent({
 }) {
   const useBrowserStore = browserStore;
   const isLoading = useBrowserStore((state) => state.isLoading);
-  const { download, isDownloading, error, defaultFilename } = useBrowserDownload(browserStore);
+  const { download, isDownloading, error, defaultFilename } = useBrowserDownload(
+    browserStore,
+    svgRef,
+  );
   // A typed name belongs to one export, so it resets when the dialog reopens.
   const [filename, setFilename] = useState("");
   const [isStarting, setIsStarting] = useState(false);

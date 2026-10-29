@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { BrowserStoreInstance } from "../state/browserStore";
 import {
   exportBrowserImage,
-  getDefaultFilename,
+  getDefaultImageFilename,
   saveBrowserImage,
   type BrowserDownloadOptions,
 } from "./browserImage";
@@ -20,12 +20,15 @@ export type BrowserDownload = {
 };
 
 /**
- * Export every rendered track of the GenomeBrowser mounted with `browserStore`.
+ * Export every rendered track of the GenomeBrowser that renders into `svgRef` with `browserStore`.
  * Works outside the GenomeBrowser tree, such as in a host toolbar.
  */
-export function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserDownload {
+export function useBrowserDownload(
+  browserStore: BrowserStoreInstance,
+  svgRef: RefObject<SVGSVGElement | null>,
+): BrowserDownload {
   const useBrowserStore = browserStore;
-  const defaultFilename = useBrowserStore((state) => getDefaultFilename(state.region));
+  const defaultFilename = useBrowserStore((state) => getDefaultImageFilename(state.region));
   const active = useRef<AbortController | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +49,15 @@ export function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserD
     setIsDownloading(true);
     setError(null);
     try {
-      const image = await exportBrowserImage(browserStore, format, options, controller.signal);
+      const { isLoading, region } = browserStore.getState();
+      if (isLoading) throw new Error("Wait for the tracks to finish loading before downloading.");
+      const filename = options.filename?.trim() || getDefaultImageFilename(region);
+      const image = await exportBrowserImage(
+        svgRef.current,
+        format,
+        { ...options, filename },
+        controller.signal,
+      );
       controller.signal.throwIfAborted();
       saveBrowserImage(image);
       return true;

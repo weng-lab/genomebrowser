@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { BrowserSvgContext } from "./svg/browserSvgState";
-import { useDataController, useGenomeBrowser } from "./state/browserContextState";
-import { registerMountedBrowser } from "./download/browserRegistry";
+import { useGenomeBrowser } from "./state/browserContextState";
 import { InteractionShield } from "./overlays/InteractionShield";
 import { Highlights } from "./overlays/Highlights";
 import { ContextMenuController } from "./overlays/ContextMenuController";
@@ -14,25 +13,25 @@ import { useContentTransform } from "./viewport/useContentTransform";
 import { PanStatusContext, useBrowserPan } from "./viewport/useBrowserPan";
 
 /** Owns the SVG layers and the layout shared by tracks and overlays. */
-export function BrowserCanvas({ trackWidth, scale }: { trackWidth: number; scale: number }) {
-  const { useBrowserStore, useTrackStore } = useGenomeBrowser();
-  const dataController = useDataController();
+export function BrowserCanvas({
+  trackWidth,
+  scale,
+  svgRef: hostSvgRef,
+}: {
+  trackWidth: number;
+  scale: number;
+  svgRef?: Ref<SVGSVGElement>;
+}) {
+  const { useBrowserStore } = useGenomeBrowser();
   const svgRef = useRef<SVGSVGElement>(null);
+  // The SVG renders whenever this component does, so the host ref is never null while mounted.
+  useImperativeHandle(hostSvgRef, () => svgRef.current as SVGSVGElement, []);
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   // Publish the attached SVG after mount, preserving the existing attachment timing.
   useEffect(() => {
     setSvg(svgRef.current);
     return () => setSvg(null);
   }, []);
-  // Let hosts export this browser through the store they already hold.
-  useEffect(() => {
-    if (!svg) return;
-    return registerMountedBrowser(useBrowserStore, {
-      svg,
-      trackStore: useTrackStore,
-      dataController,
-    });
-  }, [svg, useBrowserStore, useTrackStore, dataController]);
   const region = useBrowserStore((state) => state.region);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const titleSize = useBrowserStore((state) => state.titleSize);

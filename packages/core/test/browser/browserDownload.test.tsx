@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
+import { act, createRef, type RefObject } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -57,8 +57,14 @@ const rulerModule = defineTrackModule({
 });
 
 // Lives outside the GenomeBrowser tree, like an application toolbar.
-function Toolbar({ browserStore }: { browserStore: BrowserStoreInstance }) {
-  api = useBrowserDownload(browserStore);
+function Toolbar({
+  browserStore,
+  svgRef,
+}: {
+  browserStore: BrowserStoreInstance;
+  svgRef: RefObject<SVGSVGElement | null>;
+}) {
+  api = useBrowserDownload(browserStore, svgRef);
   return null;
 }
 
@@ -113,6 +119,7 @@ afterEach(async () => {
 });
 
 async function mount({ withBrowser = true, withRuler = false } = {}) {
+  const svgRef = createRef<SVGSVGElement>();
   const useBrowserStore = createBrowserStore({
     assembly: { id: "test", chromosomes: { chr1: 10000 } },
     region: { chromosome: "chr1", start: 1000, end: 2000 },
@@ -138,13 +145,14 @@ async function mount({ withBrowser = true, withRuler = false } = {}) {
   await act(async () =>
     root.render(
       <>
-        <Toolbar browserStore={useBrowserStore} />
+        <Toolbar browserStore={useBrowserStore} svgRef={svgRef} />
         {withBrowser && (
           <GenomeBrowser
             sizing="fixed"
             scale={1.5}
             browserStore={useBrowserStore}
             trackStore={useTrackStore}
+            svgRef={svgRef}
           />
         )}
       </>,
@@ -152,7 +160,7 @@ async function mount({ withBrowser = true, withRuler = false } = {}) {
   );
   const svg = container.querySelector<SVGSVGElement>("#browserSVG");
   const height = svg ? Number(svg.getAttribute("viewBox")!.split(" ")[3]) : 0;
-  return { root, container, useBrowserStore, useTrackStore, height };
+  return { root, container, useBrowserStore, useTrackStore, svgRef, height };
 }
 
 function frameAttribute(container: HTMLElement, id: string, name: string) {
@@ -224,8 +232,8 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     expect(saved).toHaveLength(0);
   });
 
-  it("cancels a pending PNG when a track is removed and says why", async () => {
-    const { useTrackStore } = await mount();
+  it("allows one download at a time", async () => {
+    await mount();
     let result: Promise<boolean>;
     await act(async () => {
       result = api.download("png");
@@ -233,10 +241,42 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     await act(async () => {
       expect(await api.download("svg")).toBe(false);
     });
-    await act(async () => useTrackStore.getState().removeTrack("second"));
-    expect(await result!).toBe(false);
-    expect(saved).toHaveLength(0);
-    expect(api.error).toBe("The tracks changed while the image was being prepared.");
+    await act(async () => {
+      image.onload?.();
+      expect(await result!).toBe(true);
+    });
+    expect(saved).toEqual(["genome-browser_chr1_1001-2000.png"]);
+  });
+
+  it("exports each view of a shared store pair through its own ref", async () => {
+    const { root, useBrowserStore, useTrackStore } = await mount({ withBrowser: false });
+    const [first, second] = [createRef<SVGSVGElement>(), createRef<SVGSVGElement>()];
+    const render = (refs: RefObject<SVGSVGElement | null>[]) =>
+      act(async () =>
+        root.render(
+          refs.map((ref, index) => (
+            <GenomeBrowser
+              key={index}
+              sizing="fixed"
+              browserStore={useBrowserStore}
+              trackStore={useTrackStore}
+              svgRef={ref}
+            />
+          )),
+        ),
+      );
+    await render([first, second]);
+    expect(first.current).not.toBeNull();
+    expect(second.current).not.toBeNull();
+    expect(first.current).not.toBe(second.current);
+    // Unmounting one view leaves the other exportable.
+    await render([first]);
+    expect(second.current).toBeNull();
+    await expect(exportBrowserImage(second.current, "svg")).rejects.toThrow(
+      "not currently rendered",
+    );
+    const svg = await exportBrowserImage(first.current, "svg");
+    expect(svg).toMatchObject({ filename: "genome-browser.svg", width: 800 });
   });
 
   it("reports loading tracks and a browser that is not mounted", async () => {
@@ -328,10 +368,10 @@ describe("whole-browser image downloads from outside the browser tree", () => {
   });
 
   it("prepares an image without saving it until asked, and stops when cancelled", async () => {
-    const { useBrowserStore, height } = await mount();
+    const { svgRef, height } = await mount();
     let pending: Promise<Awaited<ReturnType<typeof exportBrowserImage>>>;
     await act(async () => {
-      pending = exportBrowserImage(useBrowserStore, "png", { scale: 2, filename: "Figure" });
+      pending = exportBrowserImage(svgRef.current, "png", { scale: 2, filename: "Figure" });
     });
     await act(async () => image.onload?.());
     const png = await pending!;
@@ -349,11 +389,11 @@ describe("whole-browser image downloads from outside the browser tree", () => {
     const controller = new AbortController();
     let cancelled: Promise<unknown>;
     await act(async () => {
-      cancelled = exportBrowserImage(useBrowserStore, "png", {}, controller.signal);
+      cancelled = exportBrowserImage(svgRef.current, "png", {}, controller.signal);
     });
     controller.abort(new Error("Stopped"));
     await expect(cancelled!).rejects.toThrow("Stopped");
-    await expect(exportBrowserImage(useBrowserStore, "svg", {}, controller.signal)).rejects.toThrow(
+    await expect(exportBrowserImage(svgRef.current, "svg", {}, controller.signal)).rejects.toThrow(
       "Stopped",
     );
   });

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { BrowserImage } from "@weng-lab/genomebrowser";
 import { useSession } from "../sessions/SessionProvider";
+import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
 
@@ -25,6 +26,7 @@ const RemoteControlContext = createContext<RemoteControl>({
  * preview, which stays open until the user closes or downloads it.
  */
 export function RemoteControlProvider({ children }: { children: ReactNode }) {
+  const svgRef = useBrowserSvgRef();
   const [enabled, setEnabled] = useState(false);
   const [state, setState] = useState<RemoteControlState>("off");
   // The image stays while the preview animates closed.
@@ -37,8 +39,14 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!enabled || !id || !stores || !signal) return;
     const showImage = (image: BrowserImage) => setPreview({ image, open: true });
-    return connectRemoteControl(`/rpc/${id}`, { stores, showImage }, signal, setState);
-  }, [enabled, id, stores, signal]);
+    const getBrowserSvg = () => svgRef.current;
+    return connectRemoteControl(
+      `/rpc/${id}`,
+      { stores, getBrowserSvg, showImage },
+      signal,
+      setState,
+    );
+  }, [enabled, id, stores, signal, svgRef]);
 
   return (
     <RemoteControlContext value={remoteControl}>

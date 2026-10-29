@@ -33,7 +33,11 @@ export type {
 } from "./browser/download/useTrackDownload";
 export { useBrowserDownload } from "./browser/download/useBrowserDownload";
 export type { BrowserDownload } from "./browser/download/useBrowserDownload";
-export { exportBrowserImage, saveBrowserImage } from "./browser/download/browserImage";
+export {
+  exportBrowserImage,
+  getDefaultImageFilename,
+  saveBrowserImage,
+} from "./browser/download/browserImage";
 export type { BrowserDownloadOptions, BrowserImage } from "./browser/download/browserImage";
 
 // Assemblies and regions

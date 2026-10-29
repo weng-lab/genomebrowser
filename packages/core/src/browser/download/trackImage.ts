@@ -318,9 +318,8 @@ export function createTrackSvg(browser: SVGSVGElement, trackIds: readonly string
 }
 
 export type BrowserImageOptions = {
-  marginWidth: number;
-  /** Tracks to leave out; the tracks below move up to close the gap. */
-  omitTrackIds?: ReadonlySet<string>;
+  /** Defaults to true. Without rulers, the tracks below move up to close the gap. */
+  includeRuler?: boolean;
   /** Defaults to true. Without titles, each track's title strip is removed. */
   includeTitles?: boolean;
 };
@@ -328,23 +327,25 @@ export type BrowserImageOptions = {
 /** Capture the rendered tracks in display order with the browser-wide highlights. */
 export function createBrowserSvg(
   browser: SVGSVGElement,
-  { marginWidth, omitTrackIds = new Set(), includeTitles = true }: BrowserImageOptions,
+  { includeRuler = true, includeTitles = true }: BrowserImageOptions = {},
 ) {
+  const rendered = Array.from(browser.querySelectorAll<SVGGElement>("[data-track-id]"));
+  if (!rendered.length) throw new Error("Add a track before downloading.");
   const [, , browserWidth, browserHeight] = (browser.getAttribute("viewBox") ?? "")
     .split(/[\s,]+/)
     .map(Number);
+  // Every frame shares the browser's margin.
+  const marginWidth = Number(rendered[0].getAttribute("data-track-margin"));
   const trackWidth = browserWidth - marginWidth;
   if (
-    !(trackWidth > 0 && browserHeight > 0) ||
+    !(trackWidth > 0 && browserHeight > 0 && marginWidth >= 0) ||
     !Number.isFinite(trackWidth + browserHeight + marginWidth)
   ) {
     throw new Error("The browser has no exportable dimensions.");
   }
-  const rendered = Array.from(browser.querySelectorAll<SVGGElement>("[data-track-id]"));
-  if (!rendered.length) throw new Error("Add a track before downloading.");
   // Frames render in display order.
   const frames = rendered
-    .filter((frame) => !omitTrackIds.has(frame.getAttribute("data-track-id")!))
+    .filter((frame) => includeRuler || !frame.hasAttribute("data-track-ruler"))
     .map((frame) => {
       const height = Number(frame.getAttribute("data-track-height"));
       const title = includeTitles ? 0 : Number(frame.getAttribute("data-track-title-height")) || 0;

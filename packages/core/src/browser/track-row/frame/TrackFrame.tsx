@@ -1,7 +1,7 @@
 import { trackOverlayContext } from "../../track-overlay/context";
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AnyTrackInstance } from "../../../modules/types";
-import { useContextMenuStore } from "../../state/browserContextState";
+import { useContextMenuStore, useRegistry } from "../../state/browserContextState";
 import { PanTrack } from "./PanTrack";
 import { TrackControls } from "./TrackControls";
 import { getTrackTitleMargin, getTrackWrapperHeight } from "../layout/trackLayout";
@@ -46,6 +46,8 @@ export function TrackFrame({
   const titleMargin = getTrackTitleMargin(track, titleSize);
   const contentClipId = useId();
   const openContextMenu = useContextMenuStore((state) => state.openContextMenu);
+  // Lets a browser export leave rulers out without the track store.
+  const isRuler = useRegistry().get(track.type).isRuler;
   const showHover = hover && !disableHover;
 
   // Registration owns the content transform so drag frames can move it without
@@ -67,6 +69,7 @@ export function TrackFrame({
     <g
       data-track-id={isDragClone ? undefined : track.base.id}
       data-track-export-exclude={isDragClone ? "" : undefined}
+      data-track-ruler={isRuler ? "" : undefined}
       data-track-width={trackWidth}
       data-track-height={wrapperHeight}
       data-track-title-height={titleMargin}

@@ -6,6 +6,7 @@ import {
 } from "@weng-lab/contracts";
 import {
   exportBrowserImage,
+  getDefaultImageFilename,
   type BrowserImage,
   type GenomeBrowserStores,
 } from "@weng-lab/genomebrowser";
@@ -13,11 +14,13 @@ import type { z } from "zod";
 
 /**
  * What commands act on. Today, the open session's stores, the same ones the UI
- * uses, and the preview that shows exported images to the user. Add other app
- * capabilities here when a command needs them.
+ * uses, the browser's rendered SVG while one is shown, and the preview that shows
+ * exported images to the user. Add other app capabilities here when a command
+ * needs them.
  */
 export type CommandCapabilities = {
   stores: GenomeBrowserStores;
+  getBrowserSvg: () => SVGSVGElement | null;
   showImage: (image: BrowserImage) => void;
 };
 
@@ -41,12 +44,21 @@ const handlers: { [C in Command as C["name"]]: Handler<C> } = {
     if (!outcome.ok) return outcome;
     return { ok: true, value: { region: outcome.region, clamped: outcome.clamped } };
   },
-  async export_image({ stores, showImage }, { format, filename, ...options }, signal) {
+  async export_image(
+    { stores, getBrowserSvg, showImage },
+    { format, filename, ...options },
+    signal,
+  ) {
+    const { isLoading, region } = stores.useBrowserStore.getState();
+    if (isLoading) {
+      const error = "Wait for the tracks to finish loading before exporting.";
+      return { ok: false, code: "EXPORT_FAILED", error };
+    }
     try {
       const image = await exportBrowserImage(
-        stores.useBrowserStore,
+        getBrowserSvg(),
         format,
-        { ...options, filename },
+        { ...options, filename: filename?.trim() || getDefaultImageFilename(region) },
         signal,
       );
       signal.throwIfAborted();

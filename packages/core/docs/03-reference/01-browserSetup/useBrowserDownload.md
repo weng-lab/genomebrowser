@@ -2,18 +2,32 @@
 
 > **Experimental.** This API may change or be removed in a future release.
 
-Download every rendered track of a browser as one SVG or PNG image. Unlike [useTrackDownload](useTrackDownload.md), this hook works outside the `GenomeBrowser` tree, so an application toolbar can call it with the browser store it already holds.
+Download every rendered track of a browser as one SVG or PNG image. Unlike [useTrackDownload](useTrackDownload.md), this hook works outside the `GenomeBrowser` tree, so an application toolbar can call it with the browser store it already holds and a ref to the browser's SVG.
 
 ## Usage
 
 ```tsx
-import { useBrowserDownload, type BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import {
+  GenomeBrowser,
+  useBrowserDownload,
+  type BrowserStoreInstance,
+  type TrackStoreInstance,
+} from "@weng-lab/genomebrowser";
+import { useRef } from "react";
 
-export function ExportButtons({ browserStore }: { browserStore: BrowserStoreInstance }) {
-  const { download, isDownloading, error } = useBrowserDownload(browserStore);
+export function BrowserWithExport({
+  browserStore,
+  trackStore,
+}: {
+  browserStore: BrowserStoreInstance;
+  trackStore: TrackStoreInstance;
+}) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const { download, isDownloading, error } = useBrowserDownload(browserStore, svgRef);
 
   return (
     <div>
+      <GenomeBrowser browserStore={browserStore} trackStore={trackStore} svgRef={svgRef} />
       <button type="button" disabled={isDownloading} onClick={() => void download("svg")}>
         Download SVG
       </button>
@@ -30,7 +44,7 @@ export function ExportButtons({ browserStore }: { browserStore: BrowserStoreInst
 }
 ```
 
-Pass the same `browserStore` given to a mounted `GenomeBrowser`. When no browser is mounted with that store, `download` reports an error. To show the image before saving it, use [exportBrowserImage](exportBrowserImage.md).
+Pass the `browserStore` and `svgRef` given to the same `GenomeBrowser`. Each view of a shared store pair has its own ref, so the ref decides which view is exported. When the ref's browser is not rendered, `download` reports an error. To show the image before saving it, use [exportBrowserImage](exportBrowserImage.md).
 
 ## API
 
@@ -49,19 +63,23 @@ type BrowserDownload = {
   download(format: TrackImageFormat, options?: BrowserDownloadOptions): Promise<boolean>;
 };
 
-function useBrowserDownload(browserStore: BrowserStoreInstance): BrowserDownload;
+function useBrowserDownload(
+  browserStore: BrowserStoreInstance,
+  svgRef: RefObject<SVGSVGElement | null>,
+): BrowserDownload;
 ```
 
 | Input           | Type                   | Default  | Description                                                                                              |
 | --------------- | ---------------------- | -------- | -------------------------------------------------------------------------------------------------------- |
-| `browserStore`  | `BrowserStoreInstance` | Required | Store of the mounted browser to export.                                                                  |
+| `browserStore`  | `BrowserStoreInstance` | Required | Store of the browser to export. Supplies the loading state and default file name.                        |
+| `svgRef`        | `RefObject`            | Required | The ref passed to the browser's `svgRef` prop.                                                           |
 | `format`        | `TrackImageFormat`     | Required | `"svg"` vector image or `"png"` raster image.                                                            |
 | `scale`         | `number`               | `1`      | PNG pixels per browser unit. Must be positive. SVG ignores it.                                           |
 | `includeTitles` | `boolean`              | `true`   | Include each track's title. Without titles, the title strips are removed and the plots move up.          |
 | `includeRuler`  | `boolean`              | `true`   | Include tracks whose module declares `isRuler`. When `false`, the tracks below move up to close the gap. |
 | `filename`      | `string`               | —        | File name without its extension. A matching extension is dropped, and blank names use `defaultFilename`. |
 
-`download` resolves `true` after requesting a browser download, and `false` on failure, cancellation, or a concurrent call through the same hook. It refuses while any track is loading. Tracks with data errors are exported as rendered. A pending PNG is cancelled when tracks are added, removed, reordered, or changed, and `error` says so. `defaultFilename` contains the chromosome and one-based visible coordinates, such as `genome-browser_chr1_1001-2000`, and updates as the region changes. Use it as a placeholder for a file name field. Without a `filename`, `download` uses the default for the region captured when it is called. Characters that file systems reject are replaced with `_`, and the format's extension is added.
+`download` resolves `true` after requesting a browser download, and `false` on failure, cancellation, or a concurrent call through the same hook. It refuses while any track is loading. Tracks with data errors are exported as rendered. The image shows the tracks as they were rendered when `download` was called, even if they change while a PNG is encoded. `defaultFilename` contains the chromosome and one-based visible coordinates, such as `genome-browser_chr1_1001-2000`, and updates as the region changes. Use it as a placeholder for a file name field. Without a `filename`, `download` uses the default for the region captured when it is called. Characters that file systems reject are replaced with `_`, and the format's extension is added.
 
 ## Image contents and size
 

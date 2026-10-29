@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { createBrowserStore, type BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import { act, useState } from "react";
+import { act, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DownloadImageDialog, ManagementControls } from "../src/lib";
@@ -153,10 +153,16 @@ describe("DownloadImageDialog opened from the Manage group", () => {
 // Hosts own dialog visibility, as the web app does.
 function Host({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const [open, setOpen] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
   return (
     <>
       <ManagementControls onDownloadImage={() => setOpen(true)} />
-      <DownloadImageDialog browserStore={browserStore} open={open} onClose={() => setOpen(false)} />
+      <DownloadImageDialog
+        browserStore={browserStore}
+        svgRef={svgRef}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </>
   );
 }

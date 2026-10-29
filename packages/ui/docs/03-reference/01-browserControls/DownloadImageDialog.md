@@ -2,14 +2,14 @@
 
 > **Experimental.** This dialog uses the experimental `useBrowserDownload` hook from `@weng-lab/genomebrowser` and may change.
 
-`DownloadImageDialog` lets people download every track and highlight in the current region as one SVG or PNG image. Pass the same browser store instance used by a mounted `GenomeBrowser`. The host owns the dialog's visibility.
+`DownloadImageDialog` lets people download every track and highlight in the current region as one SVG or PNG image. Pass the browser store and the `svgRef` given to the same `GenomeBrowser`. The host owns the dialog's visibility.
 
 ## Usage
 
 `ControlToolbar` and `ManagementControls` provide a **Download image** icon button through `onDownloadImage`:
 
 ```tsx
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { DownloadImageDialog, ManagementControls } from "@weng-lab/genomebrowser-ui";
 
@@ -22,13 +22,15 @@ const useTrackStore = createTrackStore({ modules: [] });
 
 export function BrowserWithImageDownload() {
   const [open, setOpen] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   return (
     <>
       <ManagementControls onDownloadImage={() => setOpen(true)} />
-      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
+      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} svgRef={svgRef} />
       <DownloadImageDialog
         browserStore={useBrowserStore}
+        svgRef={svgRef}
         open={open}
         onClose={() => setOpen(false)}
       />
@@ -51,7 +53,8 @@ SVG is selected by default. Choosing PNG shows **Resolution** options of 1Ã—, 2Ã
 
 | Prop           | Type                   | Default  | Description                                          |
 | -------------- | ---------------------- | -------- | ---------------------------------------------------- |
-| `browserStore` | `BrowserStoreInstance` | Required | Store of the mounted browser to capture.             |
+| `browserStore` | `BrowserStoreInstance` | Required | Store of the browser to capture.                     |
+| `svgRef`       | `RefObject`            | Required | The ref passed to the browser's `svgRef` prop.       |
 | `open`         | `boolean`              | Required | Whether the dialog is open.                          |
 | `onClose`      | `() => void`           | Required | Called when the user requests that the dialog close. |
 

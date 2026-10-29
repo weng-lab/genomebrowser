@@ -15,6 +15,7 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
 import { SaveStatus } from "../../sessions/components/SaveStatus";
+import { useBrowserSvgRef } from "../BrowserSvg";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -84,6 +85,7 @@ function NoSession({ sessionId }: { sessionId?: string }) {
 
 function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   const { useBrowserStore, useTrackStore } = stores;
+  const svgRef = useBrowserSvgRef();
   const [downloadOpen, setDownloadOpen] = useState(false);
   return (
     <>
@@ -104,9 +106,10 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         <InteractionControls browserStore={useBrowserStore} />
         <ManagementControls onDownloadImage={() => setDownloadOpen(true)} />
       </Box>
-      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
+      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} svgRef={svgRef} />
       <DownloadImageDialog
         browserStore={useBrowserStore}
+        svgRef={svgRef}
         open={downloadOpen}
         onClose={() => setDownloadOpen(false)}
       />
