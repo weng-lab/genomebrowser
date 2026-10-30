@@ -1,0 +1,55 @@
+{
+  "baseline": "581f353f2086cd9ad3f0e1e6694ce79202acb1dc",
+  "definition": "Physical lines include comments/blanks. Source lines contain a non-trivia TypeScript token. Decisions count if, ternary, case, loops, catch, &&, ||, ??. Summed complexity = decisions + functions with bodies; it is a reproducible syntactic proxy, not runtime or cognitive complexity. Declarative XState transition edges are not counted by this proxy.",
+  "before": {
+    "physicalLines": 241,
+    "sourceLines": 189,
+    "decisions": 39,
+    "functions": 18,
+    "summedComplexity": 57
+  },
+  "files": {
+    "autosave.ts": {
+      "physicalLines": 251,
+      "sourceLines": 200,
+      "decisions": 45,
+      "functions": 24,
+      "summedComplexity": 69
+    },
+    "saveLifecycle.ts": {
+      "physicalLines": 20,
+      "sourceLines": 18,
+      "decisions": 0,
+      "functions": 0,
+      "summedComplexity": 0
+    },
+    "saveReducer.ts": {
+      "physicalLines": 41,
+      "sourceLines": 39,
+      "decisions": 13,
+      "functions": 5,
+      "summedComplexity": 18
+    },
+    "saveXState.ts": {
+      "physicalLines": 62,
+      "sourceLines": 60,
+      "decisions": 5,
+      "functions": 12,
+      "summedComplexity": 17
+    }
+  },
+  "reducerTotal": {
+    "physicalLines": 312,
+    "sourceLines": 257,
+    "decisions": 58,
+    "functions": 29,
+    "summedComplexity": 87
+  },
+  "xstateTotal": {
+    "physicalLines": 333,
+    "sourceLines": 278,
+    "decisions": 50,
+    "functions": 36,
+    "summedComplexity": 86
+  }
+}

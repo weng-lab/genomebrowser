@@ -42,6 +42,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "server-only": "^0.0.1",
+    "xstate": "^5.33.3",
     "zod": "catalog:",
     "zustand": "catalog:"
   },

@@ -1,5 +1,7 @@
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { Clock, Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
+import { createSaveReducer } from "./saveReducer";
+import { createSaveXState } from "./saveXState";
 import { snapshot } from "./storeSnapshot";
 import type { Session, SessionInput } from "./schema";
 import { SessionRequestError, type SessionTransport } from "./transport";
@@ -32,6 +34,7 @@ const unserializable = "";
  * `NOT_FOUND` after deletion, end saving; the edits stay unsaved.
  */
 export const startAutosave = Effect.fnUntraced(function* (options: {
+  machine?: "reducer" | "xstate";
   id: string;
   revision: number;
   stores: GenomeBrowserStores;
@@ -47,13 +50,24 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   let saved: string | undefined = JSON.stringify(current());
   let latest = saved;
   let revision = options.revision;
-  // Retried unchanged until the server applies or rejects it.
-  let unsettled: { body: string; revision: number; saveId: string } | undefined;
-  let failures = 0;
+  const lifecycle = yield* Effect.acquireRelease(
+    Effect.sync(() => (options.machine === "xstate" ? createSaveXState() : createSaveReducer())),
+    (machine) => Effect.sync(() => machine.stop()),
+  );
+  const writing = () => {
+    const state = lifecycle.getState();
+    return state.tag === "writing" ? state : undefined;
+  };
+  const conflict = () => {
+    const state = lifecycle.getState();
+    return state.tag === "conflict" ? state.failure : undefined;
+  };
+  const ended = () => {
+    const state = lifecycle.getState();
+    return state.tag === "ended" ? state.failure : undefined;
+  };
   // Edits the server or serialization refused. They are not written again.
   let refused: { body: string; failure: SessionRequestError } | undefined;
-  let conflict: SessionRequestError | undefined;
-  let ended: SessionRequestError | undefined;
   let waiters: Deferred.Deferred<void, SessionRequestError>[] = [];
   const clock = yield* Clock.Clock;
   let editedAt = clock.currentTimeMillisUnsafe();
@@ -64,16 +78,15 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
 
   /** Why the newest edits cannot be saved, if they cannot. */
   const unsaved = () =>
-    ended ?? conflict ?? (refused?.body === latest ? refused.failure : undefined);
-  const settled = () => !unsettled && latest === saved;
+    ended() ?? conflict() ?? (refused?.body === latest ? refused.failure : undefined);
+  const settled = () => !writing() && latest === saved;
 
   function report(failure?: SessionRequestError) {
     const blocked = unsaved();
-    if (blocked) onStatus(blocked === conflict ? "conflict" : "failed", blocked);
+    if (blocked) onStatus(blocked === conflict() ? "conflict" : "failed", blocked);
     else if (settled()) {
-      failures = 0;
       onStatus("saved");
-    } else if (failure || failures > 0) onStatus("retrying", failure);
+    } else if (failure || (writing()?.failures ?? 0) > 0) onStatus("retrying", failure);
     else onStatus("saving");
   }
 
@@ -87,7 +100,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
 
   /** Record the stores' current state; schedule a write when it changed. */
   function changed() {
-    if (ended) return;
+    if (ended()) return;
     let next: string;
     try {
       next = JSON.stringify(current());
@@ -104,45 +117,42 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   }
 
   const write = Effect.gen(function* () {
-    if (ended) return settle(ended);
-    if (!unsettled) {
+    if (ended()) return settle(ended());
+    if (!writing()) {
       const blocked = unsaved();
       if (blocked || latest === saved) return settle(blocked);
-      unsettled = { body: latest, revision, saveId: crypto.randomUUID() };
+      lifecycle.send({
+        type: "START",
+        request: { body: latest, revision, saveId: crypto.randomUUID() },
+      });
     }
-    const { body, ...base } = unsettled;
+    const { body, ...base } = writing()!.request;
     report();
     const result = yield* Effect.result(transport.update(id, { ...JSON.parse(body), ...base }));
     if (Result.isSuccess(result)) {
-      unsettled = undefined;
+      lifecycle.send({ type: "ACK" });
       saved = body;
       revision = result.success.revision;
-      failures = 0;
       onSaved(result.success);
       if (latest === saved) settle();
       else Queue.offerUnsafe(edits, undefined);
       return report();
     }
     const failure = result.failure;
+    lifecycle.send({ type: "FAIL", failure });
     if (failure.code === "UNAVAILABLE") {
       // The write may have been applied, so it stays unsettled.
-      failures += 1;
-      retryAt = clock.currentTimeMillisUnsafe() + retryDelay(failures);
+      retryAt = clock.currentTimeMillisUnsafe() + retryDelay(writing()!.failures);
       Queue.offerUnsafe(edits, undefined);
     } else {
       // Any other failure means the server did not apply it.
-      unsettled = undefined;
-      failures = 0;
       if (failure.code === "INVALID_INPUT") {
         refused = { body, failure };
         // Edits made during the write may be saveable.
         if (latest !== body) Queue.offerUnsafe(edits, undefined);
       } else if (failure.code === "CONFLICT") {
         // What the server now holds is unknown, so no edit counts as saved.
-        conflict = failure;
         saved = undefined;
-      } else {
-        ended = failure;
       }
     }
     settle(failure);
@@ -158,13 +168,13 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   );
   yield* Effect.forkScoped(
     Effect.gen(function* () {
-      while (!ended) {
+      while (!ended()) {
         yield* Queue.take(edits);
         // A later edit restarts the quiet period, but never changes the retry
         // deadline.
         let changedDuringDelay: boolean;
         do {
-          const due = failures > 0 ? retryAt : editedAt + editDelay;
+          const due = (writing()?.failures ?? 0) > 0 ? retryAt : editedAt + editDelay;
           changedDuringDelay = yield* Effect.raceFirst(
             Effect.as(Queue.take(edits), true),
             Effect.as(
@@ -215,21 +225,21 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       if (!settled()) Queue.offerUnsafe(edits, undefined);
     }),
     overwrite: Effect.gen(function* () {
-      const resolving = conflict;
-      if (!resolving || ended) return;
+      const resolving = conflict();
+      if (!resolving || ended()) return;
       const loaded = yield* Effect.result(transport.load(id));
       // Another call resolved the conflict meanwhile, and its write may already be
       // acknowledged at a newer revision than this one loaded.
-      if (conflict !== resolving || ended) return;
+      if (conflict() !== resolving || ended()) return;
       if (Result.isFailure(loaded)) {
         if (loaded.failure.code !== "UNAVAILABLE") {
-          ended = loaded.failure;
+          lifecycle.send({ type: "END", failure: loaded.failure });
           report();
         }
         return yield* Effect.fail(loaded.failure);
       }
       revision = loaded.success.revision;
-      conflict = undefined;
+      lifecycle.send({ type: "RESOLVE" });
       changed();
       report();
       urgent.openUnsafe();

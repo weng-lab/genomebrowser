@@ -86,8 +86,11 @@ export function createSession({
   transport,
   createStores,
   navigation,
+  saveMachine,
 }: {
   transport: SessionTransport;
+  /** Spike: compare write lifecycle implementations behind the same session operation. */
+  saveMachine?: "reducer" | "xstate";
   /** Fresh stores at an assembly's defaults, or undefined when it is not supported. */
   createStores: (assembly: string) => GenomeBrowserStores | undefined;
   /** Show the active session, or none, once an operation settles. */
@@ -237,6 +240,7 @@ export function createSession({
       const sessionScope = yield* Scope.fork(scope!);
       const ended = new AbortController();
       const autosave = yield* startAutosave({
+        machine: saveMachine,
         id: next.id,
         revision,
         stores: next.stores,
