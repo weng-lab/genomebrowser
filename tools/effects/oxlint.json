@@ -1,0 +1,6 @@
+{
+  "plugins": [],
+  "jsPlugins": [{ "name": "effects-spike", "specifier": "./plugin.mjs" }],
+  "categories": { "correctness": "off" },
+  "rules": { "effects-spike/external-only": "warn" }
+}

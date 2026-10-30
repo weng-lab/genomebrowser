@@ -15,16 +15,18 @@
     "lint": "turbo run lint //#lint:policy",
     "lint:fix": "turbo run lint:fix",
     "format": "turbo run format //#format:root",
-    "format:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md README.md .github tools/lint",
+    "format:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md README.md .github tools/lint tools/effects",
     "format:check": "turbo run format:check //#format:check:root",
-    "format:check:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md README.md .github tools/lint --check",
+    "format:check:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md README.md .github tools/lint tools/effects --check",
     "verify": "turbo run format:check lint //#lint:policy build test //#format:check:root",
     "doctor": "pnpm exec react-doctor . --verbose",
     "publish:dry-run": "pnpm publish -r --tag latest --dry-run --no-git-checks",
     "publish:stable": "pnpm publish -r --tag latest",
     "dev:web": "turbo run dev --filter=@weng-lab/web",
     "dev:server": "turbo run dev --filter=@weng-lab/mcp",
-    "lint:policy": "node --test tools/lint/policy.test.mjs"
+    "lint:policy": "node --test tools/lint/policy.test.mjs tools/effects/lint.test.mjs",
+    "lint:effects": "oxlint -c tools/effects/oxlint.json apps/web packages/core",
+    "audit:effects": "node tools/effects/audit.mjs"
   },
   "devDependencies": {
     "oxfmt": "catalog:",
