@@ -1,0 +1,331 @@
+{
+  "total": 35,
+  "counts": {
+    "derived state": 1,
+    "syncing state": 3,
+    "event logic": 2,
+    "external sync": 28,
+    "data fetching": 1
+  },
+  "scopes": {
+    "apps/web": 7,
+    "packages/core": 28
+  },
+  "sites": [
+    {
+      "id": "apps/web/features/agent/RemoteControl.tsx#1",
+      "file": "apps/web/features/agent/RemoteControl.tsx",
+      "line": 39,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: owns the SSE connection and its cancellation; useSyncExternalStore if connection state becomes a reusable store.",
+      "fingerprint": "f8142a5b4474ae42d2e5b145d65d22733a68081021d5aca4f3434fce8a9d0647"
+    },
+    {
+      "id": "apps/web/features/agent/components/ImagePreviewDialog.tsx#1",
+      "file": "apps/web/features/agent/components/ImagePreviewDialog.tsx",
+      "line": 107,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: create and revoke the blob URL for the mounted image; a callback ref can own the same lifetime.",
+      "fingerprint": "dd769a3752dc828d2f56f399f8f4e08a293e2328badb118ff6131909e9f95e66"
+    },
+    {
+      "id": "apps/web/features/sessions/SessionProvider.tsx#1",
+      "file": "apps/web/features/sessions/SessionProvider.tsx",
+      "line": 38,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: start and stop the account session subscriptions and requests.",
+      "fingerprint": "ef31f22d0d344a79f8cc0929ae746809fd68d5b0f4433c592655f2d42fdec77f"
+    },
+    {
+      "id": "apps/web/features/sessions/SessionProvider.tsx#2",
+      "file": "apps/web/features/sessions/SessionProvider.tsx",
+      "line": 39,
+      "hook": "useEffect",
+      "category": "data fetching",
+      "replacement": "Move route-driven loading to a route loader/query owner with cancellation; do not move it only to click handlers because history and direct URLs must work.",
+      "fingerprint": "2b693e75ec7ac2b3877076e47c6760e206411349af68f2be80c77cf76090a271"
+    },
+    {
+      "id": "apps/web/shared/workspace/panels/Resizable.tsx#1",
+      "file": "apps/web/shared/workspace/panels/Resizable.tsx",
+      "line": 92,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: pair blur listener registration with drag cleanup.",
+      "fingerprint": "831f3467cef26b3a810a2bd72b3f3eae5bfc4b2a12b62f785337a30cd72c46b1"
+    },
+    {
+      "id": "apps/web/shared/workspace/useTransitionEnabled.ts#1",
+      "file": "apps/web/shared/workspace/useTransitionEnabled.ts",
+      "line": 30,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: cancellable animation frames wait for the reset layout to paint.",
+      "fingerprint": "8e54a74b63ebd6412d105360f878b06f34456c63b3d645d3d8c882dcaee12062"
+    },
+    {
+      "id": "apps/web/test/remoteControl.test.tsx#1",
+      "file": "apps/web/test/remoteControl.test.tsx",
+      "line": 343,
+      "hook": "useLayoutEffect",
+      "category": "event logic",
+      "replacement": "Test harness event injection: send the command explicitly after awaiting activation in the test driver.",
+      "fingerprint": "834f03210e75e7af1c461b825152a1b0289a08d1a64f997f944aef234d5390fc"
+    },
+    {
+      "id": "packages/core/src/browser/BrowserCanvas.tsx#1",
+      "file": "packages/core/src/browser/BrowserCanvas.tsx",
+      "line": 31,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Use a callback ref to publish and clear the SVG element; current effect is external ref synchronization.",
+      "fingerprint": "a368e3fcb09f9d29ca7e8f0ca63b24b40054234634fc0f6c676d2226e30c9730"
+    },
+    {
+      "id": "packages/core/src/browser/download/useBrowserDownload.ts#1",
+      "file": "packages/core/src/browser/download/useBrowserDownload.ts",
+      "line": 36,
+      "hook": "useEffect",
+      "category": "syncing state",
+      "replacement": "Use an identity key or identity-tagged download state for the reset; retain a separate effect for abort cleanup.",
+      "fingerprint": "c725c4fc6ebac9121936901ab45757af3e1875e7292a6691720b57d9df88a01a"
+    },
+    {
+      "id": "packages/core/src/browser/download/useTrackDownload.ts#1",
+      "file": "packages/core/src/browser/download/useTrackDownload.ts",
+      "line": 38,
+      "hook": "useEffect",
+      "category": "syncing state",
+      "replacement": "Use an identity key or identity-tagged download state for the reset; retain subscription and abort cleanup in an effect.",
+      "fingerprint": "eb7460bfca7916f618a6b0b4fc73b6906f6d9f6b5161cf7d9c9589e98a9a04b5"
+    },
+    {
+      "id": "packages/core/src/browser/overlays/ContextMenuController.tsx#1",
+      "file": "packages/core/src/browser/overlays/ContextMenuController.tsx",
+      "line": 23,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: measure and position the DOM menu and subscribe to resizing.",
+      "fingerprint": "7515e81c11caf5d8414d63e85b2a836ba20cd61387619d21e3da58843a48abdd"
+    },
+    {
+      "id": "packages/core/src/browser/overlays/ContextMenuController.tsx#2",
+      "file": "packages/core/src/browser/overlays/ContextMenuController.tsx",
+      "line": 39,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: native outside-click, Escape and scroll subscriptions need teardown.",
+      "fingerprint": "2ac8e905fdf572a2fefa1d40a688238c3a8b238d253b0ad31eddf1f36f1b1cd2"
+    },
+    {
+      "id": "packages/core/src/browser/overlays/Highlights.tsx#1",
+      "file": "packages/core/src/browser/overlays/Highlights.tsx",
+      "line": 50,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: register and release the imperative SVG content group.",
+      "fingerprint": "f7a755a4afe0a258c0e1b99fd589044aefac2d1485471510c789a0f84b521256"
+    },
+    {
+      "id": "packages/core/src/browser/settings/DefaultSettingsModal.tsx#1",
+      "file": "packages/core/src/browser/settings/DefaultSettingsModal.tsx",
+      "line": 20,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: install and remove the document Escape listener.",
+      "fingerprint": "0e025df7d1bf6673bcbf4c5d6f35160e1ced46bee3106b5264f1d49d0f7e89e5"
+    },
+    {
+      "id": "packages/core/src/browser/settings/useDraggableSettingsModal.ts#1",
+      "file": "packages/core/src/browser/settings/useDraggableSettingsModal.ts",
+      "line": 76,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: ResizeObserver and window resize listener need teardown.",
+      "fingerprint": "783213d94a08344173f6630cbe13257c40791a9cd29fa5405ee576608ce513f6"
+    },
+    {
+      "id": "packages/core/src/browser/state/BrowserContext.tsx#1",
+      "file": "packages/core/src/browser/state/BrowserContext.tsx",
+      "line": 43,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: connect and disconnect the track data controller; fetching belongs to that controller and track modules.",
+      "fingerprint": "b25f2f60f44cfa8d35deb4912e80e03981aee62c2447eb64aafb639933aae504"
+    },
+    {
+      "id": "packages/core/src/browser/state/BrowserContext.tsx#2",
+      "file": "packages/core/src/browser/state/BrowserContext.tsx",
+      "line": 44,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: send committed geometry to the external data controller.",
+      "fingerprint": "ec1d5dc6c8b56d38e7b90155481b908b5a4a2b39fc2db699c3dcd8bd7b672738"
+    },
+    {
+      "id": "packages/core/src/browser/tooltip/TooltipOverlay.tsx#1",
+      "file": "packages/core/src/browser/tooltip/TooltipOverlay.tsx",
+      "line": 23,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: tooltip bounds require committed DOM measurements.",
+      "fingerprint": "c9f09f0402e1806834ee6659f1684942d4ec965d11f10b8ba9584a228a4ec031"
+    },
+    {
+      "id": "packages/core/src/browser/tooltip/TooltipOverlay.tsx#2",
+      "file": "packages/core/src/browser/tooltip/TooltipOverlay.tsx",
+      "line": 34,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: install and remove scroll/resize dismissal listeners.",
+      "fingerprint": "3e5b8082e863e1f7844e453c67d1ae595314a376182caccf9a7acdea122ae3c2"
+    },
+    {
+      "id": "packages/core/src/browser/tooltip/useTooltip.tsx#1",
+      "file": "packages/core/src/browser/tooltip/useTooltip.tsx",
+      "line": 48,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: release externally owned tooltip on unmount.",
+      "fingerprint": "42c2eae1b1b158f2c75b9c3bc14291d5ad6f53bd1d27e7e4fec7a6a1b3c52291"
+    },
+    {
+      "id": "packages/core/src/browser/track-row/frame/PanTrack.tsx#1",
+      "file": "packages/core/src/browser/track-row/frame/PanTrack.tsx",
+      "line": 19,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect or expose drag state via useSyncExternalStore; current subscription owns teardown.",
+      "fingerprint": "0b5666f0ced2e8994f019c115283f9cc131cd12af54e044b32453be892eac824"
+    },
+    {
+      "id": "packages/core/src/browser/track-row/frame/TrackFrame.tsx#1",
+      "file": "packages/core/src/browser/track-row/frame/TrackFrame.tsx",
+      "line": 55,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: register and release the imperative SVG content group.",
+      "fingerprint": "39ea8e2bf79f976aa602d843347ff36c0dd481dbedf93de61321310a9b583a17"
+    },
+    {
+      "id": "packages/core/src/browser/track-row/layout/useAutoTrackHeight.ts#1",
+      "file": "packages/core/src/browser/track-row/layout/useAutoTrackHeight.ts",
+      "line": 17,
+      "hook": "useEffect",
+      "category": "derived state",
+      "replacement": "Compute automatic height in the layout/data owner instead of copying row-derived height into persisted track state; requires resolving manual-height precedence.",
+      "fingerprint": "e046a687eaea872e854409e2ed5f0e3834071cd3e464cd27c7621edb3d42a3f8"
+    },
+    {
+      "id": "packages/core/src/browser/track-row/reorder/TrackReorder.tsx#1",
+      "file": "packages/core/src/browser/track-row/reorder/TrackReorder.tsx",
+      "line": 51,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: pointer subscriptions and cursor DOM lifetime belong to the gesture.",
+      "fingerprint": "e7dcef9ce19044d0d28d9407c67fa209ac153ce943fcbb3dd29c9383c960ae9e"
+    },
+    {
+      "id": "packages/core/src/browser/viewport/RegionSelection.tsx#1",
+      "file": "packages/core/src/browser/viewport/RegionSelection.tsx",
+      "line": 93,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: invalidate and detach native gesture resources when committed context changes.",
+      "fingerprint": "00d9e4d20baa550c107c333a648a0149ca56b38e5b2ce2e3b6b04c2aea6dbee2"
+    },
+    {
+      "id": "packages/core/src/browser/viewport/RegionSelection.tsx#2",
+      "file": "packages/core/src/browser/viewport/RegionSelection.tsx",
+      "line": 98,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: unmount must detach native gesture listeners.",
+      "fingerprint": "21ba54c8127178451dffb2a585c8316f25df1ddf6dad5cfb761a17f849fb393f"
+    },
+    {
+      "id": "packages/core/src/browser/viewport/useBrowserPan.ts#1",
+      "file": "packages/core/src/browser/viewport/useBrowserPan.ts",
+      "line": 59,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: publish committed options to native gesture callbacks; useEffectEvent is an alternative after checking callback ownership.",
+      "fingerprint": "15ad52c2df1aef94e1aabc72b95e0edb080e0dbd74d4f35cc7e391692c824fc9"
+    },
+    {
+      "id": "packages/core/src/browser/viewport/useBrowserPan.ts#2",
+      "file": "packages/core/src/browser/viewport/useBrowserPan.ts",
+      "line": 67,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep effect: native wheel/blur listeners and Zustand subscription require cleanup.",
+      "fingerprint": "17df8b08570aa53c37b8c13305ca1168014426e3599d3508aca21549a3582496"
+    },
+    {
+      "id": "packages/core/src/browser/viewport/useContainerWidth.ts#1",
+      "file": "packages/core/src/browser/viewport/useContainerWidth.ts",
+      "line": 8,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: read container geometry and own ResizeObserver lifetime.",
+      "fingerprint": "3b4092a8ef93f845c80a0e2ba71a3a5d3b10395acd4c1775a2dca0695e87c95d"
+    },
+    {
+      "id": "packages/core/src/browser/viewport/useContentTransform.ts#1",
+      "file": "packages/core/src/browser/viewport/useContentTransform.ts",
+      "line": 30,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: publish committed geometry to imperative SVG transform callbacks.",
+      "fingerprint": "16053be97dfc7d77a3d135e80b53d96bd86080d1dc8ca2eacffa5dfda74e57ca"
+    },
+    {
+      "id": "packages/core/src/browser/viewport/useContentTransform.ts#2",
+      "file": "packages/core/src/browser/viewport/useContentTransform.ts",
+      "line": 54,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep layout effect: reset the imperative DOM pan offset when a new committed region arrives.",
+      "fingerprint": "934e15ea7470e74d1aa6a7d4ee59d33d629d6a254f045e3ddfa20bd0a23bae3b"
+    },
+    {
+      "id": "packages/core/test/browser/RegionSelection.test.tsx#1",
+      "file": "packages/core/test/browser/RegionSelection.test.tsx",
+      "line": 473,
+      "hook": "useLayoutEffect",
+      "category": "external sync",
+      "replacement": "Keep test effect: observe committed mount lifetime.",
+      "fingerprint": "a123ef181ee70b600c6505aa2d48243772fa510595cd83afb7066ded9c76750c"
+    },
+    {
+      "id": "packages/core/test/browser/RegionSelection.test.tsx#2",
+      "file": "packages/core/test/browser/RegionSelection.test.tsx",
+      "line": 479,
+      "hook": "useLayoutEffect",
+      "category": "event logic",
+      "replacement": "Test harness event injection: dispatch pointerup in the test driver after commit observation.",
+      "fingerprint": "2b2ae9b9f21ba360f9867dc03de60093ca13071b0c305a404f0ec2b863aff54f"
+    },
+    {
+      "id": "packages/core/test/browser/browserPan.test.tsx#1",
+      "file": "packages/core/test/browser/browserPan.test.tsx",
+      "line": 34,
+      "hook": "useLayoutEffect",
+      "category": "syncing state",
+      "replacement": "Test harness: drive store changes in the test action rather than mirroring props into Zustand.",
+      "fingerprint": "ce5827cb5cc56b947aeb8eb1c27ba0a77f8e17690cc8a6395e21a4c0a753bde9"
+    },
+    {
+      "id": "packages/core/test/browser/tooltipPosition.test.tsx#1",
+      "file": "packages/core/test/browser/tooltipPosition.test.tsx",
+      "line": 168,
+      "hook": "useEffect",
+      "category": "external sync",
+      "replacement": "Keep test effect: report committed mount to the test observer.",
+      "fingerprint": "36e7c49c791dbf03ef7b1ef8a947e5ae21a431c57f788a348a46a86b64e2a264"
+    }
+  ]
+}
