@@ -10,6 +10,8 @@ These docs contain repository guidance for maintainers and agents. Repository-lo
 
 Start with [architecture](01-project/01-architecture.md) for the project's purpose and structure. Use [feature placement](01-project/02-feature-placement.md) to decide where a change belongs and [interface design](01-project/03-design.md) for shared UI expectations. Use [module design](01-project/module-design.md) for responsibilities and interfaces within a package.
 
+[Draft effects/state-machines ADR](adr/0001-restrict-effects.md) records the Oct 29 spike proposal and links to reproducible evidence. It is not accepted policy.
+
 ## Understand the app
 
 [MVP scope](05-app/mvp.md) owns the app product vision and launch scope. [App direction](05-app/README.md) connects that vision to feature context, current implementation, and deployment limitations. Repository skills guide implementation work; lint, schemas, runtime checks, and tests enforce the rules they can express.

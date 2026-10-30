@@ -24,9 +24,10 @@
     "publish:stable": "pnpm publish -r --tag latest",
     "dev:web": "turbo run dev --filter=@weng-lab/web",
     "dev:server": "turbo run dev --filter=@weng-lab/mcp",
-    "lint:policy": "node --test tools/lint/policy.test.mjs tools/effects/lint.test.mjs",
+    "lint:policy": "node tools/effects/audit.mjs && node --test tools/lint/policy.test.mjs tools/effects/lint.test.mjs",
     "lint:effects": "oxlint -c tools/effects/oxlint.json apps/web packages/core",
-    "audit:effects": "node tools/effects/audit.mjs"
+    "audit:effects": "node tools/effects/audit.mjs",
+    "metrics:effects": "node tools/effects/metrics.mjs"
   },
   "devDependencies": {
     "oxfmt": "catalog:",

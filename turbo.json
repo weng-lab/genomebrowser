@@ -65,7 +65,16 @@
     },
     "//#format:check:root": {},
     "//#lint:policy": {
-      "inputs": ["tools/lint/**", ".oxlintrc.json", "package.json", "pnpm-lock.yaml"]
+      "inputs": [
+        "tools/lint/**",
+        ".oxlintrc.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "tools/effects/**",
+        "apps/web/**",
+        "packages/core/src/**",
+        "packages/core/test/**"
+      ]
     }
   }
 }
