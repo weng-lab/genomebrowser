@@ -10,7 +10,9 @@
 
 ## Current behavior and rationale
 
-Prefer direct current behavior over phrases such as "previously," "now supports," or "unlike the old API." Integrate changes into the explanation rather than appending a correction beneath outdated text. Bundled documentation describes its accompanying package version. A reader should not need knowledge of an earlier implementation to understand it.
+For repository knowledge-base pages, apply the [knowledge-base scope](../README.md) before drafting. A code change alone does not require a knowledge-base update. Record changed decisions, rationale, product intent, or unresolved tradeoffs; remove stale implementation inventories instead of refreshing them.
+
+For consumer documentation and application how-to, prefer direct current behavior over phrases such as "previously," "now supports," or "unlike the old API." Integrate changes into the explanation rather than appending a correction beneath outdated text. Bundled documentation describes its accompanying package version. A reader should not need knowledge of an earlier implementation to understand it.
 
 Retain useful rationale for current decisions. Change history belongs in PRs, release notes, or clearly labeled historical ADRs. Separate migration guidance and include it only when requested or necessary for a supported upgrade path. Do not introduce compatibility APIs as part of documentation work.
 
