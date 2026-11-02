@@ -1,6 +1,6 @@
 # Project glossary
 
-Prefer these terms in issues, docs, and discussion. Preserve exact API names in code talk. Suggest additions when a recurring project concept needs a shared name; prefer nesting under an existing entry.
+Prefer these terms in issues, docs, and discussion. Preserve exact API names in code talk. Suggest additions when a recurring project concept needs a shared name; prefer nesting under an existing entry. Define what a term means, not how the code currently implements it: leave out file paths, current options, and feature lists. The [web app glossary](../apps/web/glossary.md) covers app layout, connection, command, and persistence terms.
 
 ## Browser and coordinates
 
@@ -20,11 +20,11 @@ Prefer these terms in issues, docs, and discussion. Preserve exact API names in 
 
 **Display mode** - Module drawing choice (`base.display`). Distinct from a **collection view** (catalog organization).
 
-**Base-pair detail** - Per-base glyphs; gated by visible-span cutoff and width via `useBasePairDetail`.
+**Base-pair detail** - Per-base glyphs, shown only when the view is zoomed in far enough to draw them.
 
-**Track configuration** - `base` (id, title, color, height, display) plus module `config`. **Source ownership** (`host` | `user`) records who controls the data source; core does not enforce which fields are editable.
+**Track configuration** - Shared `base` settings plus module-specific `config`. **Source ownership** records who controls the data source: the host application or the user.
 
-**Track anatomy** - **Frame** (core chrome), **margin** (color/controls/drag), **plot** (data area), **overlay** (`TrackOverlay`, viewport-anchored).
+**Track anatomy** - **Frame** (core chrome), **margin** (color/controls/drag), **plot** (data area), **overlay** (viewport-anchored).
 
 **Row layout** - Packing items into rows inside a track; **row height** vs **track height**; distinct from track order.
 
@@ -38,4 +38,4 @@ Prefer these terms in issues, docs, and discussion. Preserve exact API names in 
 
 ## Testing
 
-**Render budget** - Exact allowed committed React renders for an interaction (inline snapshot via `@weng-lab/render-probe`). Higher fails; lower updates the snapshot.
+**Render budget** - Exact allowed committed React renders for an interaction.

@@ -80,7 +80,7 @@ These are follow-ups worth keeping, not requirements hidden in the MVP:
 - **External MCP clients:** optional if time allows, otherwise later. Access needs OAuth and authorization to the user's own session.
 - **Collection sharing and chat persistence.**
 
-Other ideas retained from the former roadmap are follow-ups, not launch commitments:
+These other ideas are follow-ups, not launch commitments:
 
 - **Reference data and readers:** host 2bit reference files and improve 2bit reading performance.
 - **Manual controls:** refine toolbar and highlight settings, interaction-mode buttons, cursor and vertical-guide feedback, Escape cancellation, highlight names, range ticks, and a hotkey guide. Evaluate horizontal scrolling for panning.

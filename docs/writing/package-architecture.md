@@ -1,6 +1,6 @@
 # Package documentation architecture
 
-This is the target architecture. Existing files may not have migrated yet; do not treat their current placement as precedent or move unrelated docs during a focused edit.
+Package docs follow this layout. Do not move unrelated docs during a focused edit.
 
 ```text
 packages/<package>/

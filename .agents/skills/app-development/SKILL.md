@@ -6,7 +6,7 @@ description: Implement or review genomebrowser app features involving sessions, 
 # App development
 
 1. Read [product direction](../../../docs/product/README.md) and the relevant [MVP](../../../docs/product/mvp.md) section. MVP is intent, not proof of implementation. Read matching product pages ([sessions](../../../docs/product/sessions.md), [agent-auth](../../../docs/product/agent-auth.md), [limitations](../../../docs/product/limitations.md)), then inspect code and tests.
-2. Place work with [feature placement](../../../docs/feature-placement.md) and [ADR 0004](../../../docs/adr/0004-web-app-feature-layering.md). Follow [code standards](../../../docs/code_standards.md).
+2. Place work with [feature placement](../../../docs/feature-placement.md) and [ADR 0004](../../../docs/adr/0004-web-app-feature-layering.md). Follow [code standards](../../../docs/code_standards.md). For how the app works and how to extend it, use the [web app guide](../../../apps/web/README.md), [app docs](../../../apps/web/docs/README.md), [app glossary](../../../apps/web/glossary.md), and [contracts guide](../../../apps/contracts/README.md) for agent commands.
 3. Use the architecture-design skill for new or substantially changed responsibilities. Reuse snapshot schemas; keep live actions out of serialized copies. For agent work, trace contract → authorization/delivery → tab execution → reply; UI and agent share the same owner.
 4. Prefer lint, schemas, and tests over new prose rules. Update lint fixtures when changing import boundaries.
 5. Verify with [verify](../../../docs/contributing/verify.md). Report implemented behavior separately from planned work; update product context when implementation changes its claims.

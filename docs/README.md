@@ -11,6 +11,8 @@ Consumer API documentation lives in each package's `docs/` and changes with the 
 3. **This knowledge base**
 4. **Skills** (thin routers + agent-specific workflow)
 
+Code decides what exists today, but it is not proof of a good pattern. When nearby code conflicts with lint, an ADR, or these pages, follow the rule in new code and leave unrelated cleanup alone.
+
 If a skill and a doc disagree, fix the skill. If a doc restates what the code already shows, cut the doc.
 
 ## Read by task

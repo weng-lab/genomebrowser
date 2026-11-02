@@ -13,11 +13,14 @@ Read what the change needs:
 - Package roles and philosophy: [architecture](docs/architecture.md), [feature placement](docs/feature-placement.md)
 - Module boundaries: [module design](docs/module-design.md); use the architecture-design skill before a substantial new seam
 - App product intent: [product](docs/product/README.md)
+- React and interface work: [React guidance](docs/react.md), [interface design](docs/interface-design.md)
 - Tests and handoff: [testing](docs/contributing/testing.md), [verify](docs/contributing/verify.md)
 - Recorded decisions: [ADRs](docs/adr/README.md)
 
-Consumer docs live in `packages/*/docs/` and ship with packages. Update them when public behavior changes. Before changing a Next.js app, read that app's installed `node_modules/next/dist/docs/index.md` and follow its version.
+Before handing off a change, run `pnpm format`, `pnpm verify`, and `pnpm run doctor` from the repository root.
 
-Skills under `.agents/skills/` are thin routers into this knowledge base plus agent-only steps. Do not treat a skill as a second policy store.
+Consumer docs live in `packages/*/docs/` and ship with packages. Update them when public behavior changes. Before changing the Next.js app, read its installed `apps/web/node_modules/next/dist/docs/index.md` and follow that version.
+
+Skills under `.agents/skills/` are thin routers into this knowledge base plus agent-only steps. Load the skills that match the task before starting. Do not treat a skill as a second policy store.
 
 Before including changes from outside this session in a commit, ask the user whether to include them.

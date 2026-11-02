@@ -5,7 +5,7 @@ description: Use whenever changing, refactoring, or reviewing React components, 
 
 # Verify renders
 
-Render budgets are exact inline-snapshot counts of committed renders. Higher counts fail `pnpm verify`. Core scenarios: `packages/core/test/renders/`. API: [render-probe README](../../../packages/render-probe/README.md). Policy: [testing](../../../docs/contributing/testing.md).
+Render budgets are exact inline-snapshot counts of committed renders. Higher counts fail `pnpm verify`. Scenarios: `*.renders.test.tsx` in `packages/core/test/renders/` and under `packages/tracks/test/`. API: [render-probe README](../../../packages/render-probe/README.md). Policy: [testing](../../../docs/contributing/testing.md).
 
 1. Measure before changing (`pnpm core test renders` or the package's render tests).
 2. If the interaction has no scenario, add one (`renderWithProbe`, drive via real store actions inside `probe.measure`, `pick` components).
