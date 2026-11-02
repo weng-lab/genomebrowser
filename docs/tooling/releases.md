@@ -14,7 +14,7 @@ Select the npm dist-tag and GitHub prerelease status to match the intended relea
 
 ## Check the published artifact
 
-Follow [verification guidance](../02-contributing/verify.md), then inspect the pnpm-packed artifacts for exports, declarations, bundled docs, template files, and rewritten workspace/catalog dependencies. Use an isolated consumer when exports or the starter change so workspace links cannot hide packaging errors. Check [generated schemas](collection-schemas.md) when their inputs change.
+Follow [verification guidance](../contributing/verify.md), then inspect the pnpm-packed artifacts for exports, declarations, bundled docs, template files, and rewritten workspace/catalog dependencies. Use an isolated consumer when exports or the starter change so workspace links cannot hide packaging errors. Check [generated schemas](collection-schemas.md) when their inputs change.
 
 Dry-run the intended package selection. Before publication, the validated contents must match a clean, committed checkout on the intended remote release branch. Keep lifecycle hooks and Git checks enabled for actual publishing.
 

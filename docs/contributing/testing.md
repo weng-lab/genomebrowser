@@ -14,7 +14,7 @@ Verify the complete outcome claimed by the test. A track URL workflow should est
 
 ## Design for testability
 
-Follow [module design](../01-project/module-design.md) when choosing an owner and its interface. Callers and tests should request an operation and observe its result without coordinating internal helpers.
+Follow [module design](../module-design.md) when choosing an owner and its interface. Callers and tests should request an operation and observe its result without coordinating internal helpers.
 
 Elaborate setup, private state access, or extensive internal mocking can signal a design problem. Consider a small refactor to clarify ownership, make inputs explicit, or separate network and clock access from logic. Keep changes useful to production callers; avoid test-only exports, switches, and abstractions for every helper. If a test has no meaningful failure to detect, omit it. If valuable behavior is hard to exercise, improve its boundary.
 
@@ -32,7 +32,7 @@ Private-code tests require substantial correctness or performance risk that publ
 
 When a refactor breaks a test, check whether supported behavior changed before updating expectations. Remove implementation-only tests and redundant coverage without replacement. Establish boundary coverage before removing a test that uniquely protects supported behavior.
 
-Render budgets intentionally depend on implementation and complement functional coverage. They record committed renders with `@weng-lab/render-probe`; core's scenarios live in `packages/core/test/renders/`. Add or update scenarios when subscriptions, context, or props affect render behavior. Higher counts fail; accept lower counts with `vitest -u` and review the snapshot diff. Follow the [verify-renders skill](../../.agents/skills/verify-renders/SKILL.md) for measurement and investigation.
+Render budgets intentionally depend on implementation and complement functional coverage. They record committed renders with `@weng-lab/render-probe`; scenarios are `*.renders.test.tsx` files, with core's in `packages/core/test/renders/` and tracks' under `packages/tracks/test/`. Add or update scenarios when subscriptions, context, or props affect render behavior. Higher counts fail; accept lower counts with `vitest -u` and review the snapshot diff. Follow the [verify-renders skill](../../.agents/skills/verify-renders/SKILL.md) for measurement and investigation.
 
 Before keeping a test, ask: what meaningful failure does it catch, does it exercise real behavior, and would it survive an internal refactor? Any tighter coupling needs the justification described above.
 

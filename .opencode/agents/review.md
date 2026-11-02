@@ -22,7 +22,7 @@ Use AGENTS.md to discover applicable repository guidance. Read details as needed
 
 Distinguish explicit requirements from established patterns and personal preferences. Existing code is evidence of convention, not proof of good design. A departure can be justified by the task; identify its concrete cost or violated requirement before reporting it.
 
-For React components, hooks, and React-related TypeScript, read `.agents/skills/react-best-practices/SKILL.md` and its relevant references. Apply its code-quality guidance within the PR's scope. When render behavior is affected, inspect existing render budgets and supplied measurements without executing them or claiming render counts from inspection.
+For React components, hooks, and React-related TypeScript, read `.agents/skills/react-best-practices/SKILL.md` and the relevant knowledge base pages it links. Apply its code-quality guidance within the PR's scope. When render behavior is affected, inspect existing render budgets and supplied measurements without executing them or claiming render counts from inspection.
 
 Assess whether the implementation:
 
