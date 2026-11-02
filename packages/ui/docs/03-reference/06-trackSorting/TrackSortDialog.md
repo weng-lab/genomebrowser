@@ -124,7 +124,7 @@ The priority list shows only included options, labeling the top one "Primary sor
 
 **Apply order** reads the store's current tracks, reorders them with `reorderTracks`, and calls `onClose`. Tracks that tie on every included option keep their current relative order. Sorting runs once per Apply; tracks added later are not sorted until the next Apply.
 
-The dialog remembers the last applied priority while it stays mounted, and each opening starts from it. **Cancel**, the close button, Escape, and clicking outside the dialog call `onClose` and discard unapplied changes. An option added to `options` after the dialog mounts starts excluded. Escape during a move cancels the move and leaves the dialog open.
+The dialog remembers the last applied priority while it stays mounted, and each opening starts from it. **Cancel**, the close button, Escape, and clicking outside the dialog call `onClose` and discard unapplied changes. Until the first Apply, every option currently in `options` is included, so options can change with the loaded tracks. An option added after a sort is applied starts excluded. Escape during a move cancels the move and leaves the dialog open.
 
 ## Accessibility
 

@@ -38,10 +38,9 @@ export function TrackSortDialog<Metadata>({
   title = "Sort Tracks",
 }: TrackSortDialogProps<Metadata>) {
   // The priority last applied to the track store. Each opening drafts from it,
-  // so Cancel discards an unfinished arrangement.
-  const [appliedIds, setAppliedIds] = useState<readonly string[]>(() =>
-    options.map(({ id }) => id),
-  );
+  // so Cancel discards an unfinished arrangement. Until a sort is applied, every
+  // current option is included, so options that change before then all start included.
+  const [appliedIds, setAppliedIds] = useState<readonly string[]>();
   // MUI handles Escape before it reaches the drag sensors, so disable dialog
   // closing on Escape while a row is moving; Escape then cancels the move.
   const [moving, setMoving] = useState(false);
@@ -95,7 +94,7 @@ export function TrackSortDialog<Metadata>({
       {/* The dialog unmounts its content when closed, resetting the draft for the next opening. */}
       <TrackSortDialogContent
         options={options}
-        initialIds={appliedIds}
+        initialIds={appliedIds ?? options.map(({ id }) => id)}
         onCancel={onClose}
         onApply={applySort}
         onMovingChange={setMoving}

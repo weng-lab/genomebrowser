@@ -34,6 +34,13 @@ export const theme = createTheme({
         separator: { ...textBoxTrim, display: "block" },
       },
     },
+    MuiListItemText: {
+      styleOverrides: {
+        // Trimmed lines have no line-height padding between them, so the primary text's
+        // descenders would touch the secondary text below. Restore a gap between the two.
+        secondary: { marginTop: 6 },
+      },
+    },
     MuiTooltip: {
       defaultProps: { enterDelay: 500 },
       styleOverrides: {
