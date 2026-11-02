@@ -16,6 +16,8 @@ export function useAgentSession(sessionId: string, signal: AbortSignal) {
     () => store.snapshot,
   );
 
+  // Cleanup releases observation after cancellation settles; releasing synchronously aborts cancellation.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
   useEffect(() => {
     const release = store.observe();
     let stopping: Promise<unknown> | undefined;
