@@ -1,20 +1,20 @@
-import { commandMessageSchema, type CommandResult } from "@weng-lab/contracts";
 import { Deferred, Effect, Exit, Scope } from "effect";
-import { executeCommand, type CommandCapabilities } from "./commands";
+import { runCommand, type CommandApp, type CommandResult } from "./commands";
+import { commandMessageSchema } from "./commands/protocol";
 
 export type RemoteControlState = "off" | "connecting" | "connected";
 
 /**
- * Accept agent commands for one session from the MCP server until `signal`
- * aborts, then disconnect. Only the first tab to connect receives them; other
- * tabs keep retrying until it closes. Commands are never replayed, and a command
+ * Accept agent commands for one session from `rpcUrl` until `signal` aborts,
+ * then disconnect. Only the first tab to connect receives them; other tabs keep
+ * retrying until it closes. Commands are never replayed, and a command
  * that arrives once `signal` has aborted fails without running. A command still
  * running when the session closes, the tab detaches, or the command expires is
  * cancelled.
  */
 export function connectRemoteControl(
   rpcUrl: string,
-  app: CommandCapabilities,
+  app: CommandApp,
   signal: AbortSignal,
   onState: (state: RemoteControlState) => void,
 ) {
@@ -98,7 +98,7 @@ export function connectRemoteControl(
           const finish = (result: CommandResult) => {
             if (attached) reply(command.commandId, result, signal.aborted || !receiving);
           };
-          executeCommand(app, command, commandSignal(command.expiresAt)).then(finish, () =>
+          runCommand(app, command, commandSignal(command.expiresAt)).then(finish, () =>
             finish({
               ok: false,
               code: "COMMAND_FAILED",

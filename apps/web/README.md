@@ -1,12 +1,12 @@
 # Web app
 
-`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, and rewrites to the optional Node.js MCP server in `apps/server`. Clerk identifies users in production; local development uses mock users.
+`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, and the Eve agent in `agent/`, whose commands run in browser tabs. Clerk identifies users in production; local development uses mock users.
 
 The [app docs](docs/README.md) cover [architecture and data flow](docs/02-guides/dataFlow.md), adding routes, panel behavior, and styling. Terms are defined in the [app glossary](glossary.md).
 
 ## Run locally
 
-Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL with Docker, and apply the migrations:
+Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL and Redis with Docker, and apply the migrations:
 
 ```sh
 pnpm install --frozen-lockfile
@@ -18,15 +18,13 @@ pnpm dev
 
 Open `http://localhost:3000/browser`. With no session open, the browser asks you to open or create one. `/collections` and `/settings` are separate Next.js routes; unknown URLs return 404. The shared route layout keeps the providers, the open session, and its stores mounted during navigation.
 
-`pnpm dev:web` starts only Next.js. Sessions load and save without the MCP server. `pnpm dev:server` starts only the MCP server. Both bind to loopback.
+`pnpm dev` starts Next.js, which starts the Eve agent. Both bind to loopback. Sessions load and save without Redis; agent commands need it.
 
-Next.js rewrites `/mcp` and each tab's command stream, `/rpc/:id`, to the MCP server at `http://127.0.0.1:3001`. Set `GB_SERVER_URL` to use another address; rewrites are fixed when Next.js starts in development and when it builds for production. The `/api/sessions` routes are this app's own.
-
-For a private development proxy such as Tailscale Serve, set `GB_DEV_HOSTS` in `.env.local` to its hostname (without scheme or port), then restart Next.js. This allows the browser to load development scripts and hot reload through that host. Database requests still go through Next.js; PostgreSQL should stay on loopback. For agent chat, also set `GB_AGENT_DEV_ORIGINS` in `.env.local` to the exact private proxy origin (including scheme and port). Add that origin alongside the localhost origins in `GB_ALLOWED_ORIGINS` in `apps/server/.env.local` for MCP replies, then restart `pnpm dev`. These settings trust the private proxy's access control and do not enable production authentication.
+For a private development proxy such as Tailscale Serve, set `GB_DEV_HOSTS` in `.env.local` to its hostname (without scheme or port), then restart Next.js. This allows the browser to load development scripts and hot reload through that host. Database requests still go through Next.js; PostgreSQL should stay on loopback. For agent chat, also set `GB_AGENT_DEV_ORIGINS` in `.env.local` to the exact private proxy origin (including scheme and port), then restart `pnpm dev`. These settings trust the private proxy's access control and do not enable production authentication.
 
 ## Agent chat
 
-The Agent panel uses the [Eve agent](../agent/README.md) in `apps/agent`. Set `AI_GATEWAY_API_KEY` to use Vercel AI Gateway, or sign in with `codex login` for the local fallback. Run `pnpm dev`, open a session, and enable remote control in Settings. Chat streams replies and shows tool activity. The agent can call the existing MCP tools to navigate to coordinates or export an image. Stop requests cancellation; completed changes remain.
+The Agent panel uses the [Eve agent](docs/02-guides/agent.md) in `agent/`. Set `AI_GATEWAY_API_KEY` to use Vercel AI Gateway, or sign in with `codex login` for the local fallback. Run `pnpm dev`, open a session, and enable remote control in Settings. Chat streams replies and shows tool activity. The agent's tools navigate to coordinates and export an image in the open tab. Stop requests cancellation; completed changes remain.
 
 This is a local development integration. Production agent requests are rejected until session authorization is implemented. Chat resets on session changes, page navigation that unmounts the panel, and refresh.
 
@@ -93,6 +91,8 @@ await sessions.update(saved.id, {
 
 The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a connection that may create databases, such as `postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postgres` with the compose database. Each run creates and drops its own database. Without the variable, the tests are skipped locally and fail in CI, which runs a PostgreSQL service.
 
+`compose.yaml` also runs Redis on `127.0.0.1:6379`, matching `REDIS_URL`, for agent commands. The agent command tests use `GB_TEST_REDIS_URL`, such as `redis://127.0.0.1:6379`, with keys of their own; like the database tests, they are skipped locally without it and fail in CI without it.
+
 In production, sessions use Google Cloud SQL through Google's Cloud SQL connector, which encrypts the connection to the instance's public IP without authorized networks. Set `INSTANCE_CONNECTION_NAME` (`<project>:<region>:<instance>`), `DB_NAME`, `DB_USER`, and `DB_PASSWORD`; `DATABASE_URL` is then ignored, and missing Cloud SQL settings fail instead of falling back to it. Outside Vercel, the connector uses the machine's Google application default credentials.
 
 On Vercel, the connector authenticates as a Google service account through Workload Identity Federation, using the deployment's OIDC token, so no Google key is stored. Each server process keeps a pool of at most five connections. The server reads credentials only when an operation first runs, so builds do not need them.
@@ -101,31 +101,25 @@ Builds do not run migrations. `pnpm web db:migrate` reads only `DATABASE_URL`, s
 
 ### Sessions saved by the old server
 
-Before this app saved sessions, the MCP server kept them in SQLite by URL name, with no owner. Neither the browser nor the server reads that file now, and nothing claims those sessions automatically. An administrator can copy them to one user:
+Before this app saved sessions, a separate browser server kept them in SQLite by URL name, with no owner. Neither the browser nor the server reads that file now, and nothing claims those sessions automatically. An administrator can copy them to one user:
 
 ```sh
-pnpm web sessions:import-sqlite --sqlite ../server/data/browser.sqlite --owner <user ID>
+pnpm web sessions:import-sqlite --sqlite <path to browser.sqlite> --owner <user ID>
 ```
 
 Each copy gets a new UUID and keeps the old ID as its name. Add `--session <old ID>` once per session to copy only some. The script opens the SQLite file read-only. It skips sessions already copied unchanged for that owner and lists any snapshot that fails validation. The owner is a Clerk user ID, or a mock user ID locally.
 
 ## Control a browser tab
 
-Agents control the browser through MCP. Each command is an MCP tool that takes a `sessionId` and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. `export_image` shows an image of the current view to the user in a preview with a Download button and returns its file name and size; the image is not sent to the agent, and nothing is saved until the user downloads it. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
+Agents control the browser through commands. Each command is an agent tool that runs in the tab where the conversation's session is open and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. `export_image` shows an image of the current view to the user in a preview with a Download button and returns its file name and size; the image is not sent to the agent, and nothing is saved until the user downloads it. The model never chooses the session. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
 
-Remote control is optional and off by default. Turn it on under **Remote control** in Settings. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; MCP calls for the session then fail. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
+Remote control is optional and off by default. Turn it on under **Remote control** in Settings. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; commands for the session then fail. While Redis is unreachable the Agent panel keeps reconnecting; sessions still load and save.
 
-Connect an MCP client to `http://localhost:3000/mcp`, or to `http://127.0.0.1:3001/mcp` to skip Next.js. For example, with Claude Code:
+A tool call fails with a validation error for invalid parameters, `NOT_CONNECTED` when no tab has the session open with remote control on, `TIMEOUT` when the tab does not reply within five seconds, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. `export_image` fails with `EXPORT_FAILED` when the browser page is not open, tracks are still loading, or the image is too large, and with `CANCELLED` when the export outlasts the five-second limit; a cancelled export shows no preview. A timeout or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
 
-```sh
-claude mcp add --transport http genome-browser http://localhost:3000/mcp
-```
+The tab opens an SSE stream at `/api/sessions/<id>/commands?tab=<tab ID>` and posts each reply to the same path. Both require the signed-in owner of the session. The agent and Next.js can run in different processes, so commands and replies pass through Redis pub/sub (`REDIS_URL`); nothing is stored, and commands are not replayed after reconnection. Redis also records which tab holds each session, so a tab can reconnect at once with its own tab ID.
 
-Then ask the agent to call `set_region` with the session ID from the URL, which the Agent panel also shows, and a zero-based, half-open region such as `{"chromosome":"chr1","start":100000,"end":200000}`. Success means the store accepted the region; it does not mean track data has finished rendering.
-
-A tool call fails with an MCP validation error for invalid parameters, `NOT_CONNECTED` when no tab has the session open with remote control on, `TIMEOUT` when the tab does not reply within five seconds, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. `export_image` fails with `EXPORT_FAILED` when the browser page is not open, tracks are still loading, or the image is too large, and with `CANCELLED` when the export outlasts the five-second limit; a cancelled export shows no preview. A timeout or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
-
-The tab opens an SSE stream at `/rpc/:id`, which Next.js forwards to the MCP server. The MCP server has no database and does not check session ownership; anyone who can reach it and knows a session ID can control a connected tab. Commands carry a unique `commandId` and `expiresAt`, and the tab posts its reply to the same path. Commands are not replayed after reconnection. The server tracks open tabs and pending commands in memory.
+External MCP clients are not connected yet. Eve can publish the same tools through its MCP channel once callers can be authorized for a session.
 
 ## Change the product
 
@@ -136,11 +130,11 @@ shared/        # Generic workspace shell, panels, and theme
 composition/   # Concrete providers, navigation, and server dependencies
 ```
 
-Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns the Effect remote-control connection and command handlers. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/feature-placement.md#web-app).
+Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns the Effect remote-control connection and the commands. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/feature-placement.md#web-app).
 
 The workspace layout mounts one session provider per account. Use `useSession` with focused selectors and call its complete operations; panels should not coordinate saving, cancellation, or navigation themselves. Keep providers above routes so navigation preserves their state. See [data flow](docs/02-guides/dataFlow.md) for lifetimes and [routing](docs/02-guides/routing.md) for URL behavior.
 
-To add a product page, put its UI in `features/`, import it from a thin `app/` route, and add its navigation entry in `composition/navigation.tsx`. Follow [Pages and panels](docs/02-guides/pages.md). To add an agent command, define its contract in `@weng-lab/contracts` and its handler in `features/agent/commands.ts`; follow [Add a command](../contracts/README.md#add-a-command).
+To add a product page, put its UI in `features/`, import it from a thin `app/` route, and add its navigation entry in `composition/navigation.tsx`. Follow [Pages and panels](docs/02-guides/pages.md). To add an agent command, follow [Add a command](docs/02-guides/agent.md#add-a-command).
 
 Run `pnpm verify` for the workspace check. React changes also follow the [render verification guidance](../../docs/contributing/testing.md).
 
@@ -149,12 +143,8 @@ Run `pnpm verify` for the workspace check. React changes also follow the [render
 ```sh
 pnpm exec turbo run build --filter=@weng-lab/web
 pnpm --filter @weng-lab/web start
-pnpm exec turbo run build --filter=@weng-lab/mcp
-pnpm --filter @weng-lab/mcp start
 ```
 
-Run Next.js and, for agent control, the MCP server as separate processes. Set `GB_SERVER_URL` before `next build` if the server is not at `http://127.0.0.1:3001`. For an HPC deployment reached through an SSH tunnel, forwarding web port 3000 is sufficient because the rewrites reach the server on loopback. Set `GB_ALLOWED_ORIGINS` if the browser uses a different web origin.
+The build runs `eve build`, then `next build`. `next start` also starts the built agent on loopback port 4274. Set `REDIS_URL` for agent commands. For an HPC deployment reached through an SSH tunnel, forwarding web port 3000 is sufficient.
 
-For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. Sessions need Next.js, Cloud SQL, and Clerk; follow [Deploy to Vercel](docs/02-guides/deployment.md) to configure them. MCP needs the separate server.
-
-The MCP server has no authentication and rejects non-loopback hosts. Add authentication and session authorization for tab streams and MCP before deploying it beyond loopback. It needs a persistent process for long-lived SSE streams and pending commands.
+For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app; Eve deploys the agent with it. Sessions need Cloud SQL and Clerk, and agent commands need Redis, such as Upstash from the Vercel Marketplace, which sets `REDIS_URL`. Follow [Deploy to Vercel](docs/02-guides/deployment.md) to configure them.

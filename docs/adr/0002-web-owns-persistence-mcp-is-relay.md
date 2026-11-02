@@ -1,6 +1,6 @@
 # ADR 0002: Web owns persistence; MCP is a relay
 
-- Status: accepted
+- Status: superseded by [ADR 0007](0007-commands-owned-by-the-web-app.md) for agent command delivery; web ownership of persistence still holds
 - Date: 2026-10-29 (codified from existing docs)
 
 ## Context

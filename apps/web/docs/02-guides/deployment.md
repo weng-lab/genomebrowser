@@ -1,6 +1,6 @@
 # Deploy to Vercel
 
-This guide sets up the web app on Vercel with sessions stored in Google Cloud SQL and accounts in Clerk, and explains how to apply database migrations. It covers the Google Cloud, Vercel, and Clerk configuration, the local tools for maintenance, and the errors each misconfiguration produces. The optional MCP server is not part of this deployment; see [Build and host](../../README.md#build-and-host).
+This guide sets up the web app on Vercel with sessions stored in Google Cloud SQL, agent commands relayed through Redis, and accounts in Clerk, and explains how to apply database migrations. It covers the Google Cloud, Vercel, Redis, and Clerk configuration, the local tools for maintenance, and the errors each misconfiguration produces.
 
 ## How the pieces connect
 
@@ -75,6 +75,12 @@ Set these environment variables for each environment that should save sessions. 
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`                   | Keys from one Clerk instance; see [Configure Clerk](#configure-clerk)  |
 
 Vercel applies variable changes only to new deployments. After changing a variable, redeploy the affected environment; pushing a commit to a PR branch also creates a new preview. When Cloud SQL settings are incomplete, session requests fail with an error naming the missing variable rather than falling back to another database.
+
+## Add Redis
+
+Agent commands pass between the agent and the browser tab's stream through Redis. In the Vercel project, add a Redis database from the Marketplace, such as Upstash, and connect it to each environment that runs the agent. The integration sets `REDIS_URL`. Use a TCP `redis://` or `rediss://` URL, not a REST endpoint; the app uses Redis pub/sub. Redis keeps no data for the app beyond which tab holds each session, which expires on its own.
+
+Without `REDIS_URL`, sessions still load and save. The Agent panel keeps reconnecting, and command tools fail with `REDIS_URL is required for agent commands` in the runtime logs.
 
 ## Configure Clerk
 

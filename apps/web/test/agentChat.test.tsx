@@ -12,8 +12,10 @@ import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { AgentChat } from "../features/agent/components/AgentChat";
 import { createStores } from "../features/assemblies/assemblies";
-import { executeCommand } from "../features/agent/commands";
-import { commandMessageSchema } from "@weng-lab/contracts";
+import { runCommand } from "../features/agent/commands";
+import { commandMessageSchema } from "../features/agent/commands/protocol";
+import { createCommandRelay } from "../features/agent/commands/server/relay";
+import { testRedisUrl } from "./redis";
 
 const proxyOrigin = "https://browser.test:8443";
 const sessionId = "e376d6ef-36c9-4d01-ad52-9847bad99f3c";
@@ -21,7 +23,6 @@ const children: ChildProcess[] = [];
 const nativeFetch = globalThis.fetch;
 let directory: string;
 let eve: string;
-let mcp: string;
 let logs = "";
 let probe: Probe | undefined;
 const lifetime = new AbortController();
@@ -69,23 +70,17 @@ async function ready(url: string) {
 
 beforeAll(async () => {
   directory = await mkdtemp(resolve(tmpdir(), "genomebrowser-eve-test-"));
-  const root = resolve("../agent");
-  await cp(resolve(root, "agent"), resolve(directory, "agent"), { recursive: true });
-  await cp(resolve(root, "package.json"), resolve(directory, "package.json"));
+  // The agent with a scripted model. Its tools import the app's features, so link them in place.
+  await cp(resolve("agent"), resolve(directory, "agent"), { recursive: true });
+  await cp(resolve("package.json"), resolve(directory, "package.json"));
   await cp(resolve("test/fixtures/eve-model.ts"), resolve(directory, "agent/agent.ts"));
-  await symlink(resolve(root, "node_modules"), resolve(directory, "node_modules"), "dir");
-  const mcpPort = await port();
+  await symlink(resolve("node_modules"), resolve(directory, "node_modules"), "dir");
+  await symlink(resolve("features"), resolve(directory, "features"), "dir");
   const evePort = await port();
-  mcp = `http://127.0.0.1:${mcpPort}`;
   eve = `http://127.0.0.1:${evePort}`;
-  start(["src/main.ts"], resolve("../server"), {
-    GB_SERVER_PORT: String(mcpPort),
-    GB_ALLOWED_ORIGINS: proxyOrigin,
-  });
-  await ready(`${mcp}/health`);
   start(
     [
-      resolve(root, "node_modules/eve/bin/eve.js"),
+      resolve("node_modules/eve/bin/eve.js"),
       "dev",
       "--no-ui",
       "--no-default-extensions",
@@ -95,7 +90,11 @@ beforeAll(async () => {
       String(evePort),
     ],
     directory,
-    { GB_SERVER_URL: mcp, NODE_ENV: "development", GB_AGENT_DEV_ORIGINS: proxyOrigin },
+    {
+      NODE_ENV: "development",
+      GB_AGENT_DEV_ORIGINS: proxyOrigin,
+      ...(testRedisUrl && { REDIS_URL: testRedisUrl }),
+    },
   );
   await ready(`${eve}/eve/v1/health`);
   // Same-origin rewrite boundary, as configured by withEve in Next.js.
@@ -137,66 +136,71 @@ async function send(message: string) {
   });
 }
 
-it("streams chat and calls MCP for the bound session, applying the region in the browser stores", async () => {
-  const stream = await nativeFetch(`${mcp}/rpc/${sessionId}`, { signal: lifetime.signal });
-  expect(stream.ok).toBe(true);
-  const reader = stream.body!.pipeThrough(new TextDecoderStream()).getReader();
-  const command = (async () => {
-    let buffer = "";
-    for (;;) {
-      const chunk = await reader.read();
-      if (chunk.done) throw new Error("Tab disconnected before command");
-      buffer += chunk.value;
-      const match = /event: command\ndata: ([^\n]+)\n\n/.exec(buffer);
-      if (!match) continue;
-      const message = commandMessageSchema.parse(JSON.parse(match[1]));
-      const result = await executeCommand(
-        { stores, getBrowserSvg: () => null, showImage: () => {} },
-        message,
-        lifetime.signal,
-      );
-      const reply = await nativeFetch(`${mcp}/rpc/${sessionId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Origin: proxyOrigin },
-        body: JSON.stringify({ commandId: message.commandId, result }),
-      });
-      expect(reply.ok).toBe(true);
-      return result;
-    }
-  })().then(
-    (result) => ({ result }),
-    (error: unknown) => ({ error }),
-  );
-  probe = await renderWithProbe(
-    <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
-  );
-  await send("hello");
-  await act(async () => {
-    await vi.waitFor(
-      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
-      { timeout: 30_000 },
+it.skipIf(!testRedisUrl)(
+  "streams chat and runs a tool in the bound session's tab, applying the region in the browser stores",
+  async () => {
+    // The tab's side of the relay, as the command stream route runs it.
+    const relay = createCommandRelay({ url: testRedisUrl! });
+    const stream = await relay.connect(sessionId, crypto.randomUUID(), lifetime.signal);
+    expect(stream).not.toBeNull();
+    const reader = stream!.pipeThrough(new TextDecoderStream()).getReader();
+    const command = (async () => {
+      let buffer = "";
+      for (;;) {
+        const chunk = await reader.read();
+        if (chunk.done) throw new Error("Tab disconnected before command");
+        buffer += chunk.value;
+        const match = /event: command\ndata: ([^\n]+)\n\n/.exec(buffer);
+        if (!match) continue;
+        const message = commandMessageSchema.parse(JSON.parse(match[1]));
+        const app = {
+          stores,
+          exportImage: () => Promise.reject(new Error("Not rendered")),
+          showImage: () => {},
+        };
+        const result = await runCommand(app, message, lifetime.signal);
+        expect(await relay.acknowledge(sessionId, { commandId: message.commandId, result })).toBe(
+          true,
+        );
+        return result;
+      }
+    })().then(
+      (result) => ({ result }),
+      (error: unknown) => ({ error }),
     );
-  });
-  await send("navigate to chr1:1001-2000");
-  await act(async () => {
-    await vi.waitFor(() => expect(document.body.textContent).toContain("Browser result:"), {
-      timeout: 30_000,
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await act(async () => {
+      await vi.waitFor(
+        () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+        { timeout: 30_000 },
+      );
     });
-  });
-  expect(await command).toMatchObject({
-    result: {
-      ok: true,
-      value: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
-    },
-  });
-  expect(stores.useBrowserStore.getState().region).toMatchObject({
-    chromosome: "chr1",
-    start: 1000,
-    end: 2000,
-  });
-  expect(document.body.textContent).toContain("completed");
-  await reader.cancel();
-}, 70_000);
+    await send("navigate to chr1:1001-2000");
+    await act(async () => {
+      await vi.waitFor(() => expect(document.body.textContent).toContain("Browser result:"), {
+        timeout: 30_000,
+      });
+    });
+    expect(await command).toMatchObject({
+      result: {
+        ok: true,
+        value: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
+      },
+    });
+    expect(stores.useBrowserStore.getState().region).toMatchObject({
+      chromosome: "chr1",
+      start: 1000,
+      end: 2000,
+    });
+    expect(document.body.textContent).toContain("completed");
+    await reader.cancel();
+    await relay.close();
+  },
+  70_000,
+);
 
 it("rejects requests without a valid browser-session header", async () => {
   const response = await nativeFetch(`${eve}/eve/v1/session`, {

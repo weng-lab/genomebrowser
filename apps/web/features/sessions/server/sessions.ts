@@ -45,6 +45,8 @@ export type Sessions = {
   /** Metadata only, alphabetically by name. */
   list(): Promise<Session[]>;
   load(id: string): Promise<SavedSession>;
+  /** Fail as `load` would unless the acting user owns the session, without reading it. */
+  authorize(id: string): Promise<void>;
   /** Replace the name and snapshot of an existing session. Never recreates a deleted one. */
   update(id: string, input: SessionUpdate): Promise<Session>;
   remove(id: string): Promise<void>;
@@ -105,6 +107,15 @@ export function createSessions({
         .where(owned(owner, id));
       if (!saved) throw notFound();
       return { ...saved, snapshot: sessionSnapshotSchema.parse(saved.snapshot) };
+    },
+
+    async authorize(id) {
+      const owner = await actingUser();
+      const [owns] = await db
+        .select({ id: sessionsTable.id })
+        .from(sessionsTable)
+        .where(owned(owner, id));
+      if (!owns) throw notFound();
     },
 
     async update(id, input) {

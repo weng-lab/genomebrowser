@@ -1,6 +1,6 @@
 import { defineAgent } from "eve";
 
-// Deterministic model boundary; Eve, its MCP connection and the tab handler are real.
+// Deterministic model boundary; Eve, its tools, the command relay, and the tab are real.
 export default defineAgent({
   defaultTools: false,
   modelContextWindowTokens: 200_000,
@@ -20,22 +20,9 @@ export default defineAgent({
       const turn = options.prompt.slice(user);
       const prompt = JSON.stringify(turn);
       const navigate = prompt.includes("navigate");
-      const searched = turn.some(
-        (message) => message.role === "tool" && JSON.stringify(message).includes("eve__search"),
-      );
       const called = turn.some(
-        (message) => message.role === "tool" && JSON.stringify(message).includes("eve__tool"),
+        (message) => message.role === "tool" && JSON.stringify(message).includes("set_region"),
       );
-      const toolName = !searched ? "eve__search" : "eve__tool";
-      const input = !searched
-        ? { query: "browser__" }
-        : {
-            name: "browser__set_region",
-            input: {
-              region: { chromosome: "chr1", start: 1000, end: 2000 },
-              sessionId: "forged-target",
-            },
-          };
       const tool = navigate && !called;
       return {
         stream: new ReadableStream({
@@ -55,8 +42,8 @@ export default defineAgent({
               controller.enqueue({
                 type: "tool-call",
                 toolCallId: crypto.randomUUID(),
-                toolName,
-                input: JSON.stringify(input),
+                toolName: "set_region",
+                input: JSON.stringify({ region: { chromosome: "chr1", start: 1000, end: 2000 } }),
               });
             } else {
               controller.enqueue({ type: "text-start", id: "answer" });

@@ -7,11 +7,12 @@ These guides are for maintainers of the Next.js browser application.
 ## Guides
 
 - [Architecture and data flow](02-guides/dataFlow.md): trace commands, autosave, restoration, and genomic data requests.
+- [Agent and commands](02-guides/agent.md): run the agent and add a command.
 
 - [Pages and panels](02-guides/pages.md): add a route and compose its content.
 - [Routing](02-guides/routing.md): keep providers and layout stable across navigation.
 - [Styling and text](02-guides/styling.md): theme, icon colors, and text trimming.
-- [Deploy to Vercel](02-guides/deployment.md): connect Vercel to Cloud SQL and Clerk, apply migrations, and diagnose deployment errors.
+- [Deploy to Vercel](02-guides/deployment.md): connect Vercel to Cloud SQL, Redis, and Clerk, apply migrations, and diagnose deployment errors.
 
 ## Reference
 

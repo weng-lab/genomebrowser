@@ -4,7 +4,7 @@ A session is a saved browsing setup for one assembly. Account-owned persistence 
 
 ## Planned product behavior
 
-The open session is app-wide context within a browser tab. Session-aware UI uses it as the default target. Navigation should preserve the active session and its authorized MCP connection; the agent-off setting still wins. Actions on inactive sessions must be explicit.
+The open session is app-wide context within a browser tab. Session-aware UI uses it as the default target. Navigation should preserve the active session and its authorized agent connection; the agent-off setting still wins. Actions on inactive sessions must be explicit.
 
 Guests get one session restored in the same browser, with work preserved on sign-in (storage mechanism open). Signed-in sessions support cross-device restoration. “Save a copy” duplicates setup into an independent session. Saved regions use highlights. Chats are ephemeral. History/undo is outside the MVP.
 

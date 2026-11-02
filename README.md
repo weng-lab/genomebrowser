@@ -17,11 +17,9 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 - `packages/create` (`@weng-lab/create-genomebrowser`) creates an editable
   browser application with the stable v2 packages.
 
-Applications and their private shared packages live under `apps/`:
+The application lives under `apps/`:
 
-- [Web app](apps/web/README.md) (`@weng-lab/web`) owns the browser, collections, and settings routes, browser session, workspace layout, and command proxy.
-- [Browser server](apps/server/README.md) (`@weng-lab/mcp`) is the optional MCP server. It relays agent commands to connected browser tabs and stores nothing.
-- [App contracts](apps/contracts/README.md) (`@weng-lab/contracts`) provides command definitions, wire schemas, and the shared region schema for both apps.
+- [Web app](apps/web/README.md) (`@weng-lab/web`) owns the browser, collections, and settings routes, browser session, workspace layout, the Eve agent, and the commands it runs in browser tabs.
 
 Archived applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace and its development and verification commands.
 

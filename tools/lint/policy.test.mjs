@@ -31,12 +31,18 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
       JSON.stringify({ compilerOptions: { noEmit: true, lib: ["esnext"] }, include: ["**/*.ts"] }),
     );
     const cases = [
-      ["apps/agent/agent/probe.ts", "../../web/features/browser/view", false],
-      ["apps/agent/agent/probe.ts", "../../server/src/tabs", false],
-      ["apps/agent/agent/probe.ts", "@weng-lab/contracts", true],
-      ["apps/agent/agent/probe.ts", "eve/connections", true],
-      ["apps/agent/agent/probe.ts", "react", false],
-      ["apps/agent/agent/probe.ts", "pg", false],
+      ["apps/web/agent/tools/probe.ts", "../../features/agent/commands/setRegion", true],
+      ["apps/web/agent/tools/probe.ts", "eve/tools", true],
+      ["apps/web/agent/tools/probe.ts", "../../composition/server", false],
+      ["apps/web/agent/tools/probe.ts", "../../shared/workspace/types", false],
+      ["apps/web/agent/tools/probe.ts", "react", false],
+      ["apps/web/agent/tools/probe.ts", "pg", false],
+      ["apps/web/agent/tools/probe.ts", "server-only", false],
+      ["apps/web/features/agent/commands/probe.ts", "zod", true],
+      ["apps/web/features/agent/commands/probe.ts", "../../browser/region", true],
+      ["apps/web/features/agent/commands/probe.ts", "@weng-lab/genomebrowser", false],
+      ["apps/web/features/agent/commands/probe.ts", "react", false],
+      ["apps/web/features/agent/commands/server/probe.ts", "redis", true],
       ["apps/web/shared/probe.ts", "../features/browser/view", false],
       ["apps/web/shared/probe.ts", "../composition/providers", false],
       ["apps/web/shared/probe.ts", "../app/page", false],
@@ -47,22 +53,11 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
       ["apps/web/features/account/components/probe.ts", "../server/identity", true],
       ["apps/web/features/browser/probe.ts", "../../shared/workspace/types", true],
       ["apps/web/composition/probe.ts", "../features/browser/view", true],
-      ["apps/web/composition/probe.ts", "../../server/src/tabs", false],
-      ["apps/server/src/probe.ts", "../../web/features/browser/view", false],
-      ["apps/server/src/probe.ts", "@weng-lab/contracts", true],
-      ["apps/server/src/probe.ts", "pg", false],
-      ["apps/server/src/probe.ts", "drizzle-orm", false],
-      ["apps/contracts/src/probe.ts", "react", false],
-      ["apps/contracts/src/probe.ts", "../../web/features/browser/view", false],
-      ["apps/contracts/src/probe.ts", "@weng-lab/genomebrowser", false],
-      ["apps/contracts/src/probe.ts", "zod", true],
-      ["apps/contracts/src/probe.ts", "../../../scripts/operation", false],
       ["apps/web/features/browser/probe.ts", "drizzle-orm", false],
       ["apps/web/app/api/probe.ts", "pg", false],
       ["apps/web/shared/probe.ts", "pg", false],
       ["apps/web/features/sessions/server/probe.ts", "drizzle-orm", true],
       ["apps/web/composition/server.ts", "pg", true],
-      ["apps/contracts/src/probe.ts", "./region", true],
       ["packages/core/src/probe.ts", "@weng-lab/genomebrowser-tracks", false],
       ["packages/reader/src/probe.ts", "react", false],
       ["packages/tracks/src/probe.ts", "../../ui/src/index", false],
@@ -159,10 +154,20 @@ listen(async () => {});
       result.stdout,
     );
     rmSync(join(fixture, "apps/web/features/handled.ts"));
-    write("apps/server/src/a.ts", 'import { b } from "./b"; export const a = () => b;\n');
-    write("apps/server/src/b.ts", 'import { a } from "./a"; export const b = () => a;\n');
+    write(
+      "apps/web/features/agent/commands/types.ts",
+      'export type { GenomeBrowserStores } from "@weng-lab/genomebrowser";\n',
+    );
     result = spawnSync(oxlint, [".", "--format", "json"], {
-      cwd: join(fixture, "apps/server"),
+      cwd: join(fixture, "apps/web"),
+      encoding: "utf8",
+    });
+    assert.doesNotMatch(result.stdout, /no-restricted-imports/, "Command files may import types");
+    rmSync(join(fixture, "apps/web/features/agent/commands/types.ts"));
+    write("apps/web/agent/a.ts", 'import { b } from "./b"; export const a = () => b;\n');
+    write("apps/web/agent/b.ts", 'import { a } from "./a"; export const b = () => a;\n');
+    result = spawnSync(oxlint, [".", "--format", "json"], {
+      cwd: join(fixture, "apps/web"),
       encoding: "utf8",
     });
     assert.match(result.stdout, /import\(no-cycle\)/);

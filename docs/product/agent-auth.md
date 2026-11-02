@@ -30,7 +30,7 @@ How agent and browser attachments receive authorization remains open, including 
 
 Agent features start enabled. The agent can read browser state, track metadata, source URLs, and the current locus. There is no required first-use consent gate in the MVP. Exported images go to the user, not into model context.
 
-The account-wide setting disables all LLM operations. It closes MCP connections and prevents reconnection, new reads, and commands across the user's tabs. It also stops active agent work from applying further changes. Hiding the panel alone does not meet this requirement. Disabling access cannot recall data already sent or reverse completed changes.
+The account-wide setting disables all LLM operations. It closes agent command connections and prevents reconnection, new reads, and commands across the user's tabs. It also stops active agent work from applying further changes. Hiding the panel alone does not meet this requirement. Disabling access cannot recall data already sent or reverse completed changes.
 
 Guest preference storage and enforcement details belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited.
 

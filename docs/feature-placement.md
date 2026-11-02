@@ -20,7 +20,7 @@ UI holds controls useful to embedding apps (SCREEN, PsychSCREEN, Factorbook, and
 
 Put product pages and workflows in `apps/web`. Routes stay thin; features own UI and operations; composition wires providers and navigation; `shared/workspace` stays free of domain imports and browser state. Features must not import composition.
 
-Command contracts live in `apps/contracts`. Handlers live in the web app; MCP delivery lives in `apps/server`. Neither app imports the other's source ([ADR 0002](adr/0002-web-owns-persistence-mcp-is-relay.md), [ADR 0003](adr/0003-private-contracts-package.md)).
+Agent commands live in `features/agent/commands`: one definition per command, consumed by the agent's tools and the browser tab. The Eve agent in `agent/` reaches the app only through them ([ADR 0007](adr/0007-commands-owned-by-the-web-app.md)).
 
 Import and cycle rules are enforced by `.oxlintrc.json` and `tools/lint/policy.test.mjs`. When changing a boundary, update the lint rule and fixtures together. Behavioral invariants belong in schemas, runtime checks, and tests, not new prose rules.
 

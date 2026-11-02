@@ -1,4 +1,4 @@
-# Local PostgreSQL for saved sessions. Matches DATABASE_URL in .env.example.
+# Local PostgreSQL for saved sessions and Redis for agent commands. Matches .env.example.
 name: genomebrowser
 services:
   postgres:
@@ -13,6 +13,14 @@ services:
       - postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "genomebrowser"]
+      interval: 2s
+      retries: 15
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 2s
       retries: 15
 

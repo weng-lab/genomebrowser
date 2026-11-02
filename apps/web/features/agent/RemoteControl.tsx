@@ -1,10 +1,15 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { BrowserImage } from "@weng-lab/genomebrowser";
+import {
+  exportBrowserImage,
+  getDefaultImageFilename,
+  type BrowserImage,
+} from "@weng-lab/genomebrowser";
 import { useSession } from "../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
+import type { CommandApp } from "./commands";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
 
 type RemoteControl = {
@@ -19,7 +24,7 @@ const RemoteControlContext = createContext<RemoteControl>({
 });
 
 /**
- * Optional agent control through the MCP server. Off until enabled in Settings.
+ * Optional agent control of the open session. Off until enabled in Settings.
  * While enabled, it attaches to the active session once restored. It detaches
  * as soon as that session is replaced or closed, or can no longer save edits.
  * Sessions open and save without it. Images that agents export are shown in a
@@ -27,6 +32,8 @@ const RemoteControlContext = createContext<RemoteControl>({
  */
 export function RemoteControlProvider({ children }: { children: ReactNode }) {
   const svgRef = useBrowserSvgRef();
+  // Names this tab, so it can reconnect while it holds its session's commands.
+  const [tabId] = useState(() => crypto.randomUUID());
   const [enabled, setEnabled] = useState(false);
   const [state, setState] = useState<RemoteControlState>("off");
   // The image stays while the preview animates closed, then is released.
@@ -38,15 +45,17 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!enabled || !id || !stores || !signal) return;
-    const showImage = (image: BrowserImage) => setPreview({ image, open: true });
-    const getBrowserSvg = () => svgRef.current;
-    return connectRemoteControl(
-      `/rpc/${id}`,
-      { stores, getBrowserSvg, showImage },
-      signal,
-      setState,
-    );
-  }, [enabled, id, stores, signal, svgRef]);
+    const app: CommandApp = {
+      stores,
+      exportImage: (format, { filename, ...options }, signal) => {
+        const name =
+          filename?.trim() || getDefaultImageFilename(stores.useBrowserStore.getState().region);
+        return exportBrowserImage(svgRef.current, format, { ...options, filename: name }, signal);
+      },
+      showImage: (image) => setPreview({ image, open: true }),
+    };
+    return connectRemoteControl(`/api/sessions/${id}/commands?tab=${tabId}`, app, signal, setState);
+  }, [enabled, id, stores, signal, svgRef, tabId]);
 
   return (
     <RemoteControlContext value={remoteControl}>

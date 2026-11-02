@@ -4,13 +4,13 @@ Run `pnpm verify` from the repository root before handing off a PR. It runs the 
 
 Direct checks are useful while iterating. For example, `pnpm core test` runs core's tests. Use the affected package's configured commands for focused feedback, then use `pnpm verify` for the workspace check before handoff.
 
-Web database tests are skipped locally unless `GB_TEST_DATABASE_URL` is set, so a passing local run does not cover them. Set it up as described in the [web app guide](../../apps/web/README.md#database) when a change touches persistence. CI always runs them.
+Web database tests are skipped locally unless `GB_TEST_DATABASE_URL` is set, and agent command tests unless `GB_TEST_REDIS_URL` is set, so a passing local run does not cover them. Set them up as described in the [web app guide](../../apps/web/README.md#database) when a change touches persistence or agent commands; `pnpm web db:start` starts both servers. CI always runs them.
 
 ## Lint policy
 
 `pnpm lint` checks package source and exercises the import rules with allowed and forbidden examples. The rules in [`.oxlintrc.json`](../../.oxlintrc.json) enforce package ownership, app dependency direction, and database import placement. App source also rejects circular imports. Unused variables and missing React dependencies are errors.
 
-The web and MCP apps enable type-aware `no-floating-promises` and `no-misused-promises`. Turbo builds dependency declarations before linting. Await or return asynchronous work, or handle its rejection where its lifetime is owned. A `void` statement alone does not handle rejection. The session lifecycle observes Effect failures and exposes nonrejecting completion promises; its intentional detached calls have local exceptions explaining that guarantee. Keep exceptions narrow rather than introducing catch-and-log helpers solely to satisfy lint.
+The web app enables type-aware `no-floating-promises` and `no-misused-promises`. Turbo builds dependency declarations before linting. Await or return asynchronous work, or handle its rejection where its lifetime is owned. A `void` statement alone does not handle rejection. The session lifecycle observes Effect failures and exposes nonrejecting completion promises; its intentional detached calls have local exceptions explaining that guarantee. Keep exceptions narrow rather than introducing catch-and-log helpers solely to satisfy lint.
 
 Use `oxlint-disable-next-line` with a reason for an intentional Oxlint exception. Unused Oxlint suppressions fail lint. Use `react-doctor-disable-next-line` for Doctor-only exceptions so Oxlint does not treat them as stale lint suppressions. Import checks inspect module specifiers, so new aliases or folder conventions need corresponding policy fixtures. These checks do not replace review of feature responsibilities or Effect resource lifetimes.
 

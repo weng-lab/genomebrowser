@@ -10,6 +10,7 @@ ADRs record decisions about the **repository and system shape** that should chan
 - [0004: Web app feature layering](0004-web-app-feature-layering.md)
 - [0005: Independent package releases](0005-independent-package-releases.md)
 - [0006: Internal zero-based half-open coordinates](0006-internal-zero-based-coordinates.md)
+- [0007: The web app owns agent commands from definition to reply](0007-commands-owned-by-the-web-app.md)
 
 ## When to write one
 

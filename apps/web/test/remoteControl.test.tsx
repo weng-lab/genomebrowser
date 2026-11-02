@@ -15,13 +15,18 @@ import { installSessionServer, type SessionServer } from "./sessionServer";
 class Stream extends EventTarget {
   static opened: Stream[] = [];
   static log: string[] = [];
+  static tabs = new Set<string | null>();
   onerror: (() => void) | null = null;
   onopen: (() => void) | null = null;
   closed = false;
-  constructor(readonly url: string) {
+  /** The stream's path, without the tab ID that names the connecting tab. */
+  readonly url: string;
+  constructor(url: string) {
     super();
+    this.url = new URL(url, "http://localhost").pathname;
+    Stream.tabs.add(new URL(url, "http://localhost").searchParams.get("tab"));
     Stream.opened.push(this);
-    Stream.log.push(`open ${url}`);
+    Stream.log.push(`open ${this.url}`);
   }
   close() {
     this.closed = true;
@@ -65,6 +70,7 @@ async function enableRemoteControl() {
 beforeEach(async () => {
   Stream.opened = [];
   Stream.log = [];
+  Stream.tabs = new Set();
   vi.stubGlobal("EventSource", Stream);
   server = installSessionServer();
   stubLayout();
@@ -94,7 +100,7 @@ it("is off by default; sessions open and save without it", async () => {
 
 it("attaches to the open session only once restored, and leaves it before attaching to the next", async () => {
   await enableRemoteControl();
-  expect(Stream.log).toEqual([`open /rpc/${alpha}`]);
+  expect(Stream.log).toEqual([`open /api/sessions/${alpha}/commands`]);
   expect(text()).toContain("Connecting…");
   act(() => latest().onopen!());
   expect(text()).toContain("Connected");
@@ -104,9 +110,15 @@ it("attaches to the open session only once restored, and leaves it before attach
   expect(Stream.log).toHaveLength(1);
   load.release();
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
-  expect(Stream.log).toEqual([`open /rpc/${alpha}`, `close /rpc/${alpha}`, `open /rpc/${beta}`]);
+  expect(Stream.log).toEqual([
+    `open /api/sessions/${alpha}/commands`,
+    `close /api/sessions/${alpha}/commands`,
+    `open /api/sessions/${beta}/commands`,
+  ]);
   act(() => latest().onopen!());
-  expect(text()).toContain(`Connected. MCP tools called with sessionId "${beta}" run in this tab.`);
+  expect(text()).toContain(`Connected. Agent commands for session "${beta}" run in this tab.`);
+  // One tab ID across sessions lets this tab reconnect while it still holds a session.
+  expect([...Stream.tabs]).toEqual([expect.stringMatching(/^[\da-f-]{36}$/)]);
 
   await click('nav a[aria-label="Settings"]');
   await click('input[type="checkbox"]');
@@ -119,7 +131,7 @@ it("applies a region command in the browser, replies with the region, and saves 
   await act(async () => route.back());
   await setRegion("chr1", 1000);
   expect(region()).toBe("chr1:1,001-2,000");
-  expect(server.rpc.mock.calls[0][0]).toBe(`/rpc/${alpha}`);
+  expect(server.rpc.mock.calls[0][0]).toBe(`/api/sessions/${alpha}/commands`);
   expect(reply()).toEqual({
     commandId,
     result: {
@@ -168,7 +180,7 @@ it("returns the store's rejection and ignores expired commands without changing 
   expect(region()).toBe(before);
 });
 
-it("keeps saving while the MCP server is unavailable, then reconnects", async () => {
+it("keeps saving while agent commands are unavailable, then reconnects", async () => {
   await enableRemoteControl();
   await act(async () => route.back());
   const first = latest();
@@ -367,7 +379,7 @@ it("rejects a command for a session replaced before remote control detaches from
   await act(async () => route.push(`/browser/${beta}`));
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
 
-  expect(server.rpc.mock.calls[0][0]).toBe(`/rpc/${alpha}`);
+  expect(server.rpc.mock.calls[0][0]).toBe(`/api/sessions/${alpha}/commands`);
   expect(reply().result).toMatchObject({ ok: false, code: "SESSION_CLOSED" });
   // Replacing the session closed its stream before React rendered Beta.
   expect(closedOnOpen).toBe(true);
@@ -408,7 +420,9 @@ it("detaches when the account menu switches users, and old commands cannot run",
     }),
   );
   expect(server.rpc).not.toHaveBeenCalled();
-  expect(Stream.opened.filter(({ url }) => url === `/rpc/${alpha}`)).toEqual([stream]);
+  expect(Stream.opened.filter(({ url }) => url === `/api/sessions/${alpha}/commands`)).toEqual([
+    stream,
+  ]);
   expect(server.stored.get(alpha)!.snapshot.browser.region).toEqual(defaults().browser.region);
 });
 

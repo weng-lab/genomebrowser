@@ -1,4 +1,4 @@
-import { sessionIdSchema } from "@weng-lab/contracts";
+import { sessionIdSchema } from "../../features/sessions/schema";
 import { localDev, type AuthFn } from "eve/channels/auth";
 import { eveChannel } from "eve/channels/eve";
 
