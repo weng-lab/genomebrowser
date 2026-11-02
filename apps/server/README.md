@@ -10,6 +10,8 @@ Use Node.js 24 or newer. From the repository root, run `pnpm dev:server`, or `pn
 | `GB_SERVER_PORT`     | `3001`                                        | Listen port.                                                 |
 | `GB_ALLOWED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Comma-separated browser origins.                             |
 
+`pnpm dev:server` also loads optional `apps/server/.env.local`. For an authenticated private proxy, add its exact origin to `GB_ALLOWED_ORIGINS` alongside the localhost origins and restart the server. Keep the listener on loopback; the proxy owns remote access control.
+
 The server needs no credentials. It binds to loopback, rejects non-loopback Host values, rejects browser origins outside the configured list, and limits reply bodies to 1 MB. Session IDs only route calls; they are not credentials, and the server does not check who owns a session. MCP authentication and authorization are not implemented, so do not expose the server beyond loopback.
 
 | Route           | Purpose                                                                                    |

@@ -1,0 +1,25 @@
+{
+  "name": "@weng-lab/agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "eve build",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check"
+  },
+  "dependencies": {
+    "@weng-lab/contracts": "workspace:*",
+    "eve": "1.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "just-bash": "^3.6.0",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:native"
+  }
+}

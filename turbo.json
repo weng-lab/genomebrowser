@@ -14,7 +14,8 @@
     "CLERK_SECRET_KEY",
     "CLERK_JWT_KEY",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-    "PORT"
+    "PORT",
+    "AI_GATEWAY_API_KEY"
   ],
   "tasks": {
     "dev": {
@@ -66,6 +67,14 @@
     "//#format:check:root": {},
     "//#lint:policy": {
       "inputs": ["tools/lint/**", ".oxlintrc.json", "package.json", "pnpm-lock.yaml"]
+    },
+    "@weng-lab/agent#build": {
+      "dependsOn": ["^build", "typecheck"],
+      "outputs": [".output/**", ".eve/agent-summary.json", ".vercel/output/**"]
+    },
+    "@weng-lab/agent#typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
   }
 }

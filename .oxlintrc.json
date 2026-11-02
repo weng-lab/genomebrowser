@@ -425,6 +425,35 @@
           }
         ]
       }
+    },
+    {
+      "files": ["apps/agent/agent/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)apps/(?:web|server)/|^(?:\\.\\./)+(?:web|server)/|^@weng-lab/(?:web|mcp)(?:/|$)",
+                "message": "The Eve agent calls MCP; it must not import web or server implementation."
+              },
+              {
+                "group": [
+                  "react",
+                  "react/**",
+                  "react-dom",
+                  "react-dom/**",
+                  "pg",
+                  "pg/**",
+                  "drizzle-orm",
+                  "drizzle-orm/**"
+                ],
+                "message": "UI and persistence belong in the web app, not the Eve agent."
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "options": {

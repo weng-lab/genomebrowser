@@ -31,6 +31,12 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
       JSON.stringify({ compilerOptions: { noEmit: true, lib: ["esnext"] }, include: ["**/*.ts"] }),
     );
     const cases = [
+      ["apps/agent/agent/probe.ts", "../../web/features/browser/view", false],
+      ["apps/agent/agent/probe.ts", "../../server/src/tabs", false],
+      ["apps/agent/agent/probe.ts", "@weng-lab/contracts", true],
+      ["apps/agent/agent/probe.ts", "eve/connections", true],
+      ["apps/agent/agent/probe.ts", "react", false],
+      ["apps/agent/agent/probe.ts", "pg", false],
       ["apps/web/shared/probe.ts", "../features/browser/view", false],
       ["apps/web/shared/probe.ts", "../composition/providers", false],
       ["apps/web/shared/probe.ts", "../app/page", false],

@@ -91,3 +91,7 @@ minimumReleaseAgeExclude:
   - deslop-js@0.9.5
   - oxlint-plugin-react-doctor@0.9.5
   - react-doctor@0.9.5
+
+ignoredOptionalDependencies:
+  - "@mongodb-js/zstd"
+  - "node-liblzma"

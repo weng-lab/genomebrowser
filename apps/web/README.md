@@ -22,6 +22,14 @@ Open `http://localhost:3000/browser`. With no session open, the browser asks you
 
 Next.js rewrites `/mcp` and each tab's command stream, `/rpc/:id`, to the MCP server at `http://127.0.0.1:3001`. Set `GB_SERVER_URL` to use another address; rewrites are fixed when Next.js starts in development and when it builds for production. The `/api/sessions` routes are this app's own.
 
+For a private development proxy such as Tailscale Serve, set `GB_DEV_HOSTS` in `.env.local` to its hostname (without scheme or port), then restart Next.js. This allows the browser to load development scripts and hot reload through that host. Database requests still go through Next.js; PostgreSQL should stay on loopback. For agent chat, also set `GB_AGENT_DEV_ORIGINS` in `.env.local` to the exact private proxy origin (including scheme and port). Add that origin alongside the localhost origins in `GB_ALLOWED_ORIGINS` in `apps/server/.env.local` for MCP replies, then restart `pnpm dev`. These settings trust the private proxy's access control and do not enable production authentication.
+
+## Agent chat
+
+The Agent panel uses the [Eve agent](../agent/README.md) in `apps/agent`. Set `AI_GATEWAY_API_KEY` to use Vercel AI Gateway, or sign in with `codex login` for the local fallback. Run `pnpm dev`, open a session, and enable remote control in Settings. Chat streams replies and shows tool activity. The agent can call the existing MCP tools to navigate to coordinates or export an image. Stop requests cancellation; completed changes remain.
+
+This is a local development integration. Production agent requests are rejected until session authorization is implemented. Chat resets on session changes, page navigation that unmounts the panel, and refresh.
+
 ## Sessions
 
 A session is a named, saved browser setup for one assembly, owned by one user. Its URL is `/browser/<uuid>`, using the ID the database generated. Opening that URL, following a link, or moving through history all open the session the same way.

@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
+import { withEve } from "eve/next";
 
 const nextConfig: NextConfig = {
   // The corner badge overlaps the workspace's Settings link.
   devIndicators: false,
+  allowedDevOrigins: process.env.GB_DEV_HOSTS?.split(",")
+    .map((host) => host.trim())
+    .filter(Boolean),
   experimental: {
     useTypeScriptCli: true,
   },
@@ -18,4 +22,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withEve(nextConfig, { eveRoot: "../agent" });

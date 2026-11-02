@@ -1,6 +1,6 @@
 # Agent access and control
 
-This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and two tools: `set_region` and `export_image`, which shows the user an image preview with a Download button. Integrated chat, authenticated MCP access, and exclusive human/agent control are not implemented yet.
+This page describes the intended agent behavior for the [MVP](mvp.md) and the access and control decisions still open.
 
 ## A control surface for the active session
 
@@ -24,7 +24,7 @@ Signed-in agent access belongs to the authenticated user and their authorized se
 
 Guests can use the agent with a small allowance keyed to their guest session. The guest credential and attachment design is open; the product still needs to distinguish an authorized guest tab from a caller who merely knows its session ID. The allowance is a trial limit, not a reliable per-person identity check.
 
-The current repository keeps saved-session ownership and database access in Next.js. The MCP server handles tool calls and command delivery without database access. Authenticated delegation or attachment credentials can connect those responsibilities; the precise issuance, expiry, and revocation mechanism is unresolved.
+How agent and browser attachments receive authorization remains open, including credential issuance, expiry, and revocation.
 
 ## Enabled by default, with a hard off switch
 
@@ -36,7 +36,7 @@ Guest preference storage and enforcement details belong with the guest access de
 
 ## Integration choices still open
 
-Vercel Eve is an option for the embedded panel, not a product requirement. The provider and SDK integration need evaluation against ephemeral chat, session authorization, interruption, and the hard off switch. An app cookie or a shared origin alone does not establish authorization for a separate agent service.
+Eve is the chosen framework for the embedded panel. That choice does not relax the requirements for session authorization, interruption, or the account-wide hard off switch. An app cookie or a shared origin alone does not establish authorization for a separate agent service.
 
 External MCP clients are a follow-up, or optional work if time allows. They require OAuth and access restricted to the user's own session. Their discovery and target-selection ergonomics do not need to be built before the integrated panel.
 
