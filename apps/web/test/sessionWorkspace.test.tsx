@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 // Import first: it mocks the Next.js router before the app's modules load.
-import { route, stubLayout, WorkspaceApp } from "./workspaceApp";
+import { clerk, route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -11,17 +11,7 @@ import { snapshot } from "../features/sessions/storeSnapshot";
 import { installSessionServer, type SessionServer } from "./sessionServer";
 
 // The workspace composition, session owner, autosave, panels, and browser are real.
-// Next routing and `fetch` are replaced; see workspaceApp.tsx and sessionServer.ts.
-// Clerk's hooks report a signed-in user whose sign-out the tests observe.
-const clerk = vi.hoisted(() => ({
-  signOut: vi.fn<() => Promise<void>>(async () => {}),
-  openUserProfile: vi.fn<() => void>(),
-}));
-vi.mock("@clerk/nextjs", () => ({
-  useAuth: () => ({ isLoaded: true, isSignedIn: true, userId: "user_alice" }),
-  useClerk: () => clerk,
-  UserAvatar: () => null,
-}));
+// Next routing, Clerk's hooks, and `fetch` are replaced; see workspaceApp.tsx and sessionServer.ts.
 
 let server: SessionServer;
 let probe: Probe | undefined;
@@ -44,7 +34,6 @@ const button = (label: string) =>
   document.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
 const withText = (selector: string, content: string) =>
   [...document.querySelectorAll(selector)].find((element) => element.textContent === content);
-const mockUser = () => /gb_mock_user=([^;]+)/.exec(document.cookie)?.[1];
 const savedRegion = (id: string) => server.stored.get(id)!.snapshot.browser.region;
 const pendingPut = () => vi.waitFor(() => expect(server.requests.at(-1)?.method).toBe("PUT"));
 function closeTab() {
@@ -52,9 +41,9 @@ function closeTab() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
-async function actAs(user: string) {
-  await click(button("Mock user"));
-  await click(withText('[role="menuitem"]', user));
+async function account(action: string) {
+  await click(button("Account"));
+  await click(withText('[role="menuitem"]', action));
 }
 
 async function visit(pathname: string) {
@@ -64,10 +53,9 @@ async function visit(pathname: string) {
 
 beforeEach(() => {
   server = installSessionServer();
+  // Remote control has its own suite; these sessions run without an agent connection.
+  server.remoteControl.set("user_alice", false);
   stubLayout();
-  document.cookie = "gb_mock_user=; max-age=0; path=/";
-  clerk.signOut.mockClear();
-  clerk.openUserProfile.mockClear();
 });
 
 afterEach(() => {
@@ -177,68 +165,14 @@ it("deletes the open session and shows the empty browser", async () => {
   expect(server.stored.has(a)).toBe(false);
 });
 
-it("saves the open session's edits before switching users", async () => {
-  const a = server.add("Alpha", defaults());
-  await visit(`/browser/${a}`);
-  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  const write = server.hold("PUT");
-  await click(button("Pan right"));
-  await actAs("user_bob");
-  await pendingPut();
-  expect(mockUser()).toBeUndefined();
-
-  await act(async () => write.release());
-  await vi.waitFor(() => expect(mockUser()).toBe("user_bob"));
-  expect(savedRegion(a)).not.toEqual(defaults().browser.region);
-  // jsdom does not reload, but the reload would have nothing to ask about.
-  expect(closeTab()).toBe(false);
-});
-
-it("switches users only after unsaved edits are saved or discarded", async () => {
-  const a = server.add("Alpha", defaults());
-  await visit(`/browser/${a}`);
-  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  const first = server.hold("PUT");
-  await click(button("Pan right"));
-  const edited = region();
-  await actAs("user_bob");
-  await pendingPut();
-  await act(async () => first.fail());
-  await vi.waitFor(() => expect(text()).toContain("Changes not saved"));
-  expect(mockUser()).toBeUndefined();
-
-  await click(withText('[role="dialog"] button', "Stay"));
-  await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull());
-  expect(heading()).toBe("Alpha");
-  expect(region()).toBe(edited);
-  expect(mockUser()).toBeUndefined();
-  expect(closeTab()).toBe(true);
-
-  const second = server.hold("PUT");
-  await actAs("user_bob");
-  await vi.waitFor(() => expect(server.writes()).toHaveLength(2));
-  await act(async () => second.fail());
-  await vi.waitFor(() => expect(text()).toContain("Changes not saved"));
-  expect(mockUser()).toBeUndefined();
-  await click(withText('[role="dialog"] button', "Discard changes"));
-  await vi.waitFor(() => expect(mockUser()).toBe("user_bob"));
-  expect(closeTab()).toBe(false);
-  expect(server.writes()).toHaveLength(2);
-  expect(savedRegion(a)).toEqual(defaults().browser.region);
-});
-
 it.each(["Sign out", "Manage account"])("saves before Clerk %s", async (action) => {
   const change = action === "Sign out" ? clerk.signOut : clerk.openUserProfile;
   const a = server.add("Alpha", defaults());
-  route.reset(`/browser/${a}`);
-  probe = await renderWithProbe(
-    <WorkspaceApp account={{ mode: "clerk", signInPath: "/sign-in" }} />,
-  );
+  await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   const write = server.hold("PUT");
   await click(button("Pan right"));
-  await click(button("Account"));
-  await click(withText('[role="menuitem"]', action));
+  await account(action);
   await pendingPut();
   expect(change).not.toHaveBeenCalled();
 
@@ -246,28 +180,58 @@ it.each(["Sign out", "Manage account"])("saves before Clerk %s", async (action) 
   await vi.waitFor(() => expect(change).toHaveBeenCalledOnce());
   expect(savedRegion(a)).not.toEqual(defaults().browser.region);
   expect(route.pathname()).toBe("/browser");
+  expect(closeTab()).toBe(false);
 });
 
-it("keeps account management closed until failed edits are explicitly discarded", async () => {
+it.each(["Sign out", "Manage account"])(
+  "keeps Clerk %s waiting until failed edits are saved or discarded",
+  async (action) => {
+    const change = action === "Sign out" ? clerk.signOut : clerk.openUserProfile;
+    const a = server.add("Alpha", defaults());
+    await visit(`/browser/${a}`);
+    await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+    const first = server.hold("PUT");
+    await click(button("Pan right"));
+    const edited = region();
+    await account(action);
+    await pendingPut();
+    await act(async () => first.fail());
+    await vi.waitFor(() => expect(text()).toContain("Changes not saved"));
+
+    await click(withText('[role="dialog"] button', "Stay"));
+    await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull());
+    expect(heading()).toBe("Alpha");
+    expect(region()).toBe(edited);
+    expect(closeTab()).toBe(true);
+
+    const second = server.hold("PUT");
+    await account(action);
+    await vi.waitFor(() => expect(server.writes()).toHaveLength(2));
+    await act(async () => second.fail());
+    await vi.waitFor(() => expect(text()).toContain("Changes not saved"));
+    expect(change).not.toHaveBeenCalled();
+    await click(withText('[role="dialog"] button', "Discard changes"));
+    await vi.waitFor(() => expect(change).toHaveBeenCalledOnce());
+    expect(closeTab()).toBe(false);
+    expect(server.writes()).toHaveLength(2);
+    expect(savedRegion(a)).toEqual(defaults().browser.region);
+  },
+);
+
+it("discards the open session when the account changes elsewhere", async () => {
   const a = server.add("Alpha", defaults());
-  route.reset(`/browser/${a}`);
-  probe = await renderWithProbe(
-    <WorkspaceApp account={{ mode: "clerk", signInPath: "/sign-in" }} />,
-  );
+  await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   const write = server.hold("PUT");
   await click(button("Pan right"));
-  await click(button("Account"));
-  await click(withText('[role="menuitem"]', "Manage account"));
   await pendingPut();
-  await act(async () => write.fail());
-  await vi.waitFor(() => expect(text()).toContain("Changes not saved"));
-  expect(clerk.openUserProfile).not.toHaveBeenCalled();
-  expect(closeTab()).toBe(true);
-  await click(withText('[role="dialog"] button', "Discard changes"));
-  await vi.waitFor(() => expect(clerk.openUserProfile).toHaveBeenCalledOnce());
+  server.user = "user_bob";
+  act(() => clerk.signIn("user_bob"));
+  await vi.waitFor(() => expect(text()).toContain("No saved sessions yet."));
+  expect(heading()).not.toBe("Alpha");
   expect(closeTab()).toBe(false);
-  expect(savedRegion(a)).toEqual(defaults().browser.region);
+  await act(async () => write.release());
+  expect(server.writes()).toHaveLength(1);
 });
 
 it("offers to close a session deleted elsewhere without saving its edits", async () => {
@@ -372,6 +336,7 @@ it("sorts the open session's tracks and saves the order", async () => {
 
 it("asks a signed-out user to sign in", async () => {
   server.user = null;
+  clerk.signIn(null);
   await visit("/browser");
   await vi.waitFor(() => expect(text()).toContain("Sign in to open and save sessions."));
   expect(text()).toContain("Sign in to save sessions.");
@@ -443,7 +408,7 @@ it("budgets the session panel when saved sessions arrive", async () => {
 });
 
 function RemoteControlReader() {
-  return <p>{useRemoteControl().enabled ? "Enabled" : "Disabled"}</p>;
+  return <p>{useRemoteControl().preference.enabled ? "Enabled" : "Disabled"}</p>;
 }
 
 // Switching sessions leaves remote control off, so its readers have no new data.

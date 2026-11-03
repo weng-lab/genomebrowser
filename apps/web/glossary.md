@@ -24,7 +24,7 @@ The optional persistent process, also called the browser server, that exposes co
 
 ### Remote control
 
-A tab's connection to the MCP server for one session, through which the tab receives commands. Saving does not depend on it.
+A tab's connection to the MCP server for one session, through which the tab receives commands. Saving does not depend on it. Whether tabs connect is a preference saved for each account, on for new accounts.
 
 ### Command and reply
 

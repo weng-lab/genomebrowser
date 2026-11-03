@@ -1,5 +1,6 @@
 import "server-only";
 import { maxSessionBytes, type SessionErrorCode } from "../schema";
+import { readJsonBody } from "../../../shared/server/readJsonBody";
 import { parseSessionInput, parseSessionUpdate, SessionError } from "./sessions";
 
 const statuses: Record<SessionErrorCode, number> = {
@@ -43,26 +44,10 @@ export async function readSessionUpdate(request: Request) {
   return parseSessionUpdate(await readJson(request));
 }
 
-async function readJson(request: Request): Promise<unknown> {
-  const tooLarge = () => new SessionError("INVALID_INPUT", "Sessions are limited to 1 MB");
-  if (Number(request.headers.get("content-length")) > maxSessionBytes) throw tooLarge();
-  // A chunked body has no declared length, so count bytes as they arrive.
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  const reader = request.body?.getReader();
-  while (reader) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    if (size > maxSessionBytes) {
-      await reader.cancel();
-      throw tooLarge();
-    }
-    chunks.push(value);
-  }
-  try {
-    return JSON.parse(new TextDecoder().decode(Buffer.concat(chunks)));
-  } catch {
-    throw new SessionError("INVALID_INPUT", "The request body must be JSON");
-  }
+function readJson(request: Request) {
+  return readJsonBody(request, {
+    maxBytes: maxSessionBytes,
+    tooLarge: () => new SessionError("INVALID_INPUT", "Sessions are limited to 1 MB"),
+    invalid: () => new SessionError("INVALID_INPUT", "The request body must be JSON"),
+  });
 }

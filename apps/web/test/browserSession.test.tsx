@@ -19,6 +19,8 @@ let id: string;
 
 beforeEach(() => {
   server = installSessionServer();
+  // Remote control has its own suite; these sessions run without an agent connection.
+  server.remoteControl.set("user_alice", false);
   id = server.add("Session", snapshot(createStores("hg38")!));
   route.reset(`/browser/${id}`);
   stubLayout();

@@ -5,7 +5,7 @@ export const sessionsTable = pgTable(
   "sessions",
   {
     id: uuid().primaryKey().defaultRandom(),
-    /** Clerk user ID, or a mock user ID in local development. */
+    /** Clerk user ID. */
     owner: text().notNull(),
     name: text().notNull(),
     /** `snapshot.browser.assembly` is the session's assembly, fixed at creation. */
