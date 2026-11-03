@@ -1,48 +1,26 @@
 import "server-only";
 import { auth } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
 
 /** The acting user of the current request, or null when signed out. Resolve it for every operation. */
 export type Identity = { userId(): Promise<string | null> };
 
-export type IdentityMode = "clerk" | "mock";
-
-/** Stable local users. The prefix keeps them distinct from Clerk user IDs. */
-export const mockUserIds = ["mock_user_1", "mock_user_2"] as const;
-
-/** Selects a mock user. Without it, requests act as the first mock user; any other value is signed out. */
-export const mockUserCookie = "gb_mock_user";
-
-/** Clerk's sign-in page. It does not exist with mock identity. */
-export const signInPath = "/sign-in";
-
-/**
- * Clerk unless `GB_IDENTITY=mock` explicitly enables local mock users. Mock
- * identity is refused in production. The proxy, root layout, and session
- * composition read it from the runtime environment, so they always agree.
- */
-export function identityMode(env: NodeJS.ProcessEnv): IdentityMode {
-  const mode = env.GB_IDENTITY ?? "clerk";
-  if (mode !== "clerk" && mode !== "mock")
-    throw new Error(`GB_IDENTITY must be "clerk" or "mock", not "${mode}"`);
-  if (mode === "mock" && env.NODE_ENV === "production")
-    throw new Error("Mock identity is unavailable in production");
-  return mode;
-}
-
-export function createIdentity(mode: IdentityMode): Identity {
-  return mode === "mock" ? mockIdentity : clerkIdentity;
-}
-
-const clerkIdentity: Identity = {
+/** The signed-in Clerk user. `auth()` requires the request to pass through the proxy. */
+export const clerkIdentity: Identity = {
   async userId() {
     return (await auth()).userId;
   },
 };
 
-const mockIdentity: Identity = {
-  async userId() {
-    const requested = (await cookies()).get(mockUserCookie)?.value ?? mockUserIds[0];
-    return mockUserIds.find((id) => id === requested) ?? null;
-  },
-};
+/**
+ * Fails unless both Clerk keys are configured. Without them, Clerk would start
+ * keyless development mode with a temporary application instead of the
+ * project's instance, so requests fail rather than sign users in elsewhere.
+ * Builds read no keys.
+ */
+export function requireClerkKeys(env: NodeJS.ProcessEnv) {
+  const missing = ["NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "CLERK_SECRET_KEY"].filter(
+    (name) => !env[name],
+  );
+  if (missing.length)
+    throw new Error(`${missing.join(" and ")} must be set to the project's Clerk instance keys`);
+}

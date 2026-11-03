@@ -1,13 +1,16 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
-import { NextResponse, type NextProxy } from "next/server";
-import { identityMode, signInPath } from "./features/account/server/identity";
+import type { NextProxy } from "next/server";
+import { requireClerkKeys } from "./features/account/server/identity";
+import { signInPath } from "./features/account/signIn";
 
 // With `CLERK_JWT_KEY`, Clerk verifies session tokens without fetching its signing keys.
 const clerk = clerkMiddleware({ signInUrl: signInPath, jwtKey: process.env.CLERK_JWT_KEY });
 
-/** Clerk authenticates each request for `auth()`. Mock identity skips Clerk entirely. */
-export const proxy: NextProxy = (request, event) =>
-  identityMode(process.env) === "mock" ? NextResponse.next() : clerk(request, event);
+/** Clerk authenticates each request for `auth()`. Missing keys fail every request. */
+export const proxy: NextProxy = (request, event) => {
+  requireClerkKeys(process.env);
+  return clerk(request, event);
+};
 
 export const config = {
   // Clerk's recommended matcher: every route except Next internals and static files.

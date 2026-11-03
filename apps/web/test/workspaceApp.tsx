@@ -1,6 +1,6 @@
 import { useSyncExternalStore, type ReactNode } from "react";
-import { vi } from "vitest";
-import { AccountControls, type Account } from "../features/account/components/AccountControls";
+import { beforeEach, vi } from "vitest";
+import { AccountControls } from "../features/account/components/AccountControls";
 import { AppProviders } from "../composition/AppProviders";
 import { BrowserPage } from "../features/browser/components/BrowserPage";
 import BrowserIndexPage from "../app/(workspace)/browser/page";
@@ -70,6 +70,48 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+const fakeClerk = vi.hoisted(() => {
+  const listeners = new Set<() => void>();
+  let userId: string | null = "user_alice";
+  /** Change the signed-in user, as Clerk does after a change in this or another tab. */
+  function signIn(next: string | null) {
+    userId = next;
+    listeners.forEach((listener) => listener());
+  }
+  return {
+    userId: () => userId,
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
+    signIn,
+    signOut: vi.fn<() => Promise<void>>(async () => signIn(null)),
+    openUserProfile: vi.fn<() => void>(),
+  };
+});
+/**
+ * Clerk's React hooks for one tab, as Clerk reports them: tests sign a user in or
+ * out, and the account menu's sign-out signs this tab out. Each test starts as
+ * `user_alice`.
+ */
+export const clerk = fakeClerk;
+vi.mock("@clerk/nextjs", async () => {
+  const { useSyncExternalStore } = await import("react");
+  return {
+    useAuth: () => {
+      const userId = useSyncExternalStore(fakeClerk.subscribe, fakeClerk.userId);
+      return { isLoaded: true, isSignedIn: userId !== null, userId };
+    },
+    useClerk: () => fakeClerk,
+    UserAvatar: () => null,
+  };
+});
+beforeEach(() => {
+  clerk.signIn("user_alice");
+  clerk.signOut.mockClear();
+  clerk.openUserProfile.mockClear();
+});
+
 function Page() {
   const pathname = useSyncExternalStore(history.subscribe, history.pathname);
   const sessionId = /^\/browser\/([^/]+)$/.exec(pathname)?.[1];
@@ -81,25 +123,13 @@ function Page() {
 }
 
 /**
- * The workspace layout's composition, for a mock user unless `account` says otherwise,
- * with the page for the current route. `children` render beside the workspace, inside
- * its providers.
+ * The workspace layout's composition for the `clerk` user, with the page for the
+ * current route. `children` render beside the workspace, inside its providers.
  */
-export function WorkspaceApp({
-  account = {
-    mode: "mock",
-    userId: "user_alice",
-    users: ["user_alice", "user_bob"],
-    cookie: "gb_mock_user",
-  },
-  children,
-}: {
-  account?: Account;
-  children?: ReactNode;
-}) {
+export function WorkspaceApp({ children }: { children?: ReactNode }) {
   return (
-    <AppProviders account={account}>
-      <Workspace navigation={navigation} footer={<AccountControls account={account} />}>
+    <AppProviders>
+      <Workspace navigation={navigation} footer={<AccountControls />}>
         <Page />
       </Workspace>
       {children}

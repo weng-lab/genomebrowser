@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
 // Import first: it mocks the Next.js router before the app's modules load.
-import { route, stubLayout, WorkspaceApp } from "./workspaceApp";
+import { clerk, route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { act, useLayoutEffect, useState } from "react";
+import { act, useLayoutEffect } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
 import { snapshot } from "../features/sessions/storeSnapshot";
@@ -427,18 +427,19 @@ it("keeps one connection and accepts commands while the browser page is unmounte
   expect(reply().result.ok).toBe(true);
 });
 
-it("detaches when the account menu switches users, and old commands cannot run", async () => {
+it("detaches when the account menu signs out, and old commands cannot run", async () => {
   await enableRemoteControl();
   await act(async () => route.back());
   const stream = latest();
   act(() => stream.onopen!());
-  await click('button[aria-label="Mock user"]');
+  await click('button[aria-label="Account"]');
   await act(async () =>
     [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
-      .find((item) => item.textContent?.includes("user_bob"))!
+      .find((item) => item.textContent === "Sign out")!
       .click(),
   );
   await vi.waitFor(() => expect(stream.closed).toBe(true));
+  expect(clerk.signOut).toHaveBeenCalledOnce();
   await act(async () =>
     stream.send({
       commandId,
@@ -453,30 +454,11 @@ it("detaches when the account menu switches users, and old commands cannot run",
 });
 
 it("detaches when the account changes elsewhere and the workspace remounts", async () => {
-  probe!.unmount();
-  let switchAccount!: (userId: string) => void;
-  function SwitchableApp() {
-    const [userId, setUserId] = useState("user_alice");
-    switchAccount = setUserId;
-    return (
-      <WorkspaceApp
-        account={{
-          mode: "mock",
-          userId,
-          users: ["user_alice", "user_bob"],
-          cookie: "gb_mock_user",
-        }}
-      />
-    );
-  }
-  route.reset(`/browser/${alpha}`);
-  probe = await renderWithProbe(<SwitchableApp />);
-  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   await enableRemoteControl();
   await act(async () => route.back());
   const stream = latest();
   server.user = "user_bob";
-  act(() => switchAccount("user_bob"));
+  act(() => clerk.signIn("user_bob"));
   expect(stream.closed).toBe(true);
   // Its stream is closed, so the server fails the command; a late event runs nothing.
   await setRegion("chr5", 5000);
