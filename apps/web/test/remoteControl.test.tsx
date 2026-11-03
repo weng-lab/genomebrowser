@@ -153,6 +153,22 @@ it("reports a preference that cannot be loaded and loads it on retry", async () 
   await vi.waitFor(() => expect(Stream.log).toEqual([`open /rpc/${alpha}`]));
 });
 
+it("detaches while the account cannot be verified, and attaches again once it can", async () => {
+  await enableRemoteControl();
+  const stream = latest();
+  server.fail("settings GET", 401);
+  await act(async () => window.dispatchEvent(new Event("focus")));
+  await vi.waitFor(() => expect(stream.closed).toBe(true));
+  expect(text()).toContain("Sign in to use remote control.");
+  expect(toggle().disabled).toBe(true);
+  expect(Stream.opened).toEqual([stream]);
+
+  await act(async () => window.dispatchEvent(new Event("focus")));
+  await vi.waitFor(() => expect(Stream.opened).toHaveLength(2));
+  expect(toggle().disabled).toBe(false);
+  expect(toggle().checked).toBe(true);
+});
+
 it("follows a choice saved in another tab when the window regains focus", async () => {
   await enableRemoteControl();
   const stream = latest();

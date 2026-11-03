@@ -45,12 +45,14 @@ export function useRemoteControlPreference(): RemoteControlPreference {
       if (controller.signal.aborted) return;
       request.current = undefined;
       setSaving(undefined);
-      if ("saved" in result) setSaved(result.saved);
-      else if (
+      const unauthenticated =
+        "failure" in result &&
         result.failure instanceof AccountSettingsError &&
-        result.failure.code === "UNAUTHENTICATED"
-      )
-        setSignedOut(true);
+        result.failure.code === "UNAUTHENTICATED";
+      setSignedOut(unauthenticated);
+      if ("saved" in result) setSaved(result.saved);
+      // Without a verified account, the earlier choice no longer allows attaching.
+      else if (unauthenticated) setSaved(undefined);
       else if (save === undefined) setError("Remote control settings could not be loaded.");
       else setError("Remote control could not be saved. Try again.");
     }
