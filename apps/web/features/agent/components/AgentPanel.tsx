@@ -7,12 +7,17 @@ import { useRemoteControl } from "../RemoteControlProvider";
 import { useSession } from "../../sessions/SessionProvider";
 
 export function AgentPanel() {
-  const { state, enabled } = useRemoteControl();
+  const { state, preference } = useRemoteControl();
+  const enabled = preference.allowed;
   const sessionId = useSession((session) => session.active?.id);
   // The session updates its state whenever the signal aborts, so this stays current.
   const ended = useSession((session) => session.active?.signal.aborted);
   let message = "Remote control is off. Turn it on in Settings.";
-  if (enabled && !sessionId) message = "Open a session to connect it to agents.";
+  if (preference.status === "loading") message = "Loading remote control settings…";
+  else if (preference.status === "signed-out") message = "Sign in to use remote control.";
+  else if (preference.status === "unavailable")
+    message = "Remote control settings could not be loaded. Retry in Settings.";
+  else if (enabled && !sessionId) message = "Open a session to connect it to agents.";
   else if (enabled && ended)
     message = "This session's changes can no longer be saved, so agents cannot control it.";
   else if (enabled && state === "connected")

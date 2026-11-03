@@ -53,6 +53,8 @@ async function visit(pathname: string) {
 
 beforeEach(() => {
   server = installSessionServer();
+  // Remote control has its own suite; these sessions run without an agent connection.
+  server.remoteControl.set("user_alice", false);
   stubLayout();
 });
 
@@ -406,7 +408,7 @@ it("budgets the session panel when saved sessions arrive", async () => {
 });
 
 function RemoteControlReader() {
-  return <p>{useRemoteControl().enabled ? "Enabled" : "Disabled"}</p>;
+  return <p>{useRemoteControl().preference.enabled ? "Enabled" : "Disabled"}</p>;
 }
 
 // Switching sessions leaves remote control off, so its readers have no new data.

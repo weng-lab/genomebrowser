@@ -57,9 +57,19 @@ const setRegion = (chromosome: string, start: number, expiresAt = Date.now() + 5
 function click(selector: string) {
   return act(async () => document.querySelector<HTMLElement>(selector)!.click());
 }
+const toggle = () => document.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
 async function enableRemoteControl() {
   await click('nav a[aria-label="Settings"]');
+  await vi.waitFor(() => expect(toggle().disabled).toBe(false));
   await click('input[type="checkbox"]');
+  await vi.waitFor(() => expect(server.remoteControl.get("user_alice")).toBe(true));
+}
+/** Unmount the workspace and render Alpha again, as a reload does. */
+async function reload() {
+  probe!.unmount();
+  route.reset(`/browser/${alpha}`);
+  probe = await renderWithProbe(<WorkspaceApp />);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
 }
 
 beforeEach(async () => {
@@ -70,6 +80,8 @@ beforeEach(async () => {
   stubLayout();
   alpha = server.add("Alpha", defaults());
   beta = server.add("Beta", defaults());
+  // Most cases turn remote control on in Settings, so the account starts with it off.
+  server.remoteControl.set("user_alice", false);
   route.reset(`/browser/${alpha}`);
   probe = await renderWithProbe(<WorkspaceApp />);
   await vi.waitFor(() => {
@@ -85,11 +97,69 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("is off by default; sessions open and save without it", async () => {
+it("starts on for an account without a saved choice", async () => {
+  server.remoteControl.clear();
+  await reload();
+  await vi.waitFor(() => expect(Stream.log).toEqual([`open /rpc/${alpha}`]));
+  await click('nav a[aria-label="Settings"]');
+  expect(toggle().checked).toBe(true);
+});
+
+it("keeps the saved choice across reloads, and sessions save while it is off", async () => {
   expect(Stream.opened).toEqual([]);
   expect(text()).toContain("Remote control is off. Turn it on in Settings.");
   await click('button[aria-label="Pan right"]');
   await vi.waitFor(() => expect(server.writes().map(({ method }) => method)).toEqual(["PUT"]));
+
+  await click('nav a[aria-label="Settings"]');
+  await vi.waitFor(() => expect(toggle().disabled).toBe(false));
+  const save = server.hold("settings PUT");
+  await click('input[type="checkbox"]');
+  expect(text()).toContain("Saving…");
+  // It attaches only once the choice is saved.
+  expect(Stream.opened).toEqual([]);
+  await act(async () => save.release());
+  await vi.waitFor(() => expect(Stream.log).toEqual([`open /rpc/${alpha}`]));
+
+  await reload();
+  await vi.waitFor(() => expect(Stream.log.at(-1)).toBe(`open /rpc/${alpha}`));
+  expect(server.settingsRequests).toEqual(["GET", true, "GET"]);
+});
+
+it("detaches as soon as it is turned off, and attaches again if that cannot be saved", async () => {
+  await enableRemoteControl();
+  const stream = latest();
+  const save = server.hold("settings PUT");
+  await click('input[type="checkbox"]');
+  expect(stream.closed).toBe(true);
+  expect(toggle().checked).toBe(false);
+  await act(async () => save.fail());
+  await vi.waitFor(() => expect(text()).toContain("Remote control could not be saved. Try again."));
+  expect(toggle().checked).toBe(true);
+  expect(server.remoteControl.get("user_alice")).toBe(true);
+  await vi.waitFor(() => expect(latest()).not.toBe(stream));
+});
+
+it("reports a preference that cannot be loaded and loads it on retry", async () => {
+  server.remoteControl.clear();
+  server.fail("settings GET");
+  await reload();
+  await click('nav a[aria-label="Settings"]');
+  await vi.waitFor(() => expect(text()).toContain("Remote control settings could not be loaded."));
+  expect(toggle().disabled).toBe(true);
+  await click('[role="alert"] button');
+  await vi.waitFor(() => expect(toggle().checked).toBe(true));
+  expect(text()).not.toContain("could not be loaded");
+  await vi.waitFor(() => expect(Stream.log).toEqual([`open /rpc/${alpha}`]));
+});
+
+it("follows a choice saved in another tab when the window regains focus", async () => {
+  await enableRemoteControl();
+  const stream = latest();
+  server.remoteControl.set("user_alice", false);
+  await act(async () => window.dispatchEvent(new Event("focus")));
+  await vi.waitFor(() => expect(stream.closed).toBe(true));
+  expect(toggle().checked).toBe(false);
 });
 
 it("attaches to the open session only once restored, and leaves it before attaching to the next", async () => {

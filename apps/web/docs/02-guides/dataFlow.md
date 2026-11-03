@@ -65,7 +65,7 @@ sequenceDiagram
 
 The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. Commands expire after five seconds by default and are not replayed on reconnect. Timeout, cancellation, disconnect, and failed stream writes clear pending commands.
 
-Only the first tab to open a session's stream receives its commands. The server answers later tabs with 409, and they retry every second until the first tab disconnects. Turning off remote control in Settings closes the stream. So does the session's `signal` from `features/sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
+Only the first tab to open a session's stream receives its commands. The server answers later tabs with 409, and they retry every second until the first tab disconnects. Turning off remote control in Settings saves the account's preference and closes the stream. So does the session's `signal` from `features/sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
 
 ## Save and restore
 

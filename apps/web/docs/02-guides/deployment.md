@@ -56,7 +56,7 @@ gcloud iam service-accounts add-iam-policy-binding \
 
 The Cloud SQL instance needs a public IP. The connector authorizes connections through Google, so the instance needs no authorized networks. Create the database and a PostgreSQL login for the app in the Cloud SQL console, then [apply the migrations](#apply-migrations) to create the tables.
 
-The login the app uses needs to read and write the session tables. If a different user creates the tables, grant the app's login access, for example with `GRANT SELECT, INSERT, UPDATE, DELETE ON sessions TO app_user;`. Migrations also need a login allowed to change the schema and to use the `drizzle` schema, where Drizzle records applied migrations.
+The login the app uses needs to read and write the `sessions` and `account_settings` tables. If a different user creates the tables, grant the app's login access, for example with `GRANT SELECT, INSERT, UPDATE, DELETE ON sessions, account_settings TO app_user;`. Migrations also need a login allowed to change the schema and to use the `drizzle` schema, where Drizzle records applied migrations.
 
 ## Configure Vercel
 

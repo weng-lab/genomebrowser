@@ -22,6 +22,7 @@ These are current implementation constraints and deployment gaps. They do not re
 
 ## Remote control
 
+- The account preference is enforced by each tab, not the server: a tab that is off does not connect, but MCP does not check the preference. Other open tabs follow a change when their window regains focus or reloads.
 - A timeout or disconnect can occur after a command changed the stores but before its reply arrived. A failed call does not prove that nothing changed.
 - A terminal save failure, such as deletion elsewhere, disables MCP for that session. Remote control resumes when the next session opens. Refused edits that a further edit can fix do not end the attachment.
 

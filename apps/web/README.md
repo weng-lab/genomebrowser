@@ -66,6 +66,10 @@ Sessions carry a `revision`, starting at 1. `PUT` takes `{ name, snapshot, revis
 
 Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `INVALID_INPUT`, 401 `UNAUTHENTICATED`, 404 `NOT_FOUND` (including another user's session), 409 `ASSEMBLY_CHANGED`, or 409 `CONFLICT` when the session is at another revision. Other failures return 500 without detail and log the error on the server.
 
+### Account settings route
+
+`GET /api/account/settings` returns the signed-in user's `{ remoteControl }`, with `true` for an account that never saved a choice. `PUT` replaces it with a body of the same shape, at most 1 KB, and returns what was saved. The server derives the account; a body naming one, or any other field, is rejected with 400 `INVALID_INPUT`. Signed-out requests get 401 `UNAUTHENTICATED`. The preference is stored in the `account_settings` table. The server does not yet refuse MCP calls when it is off; the tab simply does not connect.
+
 Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
 ```ts
@@ -105,7 +109,7 @@ Each copy gets a new UUID and keeps the old ID as its name. Add `--session <old 
 
 Agents control the browser through MCP. Each command is an MCP tool that takes a `sessionId` and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. `export_image` shows an image of the current view to the user in a preview with a Download button and returns its file name and size; the image is not sent to the agent, and nothing is saved until the user downloads it. `sort_tracks` sorts the loaded tracks once by the fields it names, as the Sort tracks dialog does, and returns their new order; tracks added later stay where they are added. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
 
-Remote control is optional and off by default. Turn it on under **Remote control** in Settings. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; MCP calls for the session then fail. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
+Remote control is a saved account preference, on for new accounts. Turn it off or on under **Remote control** in Settings; the choice applies to every tab of the account and survives reloads and new sign-ins. Each tab reads it when the workspace loads and again when the window regains focus. Turning it off closes this tab's connection at once; turning it on connects once the choice is saved. If the save fails, Settings reports it and the switch returns to the saved choice. If the preference cannot be loaded, the tab stays disconnected and Settings offers to retry. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; MCP calls for the session then fail. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
 
 Connect an MCP client to `http://localhost:3000/mcp`, or to `http://127.0.0.1:3001/mcp` to skip Next.js. For example, with Claude Code:
 
