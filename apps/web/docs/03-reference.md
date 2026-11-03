@@ -4,7 +4,7 @@ These components are internal to `apps/web`, not a published package API. The sh
 
 ## `AppProviders`
 
-Mounts `SessionProvider` and `RemoteControlProvider` for the signed-in account; changing accounts remounts both. `AccountControls` signs out or switches users only after `close` saves or discards the open session. `SessionProvider` owns saved sessions and the open session for the workspace's lifetime, and opens the session named in the URL. Read it with `useSession(selector)`, which returns `status`, `sessions`, `active` (the open session's ID, name, and stores), `saveStatus`, `pending`, `error`, and the operations `open`, `create`, `rename`, `remove`, and `close`. `useRemoteControl()` exposes the connection state and the Settings toggle. See [Sessions](../README.md#sessions) for the contract.
+Mounts `SessionProvider` and `RemoteControlProvider` for the signed-in account; changing accounts remounts both. `AccountControls` signs out or switches users only after `close` saves or discards the open session. `SessionProvider` owns saved sessions and the open session for the workspace's lifetime, and opens the session named in the URL. Read it with `useSession(selector)`, which returns `status`, `sessions`, `active` (the open session's ID, name, and stores), `saveStatus`, `pending`, `error`, `renaming` (the session whose name the title is editing), and the operations `open`, `create`, `rename`, `startRenaming`, `stopRenaming`, `remove`, and `close`. `useRemoteControl()` exposes the connection state and the Settings toggle. See [Sessions](../README.md#sessions) for the contract.
 
 ## `Workspace`
 
@@ -18,13 +18,14 @@ Routes compose their content with this component:
 type WorkspacePageProps = {
   title: string;
   subtitle?: ReactNode;
+  heading?: ReactNode;
   left?: { title: string; children: ReactNode };
   right?: { title: string; children: ReactNode };
   children: ReactNode;
 };
 ```
 
-`title` names the center panel; `subtitle` adds optional title content. `left` and `right` supply side-panel titles and elements. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
+`title` names the center panel; `subtitle` adds optional title content. `heading` replaces the title row's breadcrumbs and must render the page's own `h1`; the browser uses it for the session switcher. `left` and `right` supply side-panel titles and elements. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
 
 ## Side panel behavior
 

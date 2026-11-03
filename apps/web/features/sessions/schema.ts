@@ -24,6 +24,8 @@ export const sessionSchema = z.strictObject({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   revision: z.number().int().positive(),
+  /** Tracks in the saved snapshot. */
+  trackCount: z.number().int().nonnegative(),
 });
 export type Session = z.infer<typeof sessionSchema>;
 

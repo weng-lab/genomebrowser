@@ -84,8 +84,8 @@ export function installSessionServer() {
   function rejected(code: string, status: number) {
     return json({ code, message: code }, status);
   }
-  function metadata(id: string, { name, createdAt, updatedAt, revision }: Stored) {
-    return { id, name, createdAt, updatedAt, revision };
+  function metadata(id: string, { name, createdAt, updatedAt, revision, snapshot }: Stored) {
+    return { id, name, createdAt, updatedAt, revision, trackCount: snapshot.tracks.length };
   }
 
   function handle({ method, id, body, bytes }: Request) {

@@ -58,6 +58,7 @@ describe.skipIf(!testServerUrl)("session routes", () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       revision: 1,
+      trackCount: snapshot().tracks.length,
     });
 
     expect(await (await collection.GET()).json()).toEqual([session]);

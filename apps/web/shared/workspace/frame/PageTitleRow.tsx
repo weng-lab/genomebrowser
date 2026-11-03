@@ -8,6 +8,8 @@ type PageTitleRowProps = {
   /** The page label, which starts the breadcrumbs. */
   label: string;
   title?: ReactNode;
+  /** Replaces the breadcrumbs. It renders the page's own `h1`. */
+  heading?: ReactNode;
   /** Set when the row sits beside the side bar, under the left panel toggle. */
   clearLeftToggle: boolean;
   /** Set when the row reaches the window's right edge, under the right panel toggle. */
@@ -16,10 +18,11 @@ type PageTitleRowProps = {
   animate: boolean;
 };
 
-/** The center panel's title row: breadcrumbs starting with the page label. */
+/** The center panel's title row: breadcrumbs starting with the page label, or the page's own heading. */
 export function PageTitleRow({
   label,
   title,
+  heading,
   clearLeftToggle,
   clearRightToggle,
   animate,
@@ -29,21 +32,23 @@ export function PageTitleRow({
       component="header"
       sx={titleRowSx({ clearLeft: clearLeftToggle, clearRight: clearRightToggle, animate })}
     >
-      <Breadcrumbs aria-label="Breadcrumb" sx={{ minWidth: 0, typography: "body2" }}>
-        <Typography
-          variant="body2"
-          component={title ? "span" : "h1"}
-          display="block"
-          color={title ? "text.secondary" : "text.primary"}
-        >
-          {label}
-        </Typography>
-        {title && (
-          <Typography variant="body2" component="h1" color="text.primary" noWrap>
-            {title}
+      {heading ?? (
+        <Breadcrumbs aria-label="Breadcrumb" sx={{ minWidth: 0, typography: "body2" }}>
+          <Typography
+            variant="body2"
+            component={title ? "span" : "h1"}
+            display="block"
+            color={title ? "text.secondary" : "text.primary"}
+          >
+            {label}
           </Typography>
-        )}
-      </Breadcrumbs>
+          {title && (
+            <Typography variant="body2" component="h1" color="text.primary" noWrap>
+              {title}
+            </Typography>
+          )}
+        </Breadcrumbs>
+      )}
     </Box>
   );
 }

@@ -15,11 +15,20 @@ import type { WorkspacePanel } from "./types";
 export type WorkspacePageProps = {
   title: string;
   subtitle?: ReactNode;
+  /** Replaces the title row's breadcrumbs. It renders the page's own `h1`. */
+  heading?: ReactNode;
   left?: WorkspacePanel;
   right?: WorkspacePanel;
   children: ReactNode;
 };
-export function WorkspacePage({ title, subtitle, left, right, children }: WorkspacePageProps) {
+export function WorkspacePage({
+  title,
+  subtitle,
+  heading,
+  left,
+  right,
+  children,
+}: WorkspacePageProps) {
   const leftOpen = usePanelState((state) => state.leftOpen);
   const rightOpen = usePanelState((state) => state.rightOpen);
   const toggle = usePanelState((state) => state.toggle);
@@ -72,6 +81,7 @@ export function WorkspacePage({ title, subtitle, left, right, children }: Worksp
         <PageTitleRow
           label={title}
           title={subtitle}
+          heading={heading}
           clearLeftToggle={left !== undefined && !leftOpen}
           clearRightToggle={right !== undefined && !rightOpen}
           animate={transitionEnabled}

@@ -56,6 +56,8 @@ const metadata = {
   createdAt: sessionsTable.createdAt,
   updatedAt: sessionsTable.updatedAt,
   revision: sessionsTable.revision,
+  // Counted in the database so listing sessions does not read their snapshots.
+  trackCount: sql<number>`jsonb_array_length(${sessionsTable.snapshot}->'tracks')`.mapWith(Number),
 };
 
 export function createSessions({

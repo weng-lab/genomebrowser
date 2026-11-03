@@ -576,6 +576,7 @@ it("keeps a newer name through list refreshes and acknowledgements, sorted by na
     createdAt: stored.createdAt,
     updatedAt: stored.updatedAt,
     revision: stored.revision,
+    trackCount: stored.snapshot.tracks.length,
   });
 });
 
@@ -841,6 +842,7 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
       createdAt: loaded.createdAt,
       updatedAt: loaded.updatedAt,
       revision: loaded.revision,
+      trackCount: loaded.snapshot.tracks.length,
       snapshot: loaded.snapshot,
     });
     const first = server.hold("GET");
