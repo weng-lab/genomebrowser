@@ -1,6 +1,6 @@
 # Agent access and control
 
-This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and two tools: `set_region` and `export_image`, which shows the user an image preview with a Download button. Integrated chat, authenticated MCP access, and exclusive human/agent control are not implemented yet.
+This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and two tools: `set_region` and `export_image`, which shows the user an image preview with a Download button. MCP requires the session owner's Clerk identity. Integrated chat, OAuth onboarding for external clients, and exclusive human/agent control are not implemented yet.
 
 ## A control surface for the active session
 
@@ -24,7 +24,7 @@ Signed-in agent access belongs to the authenticated user and their authorized se
 
 Guests can use the agent with a small allowance keyed to their guest session. The guest credential and attachment design is open; the product still needs to distinguish an authorized guest tab from a caller who merely knows its session ID. The allowance is a trial limit, not a reliable per-person identity check.
 
-The current repository keeps saved-session ownership and database access in Next.js. The MCP server handles tool calls and command delivery without database access. Authenticated delegation or attachment credentials can connect those responsibilities; the precise issuance, expiry, and revocation mechanism is unresolved.
+Next.js owns saved-session ownership, the MCP endpoint, and command delivery. It checks the caller's verified identity, session ownership, and the Remote Control preference for every tool call, tab attachment, and reply. MCP accepts Clerk session tokens and Clerk-issued OAuth access tokens; discovery and client onboarding for external agents are not built yet.
 
 ## Enabled by default, with a hard off switch
 
@@ -32,7 +32,7 @@ Agent features start enabled. The agent can read browser state, track metadata, 
 
 The account-wide setting disables all LLM operations. It closes MCP connections and prevents reconnection, new reads, and commands across the user's tabs. It also stops active agent work from applying further changes. Hiding the panel alone does not meet this requirement. Disabling access cannot recall data already sent or reverse completed changes.
 
-The setting is saved per account and starts on. Currently each tab honors it by not connecting when it is off; server enforcement at the MCP boundary and immediate effect across devices are not implemented yet. Guest preference storage and enforcement details belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited.
+The setting is saved per account and starts on. Each tab stops connecting when it is off, and the server refuses tool calls, tab connections, and replies for the account from the moment it is saved off. A command already running in a tab can still finish, and other open tabs close their connections when their window regains focus or reloads. Guest preference storage and enforcement details belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited.
 
 ## Integration choices still open
 

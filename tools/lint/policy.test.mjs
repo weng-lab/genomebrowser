@@ -42,22 +42,18 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
       ["apps/web/features/account/components/probe.ts", "../server/identity", true],
       ["apps/web/features/browser/probe.ts", "../../shared/workspace/types", true],
       ["apps/web/composition/probe.ts", "../features/browser/view", true],
-      ["apps/web/composition/probe.ts", "../../server/src/tabs", false],
-      ["apps/server/src/probe.ts", "../../web/features/browser/view", false],
-      ["apps/server/src/probe.ts", "@weng-lab/contracts", true],
-      ["apps/server/src/probe.ts", "pg", false],
-      ["apps/server/src/probe.ts", "drizzle-orm", false],
-      ["apps/contracts/src/probe.ts", "react", false],
-      ["apps/contracts/src/probe.ts", "../../web/features/browser/view", false],
-      ["apps/contracts/src/probe.ts", "@weng-lab/genomebrowser", false],
-      ["apps/contracts/src/probe.ts", "zod", true],
-      ["apps/contracts/src/probe.ts", "../../../scripts/operation", false],
+      ["apps/web/features/agent/commands/probe.ts", "@weng-lab/genomebrowser-ui", false],
+      ["apps/web/features/agent/commands/probe.ts", "../../browser/trackSort", false],
+      ["apps/web/features/agent/commands/probe.ts", "../../browser/region", true],
+      ["apps/web/features/agent/commands/probe.ts", "zod", true],
+      ["apps/web/features/agent/commands/probe.ts", "../../../composition/server", false],
+      ["apps/web/features/agent/probe.ts", "redis", false],
+      ["apps/web/features/agent/server/probe.ts", "redis", true],
       ["apps/web/features/browser/probe.ts", "drizzle-orm", false],
       ["apps/web/app/api/probe.ts", "pg", false],
       ["apps/web/shared/probe.ts", "pg", false],
       ["apps/web/features/sessions/server/probe.ts", "drizzle-orm", true],
       ["apps/web/composition/server.ts", "pg", true],
-      ["apps/contracts/src/probe.ts", "./region", true],
       ["packages/core/src/probe.ts", "@weng-lab/genomebrowser-tracks", false],
       ["packages/reader/src/probe.ts", "react", false],
       ["packages/tracks/src/probe.ts", "../../ui/src/index", false],
@@ -154,10 +150,10 @@ listen(async () => {});
       result.stdout,
     );
     rmSync(join(fixture, "apps/web/features/handled.ts"));
-    write("apps/server/src/a.ts", 'import { b } from "./b"; export const a = () => b;\n');
-    write("apps/server/src/b.ts", 'import { a } from "./a"; export const b = () => a;\n');
+    write("apps/web/features/a.ts", 'import { b } from "./b"; export const a = () => b;\n');
+    write("apps/web/features/b.ts", 'import { a } from "./a"; export const b = () => a;\n');
     result = spawnSync(oxlint, [".", "--format", "json"], {
-      cwd: join(fixture, "apps/server"),
+      cwd: join(fixture, "apps/web"),
       encoding: "utf8",
     });
     assert.match(result.stdout, /import\(no-cycle\)/);

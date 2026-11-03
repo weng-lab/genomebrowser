@@ -1,9 +1,15 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { BrowserImage } from "@weng-lab/genomebrowser";
+import {
+  exportBrowserImage,
+  getDefaultImageFilename,
+  type BrowserImage,
+} from "@weng-lab/genomebrowser";
 import { useSession } from "../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../browser/BrowserSvg";
+import { sortTracks } from "../browser/trackSort";
+import type { CommandApp } from "./commands";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
 import {
@@ -15,7 +21,7 @@ type RemoteControl = { state: RemoteControlState; preference: RemoteControlPrefe
 const RemoteControlContext = createContext<RemoteControl | null>(null);
 
 /**
- * Agent control through the MCP server, allowed by the account's saved
+ * Agent control through the app's MCP endpoint, allowed by the account's saved
  * preference, which new accounts start with on. While allowed, it attaches to
  * the active session once restored. It detaches as soon as that session is
  * replaced or closed, or can no longer save edits, or the preference turns off.
@@ -37,14 +43,23 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!enabled || !id || !stores || !signal) return;
-    const showImage = (image: BrowserImage) => setPreview({ image, open: true });
-    const getBrowserSvg = () => svgRef.current;
-    return connectRemoteControl(
-      `/rpc/${id}`,
-      { stores, getBrowserSvg, showImage },
-      signal,
-      setState,
-    );
+    const app: CommandApp = {
+      stores,
+      sortTracks: (fieldIds) => sortTracks(stores.useTrackStore, fieldIds),
+      exportImage: (format, { filename, ...options }, signal) =>
+        exportBrowserImage(
+          svgRef.current,
+          format,
+          {
+            ...options,
+            filename:
+              filename?.trim() || getDefaultImageFilename(stores.useBrowserStore.getState().region),
+          },
+          signal,
+        ),
+      showImage: (image) => setPreview({ image, open: true }),
+    };
+    return connectRemoteControl(`/api/sessions/${id}/commands`, app, signal, setState);
   }, [enabled, id, stores, signal, svgRef]);
 
   return (
