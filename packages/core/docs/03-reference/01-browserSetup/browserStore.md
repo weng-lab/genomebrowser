@@ -208,11 +208,13 @@ Highlights mark genomic regions across the track area. Add them programmatically
 
 Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type` and `opacity` stay optional in stored entries; rendering applies their defaults.
 
-### addHighlight and removeHighlight
+### addHighlight, removeHighlight, and clearHighlights
 
 `addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
 
 `removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
+
+`clearHighlights(): void` removes every highlight in one update; when there are none, it leaves state unchanged and does not notify subscribers.
 
 ```ts
 useBrowserStore.getState().addHighlight({
@@ -223,6 +225,8 @@ useBrowserStore.getState().addHighlight({
 });
 
 useBrowserStore.getState().removeHighlight("candidate");
+
+useBrowserStore.getState().clearHighlights();
 ```
 
 To add a filled highlight, omit `type` or use `"filled"`. Selection-created highlights use the active selection style, whose initial opacity is `0.25`, rather than the generic filled-highlight rendering default.

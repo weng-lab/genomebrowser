@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { useState } from "react";
-import { ConfirmDialog } from "../dialogs/confirmDialog";
+import { ConfirmDialog } from "../../ConfirmDialog/confirmDialog";
 import { useTrackSelect } from "../session/trackSelectContext";
 
 type ActionDialog = "clear" | "reset" | null;
