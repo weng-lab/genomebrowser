@@ -18,7 +18,7 @@ pnpm dev
 
 Open `http://localhost:3000/browser`. With no session open, the browser asks you to open or create one. `/collections` and `/settings` are separate Next.js routes; unknown URLs return 404. The shared route layout keeps the providers, the open session, and its stores mounted during navigation.
 
-`pnpm dev` starts Next.js, which starts the Eve agent. Both bind to loopback. Sessions load and save without Redis; agent commands need it.
+`pnpm dev` starts Next.js, which starts the Eve agent. Both bind to loopback. Sessions load and save without Redis; the agent needs it for access bindings and commands.
 
 For a private development proxy such as Tailscale Serve, set `GB_DEV_HOSTS` in `.env.local` to its hostname (without scheme or port), then restart Next.js. This allows the browser to load development scripts and hot reload through that host. Database requests still go through Next.js; PostgreSQL should stay on loopback. For agent chat, also set `GB_AGENT_DEV_ORIGINS` in `.env.local` to the exact private proxy origin (including scheme and port), then restart `pnpm dev`. These settings trust the private proxy's access control and do not enable production authentication.
 
@@ -26,7 +26,7 @@ For a private development proxy such as Tailscale Serve, set `GB_DEV_HOSTS` in `
 
 The Agent panel uses the [Eve agent](docs/02-guides/agent.md) in `agent/`. Set `AI_GATEWAY_API_KEY` to use Vercel AI Gateway, or sign in with `codex login` for the local fallback. Run `pnpm dev`, open a session, and open the Agent panel. Chat streams replies and shows tool activity. The agent's tools navigate to coordinates and export an image in the open tab. Stop requests cancellation; completed changes remain.
 
-This is a local development integration. Production agent requests are rejected until session authorization is implemented. Chat resets on session changes, page navigation that unmounts the panel, and refresh.
+On Vercel, Eve delegates authentication to the app, which verifies Clerk sign-in, session ownership, and the saved RC preference. Conversation reads and controls are bound to the verified user and browser session. For local or self-hosted authorization through the app, set `GB_AGENT_APP_ORIGIN` to the app origin. Local development without it uses loopback-only access. Chat resets on session changes, page navigation that unmounts the panel, and refresh.
 
 ## Sessions
 

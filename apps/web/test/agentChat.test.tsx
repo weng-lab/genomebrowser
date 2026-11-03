@@ -16,9 +16,12 @@ import { runCommand } from "../features/agent/commands";
 import { commandMessageSchema } from "../features/agent/commands/protocol";
 import { createCommandRelay } from "../features/agent/commands/server/relay";
 import { testRedisUrl } from "./redis";
+import { testServerUrl } from "./sessionFixtures";
+import { startAgentAuthorizationServer } from "./agentAuthorizationServer";
 
 const proxyOrigin = "https://browser.test:8443";
-const sessionId = "e376d6ef-36c9-4d01-ad52-9847bad99f3c";
+let sessionId = "e376d6ef-36c9-4d01-ad52-9847bad99f3c";
+let authorization: Awaited<ReturnType<typeof startAgentAuthorizationServer>> | undefined;
 const children: ChildProcess[] = [];
 const nativeFetch = globalThis.fetch;
 let directory: string;
@@ -69,6 +72,10 @@ async function ready(url: string) {
 }
 
 beforeAll(async () => {
+  if (testServerUrl) {
+    authorization = await startAgentAuthorizationServer();
+    sessionId = (await authorization.createSession("user_alice")).id;
+  }
   directory = await mkdtemp(resolve(tmpdir(), "genomebrowser-eve-test-"));
   // The agent with a scripted model. Its tools import the app's features, so link them in place.
   await cp(resolve("agent"), resolve(directory, "agent"), { recursive: true });
@@ -93,6 +100,7 @@ beforeAll(async () => {
     {
       NODE_ENV: "development",
       GB_AGENT_DEV_ORIGINS: proxyOrigin,
+      GB_AGENT_APP_ORIGIN: authorization?.origin ?? "",
       ...(testRedisUrl && { REDIS_URL: testRedisUrl }),
     },
   );
@@ -101,7 +109,11 @@ beforeAll(async () => {
   vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
     nativeFetch(typeof input === "string" && input.startsWith("/") ? `${eve}${input}` : input, {
       ...init,
-      headers: { ...Object.fromEntries(new Headers(init?.headers)), origin: proxyOrigin },
+      headers: {
+        ...(authorization && { authorization: `Bearer ${authorization.token("user_alice")}` }),
+        ...Object.fromEntries(new Headers(init?.headers)),
+        origin: proxyOrigin,
+      },
     }),
   );
 }, 90_000);
@@ -122,6 +134,8 @@ afterAll(async () => {
     }
   }
   if (directory) await rm(directory, { recursive: true, force: true });
+  await authorization?.close();
+  vi.unstubAllEnvs();
 }, 15_000);
 
 async function send(message: string) {
@@ -206,7 +220,7 @@ it.skipIf(!testRedisUrl)(
   70_000,
 );
 
-it("rejects requests without a valid browser-session header", async () => {
+it.skipIf(!testRedisUrl)("rejects requests without a valid browser-session header", async () => {
   const response = await nativeFetch(`${eve}/eve/v1/session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -215,47 +229,153 @@ it("rejects requests without a valid browser-session header", async () => {
   expect(response.status).toBe(401);
 });
 
-it("Stop cancels an active reply and allows another message", async () => {
-  probe = await renderWithProbe(
-    <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
-  );
-  await send("wait for stop");
-  await vi.waitFor(() => expect(document.body.textContent).toContain("Waiting for Stop."), {
-    timeout: 15_000,
-  });
-  const stop = Array.from(document.querySelectorAll("button")).find(
-    (button) => button.textContent === "Stop",
-  )!;
-  await act(async () => stop.click());
-  await vi.waitFor(() => expect(document.body.textContent).not.toContain("Working…"), {
-    timeout: 15_000,
-  });
-  await send("hello again");
-  await vi.waitFor(
-    () =>
-      expect(
-        document
-          .querySelector('[role="log"]')
-          ?.textContent?.match(/Hello from the genome browser agent/g),
-      ).toHaveLength(1),
-    { timeout: 15_000 },
-  );
-}, 50_000);
+it.skipIf(!testRedisUrl)(
+  "Stop cancels an active reply and allows another message",
+  async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("wait for stop");
+    await vi.waitFor(() => expect(document.body.textContent).toContain("Waiting for Stop."), {
+      timeout: 15_000,
+    });
+    const stop = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent === "Stop",
+    )!;
+    await act(async () => stop.click());
+    await vi.waitFor(() => expect(document.body.textContent).not.toContain("Working…"), {
+      timeout: 15_000,
+    });
+    await send("hello again");
+    await vi.waitFor(
+      () =>
+        expect(
+          document
+            .querySelector('[role="log"]')
+            ?.textContent?.match(/Hello from the genome browser agent/g),
+        ).toHaveLength(1),
+      { timeout: 15_000 },
+    );
+  },
+  50_000,
+);
 
-it("rejects untrusted browser origins even with a session header", async () => {
-  const response = await nativeFetch(`${eve}/eve/v1/session`, {
-    method: "POST",
-    headers: {
+it.skipIf(!testRedisUrl)(
+  "rejects requests without a trusted caller even with a session header",
+  async () => {
+    const response = await nativeFetch(`${eve}/eve/v1/session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-genomebrowser-session-id": sessionId,
+        Origin: "https://untrusted.test",
+      },
+      body: JSON.stringify({}),
+    });
+    expect(response.status).toBe(401);
+  },
+);
+
+it.skipIf(!testServerUrl || !testRedisUrl)(
+  "accepts Clerk cookies and rejects forged credentials, unowned sessions, and disabled RC",
+  async () => {
+    const headers = {
       "Content-Type": "application/json",
       "x-genomebrowser-session-id": sessionId,
-      Origin: "https://untrusted.test",
-    },
-    body: JSON.stringify({}),
-  });
-  expect(response.status).toBe(401);
-});
+    };
+    const create = (extra: Record<string, string>) =>
+      nativeFetch(`${eve}/eve/v1/session`, {
+        method: "POST",
+        headers: { ...headers, ...extra },
+        body: "{}",
+      });
+    const accepted = await create({ cookie: authorization!.cookie("user_alice") });
+    expect(accepted.ok).toBe(true);
+    const { sessionId: conversation } = (await accepted.json()) as { sessionId: string };
+    expect((await create({ authorization: "Bearer forged" })).status).toBe(401);
+    expect(
+      (await create({ authorization: `Bearer ${authorization!.token("user_bob")}` })).status,
+    ).toBe(403);
+    await authorization!.setEnabled("user_alice", false);
+    try {
+      expect(
+        (await create({ authorization: `Bearer ${authorization!.token("user_alice")}` })).status,
+      ).toBe(403);
+      const stopped = await nativeFetch(`${eve}/eve/v1/session/${conversation}/cancel`, {
+        method: "POST",
+        headers: { ...headers, authorization: `Bearer ${authorization!.token("user_alice")}` },
+      });
+      expect(stopped.ok).toBe(true);
+    } finally {
+      await authorization!.setEnabled("user_alice", true);
+    }
+  },
+);
 
-it.each(["unmount", "abort"])(
+it.skipIf(!testServerUrl || !testRedisUrl)(
+  "lets only the pinned owner stop after deleting the browser session",
+  async () => {
+    const browser = await authorization!.createSession("user_alice");
+    const headers = {
+      authorization: `Bearer ${authorization!.token("user_alice")}`,
+      "x-genomebrowser-session-id": browser.id,
+    };
+    const created = await nativeFetch(`${eve}/eve/v1/session`, { method: "POST", headers });
+    expect(created.ok).toBe(true);
+    const { sessionId: conversation } = (await created.json()) as { sessionId: string };
+    await authorization!.removeSession("user_alice", browser.id);
+    const url = `${eve}/eve/v1/session/${conversation}/cancel`;
+    const denied = await nativeFetch(url, {
+      method: "POST",
+      headers: { ...headers, authorization: `Bearer ${authorization!.token("user_bob")}` },
+    });
+    expect(denied.status).toBe(403);
+    expect((await nativeFetch(url, { method: "POST", headers })).ok).toBe(true);
+  },
+);
+
+it.skipIf(!testServerUrl || !testRedisUrl)(
+  "binds conversation reads, messages, and Stop to its user and browser session",
+  async () => {
+    const alice = await nativeFetch(`${eve}/eve/v1/session`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${authorization!.token("user_alice")}`,
+        "x-genomebrowser-session-id": sessionId,
+      },
+    });
+    expect(alice.ok).toBe(true);
+    const { sessionId: conversation } = (await alice.json()) as { sessionId: string };
+    const bobSession = await authorization!.createSession("user_bob");
+    for (const [method, suffix] of [
+      ["GET", "/stream?follow=false"],
+      ["POST", ""],
+      ["POST", "/cancel"],
+    ]) {
+      const denied = await nativeFetch(`${eve}/eve/v1/session/${conversation}${suffix}`, {
+        method,
+        headers: {
+          authorization: `Bearer ${authorization!.token("user_bob")}`,
+          "x-genomebrowser-session-id": bobSession.id,
+        },
+      });
+      expect(denied.status).toBe(403);
+    }
+    const otherSession = await authorization!.createSession("user_alice");
+    const retargeted = await nativeFetch(
+      `${eve}/eve/v1/session/${conversation}/stream?follow=false`,
+      {
+        headers: {
+          authorization: `Bearer ${authorization!.token("user_alice")}`,
+          "x-genomebrowser-session-id": otherSession.id,
+        },
+      },
+    );
+    expect(retargeted.status).toBe(403);
+  },
+);
+
+it.skipIf(!testRedisUrl).each(["unmount", "abort"])(
   "cancels a first message accepted after %s and releases its stream",
   async (teardown) => {
     probe?.unmount();

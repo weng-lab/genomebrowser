@@ -227,7 +227,10 @@ describe.skipIf(!redisUrl)("agent commands", () => {
     const pending = agent.dispatch(id, setRegion, new AbortController().signal);
     const { commandId } = await tab.next!();
     expect(await pending).toMatchObject({ ok: false, code: "TIMEOUT" });
-    expect((await reply(id, { commandId, result: { ok: true, value: {} } })).status).toBe(409);
+    // Completion is local; Redis observes the closed socket asynchronously.
+    await expect
+      .poll(async () => (await reply(id, { commandId, result: { ok: true, value: {} } })).status)
+      .toBe(409);
   });
 
   it("fails pending commands when their tab disconnects", async () => {
@@ -247,7 +250,10 @@ describe.skipIf(!redisUrl)("agent commands", () => {
     const { commandId } = await tab.next!();
     cancel.abort();
     expect(await pending).toMatchObject({ ok: false, code: "CANCELLED" });
-    expect((await reply(id, { commandId, result: { ok: true, value: {} } })).status).toBe(409);
+    // Completion is local; Redis observes the closed socket asynchronously.
+    await expect
+      .poll(async () => (await reply(id, { commandId, result: { ok: true, value: {} } })).status)
+      .toBe(409);
   });
 
   it("tells the tab to stop a cancelled command", async () => {
@@ -310,9 +316,13 @@ describe.skipIf(!redisUrl)("agent commands", () => {
     const command = await tab.next!();
     await isolated.close();
     expect(await pending).toMatchObject({ ok: false, code: "RELAY_FAILED" });
-    expect(
-      (await reply(id, { commandId: command.commandId, result: { ok: true, value: {} } })).status,
-    ).toBe(409);
+    await expect
+      .poll(
+        async () =>
+          (await reply(id, { commandId: command.commandId, result: { ok: true, value: {} } }))
+            .status,
+      )
+      .toBe(409);
     expect(await isolated.dispatch(id, setRegion, new AbortController().signal)).toMatchObject({
       code: "RELAY_FAILED",
     });
@@ -433,10 +443,13 @@ describe.skipIf(!redisUrl)("agent commands", () => {
           type: "cancel",
           data: { commandId: command.commandId },
         });
-        expect(
-          (await reply(id, { commandId: command.commandId, result: { ok: true, value: {} } }))
-            .status,
-        ).toBe(409);
+        await expect
+          .poll(
+            async () =>
+              (await reply(id, { commandId: command.commandId, result: { ok: true, value: {} } }))
+                .status,
+          )
+          .toBe(409);
       } finally {
         clearTimeout(watchdog);
         await isolated.close();

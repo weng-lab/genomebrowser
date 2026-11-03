@@ -2,6 +2,7 @@ import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client, Pool } from "pg";
+import { resolve } from "node:path";
 
 /** PostgreSQL server for the database tests. They are skipped without it, except in CI. */
 export const testServerUrl = process.env.GB_TEST_DATABASE_URL;
@@ -26,7 +27,7 @@ export async function createTestDatabase() {
   const pool = new Pool({ connectionString: url.toString() });
   try {
     await migrate(drizzle({ client: pool }), {
-      migrationsFolder: new URL("../drizzle", import.meta.url).pathname,
+      migrationsFolder: resolve("drizzle"),
     });
   } finally {
     await pool.end();

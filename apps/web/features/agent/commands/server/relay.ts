@@ -43,7 +43,10 @@ export type CommandRelay = {
     tabId: string,
     signal: AbortSignal,
   ): Promise<ReadableStream<Uint8Array<ArrayBuffer>> | null>;
-  /** Deliver a tab's reply. False when no dispatch is waiting for it. */
+  /**
+   * Publish a tab's reply. False when Redis has no reply listener. Redis may
+   * briefly still count a closed socket; late replies never change a completed result.
+   */
   acknowledge(sessionId: string, reply: CommandReply): Promise<boolean>;
   /** End active operations and streams, then close this relay permanently. */
   close(): Promise<void>;
