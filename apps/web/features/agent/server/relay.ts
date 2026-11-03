@@ -16,7 +16,7 @@ export type CommandRelayOptions = {
   namespace: string;
   /** Bounds a whole dispatch, from reaching Redis to the tab's reply, and every other Redis wait. */
   commandTimeoutMs?: number;
-  /** Commands one server instance may have in flight for one session; more fail with `BUSY`. */
+  /** Commands that may be in flight for one session across every instance; more fail with `BUSY`. */
   maxPendingPerSession?: number;
   /** How often an open tab stream is kept alive and its hold on the session renewed. */
   heartbeatIntervalMs?: number;
@@ -81,6 +81,13 @@ const releaseScript = `if redis.call("GET", KEYS[1]) ~= ARGV[1] then return 0 en
 redis.call("DEL", KEYS[1])
 redis.call("PUBLISH", KEYS[2], ARGV[1])
 return 1`;
+// Admit a command unless the session already has the maximum in flight, after
+// dropping commands past their deadline.
+const admitScript = `redis.call("ZREMRANGEBYSCORE", KEYS[1], "-inf", ARGV[1])
+if redis.call("ZCARD", KEYS[1]) >= tonumber(ARGV[2]) then return 0 end
+redis.call("ZADD", KEYS[1], ARGV[3], ARGV[4])
+redis.call("PEXPIREAT", KEYS[1], ARGV[3])
+return 1`;
 // Returns the connection that received the command, or nil.
 const publishScript = `local owner = redis.call("GET", KEYS[1])
 if not owner then return false end
@@ -105,8 +112,6 @@ function aborted<A>(signal: AbortSignal, value: A) {
 export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
   const timeoutMs = options.commandTimeoutMs ?? 5_000;
   const maxPending = options.maxPendingPerSession ?? 32;
-  // Commands in flight from this instance, by session.
-  const pending = new Map<string, number>();
   const heartbeatMs = options.heartbeatIntervalMs ?? 15_000;
   const lifetimeMs = options.streamLifetimeMs ?? 240_000;
   // A connection that ends without cleanup, as when its function is stopped, frees the session after this.
@@ -117,6 +122,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     disconnected: (sessionId: string) => `${prefix}disconnected:${sessionId}`,
     connection: (sessionId: string, owner: string) => `${prefix}connection:${sessionId}:${owner}`,
     reply: (sessionId: string, commandId: string) => `${prefix}reply:${sessionId}:${commandId}`,
+    pending: (sessionId: string) => `${prefix}pending:${sessionId}`,
   };
 
   type Redis = ReturnType<typeof createRedis>;
@@ -199,16 +205,30 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     signal: AbortSignal,
   ): Promise<CommandResult> {
     if (closed) return Promise.resolve(failure("RELAY_UNAVAILABLE", "The command relay is closed"));
-    // Each dispatch holds Redis subscriptions until it finishes, so bound them.
-    const inFlight = pending.get(sessionId) ?? 0;
-    if (inFlight >= maxPending)
-      return Promise.resolve(failure("BUSY", "Too many commands are pending for this session"));
-    pending.set(sessionId, inFlight + 1);
     const commandId = randomUUID();
     const expiresAt = Date.now() + timeoutMs;
     let delivered = false;
 
     const run = Effect.gen(function* () {
+      // Every instance shares one limit per session. A command's entry leaves
+      // when it finishes, or at its deadline if its instance stopped first.
+      const release = () =>
+        background(
+          ({ publisher }) =>
+            publisher
+              .withCommandOptions({ abortSignal: AbortSignal.timeout(timeoutMs) })
+              .zRem(key.pending(sessionId), commandId),
+          "release a pending command",
+        );
+      yield* Effect.addFinalizer(() => Effect.sync(release));
+      const admitted = yield* redis(({ publisher }, signal) =>
+        publisher.withCommandOptions({ abortSignal: signal }).eval(admitScript, {
+          keys: [key.pending(sessionId)],
+          arguments: [String(Date.now()), String(maxPending), String(expiresAt), commandId],
+        }),
+      );
+      if (admitted !== 1) return failure("BUSY", "Too many commands are pending for this session");
+
       const outcome = yield* Deferred.make<CommandResult>();
       const finish = (result: CommandResult) => Deferred.doneUnsafe(outcome, Exit.succeed(result));
       let target: string | undefined;
@@ -290,12 +310,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
         aborted(signal, failure("CANCELLED", "The command was cancelled")),
         aborted(stop.signal, failure("RELAY_UNAVAILABLE", "The command relay is closed")),
       ]),
-    ).finally(() => {
-      dispatches.delete(stop);
-      const remaining = (pending.get(sessionId) ?? 1) - 1;
-      if (remaining > 0) pending.set(sessionId, remaining);
-      else pending.delete(sessionId);
-    });
+    ).finally(() => dispatches.delete(stop));
     dispatches.set(stop, result);
     return result;
   }

@@ -1,3 +1,4 @@
+import { createClient } from "redis";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   createCommandRelay,
@@ -78,34 +79,77 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     });
   });
 
-  it("refuses commands past the per-session limit without reaching Redis, until one finishes", async () => {
-    const commands = relay({ commandTimeoutMs: 5_000, maxPendingPerSession: 2 });
+  it("refuses commands past the per-session limit on every instance, until one finishes", async () => {
+    const options = {
+      namespace: testNamespace(),
+      commandTimeoutMs: 5_000,
+      maxPendingPerSession: 2,
+    };
+    const commands = relay(options);
+    const other = relay(options);
     const id = session();
     const tab = await attachTab(commands, id);
     if (tab === "taken") throw new Error("Tab was refused");
     const first = commands.dispatch(id, setRegion, never());
-    const second = commands.dispatch(id, setRegion, never());
-    expect(await commands.dispatch(id, setRegion, never())).toMatchObject({
-      ok: false,
-      code: "BUSY",
-    });
+    const second = other.dispatch(id, setRegion, never());
+    const firstId = (await tab.command()).commandId;
+    const secondId = (await tab.command()).commandId;
+    for (const instance of [commands, other])
+      expect(await instance.dispatch(id, setRegion, never())).toMatchObject({
+        ok: false,
+        code: "BUSY",
+      });
     // Other sessions have their own limit.
     expect(await commands.dispatch(session(), setRegion, never())).toMatchObject({
       code: "NOT_CONNECTED",
     });
 
-    const { commandId } = await tab.command();
-    await commands.reply(id, { commandId, result: { ok: true, value: 1 } });
+    await commands.reply(id, { commandId: firstId, result: { ok: true, value: 1 } });
     await Promise.race([first, second]);
-    const third = commands.dispatch(id, setRegion, never());
-    const pendingIds = [(await tab.command()).commandId, (await tab.command()).commandId];
-    for (const pendingId of pendingIds)
-      await commands.reply(id, { commandId: pendingId, result: { ok: true, value: 2 } });
+    // The finished command's place frees once its cleanup reaches Redis.
+    let third: Promise<unknown> | undefined;
+    await expect
+      .poll(async () => {
+        const result = other.dispatch(id, setRegion, never());
+        const busy = await Promise.race([
+          result.then((value) => value.ok === false && value.code === "BUSY"),
+          new Promise<false>((resolve) => setTimeout(() => resolve(false), 200)),
+        ]);
+        if (!busy) third = result;
+        return busy;
+      })
+      .toBe(false);
+    const thirdId = (await tab.command()).commandId;
+    for (const commandId of [secondId, thirdId])
+      await commands.reply(id, { commandId, result: { ok: true, value: 2 } });
     expect(await Promise.all([first, second, third])).toEqual([
       { ok: true, value: expect.any(Number) },
       { ok: true, value: expect.any(Number) },
       { ok: true, value: expect.any(Number) },
     ]);
+  });
+
+  it("frees the place of a command whose instance stopped, at its deadline", async () => {
+    const namespace = testNamespace();
+    const commands = relay({ namespace, maxPendingPerSession: 1 });
+    const id = session();
+    const tab = await attachTab(commands, id);
+    if (tab === "taken") throw new Error("Tab was refused");
+    // An instance that stopped mid-command leaves its entry behind, without cleanup.
+    const redis = createClient({ url: testRedisUrl });
+    await redis.connect();
+    await redis.zAdd(`${namespace}:pending:${id}`, {
+      score: Date.now() + 300,
+      value: crypto.randomUUID(),
+    });
+    redis.destroy();
+    expect(await commands.dispatch(id, setRegion, never())).toMatchObject({ code: "BUSY" });
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const result = commands.dispatch(id, setRegion, never());
+    const { commandId } = await tab.command();
+    await commands.reply(id, { commandId, result: { ok: true, value: 3 } });
+    expect(await result).toEqual({ ok: true, value: 3 });
   });
 
   it("fails at once when no tab is attached", async () => {
