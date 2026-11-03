@@ -1,5 +1,5 @@
-import type { AnyTrackInstance } from "@weng-lab/genomebrowser";
-import type { TrackSortOption } from "@weng-lab/genomebrowser-ui";
+import type { AnyTrackInstance, TrackStoreInstance } from "@weng-lab/genomebrowser";
+import { getSortedTrackIds, type TrackSortOption } from "@weng-lab/genomebrowser-ui";
 
 type TrackSortField = TrackSortOption<AnyTrackInstance>;
 
@@ -18,9 +18,13 @@ const typeField: TrackSortField = {
   compare: (a, b) => collator.compare(a.type, b.type),
 };
 
+/** Every field tracks can be sorted by. Every track has a title and a type. */
+const trackSortFields: readonly TrackSortField[] = [titleField, typeField];
+
 /**
- * What the given tracks can be sorted by. A field is offered only when sorting by
- * it could change the order, so Track type needs at least two types among them.
+ * The fields the Sort tracks dialog offers for the given tracks. A field is offered
+ * only when sorting by it could change the order, so Track type needs at least two
+ * types among them.
  */
 export function getTrackSortOptions(tracks: readonly AnyTrackInstance[]): TrackSortField[] {
   const options = [titleField];
@@ -28,5 +32,27 @@ export function getTrackSortOptions(tracks: readonly AnyTrackInstance[]): TrackS
   return options;
 }
 
-/** Every unpinned track takes part in a sort; the dialog leaves pinned tracks in place. */
-export const getTrackSortFields = (track: AnyTrackInstance) => track;
+/** Every unpinned track takes part in a sort; pinned tracks keep their positions. */
+export const getTrackSortValues = (track: AnyTrackInstance) => track;
+
+type SortOutcome = { ok: true } | { ok: false; code: string; error: string };
+
+/**
+ * Sort the store's tracks once by the given field IDs in priority order, as the
+ * dialog's Apply order does. Fails without changing the order when a field is unknown.
+ */
+export function sortTracks(
+  trackStore: TrackStoreInstance,
+  fieldIds: readonly string[],
+): SortOutcome {
+  const fields = fieldIds.map((id) => trackSortFields.find((field) => field.id === id));
+  const unknown = fieldIds.filter((_, index) => !fields[index]);
+  if (unknown.length > 0) {
+    const available = trackSortFields.map(({ id }) => `"${id}"`).join(", ");
+    const error = `Unknown sort field ${unknown.map((id) => `"${id}"`).join(", ")}. Available fields: ${available}`;
+    return { ok: false, code: "UNKNOWN_SORT_FIELD", error };
+  }
+  const { tracks, pinnedTrackIds, reorderTracks } = trackStore.getState();
+  const comparators = fields.map((field) => field!.compare);
+  return reorderTracks(getSortedTrackIds(tracks, pinnedTrackIds, getTrackSortValues, comparators));
+}

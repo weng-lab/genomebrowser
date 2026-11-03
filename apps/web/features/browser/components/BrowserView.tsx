@@ -17,7 +17,7 @@ import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
 import { SaveStatus } from "../../sessions/components/SaveStatus";
 import { useBrowserSvgRef } from "../BrowserSvg";
-import { getTrackSortFields, getTrackSortOptions } from "../trackSort";
+import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -130,7 +130,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         open={sortOpen}
         onClose={() => setSortOpen(false)}
         options={sortOptions}
-        getMetadata={getTrackSortFields}
+        getMetadata={getTrackSortValues}
       />
     </>
   );

@@ -114,6 +114,15 @@ A comparator can also combine fields, such as ordering by assay and then by a fi
 | `label`   | `string`                               | Text shown on the option's chip or in the Add sort option list, and in the priority list.                          |
 | `compare` | `(a: Metadata, b: Metadata) => number` | Returns a negative number when `a` belongs above `b`, a positive number when it belongs below, or `0` on a tie.    |
 
+### getSortedTrackIds
+
+`getSortedTrackIds(tracks, pinnedTrackIds, getMetadata, comparators)` returns every track ID in the order the dialog's **Apply order** would produce, without changing the store. Use it to sort from somewhere other than the dialog, such as an agent command, so both give the same order. Pass the store's `tracks` and `pinnedTrackIds`, the dialog's `getMetadata`, and the chosen options' `compare` functions in priority order, then apply the result with `reorderTracks`.
+
+```ts
+const { tracks, pinnedTrackIds, reorderTracks } = trackStore.getState();
+reorderTracks(getSortedTrackIds(tracks, pinnedTrackIds, getSampleInfo, [byAssay.compare]));
+```
+
 ## Behavior
 
 With five or fewer options, each option appears as a chip. Clicking an included chip leaves that option out of the sort; clicking it again adds it back at the bottom of the priority list as the lowest tiebreaker.

@@ -8,6 +8,7 @@ The implemented commands are:
 
 - `set_region`: its region is zero-based and half-open. It returns the region shown and whether the browser clamped it.
 - `export_image`: exports the current view as SVG or PNG and shows it to the user in a preview with a Download button. Every setting is optional: `format` (`svg` by default), PNG `scale` from 1 to 3 (2 by default), `includeTitles`, `includeRuler`, and `filename`. It returns the file name and pixel size; the image never reaches the agent.
+- `sort_tracks`: sorts the loaded tracks once by `by`, a list of field IDs in priority order (`"title"` and `"type"` today), as the Sort tracks dialog does. Pinned tracks keep their positions and ties keep their current order. It returns every track's ID and title in the new order.
 
 Build with `pnpm exec turbo run build --filter=@weng-lab/contracts`. The package exports compiled ESM and TypeScript declarations from `dist/`. Keep runtime handlers, user models, and persistence schemas with their app owners.
 

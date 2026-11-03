@@ -11,6 +11,7 @@ import {
   type GenomeBrowserStores,
 } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
+import { sortTracks } from "../browser/trackSort";
 
 /**
  * What commands act on. Today, the open session's stores, the same ones the UI
@@ -71,6 +72,14 @@ const handlers: { [C in Command as C["name"]]: Handler<C> } = {
       const error = cause instanceof Error ? cause.message : "The image could not be exported";
       return { ok: false, code: "EXPORT_FAILED", error };
     }
+  },
+  sort_tracks({ stores }, { by }) {
+    const outcome = sortTracks(stores.useTrackStore, by);
+    if (!outcome.ok) return outcome;
+    const tracks = stores.useTrackStore
+      .getState()
+      .tracks.map(({ base }) => ({ id: base.id, title: base.title }));
+    return { ok: true, value: { tracks } };
   },
 };
 

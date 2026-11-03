@@ -168,6 +168,46 @@ it("returns the store's rejection and ignores expired commands without changing 
   expect(region()).toBe(before);
 });
 
+it("sorts tracks for the agent, replies with the new order, and saves it", async () => {
+  await enableRemoteControl();
+  const sort = (by: unknown) =>
+    act(async () =>
+      latest().send({
+        commandId,
+        name: "sort_tracks",
+        expiresAt: Date.now() + 5000,
+        params: { by },
+      }),
+    );
+  const savedTitles = () => server.stored.get(alpha)!.snapshot.tracks.map(({ base }) => base.title);
+  const before = savedTitles();
+
+  await sort(["subject"]);
+  expect(reply(0).result).toEqual({
+    ok: false,
+    code: "UNKNOWN_SORT_FIELD",
+    error: 'Unknown sort field "subject". Available fields: "title", "type"',
+  });
+  await sort(["type", "type"]);
+  expect(reply(1).result).toMatchObject({ ok: false, code: "INVALID_PARAMS" });
+
+  await sort(["type", "title"]);
+  expect(reply(2).result).toEqual({
+    ok: true,
+    value: {
+      tracks: [
+        { id: "ccres", title: "Human cCREs" },
+        { id: "genes", title: "GENCODE 50 basic" },
+        { id: "ruler", title: "Coordinates" },
+      ],
+    },
+  });
+  expect(before).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);
+  await vi.waitFor(() =>
+    expect(savedTitles()).toEqual(["Human cCREs", "GENCODE 50 basic", "Coordinates"]),
+  );
+});
+
 it("keeps saving while the MCP server is unavailable, then reconnects", async () => {
   await enableRemoteControl();
   await act(async () => route.back());

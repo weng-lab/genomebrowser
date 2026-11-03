@@ -64,8 +64,24 @@ export const exportImage = {
   }),
 } as const satisfies CommandContract;
 
+export const sortTracks = {
+  name: "sort_tracks",
+  description:
+    'Sort the loaded tracks once, like the Sort tracks button. Tracks order by the first field, and each later field breaks ties. Fields: "title" (track title, natural order ignoring case) and "type" (track type). Pinned tracks keep their positions, and tracks that tie on every field keep their current order. Tracks added later are not sorted until you sort again. Returns every track in its new order.',
+  params: z.strictObject({
+    by: z
+      .array(z.string().min(1))
+      .min(1)
+      .refine((fields) => new Set(fields).size === fields.length, "Fields must not repeat")
+      .describe('Field IDs in priority order, such as ["type", "title"].'),
+  }),
+  result: z.strictObject({
+    tracks: z.array(z.strictObject({ id: z.string(), title: z.string() })),
+  }),
+} as const satisfies CommandContract;
+
 /** Every command. Each becomes an MCP tool, and the app must implement each one. */
-export const commands = [setRegion, exportImage] as const;
+export const commands = [setRegion, exportImage, sortTracks] as const;
 
 export type Command = (typeof commands)[number];
 
