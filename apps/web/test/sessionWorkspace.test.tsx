@@ -356,6 +356,20 @@ it("keeps conflict recovery after another session is deleted", async () => {
   expect(server.stored.get(alpha)!.revision).toBe(4);
 });
 
+it("sorts the open session's tracks and saves the order", async () => {
+  const saved = defaults();
+  const id = server.add("Alpha", { ...saved, tracks: saved.tracks.toReversed() });
+  await visit(`/browser/${id}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const titles = () => server.stored.get(id)!.snapshot.tracks.map(({ base }) => base.title);
+  expect(titles()).toEqual(["Human cCREs", "GENCODE 50 basic", "Coordinates"]);
+
+  await click(button("Sort tracks"));
+  await click(withText("button", "Apply order"));
+  await vi.waitFor(() => expect(closeTab()).toBe(false));
+  expect(titles()).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);
+});
+
 it("asks a signed-out user to sign in", async () => {
   server.user = null;
   await visit("/browser");

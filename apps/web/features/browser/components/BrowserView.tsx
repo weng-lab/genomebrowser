@@ -9,6 +9,7 @@ import {
   ManagementControls,
   NavigationControls,
   RegionControls,
+  TrackSortDialog,
 } from "@weng-lab/genomebrowser-ui";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -16,6 +17,7 @@ import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
 import { SaveStatus } from "../../sessions/components/SaveStatus";
 import { useBrowserSvgRef } from "../BrowserSvg";
+import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -87,6 +89,16 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   const { useBrowserStore, useTrackStore } = stores;
   const svgRef = useBrowserSvgRef();
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  // Read the tracks when Sort is clicked rather than subscribing, so track changes
+  // do not re-render the controls. A sort is a one-time operation.
+  const [sortOptions, setSortOptions] = useState(() =>
+    getTrackSortOptions(useTrackStore.getState().tracks),
+  );
+  const openSort = () => {
+    setSortOptions(getTrackSortOptions(useTrackStore.getState().tracks));
+    setSortOpen(true);
+  };
   return (
     <>
       <Box
@@ -104,7 +116,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         />
         <NavigationControls browserStore={useBrowserStore} />
         <InteractionControls browserStore={useBrowserStore} />
-        <ManagementControls onDownloadImage={() => setDownloadOpen(true)} />
+        <ManagementControls onSortTracks={openSort} onDownloadImage={() => setDownloadOpen(true)} />
       </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} svgRef={svgRef} />
       <DownloadImageDialog
@@ -112,6 +124,13 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         svgRef={svgRef}
         open={downloadOpen}
         onClose={() => setDownloadOpen(false)}
+      />
+      <TrackSortDialog
+        trackStore={useTrackStore}
+        open={sortOpen}
+        onClose={() => setSortOpen(false)}
+        options={sortOptions}
+        getMetadata={getTrackSortValues}
       />
     </>
   );

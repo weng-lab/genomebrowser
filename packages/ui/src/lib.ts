@@ -32,6 +32,7 @@ export type { HighlightDialogProps } from "./HighlightDialog/HighlightDialog";
 // Track Sort
 export { TrackSortDialog } from "./TrackSort/TrackSortDialog";
 export type { TrackSortDialogProps } from "./TrackSort/TrackSortDialog";
+export { getSortedTrackIds } from "./TrackSort/trackSortOrder";
 export type { TrackSortOption } from "./TrackSort/trackSortOrder";
 
 // Cytoband

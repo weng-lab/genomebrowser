@@ -172,9 +172,37 @@ describe("TrackSortDialog", () => {
     expect(priorityLabels()).toEqual(["Assay"]);
     expect(chip("Sample").getAttribute("aria-pressed")).toBe("false");
   });
+
+  it("includes options added before the first sort and excludes those added after it", () => {
+    vi.useFakeTimers();
+    const trackStore = createStore();
+    const [sample, assay] = options;
+    mount(<DialogHost trackStore={trackStore} options={[sample]} />);
+    act(() => root!.render(<DialogHost trackStore={trackStore} options={[sample, assay]} />));
+
+    clickButton("Open sort");
+    expect(priorityLabels()).toEqual(["Sample", "Assay"]);
+    clickButton("Assay");
+    clickButton("Apply order");
+    closeTransition();
+
+    const tissue = { id: "tissue", label: "Tissue", compare: () => 0 };
+    act(() =>
+      root!.render(<DialogHost trackStore={trackStore} options={[sample, assay, tissue]} />),
+    );
+    clickButton("Open sort");
+    expect(priorityLabels()).toEqual(["Sample"]);
+    expect(chip("Tissue").getAttribute("aria-pressed")).toBe("false");
+  });
 });
 
-function DialogHost({ trackStore }: { trackStore: TrackStoreInstance }) {
+function DialogHost({
+  trackStore,
+  options: hostOptions = options,
+}: {
+  trackStore: TrackStoreInstance;
+  options?: TrackSortOption<SampleInfo>[];
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -183,7 +211,7 @@ function DialogHost({ trackStore }: { trackStore: TrackStoreInstance }) {
         trackStore={trackStore}
         open={open}
         onClose={() => setOpen(false)}
-        options={options}
+        options={hostOptions}
         getMetadata={getMetadata}
       />
     </>

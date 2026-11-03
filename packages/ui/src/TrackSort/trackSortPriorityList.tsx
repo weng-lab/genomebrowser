@@ -129,7 +129,14 @@ function PriorityRow({
         borderColor: "divider",
         borderRadius: 1,
         mb: 1,
-        bgcolor: isDragging ? "action.selected" : "background.paper",
+        // The selected tint is translucent, so layer it over a solid background to keep
+        // the rows behind a dragged row from showing through.
+        bgcolor: "background.paper",
+        backgroundImage: ({ palette }) =>
+          isDragging
+            ? `linear-gradient(${palette.action.selected}, ${palette.action.selected})`
+            : "none",
+        boxShadow: isDragging ? 4 : 0,
         cursor: isDragging ? "grabbing" : "grab",
         position: "relative",
         zIndex: isDragging ? 1 : "auto",
