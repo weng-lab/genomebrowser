@@ -41,11 +41,7 @@ Choose a branch name that describes the work. Write short, specific commit messa
 
 Use a short, specific title in the same style as a commit message. Open a draft when the maintainer wants CI to run or the work tracked remotely. There is no required stage of completion for a draft.
 
-Give the reviewer a concise guide to the implementation. State the problem and resulting behavior, then explain how the change achieves it and why that approach fits. Point to the few files where the important decisions or bulk of the change live. Describe the final implementation rather than recounting the agent's investigation or listing everything it accomplished. Scale the detail to the change.
-
-Use the [PR template](../../.github/pull_request_template.md). Include brief manual review steps when they help someone exercise the behavior. Screenshots and videos are welcome when the maintainer wants them, but are not required. Automated check lists and logs need not be copied from CI into the description; mention unresolved failures or verification limits that affect review.
-
-End the description with `Closes #123` when the PR resolves that issue. Before handoff, follow [verification guidance](verify.md) and update the description, labels, and assignee to reflect the final scope. Maintainers handle merging.
+Write the description by following the comments in the [PR template](../../.github/pull_request_template.md). The template is the single source of truth for what a PR body contains. Before handoff, follow [verification guidance](verify.md) and update the description, labels, and assignee to reflect the final scope. Maintainers handle merging.
 
 For changes to shared dependencies, follow the [dependency policy](../tooling/dependencies.md).
 
