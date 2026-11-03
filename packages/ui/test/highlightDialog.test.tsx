@@ -205,6 +205,21 @@ describe("HighlightDialog", () => {
     expect(document.body.textContent).toContain("No highlights added.");
   });
 
+  it("removes all highlights at once", () => {
+    const browserStore = createTestStore();
+    for (const id of ["First", "Second"]) {
+      browserStore
+        .getState()
+        .addHighlight({ id, region: { start: 100, end: 200 }, color: "#3366cc" });
+    }
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+
+    clickButton("Remove all");
+    expect(browserStore.getState().highlights).toEqual([]);
+    expect(document.body.textContent).toContain("No highlights added.");
+    expect(document.body.textContent).not.toContain("Remove all");
+  });
+
   it("sets the browser to the exact highlight region", () => {
     const browserStore = createTestStore();
     browserStore.getState().addHighlight({

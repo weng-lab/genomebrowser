@@ -1,3 +1,5 @@
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -16,6 +18,7 @@ export function HighlightList({
   const currentChromosome = useBrowserStore((state) => state.region.chromosome);
   const highlights = useBrowserStore((state) => state.highlights);
   const removeHighlight = useBrowserStore((state) => state.removeHighlight);
+  const clearHighlights = useBrowserStore((state) => state.clearHighlights);
   const setRegion = useBrowserStore((state) => state.setRegion);
 
   if (highlights.length === 0) {
@@ -30,9 +33,14 @@ export function HighlightList({
 
   return (
     <Stack spacing={0.75}>
-      <Typography color="text.secondary" variant="caption">
-        Newest first
-      </Typography>
+      <Box sx={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
+        <Typography color="text.secondary" variant="caption">
+          Newest first
+        </Typography>
+        <Button color="error" onClick={clearHighlights} size="small">
+          Remove all
+        </Button>
+      </Box>
       {highlights.toReversed().map((highlight) => {
         const region = resolveHighlightRegion(highlight, currentChromosome);
         return (

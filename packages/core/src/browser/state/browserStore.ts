@@ -88,6 +88,7 @@ export type BrowserStore = {
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
   addHighlight: (highlight: Highlight) => BrowserHighlightMutationResult;
   removeHighlight: (id: string) => void;
+  clearHighlights: () => void;
 };
 
 export type BrowserStoreInstance = UseBoundStore<StoreApi<BrowserStore>>;
@@ -259,6 +260,9 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         set((state) => ({
           highlights: state.highlights.filter((highlight) => highlight.id !== id),
         }));
+      },
+      clearHighlights: () => {
+        if (get().highlights.length > 0) set({ highlights: [] });
       },
     };
   });
