@@ -16,6 +16,8 @@ export type CommandRelayOptions = {
   namespace: string;
   /** Bounds a whole dispatch, from reaching Redis to the tab's reply, and every other Redis wait. */
   commandTimeoutMs?: number;
+  /** Commands one server instance may have in flight for one session; more fail with `BUSY`. */
+  maxPendingPerSession?: number;
   /** How often an open tab stream is kept alive and its hold on the session renewed. */
   heartbeatIntervalMs?: number;
   /** How long one tab stream stays open before ending, so it closes cleanly before the platform stops it. */
@@ -32,8 +34,8 @@ export type CommandRelayOptions = {
 export type CommandRelay = {
   /**
    * Run a command in the session's tab and wait for its result. Never rejects;
-   * fails with `NOT_CONNECTED`, `TIMEOUT`, `CANCELLED`, `RELAY_UNAVAILABLE`, or
-   * the tab's own failure. The command timeout bounds the whole call. When
+   * fails with `NOT_CONNECTED`, `TIMEOUT`, `CANCELLED`, `BUSY`,
+   * `RELAY_UNAVAILABLE`, or the tab's own failure. The command timeout bounds the whole call. When
    * `signal` aborts or time runs out after delivery, the tab is asked to stop
    * the command without waiting for Redis; a change already applied stays.
    */
@@ -102,6 +104,9 @@ function aborted<A>(signal: AbortSignal, value: A) {
 
 export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
   const timeoutMs = options.commandTimeoutMs ?? 5_000;
+  const maxPending = options.maxPendingPerSession ?? 32;
+  // Commands in flight from this instance, by session.
+  const pending = new Map<string, number>();
   const heartbeatMs = options.heartbeatIntervalMs ?? 15_000;
   const lifetimeMs = options.streamLifetimeMs ?? 240_000;
   // A connection that ends without cleanup, as when its function is stopped, frees the session after this.
@@ -194,6 +199,11 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     signal: AbortSignal,
   ): Promise<CommandResult> {
     if (closed) return Promise.resolve(failure("RELAY_UNAVAILABLE", "The command relay is closed"));
+    // Each dispatch holds Redis subscriptions until it finishes, so bound them.
+    const inFlight = pending.get(sessionId) ?? 0;
+    if (inFlight >= maxPending)
+      return Promise.resolve(failure("BUSY", "Too many commands are pending for this session"));
+    pending.set(sessionId, inFlight + 1);
     const commandId = randomUUID();
     const expiresAt = Date.now() + timeoutMs;
     let delivered = false;
@@ -280,7 +290,12 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
         aborted(signal, failure("CANCELLED", "The command was cancelled")),
         aborted(stop.signal, failure("RELAY_UNAVAILABLE", "The command relay is closed")),
       ]),
-    ).finally(() => dispatches.delete(stop));
+    ).finally(() => {
+      dispatches.delete(stop);
+      const remaining = (pending.get(sessionId) ?? 1) - 1;
+      if (remaining > 0) pending.set(sessionId, remaining);
+      else pending.delete(sessionId);
+    });
     dispatches.set(stop, result);
     return result;
   }

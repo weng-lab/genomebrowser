@@ -78,6 +78,36 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     });
   });
 
+  it("refuses commands past the per-session limit without reaching Redis, until one finishes", async () => {
+    const commands = relay({ commandTimeoutMs: 5_000, maxPendingPerSession: 2 });
+    const id = session();
+    const tab = await attachTab(commands, id);
+    if (tab === "taken") throw new Error("Tab was refused");
+    const first = commands.dispatch(id, setRegion, never());
+    const second = commands.dispatch(id, setRegion, never());
+    expect(await commands.dispatch(id, setRegion, never())).toMatchObject({
+      ok: false,
+      code: "BUSY",
+    });
+    // Other sessions have their own limit.
+    expect(await commands.dispatch(session(), setRegion, never())).toMatchObject({
+      code: "NOT_CONNECTED",
+    });
+
+    const { commandId } = await tab.command();
+    await commands.reply(id, { commandId, result: { ok: true, value: 1 } });
+    await Promise.race([first, second]);
+    const third = commands.dispatch(id, setRegion, never());
+    const pendingIds = [(await tab.command()).commandId, (await tab.command()).commandId];
+    for (const pendingId of pendingIds)
+      await commands.reply(id, { commandId: pendingId, result: { ok: true, value: 2 } });
+    expect(await Promise.all([first, second, third])).toEqual([
+      { ok: true, value: expect.any(Number) },
+      { ok: true, value: expect.any(Number) },
+      { ok: true, value: expect.any(Number) },
+    ]);
+  });
+
   it("fails at once when no tab is attached", async () => {
     const started = Date.now();
     expect(await relay().dispatch(session(), setRegion, never())).toMatchObject({
