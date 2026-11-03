@@ -57,13 +57,13 @@ dependencies from the repository root:
 pnpm install --frozen-lockfile
 ```
 
-Use Node.js 24 or newer for the browser server. Start the web app and persistent command relay together:
+Use Node.js 24 or newer for the web app. Follow the [local setup guide](apps/web/README.md#run-locally) to configure Clerk development keys, start PostgreSQL and Redis, and apply database migrations. Then start Next.js and its Eve agent:
 
 ```sh
 pnpm dev
 ```
 
-Open `http://localhost:3000/browser`. `pnpm dev:web` and `pnpm dev:server` start each process separately. Local access requires no token or login. Session IDs select sessions and are not credentials. The [web app guide](apps/web/README.md) covers local setup, remote control, adding pages and commands, and cloud hosting.
+Open `http://localhost:3000/browser` and sign in with Clerk. Offline development can opt in to mock users with `GB_IDENTITY=mock`. Session IDs select sessions and are not credentials. The [web app guide](apps/web/README.md) covers remote control, adding pages and commands, and cloud hosting.
 
 The workspace packages use the root Oxlint and Oxfmt installations and pin
 their framework and TypeScript dependencies in their own manifests.

@@ -1,6 +1,6 @@
 # App limitations
 
-These are current implementation constraints and deployment gaps. They do not redefine the [MVP scope](mvp.md): missing authorization, for example, is work needed for launch rather than a product exclusion. Setup and supported operations are documented in the [web app guide](../../apps/web/README.md) and [MCP server guide](../../apps/server/README.md).
+These are current implementation constraints and deployment gaps. They do not redefine the [MVP scope](mvp.md): missing authorization, for example, is work needed for launch rather than a product exclusion. Setup and supported operations are documented in the [web app guide](../../apps/web/README.md) and [agent guide](../../apps/web/docs/02-guides/agent.md).
 
 ## Identity and deployment
 
