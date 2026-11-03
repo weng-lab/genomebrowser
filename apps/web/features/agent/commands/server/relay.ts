@@ -7,7 +7,7 @@ export type CommandRelayOptions = {
   url: string;
   /** Prefix for every Redis key and channel, so several relays can share one server. */
   prefix?: string;
-  /** How long a command waits for the tab's reply. */
+  /** Deadline for command delivery and replies, and for Redis setup/cleanup. */
   commandTimeoutMs?: number;
   /** How often an open tab stream is kept alive. */
   heartbeatIntervalMs?: number;
@@ -23,7 +23,10 @@ export type CommandRelayOptions = {
 export type CommandRelay = {
   /**
    * Run a command in the session's tab and wait for its result. Fails with
-   * `NOT_CONNECTED`, `TIMEOUT`, or `CANCELLED` rather than rejecting.
+   * `NOT_CONNECTED`, `TIMEOUT`, `CANCELLED`, or `RELAY_FAILED` rather than
+   * rejecting. The timeout covers reaching Redis. When `signal` aborts after
+   * delivery, cancellation is sent to the tab if Redis is reachable. A command
+   * already applied stays applied.
    */
   dispatch(
     sessionId: string,
@@ -42,15 +45,20 @@ export type CommandRelay = {
   ): Promise<ReadableStream<Uint8Array<ArrayBuffer>> | null>;
   /** Deliver a tab's reply. False when no dispatch is waiting for it. */
   acknowledge(sessionId: string, reply: CommandReply): Promise<boolean>;
+  /** End active operations and streams, then close this relay permanently. */
   close(): Promise<void>;
 };
 
-// Take the session for a tab unless another tab holds it.
+// A holder is `tabId/connectionId`, so a stream frees or renews only its own hold.
+// Take the session for a connection unless another tab holds it. The same tab
+// may take it over from its previous connection.
 const hold = `local holder = redis.call("GET", KEYS[1])
-if holder == false or holder == ARGV[1] then
-  redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2])
+if holder == false or string.find(holder, ARGV[1] .. "/", 1, true) == 1 then
+  redis.call("SET", KEYS[1], ARGV[1] .. "/" .. ARGV[2], "PX", ARGV[3])
   return 1
 end
+return 0`;
+const renew = `if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("PEXPIRE", KEYS[1], ARGV[2]) end
 return 0`;
 const release = `if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("DEL", KEYS[1]) end
 return 0`;
@@ -68,19 +76,54 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
   const keys = {
     holder: (sessionId: string) => `${prefix}tab:${sessionId}`,
     commands: (sessionId: string) => `${prefix}commands:${sessionId}`,
+    cancelled: (sessionId: string) => `${prefix}cancelled:${sessionId}`,
     disconnected: (sessionId: string) => `${prefix}disconnected:${sessionId}`,
     reply: (sessionId: string, commandId: string) => `${prefix}reply:${sessionId}:${commandId}`,
   };
 
-  // Tab streams still freeing their sessions.
+  // The publisher is shared; each operation owns and destroys its subscriber.
+  const subscribers = new Set<ReturnType<typeof createRedisClient>>();
+  const stops = new Set<() => void>();
   const endings = new Set<Promise<void>>();
-  // One connection publishes and one listens, shared by every call in this process.
-  let clients: ReturnType<typeof connectClients> | undefined;
-  function connected() {
-    return (clients ??= connectClients(options.url).catch((error: unknown) => {
-      clients = undefined;
-      throw error;
-    }));
+  let publisher: ReturnType<typeof createRedisClient> | undefined;
+  let ready: Promise<ReturnType<typeof createRedisClient>> | undefined;
+  let closed = false;
+
+  function createRedisClient() {
+    const result = createClient({ url: options.url, disableOfflineQueue: true });
+    result.on("error", (error: unknown) => console.error("Command relay Redis error", error));
+    return result;
+  }
+
+  async function connected(signal?: AbortSignal): Promise<ReturnType<typeof createRedisClient>> {
+    if (closed) return Promise.reject(new Error("The command relay is closed"));
+    if (!ready) {
+      publisher = createRedisClient();
+      const current = publisher;
+      ready = current.connect().then(() => current);
+    }
+    if (!signal) return ready;
+    signal.throwIfAborted();
+    const { promise, reject } = Promise.withResolvers<never>();
+    const abort = () => reject(signal.reason);
+    signal.addEventListener("abort", abort, { once: true });
+    try {
+      return await Promise.race([ready, promise]);
+    } finally {
+      signal.removeEventListener("abort", abort);
+    }
+  }
+
+  function createSubscriber() {
+    if (closed) throw new Error("The command relay is closed");
+    const subscriber = createRedisClient();
+    subscribers.add(subscriber);
+    return subscriber;
+  }
+
+  function destroy(subscriber: ReturnType<typeof createRedisClient>) {
+    subscribers.delete(subscriber);
+    if (subscriber.isOpen) subscriber.destroy();
   }
 
   async function dispatch(
@@ -89,134 +132,213 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     signal: AbortSignal,
   ): Promise<CommandResult> {
     if (signal.aborted) return failure("CANCELLED", "The command was cancelled");
-    const { publisher, subscriber } = await connected();
+    if (closed) return failure("RELAY_FAILED", "The command relay is closed");
     const commandId = randomUUID();
     const expiresAt = Date.now() + timeoutMs;
+    const subscriber = createSubscriber();
+    const delivery = new AbortController();
     const { promise, resolve } = Promise.withResolvers<CommandResult>();
-    const onReply = (message: string) => {
-      const result = commandResultSchema.safeParse(JSON.parse(message));
-      resolve(result.success ? result.data : failure("INVALID_REPLY", "The tab replied invalidly"));
+    let settled = false;
+    let sent = false;
+
+    // Completion owns cleanup. It never waits for a Redis acknowledgement.
+    const finish = (result: CommandResult) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      signal.removeEventListener("abort", onAbort);
+      stops.delete(onClose);
+      delivery.abort();
+      destroy(subscriber);
+      if (sent && !result.ok && (result.code === "CANCELLED" || result.code === "TIMEOUT")) {
+        // Cancellation is cooperative: an already-applied change stays applied.
+        cancel().catch((error: unknown) => {
+          if (!closed) console.error("Could not cancel an agent command", error);
+        });
+      }
+      resolve(result);
     };
-    const onDisconnect = () => resolve(failure("NOT_CONNECTED", "The browser tab disconnected"));
-    const onAbort = () => resolve(failure("CANCELLED", "The command was cancelled"));
+    const onAbort = () => finish(failure("CANCELLED", "The command was cancelled"));
+    const onClose = () => finish(failure("RELAY_FAILED", "The command relay is closed"));
     const timer = setTimeout(
-      () => resolve(failure("TIMEOUT", "The browser tab did not reply in time")),
+      () => finish(failure("TIMEOUT", "The browser tab did not reply in time")),
       timeoutMs,
     );
     signal.addEventListener("abort", onAbort, { once: true });
-    const reply = keys.reply(sessionId, commandId);
-    // Listen before sending, so an immediate reply cannot be missed.
-    await Promise.all([
-      subscriber.subscribe(reply, onReply),
-      subscriber.subscribe(keys.disconnected(sessionId), onDisconnect),
-    ]);
-    try {
-      const message = JSON.stringify({ ...command, commandId, expiresAt });
-      const receivers = await publisher.publish(keys.commands(sessionId), message);
-      if (receivers === 0) {
-        resolve(
+    stops.add(onClose);
+
+    async function cancel() {
+      const current = await connected();
+      await current
+        .withCommandOptions({ timeout: timeoutMs })
+        .publish(keys.cancelled(sessionId), JSON.stringify({ commandId }));
+    }
+
+    async function deliver() {
+      const [current] = await Promise.all([connected(delivery.signal), subscriber.connect()]);
+      if (settled) return;
+      await Promise.all([
+        subscriber.subscribe(keys.reply(sessionId, commandId), (message) => {
+          try {
+            const result = commandResultSchema.safeParse(JSON.parse(message));
+            finish(
+              result.success ? result.data : failure("INVALID_REPLY", "The tab replied invalidly"),
+            );
+          } catch {
+            finish(failure("INVALID_REPLY", "The tab replied invalidly"));
+          }
+        }),
+        subscriber.subscribe(keys.disconnected(sessionId), () =>
+          finish(failure("NOT_CONNECTED", "The browser tab disconnected")),
+        ),
+      ]);
+      if (settled) return;
+      sent = true;
+      const receivers = await current
+        .withCommandOptions({
+          abortSignal: delivery.signal,
+        })
+        .publish(keys.commands(sessionId), JSON.stringify({ ...command, commandId, expiresAt }));
+      if (receivers === 0)
+        finish(
           failure(
             "NOT_CONNECTED",
             "The session is not open in a browser tab with remote control enabled",
           ),
         );
-      }
-      return await promise;
-    } finally {
-      clearTimeout(timer);
-      signal.removeEventListener("abort", onAbort);
-      await Promise.all([
-        subscriber.unsubscribe(reply, onReply),
-        subscriber.unsubscribe(keys.disconnected(sessionId), onDisconnect),
-      ]);
     }
+
+    deliver().catch((error: unknown) => {
+      if (settled) return;
+      console.error("Could not deliver an agent command", error);
+      finish(failure("RELAY_FAILED", "The command could not reach the browser tab"));
+    });
+    return promise;
   }
 
   async function connect(sessionId: string, tabId: string, signal: AbortSignal) {
-    const { publisher, subscriber } = await connected();
+    if (signal.aborted || closed) return null;
+    const subscriber = createSubscriber();
+    const lifetime = new AbortController();
     const holder = keys.holder(sessionId);
-    const take = async () =>
-      (await publisher.eval(hold, { keys: [holder], arguments: [tabId, String(holdMs)] })) === 1;
-    if (signal.aborted || !(await take())) return null;
-
-    const encoder = new TextEncoder();
+    const connectionId = randomUUID();
+    const owner = `${tabId}/${connectionId}`;
+    let publisher: Awaited<ReturnType<typeof connected>> | undefined;
+    let held = false;
     let finished = false;
     let heartbeat: ReturnType<typeof setInterval> | undefined;
-    let onCommand: ((message: string) => void) | undefined;
-    let onAbort: (() => void) | undefined;
-    let ending: Promise<void> | undefined;
-    // Stop listening and free the session for other tabs, once. `close` awaits it.
+    let controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>> | undefined;
+
+    // The stream owns both its subscription and lease, including failed setup.
     const finish = () => {
-      if (ending) return;
+      if (finished) return;
       finished = true;
-      ending = (async () => {
-        clearInterval(heartbeat);
-        if (onAbort) signal.removeEventListener("abort", onAbort);
-        if (onCommand) await subscriber.unsubscribe(keys.commands(sessionId), onCommand);
-        await publisher.eval(release, { keys: [holder], arguments: [tabId] });
-        await publisher.publish(keys.disconnected(sessionId), tabId);
+      clearTimeout(setupTimer);
+      clearInterval(heartbeat);
+      signal.removeEventListener("abort", finish);
+      stops.delete(finish);
+      lifetime.abort();
+      destroy(subscriber);
+      controller?.close();
+      if (!held || !publisher) return;
+      const current = publisher.withCommandOptions({ timeout: timeoutMs });
+      const ending = (async () => {
+        // An older stream cannot release its replacement's lease.
+        const released = await current.eval(release, { keys: [holder], arguments: [owner] });
+        if (released === 1) await current.publish(keys.disconnected(sessionId), tabId);
       })()
         .catch((error: unknown) => console.error("Could not end a tab stream", error))
-        .finally(() => endings.delete(ending!));
+        .finally(() => endings.delete(ending));
       endings.add(ending);
     };
+    const setupTimer = setTimeout(finish, timeoutMs);
+    signal.addEventListener("abort", finish, { once: true });
+    stops.add(finish);
 
-    return new ReadableStream<Uint8Array<ArrayBuffer>>({
-      async start(controller) {
-        const write = (text: string) => {
-          if (!finished) controller.enqueue(encoder.encode(text));
-        };
-        const end = () => {
-          if (finished) return;
-          finish();
-          controller.close();
-        };
-        onCommand = (message) => write(`event: command\ndata: ${message}\n\n`);
-        await subscriber.subscribe(keys.commands(sessionId), onCommand);
-        onAbort = end;
-        signal.addEventListener("abort", end, { once: true });
-        heartbeat = setInterval(() => {
-          write(": heartbeat\n\n");
-          // Another tab took the session after this stream missed its renewals.
-          take().then((held) => held || end(), end);
-        }, heartbeatMs);
-        write(": connected\n\n");
-        if (signal.aborted) end();
-      },
-      cancel() {
+    try {
+      [publisher] = await Promise.all([connected(lifetime.signal), subscriber.connect()]);
+      if (finished) return null;
+      held =
+        (await publisher
+          .withCommandOptions({
+            abortSignal: lifetime.signal,
+            timeout: timeoutMs,
+          })
+          .eval(hold, { keys: [holder], arguments: [tabId, connectionId, String(holdMs)] })) === 1;
+      if (!held || finished) {
         finish();
-        return ending;
-      },
-    });
+        return null;
+      }
+      const encoder = new TextEncoder();
+      return new ReadableStream<Uint8Array<ArrayBuffer>>({
+        async start(streamController) {
+          controller = streamController;
+          const write = (text: string) => {
+            if (!finished) controller!.enqueue(encoder.encode(text));
+          };
+          try {
+            await Promise.all([
+              subscriber.subscribe(keys.commands(sessionId), (message) =>
+                write(`event: command\ndata: ${message}\n\n`),
+              ),
+              subscriber.subscribe(keys.cancelled(sessionId), (message) =>
+                write(`event: cancel\ndata: ${message}\n\n`),
+              ),
+            ]);
+            if (finished) return;
+            clearTimeout(setupTimer);
+            // A missed renewal ends this connection rather than retaining stale ownership.
+            heartbeat = setInterval(() => {
+              write(": heartbeat\n\n");
+              publisher!
+                .withCommandOptions({ timeout: heartbeatMs })
+                .eval(renew, {
+                  keys: [holder],
+                  arguments: [owner, String(holdMs)],
+                })
+                .then((held) => {
+                  if (held !== 1) finish();
+                }, finish);
+            }, heartbeatMs);
+            write(": connected\n\n");
+          } catch (error) {
+            finish();
+            if (!signal.aborted) throw error;
+          }
+        },
+        cancel() {
+          // A cancelled stream has already closed its controller.
+          controller = undefined;
+          finish();
+        },
+      });
+    } catch (error) {
+      finish();
+      if (signal.aborted) return null;
+      throw error;
+    }
   }
 
   async function acknowledge(sessionId: string, reply: CommandReply) {
-    const { publisher } = await connected();
-    const message = JSON.stringify(reply.result);
-    return (await publisher.publish(keys.reply(sessionId, reply.commandId), message)) > 0;
+    const signal = AbortSignal.timeout(timeoutMs);
+    const publisher = await connected(signal);
+    return (
+      (await publisher
+        .withCommandOptions({ abortSignal: signal, timeout: timeoutMs })
+        .publish(keys.reply(sessionId, reply.commandId), JSON.stringify(reply.result))) > 0
+    );
   }
 
   async function close() {
-    // Let ending streams free their sessions first.
+    closed = true;
+    for (const stop of stops) stop();
+    for (const subscriber of subscribers) destroy(subscriber);
+    // Graceful close drains Redis's queue and can wait forever on a broken socket.
     await Promise.allSettled(endings);
-    const current = clients;
-    clients = undefined;
-    if (!current) return;
-    const { publisher, subscriber } = await current;
-    await Promise.all([publisher.close(), subscriber.close()]);
+    if (publisher?.isOpen) publisher.destroy();
   }
 
   return { dispatch, connect, acknowledge, close };
-}
-
-async function connectClients(url: string) {
-  const publisher = createClient({ url });
-  const subscriber = publisher.duplicate();
-  for (const client of [publisher, subscriber]) {
-    client.on("error", (error: unknown) => console.error("Command relay Redis error", error));
-  }
-  await Promise.all([publisher.connect(), subscriber.connect()]);
-  return { publisher, subscriber };
 }
 
 let shared: CommandRelay | undefined;

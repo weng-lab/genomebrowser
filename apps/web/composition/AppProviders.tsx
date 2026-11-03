@@ -7,6 +7,7 @@ import { BrowserSvgProvider } from "../features/browser/BrowserSvg";
 import { WorkspaceSkeleton } from "../shared/workspace/WorkspaceSkeleton";
 import { SessionProvider } from "../features/sessions/SessionProvider";
 import type { Account } from "../features/account/components/AccountControls";
+import { AccountSettingsProvider } from "../features/account/AccountSettings";
 
 /**
  * Workspace state for the signed-in account. The account controls save or discard
@@ -31,10 +32,12 @@ function ClerkAccount({ children }: { children: ReactNode }) {
 function AccountSessions({ userId, children }: { userId: string | null; children: ReactNode }) {
   // Never let one account's open session, list, or pending saves reach another account.
   return (
-    <SessionProvider key={userId ?? "signed-out"}>
-      <BrowserSvgProvider>
-        <RemoteControlProvider>{children}</RemoteControlProvider>
-      </BrowserSvgProvider>
-    </SessionProvider>
+    <AccountSettingsProvider key={userId ?? "signed-out"} userId={userId}>
+      <SessionProvider>
+        <BrowserSvgProvider>
+          <RemoteControlProvider>{children}</RemoteControlProvider>
+        </BrowserSvgProvider>
+      </SessionProvider>
+    </AccountSettingsProvider>
   );
 }

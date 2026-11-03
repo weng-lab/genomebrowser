@@ -30,11 +30,21 @@ type Outcome = Response | undefined | "lost";
  * method. Requests honor their abort signal, including while a body is read.
  */
 export function installSessionServer() {
+  // Keep command streams pending unless a test supplies its own EventSource events.
+  vi.stubGlobal(
+    "EventSource",
+    class extends EventTarget {
+      onerror: (() => void) | null = null;
+      onopen: (() => void) | null = null;
+      close() {}
+    },
+  );
   const stored = new Map<string, Stored>();
   const requests: Request[] = [];
   const gates: { method: string; gate: Promise<Outcome> }[] = [];
   const server = {
     user: "user_alice" as string | null,
+    settings: new Map<string, { remoteControlEnabled: boolean }>(),
     requests,
     /** Saved sessions of any owner, by ID. */
     stored,
@@ -127,6 +137,11 @@ export function installSessionServer() {
 
   async function fetch(input: string, init: RequestInit = {}) {
     const url = new URL(input, "http://localhost");
+    if (url.pathname === "/api/account/settings") {
+      if (!server.user) return new Response(null, { status: 401 });
+      if (init.method === "PUT") server.settings.set(server.user, JSON.parse(String(init.body)));
+      return Response.json(server.settings.get(server.user) ?? { remoteControlEnabled: true });
+    }
     if (url.pathname.endsWith("/commands")) return server.rpc(url.pathname, init);
     if (!url.pathname.startsWith("/api/sessions")) throw new Error(`Unexpected request ${input}`);
     const request: Request = {

@@ -11,20 +11,25 @@ import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
 import type { CommandApp } from "./commands";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
+import { useAccountSettings } from "../account/AccountSettings";
 
 type RemoteControl = {
   state: RemoteControlState;
   enabled: boolean;
   setEnabled: (enabled: boolean) => void;
+  pending: boolean;
+  error: string | undefined;
 };
 const RemoteControlContext = createContext<RemoteControl>({
   state: "off",
   enabled: false,
   setEnabled: () => {},
+  pending: false,
+  error: undefined,
 });
 
 /**
- * Optional agent control of the open session. Off until enabled in Settings.
+ * Agent control of the open session, enabled by default. Disable it in Settings.
  * While enabled, it attaches to the active session once restored. It detaches
  * as soon as that session is replaced or closed, or can no longer save edits.
  * Sessions open and save without it. Images that agents export are shown in a
@@ -34,14 +39,18 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
   const svgRef = useBrowserSvgRef();
   // Names this tab, so it can reconnect while it holds its session's commands.
   const [tabId] = useState(() => crypto.randomUUID());
-  const [enabled, setEnabled] = useState(false);
+  const { settings, pending, error, setRemoteControl: setEnabled } = useAccountSettings();
+  const enabled = settings?.remoteControlEnabled ?? false;
   const [state, setState] = useState<RemoteControlState>("off");
   // The image stays while the preview animates closed, then is released.
   const [preview, setPreview] = useState<{ image: BrowserImage; open: boolean } | null>(null);
   const id = useSession((session) => session.active?.id);
   const stores = useSession((session) => session.active?.stores);
   const signal = useSession((session) => session.active?.signal);
-  const remoteControl = useMemo(() => ({ state, enabled, setEnabled }), [state, enabled]);
+  const remoteControl = useMemo(
+    () => ({ state, enabled, setEnabled, pending, error }),
+    [state, enabled, setEnabled, pending, error],
+  );
 
   useEffect(() => {
     if (!enabled || !id || !stores || !signal) return;

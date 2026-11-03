@@ -15,9 +15,9 @@ Do not duplicate policy in this skill.
 
 ## Workflow
 
-For discussion or audit, propose audience, page map, and approach before editing. When edits are authorized, complete that scope. Documentation required by an implementation change is in scope; determine whether any is needed using the audience and scope guidance first. Edit ADRs only when requested; do not expand a focused change into a package-wide migration.
+For discussion or audit, propose audience, page map, and approach before editing. When edits are authorized, complete that scope. Documentation required by an implementation change is in scope. Edit ADRs only when requested; do not expand a focused change into a package-wide migration.
 
-1. Identify the audience and apply the [knowledge-base scope](../../../docs/README.md) or package documentation guidance before choosing a page. For knowledge-base edits, identify the decision, rationale, or product context the change adds; if there is none, do not add an implementation summary. Verify consumer-facing behavioral claims against public entry points, implementation, and tests.
+1. Find the page that owns each explanation. Verify behavioral claims against public entry points, implementation, and tests. Distinguish product intent from implemented behavior.
 2. For restructuring, inventory pages and exports; list keep/move/merge/retire before writing.
 3. Rewrite affected explanations; update navigation and inbound links; retire legacy only after content has a home.
 4. Check flow, duplication, and that maintainer pages help decisions rather than paraphrasing code.

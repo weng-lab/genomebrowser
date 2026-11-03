@@ -22,6 +22,10 @@ These are current implementation constraints and deployment gaps. They do not re
 
 ## Remote control
 
+- Chat belongs to its mounted panel. Navigating away from the browser page cancels the active turn and resets the conversation. Preserving agent conversations across navigation is deferred.
+
+- RC is a persisted user preference. Same-browser tabs refresh it on changes, and other devices refresh on focus. New command connections and replies check it server-side. Immediate revocation of every existing stream and LLM turn across devices, and exclusive browser editing during an agent turn, remain to be implemented.
+
 - A timeout or disconnect can occur after a command changed the stores but before its reply arrived. A failed call does not prove that nothing changed.
 - A terminal save failure, such as deletion elsewhere, disables remote control for that session. Remote control resumes when the next session opens. Refused edits that a further edit can fix do not end the attachment.
 

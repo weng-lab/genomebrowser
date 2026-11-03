@@ -3,8 +3,9 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { createIdentity, identityMode } from "../features/account/server/identity";
 import { createSessions, type Sessions } from "../features/sessions/server/sessions";
 import { connectDatabase } from "./server/database";
+import { createAccountSettings } from "../features/account/server/settings";
 
-let sessions: Promise<Sessions> | undefined;
+let services: ReturnType<typeof composeServices> | undefined;
 
 /**
  * Session operations composed once per server process from the database
@@ -13,15 +14,28 @@ let sessions: Promise<Sessions> | undefined;
  * until first use, so builds do not need credentials. Concurrent requests
  * share one initialization, and a failed one is retried by the next request.
  */
-export function getSessions(): Promise<Sessions> {
-  return (sessions ??= composeSessions().catch((error: unknown) => {
-    sessions = undefined;
+function getServices() {
+  return (services ??= composeServices().catch((error: unknown) => {
+    services = undefined;
     throw error;
   }));
 }
 
-async function composeSessions(): Promise<Sessions> {
+export async function getSessions(): Promise<Sessions> {
+  return (await getServices()).sessions;
+}
+
+export async function getAccountSettings() {
+  return (await getServices()).accountSettings;
+}
+
+async function composeServices() {
   const mode = identityMode(process.env);
   const pool = await connectDatabase(process.env);
-  return createSessions({ db: drizzle({ client: pool }), identity: createIdentity(mode) });
+  const db = drizzle({ client: pool });
+  const identity = createIdentity(mode);
+  return {
+    sessions: createSessions({ db, identity }),
+    accountSettings: createAccountSettings(db, identity),
+  };
 }

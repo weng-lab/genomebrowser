@@ -32,8 +32,8 @@ class Stream extends EventTarget {
     this.closed = true;
     Stream.log.push(`close ${this.url}`);
   }
-  send(command: object) {
-    this.dispatchEvent(new MessageEvent("command", { data: JSON.stringify(command) }));
+  send(command: object, type = "command") {
+    this.dispatchEvent(new MessageEvent(type, { data: JSON.stringify(command) }));
   }
 }
 
@@ -62,17 +62,16 @@ const setRegion = (chromosome: string, start: number, expiresAt = Date.now() + 5
 function click(selector: string) {
   return act(async () => document.querySelector<HTMLElement>(selector)!.click());
 }
-async function enableRemoteControl() {
+async function openSettings() {
   await click('nav a[aria-label="Settings"]');
-  await click('input[type="checkbox"]');
 }
 
 beforeEach(async () => {
   Stream.opened = [];
   Stream.log = [];
   Stream.tabs = new Set();
-  vi.stubGlobal("EventSource", Stream);
   server = installSessionServer();
+  vi.stubGlobal("EventSource", Stream);
   stubLayout();
   alpha = server.add("Alpha", defaults());
   beta = server.add("Beta", defaults());
@@ -91,15 +90,72 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("is off by default; sessions open and save without it", async () => {
-  expect(Stream.opened).toEqual([]);
+it("connects by default and keeps saving when disabled", async () => {
+  expect(Stream.log).toEqual([`open /api/sessions/${alpha}/commands`]);
+  await openSettings();
+  expect(document.querySelector<HTMLInputElement>('input[type="checkbox"]')!.checked).toBe(true);
+  await click('input[type="checkbox"]');
+  expect(latest().closed).toBe(true);
+  await act(async () => route.back());
   expect(text()).toContain("Remote control is off. Turn it on in Settings.");
   await click('button[aria-label="Pan right"]');
   await vi.waitFor(() => expect(server.writes().map(({ method }) => method)).toEqual(["PUT"]));
 });
 
+it("restores the user's saved RC setting after remounting and separates accounts", async () => {
+  await openSettings();
+  await click('input[type="checkbox"]');
+  expect(server.settings.get("user_alice")).toEqual({ remoteControlEnabled: false });
+  probe!.unmount();
+  Stream.opened = [];
+  route.reset(`/browser/${alpha}`);
+  probe = await renderWithProbe(<WorkspaceApp />);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  expect(Stream.opened).toEqual([]);
+  expect(text()).toContain("Remote control is off");
+  probe.unmount();
+  server.user = "user_bob";
+  const other = server.add("Bob", defaults());
+  route.reset(`/browser/${other}`);
+  probe = await renderWithProbe(
+    <WorkspaceApp
+      account={{
+        mode: "mock",
+        userId: "user_bob",
+        users: ["user_alice", "user_bob"],
+        cookie: "gb_mock_user",
+      }}
+    />,
+  );
+  await vi.waitFor(() => expect(Stream.opened).toHaveLength(1));
+});
+
+it("disconnects when another tab changes the user's RC preference", async () => {
+  const stream = latest();
+  server.settings.set("user_alice", { remoteControlEnabled: false });
+  await act(async () =>
+    window.dispatchEvent(new StorageEvent("storage", { key: "gb:account-settings:user_alice" })),
+  );
+  await vi.waitFor(() => expect(stream.closed).toBe(true));
+  expect(text()).toContain("Remote control is off");
+});
+
+it("keeps the saved preference when saving a setting fails", async () => {
+  await openSettings();
+  const original = globalThis.fetch;
+  vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
+    String(input) === "/api/account/settings" && init?.method === "PUT"
+      ? Promise.resolve(new Response(null, { status: 503 }))
+      : original(input, init),
+  );
+  await click('input[type="checkbox"]');
+  await vi.waitFor(() => expect(text()).toContain("Could not load or save account settings"));
+  expect(document.querySelector<HTMLInputElement>('input[type="checkbox"]')!.checked).toBe(true);
+  expect(latest().closed).toBe(false);
+});
+
 it("attaches to the open session only once restored, and leaves it before attaching to the next", async () => {
-  await enableRemoteControl();
+  await openSettings();
   expect(Stream.log).toEqual([`open /api/sessions/${alpha}/commands`]);
   expect(text()).toContain("Connecting…");
   act(() => latest().onopen!());
@@ -127,7 +183,7 @@ it("attaches to the open session only once restored, and leaves it before attach
 });
 
 it("applies a region command in the browser, replies with the region, and saves it", async () => {
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   await setRegion("chr1", 1000);
   expect(region()).toBe("chr1:1,001-2,000");
@@ -145,7 +201,7 @@ it("applies a region command in the browser, replies with the region, and saves 
 });
 
 it("rejects unknown commands and invalid parameters without changing the region", async () => {
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   const before = region();
   await act(async () =>
@@ -170,7 +226,7 @@ it("rejects unknown commands and invalid parameters without changing the region"
 });
 
 it("returns the store's rejection and ignores expired commands without changing the region", async () => {
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   const before = region();
   await setRegion("not-a-chromosome", 1000);
@@ -181,7 +237,7 @@ it("returns the store's rejection and ignores expired commands without changing 
 });
 
 it("keeps saving while agent commands are unavailable, then reconnects", async () => {
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   const first = latest();
   act(() => first.onerror!());
@@ -220,7 +276,7 @@ function stubDownloads() {
 
 it("shows an exported image to the user and saves it only when they download it", async () => {
   const saved = stubDownloads();
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   await exportImage({ format: "svg", filename: "Figure 1", includeTitles: false });
   await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
@@ -242,7 +298,7 @@ it("shows an exported image to the user and saves it only when they download it"
 
 it("reports an export failure to the agent without showing a preview", async () => {
   stubDownloads();
-  await enableRemoteControl();
+  await openSettings();
   // The Settings page is open, so no browser is rendered to capture.
   await exportImage({});
   await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
@@ -257,9 +313,22 @@ it("reports an export failure to the agent without showing a preview", async () 
 it("cancels an export that outlasts its command, without showing a preview", async () => {
   // jsdom never loads the image that PNG encoding waits for.
   stubDownloads();
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   await exportImage({ format: "png" }, Date.now() + 100);
+  await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
+  expect(reply().result).toMatchObject({ ok: false, code: "CANCELLED" });
+  expect(preview()).toBeNull();
+});
+
+it("cancels a running export when the agent cancels its command, without showing a preview", async () => {
+  // jsdom never loads the image that PNG encoding waits for.
+  stubDownloads();
+  await openSettings();
+  await act(async () => route.back());
+  await exportImage({ format: "png" });
+  expect(server.rpc).not.toHaveBeenCalled();
+  await act(async () => latest().send({ commandId }, "cancel"));
   await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
   expect(reply().result).toMatchObject({ ok: false, code: "CANCELLED" });
   expect(preview()).toBeNull();
@@ -282,7 +351,7 @@ function holdReply() {
 it.each(["session replacement", "remote control disabled"])(
   "cancels a pending command reply on %s",
   async (reason) => {
-    await enableRemoteControl();
+    await openSettings();
     const finishReply = holdReply();
     await setRegion("chr1", 1000);
     const pending = server.rpc.mock.calls[0][1].signal!;
@@ -304,7 +373,7 @@ it.each(["session replacement", "remote control disabled"])(
 );
 
 it("cancels a pending reconnect when remote control is disabled", async () => {
-  await enableRemoteControl();
+  await openSettings();
   const first = latest();
   vi.useFakeTimers();
   act(() => first.onerror!());
@@ -318,7 +387,7 @@ it("cancels a pending reconnect when remote control is disabled", async () => {
 it.each([409, 503, "network failure"] as const)(
   "does not replay edits after a command reply returns %s",
   async (status) => {
-    await enableRemoteControl();
+    await openSettings();
     await act(async () => route.back());
     let fail!: () => void;
     if (status === "network failure") {
@@ -374,8 +443,9 @@ it("rejects a command for a session replaced before remote control detaches from
     </WorkspaceApp>,
   );
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  await enableRemoteControl();
+  await openSettings();
   const stream = latest();
+  const connections = Stream.opened.filter(({ url }) => url === stream.url);
   await act(async () => route.push(`/browser/${beta}`));
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
 
@@ -383,13 +453,13 @@ it("rejects a command for a session replaced before remote control detaches from
   expect(reply().result).toMatchObject({ ok: false, code: "SESSION_CLOSED" });
   // Replacing the session closed its stream before React rendered Beta.
   expect(closedOnOpen).toBe(true);
-  expect(Stream.opened.filter(({ url }) => url === stream.url)).toEqual([stream]);
+  expect(Stream.opened.filter(({ url }) => url === stream.url)).toEqual(connections);
   expect(server.stored.get(alpha)!.snapshot.browser.region).toEqual(defaults().browser.region);
   expect(region()).not.toContain("chr4");
 });
 
 it("keeps one connection and accepts commands while the browser page is unmounted", async () => {
-  await enableRemoteControl();
+  await openSettings();
   const stream = latest();
   await setRegion("chr3", 3000);
   expect(region()).toBeUndefined();
@@ -400,7 +470,7 @@ it("keeps one connection and accepts commands while the browser page is unmounte
 });
 
 it("detaches when the account menu switches users, and old commands cannot run", async () => {
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   const stream = latest();
   act(() => stream.onopen!());
@@ -446,7 +516,7 @@ it("detaches when the account changes elsewhere and the workspace remounts", asy
   route.reset(`/browser/${alpha}`);
   probe = await renderWithProbe(<SwitchableApp />);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   const stream = latest();
   server.user = "user_bob";
@@ -459,7 +529,7 @@ it("detaches when the account changes elsewhere and the workspace remounts", asy
 });
 
 it("detaches once the session's edits can no longer be saved", async () => {
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   const stream = latest();
   act(() => stream.onopen!());
@@ -478,7 +548,7 @@ it("detaches once the session's edits can no longer be saved", async () => {
 it.each([false, true])(
   "blocks commands during DELETE and recovers only on failure=%s",
   async (fails) => {
-    await enableRemoteControl();
+    await openSettings();
     await act(async () => route.back());
     await setRegion("chr1", 1000);
     const stream = latest();
@@ -515,7 +585,7 @@ it.each([false, true])(
 );
 
 it("budgets remote-control renders when a connected session is replaced", async () => {
-  await enableRemoteControl();
+  await openSettings();
   await act(async () => route.back());
   act(() => latest().onopen!());
   const report = await probe!.measure(async () => {

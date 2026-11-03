@@ -7,6 +7,7 @@ The browser tab owns live browser state. Next.js serves the website and the save
 | Owner                                                  | Responsibility                                                    | Lifetime                                              |
 | ------------------------------------------------------ | ----------------------------------------------------------------- | ----------------------------------------------------- |
 | `app/(workspace)/layout.tsx`, `AppProviders`           | Resolve the account; mount session and remote-control providers   | Shared layout mount, per account                      |
+| `features/account/AccountSettings.tsx`                 | Persisted RC preference, save errors, and refresh across tabs     | Per signed-in account                                 |
 | `features/sessions/session.ts`                         | Session list, open session and its stores, and session operations | Shared layout mount, per account                      |
 | `features/sessions/autosave.ts`                        | Effect worker that saves the open session                         | From restoration until replaced or removed            |
 | `features/sessions/transport.ts`                       | Cancellable requests to the session routes                        | Each request                                          |
@@ -67,7 +68,7 @@ sequenceDiagram
   Redis-->>Agent: Command result or failure
 ```
 
-The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. Commands expire after five seconds and are not replayed on reconnect. Timeout, cancellation, and the tab's disconnect end a pending command.
+The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. Commands expire after five seconds and are not replayed on reconnect. Timeout, cancellation, and the tab's disconnect end a pending command. The five seconds include reaching Redis. A command cancelled after delivery also reaches the tab as an SSE `cancel` event, which aborts it if it is still running; a command cancelled before delivery is never sent.
 
 Only the first tab to open a session's stream receives its commands. The route answers later tabs with 409, and they retry every second until the first tab disconnects; the first tab itself may reconnect at once. Opening the stream and replying both require the session's signed-in owner. Turning off remote control in Settings closes the stream. So does the session's `signal` from `features/sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
 

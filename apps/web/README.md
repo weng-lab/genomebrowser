@@ -1,12 +1,12 @@
 # Web app
 
-`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, and the Eve agent in `agent/`, whose commands run in browser tabs. Clerk identifies users in production; local development uses mock users.
+`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, and the Eve agent in `agent/`, whose commands run in browser tabs. Clerk identifies users locally and in deployments; mock users are optional for offline development.
 
 The [app docs](docs/README.md) cover [architecture and data flow](docs/02-guides/dataFlow.md), adding routes, panel behavior, and styling. Terms are defined in the [app glossary](glossary.md).
 
 ## Run locally
 
-Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL and Redis with Docker, and apply the migrations:
+Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL and Redis with Docker, and apply the migrations. After copying the environment file, set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` to the `pk_test_` and `sk_test_` keys from the Clerk development instance used by Preview, before starting the app:
 
 ```sh
 pnpm install --frozen-lockfile
@@ -24,7 +24,7 @@ For a private development proxy such as Tailscale Serve, set `GB_DEV_HOSTS` in `
 
 ## Agent chat
 
-The Agent panel uses the [Eve agent](docs/02-guides/agent.md) in `agent/`. Set `AI_GATEWAY_API_KEY` to use Vercel AI Gateway, or sign in with `codex login` for the local fallback. Run `pnpm dev`, open a session, and enable remote control in Settings. Chat streams replies and shows tool activity. The agent's tools navigate to coordinates and export an image in the open tab. Stop requests cancellation; completed changes remain.
+The Agent panel uses the [Eve agent](docs/02-guides/agent.md) in `agent/`. Set `AI_GATEWAY_API_KEY` to use Vercel AI Gateway, or sign in with `codex login` for the local fallback. Run `pnpm dev`, open a session, and open the Agent panel. Chat streams replies and shows tool activity. The agent's tools navigate to coordinates and export an image in the open tab. Stop requests cancellation; completed changes remain.
 
 This is a local development integration. Production agent requests are rejected until session authorization is implemented. Chat resets on session changes, page navigation that unmounts the panel, and refresh.
 
@@ -87,7 +87,7 @@ await sessions.update(saved.id, {
 
 ### Database
 
-`compose.yaml` runs PostgreSQL on `127.0.0.1:5432` with a named volume, matching `DATABASE_URL` in the example file. `pnpm web db:stop` stops it. Any PostgreSQL server works if you change `DATABASE_URL`. After changing `features/sessions/server/table.ts`, run `pnpm web db:generate` and commit the new files in `drizzle/`.
+`compose.yaml` runs PostgreSQL on `127.0.0.1:5432` with a named volume, matching `DATABASE_URL` in the example file. `pnpm web db:stop` stops it. Any PostgreSQL server works if you change `DATABASE_URL`. After changing a feature's `server/table.ts`, run `pnpm web db:generate` and commit the new files in `drizzle/`.
 
 The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a connection that may create databases, such as `postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postgres` with the compose database. Each run creates and drops its own database. Without the variable, the tests are skipped locally and fail in CI, which runs a PostgreSQL service.
 
@@ -113,11 +113,11 @@ Each copy gets a new UUID and keeps the old ID as its name. Add `--session <old 
 
 Agents control the browser through commands. Each command is an agent tool that runs in the tab where the conversation's session is open and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. `export_image` shows an image of the current view to the user in a preview with a Download button and returns its file name and size; the image is not sent to the agent, and nothing is saved until the user downloads it. The model never chooses the session. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
 
-Remote control is optional and off by default. Turn it on under **Remote control** in Settings. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; commands for the session then fail. While Redis is unreachable the Agent panel keeps reconnecting; sessions still load and save.
+Remote control is a user setting stored in PostgreSQL and defaults on for new accounts. Turn it off under **Remote control** in Settings; the choice survives reloads and sign-ins. Tabs in the same browser refresh the setting when another tab changes it, and all tabs refresh on window focus. Command connection and reply routes also check the saved preference. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; commands for the session then fail. While Redis is unreachable the Agent panel keeps reconnecting; sessions still load and save.
 
-A tool call fails with a validation error for invalid parameters, `NOT_CONNECTED` when no tab has the session open with remote control on, `TIMEOUT` when the tab does not reply within five seconds, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. `export_image` fails with `EXPORT_FAILED` when the browser page is not open, tracks are still loading, or the image is too large, and with `CANCELLED` when the export outlasts the five-second limit; a cancelled export shows no preview. A timeout or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
+A tool call fails with a validation error for invalid parameters, `NOT_CONNECTED` when no tab has the session open with remote control on, `TIMEOUT` when the tab does not reply within five seconds, including while Redis is unreachable, `CANCELLED` when the agent stops, `RELAY_FAILED` when Redis rejects the command, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. `export_image` fails with `EXPORT_FAILED` when the browser page is not open, tracks are still loading, or the image is too large, and with `CANCELLED` when the export outlasts the five-second limit or the agent stops; a cancelled export shows no preview. A timeout or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
 
-The tab opens an SSE stream at `/api/sessions/<id>/commands?tab=<tab ID>` and posts each reply to the same path. Both require the signed-in owner of the session. The agent and Next.js can run in different processes, so commands and replies pass through Redis pub/sub (`REDIS_URL`); nothing is stored, and commands are not replayed after reconnection. Redis also records which tab holds each session, so a tab can reconnect at once with its own tab ID.
+The tab opens an SSE stream at `/api/sessions/<id>/commands?tab=<tab ID>` and posts each reply to the same path. Both require the signed-in owner of the session. The agent and Next.js can run in different processes, so commands and replies pass through Redis pub/sub (`REDIS_URL`); nothing is stored, and commands are not replayed after reconnection. Redis also records which tab and connection hold each session, so a tab can reconnect at once with its own tab ID, and its old connection ending later does not free the session.
 
 External MCP clients are not connected yet. Eve can publish the same tools through its MCP channel once callers can be authorized for a session.
 

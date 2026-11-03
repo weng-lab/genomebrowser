@@ -432,7 +432,7 @@ function RemoteControlReader() {
   return <p>{useRemoteControl().enabled ? "Enabled" : "Disabled"}</p>;
 }
 
-// Switching sessions leaves remote control off, so its readers have no new data.
+// Disabled remote control has no new data when the open session changes.
 it("budgets remote-control readers when the open session changes", async () => {
   const a = server.add("Alpha", defaults());
   server.add("Beta", defaults());
@@ -443,6 +443,9 @@ it("budgets remote-control readers when the open session changes", async () => {
     </WorkspaceApp>,
   );
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await click(document.querySelector('nav a[aria-label="Settings"]'));
+  await click(document.querySelector('input[type="checkbox"]'));
+  await act(async () => route.back());
   const report = await probe.measure(async () => {
     link("Beta")!.click();
     await vi.waitFor(() => expect(heading()).toBe("Beta"));

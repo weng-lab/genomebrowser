@@ -8,6 +8,9 @@ export const commandMessageSchema = z.strictObject({
   expiresAt: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
 });
 
+/** Stops a delivered command whose dispatch was cancelled, if it is still running. */
+export const commandCancelSchema = z.strictObject({ commandId: z.uuid() });
+
 /** A command's outcome. On success, `value` matches the command's `result` schema. */
 export const commandResultSchema = z.discriminatedUnion("ok", [
   z.strictObject({ ok: z.literal(true), value: z.json() }),

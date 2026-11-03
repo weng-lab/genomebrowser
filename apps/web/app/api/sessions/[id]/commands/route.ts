@@ -1,4 +1,5 @@
-import { getSessions } from "../../../../../composition/server";
+import { getSessions, getAccountSettings } from "../../../../../composition/server";
+import { remoteControlDenied } from "../../../../../features/account/server/http";
 import { getCommandRelay } from "../../../../../features/agent/commands/server/relay";
 import {
   openCommandStream,
@@ -13,6 +14,8 @@ export async function GET(
   request: Request,
   { params }: RouteContext<"/api/sessions/[id]/commands">,
 ) {
+  const denied = await remoteControlDenied(async () => (await getAccountSettings()).get());
+  if (denied) return denied;
   return openCommandStream(request, (await params).id, { getSessions, relay: getCommandRelay() });
 }
 
@@ -21,5 +24,7 @@ export async function POST(
   request: Request,
   { params }: RouteContext<"/api/sessions/[id]/commands">,
 ) {
+  const denied = await remoteControlDenied(async () => (await getAccountSettings()).get());
+  if (denied) return denied;
   return receiveCommandReply(request, (await params).id, { getSessions, relay: getCommandRelay() });
 }

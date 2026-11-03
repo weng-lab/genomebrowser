@@ -53,13 +53,25 @@ export async function receiveCommandReply(
 ) {
   const denied = await authorize(getSessions, sessionId);
   if (denied) return denied;
-  const body = await request.text();
-  if (new TextEncoder().encode(body).byteLength > maxReplyBytes) {
+  if (Number(request.headers.get("content-length")) > maxReplyBytes) {
     return error(413, "Request body is too large");
+  }
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const reader = request.body?.getReader();
+  while (reader) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > maxReplyBytes) {
+      await reader.cancel();
+      return error(413, "Request body is too large");
+    }
+    chunks.push(value);
   }
   let json: unknown;
   try {
-    json = JSON.parse(body);
+    json = JSON.parse(new TextDecoder().decode(Buffer.concat(chunks)));
   } catch {
     return error(400, "Invalid JSON request");
   }

@@ -1,6 +1,6 @@
 import { Deferred, Effect, Exit, Scope } from "effect";
 import { runCommand, type CommandApp, type CommandResult } from "./commands";
-import { commandMessageSchema } from "./commands/protocol";
+import { commandCancelSchema, commandMessageSchema } from "./commands/protocol";
 
 export type RemoteControlState = "off" | "connecting" | "connected";
 
@@ -9,8 +9,8 @@ export type RemoteControlState = "off" | "connecting" | "connected";
  * then disconnect. Only the first tab to connect receives them; other tabs keep
  * retrying until it closes. Commands are never replayed, and a command
  * that arrives once `signal` has aborted fails without running. A command still
- * running when the session closes, the tab detaches, or the command expires is
- * cancelled.
+ * running when the session closes, the tab detaches, the command expires, or
+ * the agent cancels it is cancelled.
  */
 export function connectRemoteControl(
   rpcUrl: string,
@@ -21,12 +21,15 @@ export function connectRemoteControl(
   const lifetime = Scope.makeUnsafe();
   const detached = new AbortController();
   let attached = true;
+  // Commands still running, by ID. They outlive the connection that delivered them.
+  const running = new Map<string, AbortController>();
 
   // The server stops waiting at `expiresAt`, so later effects would contradict its reply.
-  const commandSignal = (expiresAt: number) =>
+  const commandSignal = (expiresAt: number, cancelled: AbortSignal) =>
     AbortSignal.any([
       signal,
       detached.signal,
+      cancelled,
       AbortSignal.timeout(Math.max(0, expiresAt - Date.now())),
     ]);
 
@@ -94,17 +97,30 @@ export function connectRemoteControl(
             reply(command.commandId, { ok: false, code: "SESSION_CLOSED", error }, true);
             return;
           }
+          const cancel = new AbortController();
+          running.set(command.commandId, cancel);
           // The connection may have closed while the command ran.
           const finish = (result: CommandResult) => {
+            running.delete(command.commandId);
             if (attached) reply(command.commandId, result, signal.aborted || !receiving);
           };
-          runCommand(app, command, commandSignal(command.expiresAt)).then(finish, () =>
-            finish({
-              ok: false,
-              code: "COMMAND_FAILED",
-              error: "The command failed in the browser tab",
-            }),
+          runCommand(app, command, commandSignal(command.expiresAt, cancel.signal)).then(
+            finish,
+            () =>
+              finish({
+                ok: false,
+                code: "COMMAND_FAILED",
+                error: "The command failed in the browser tab",
+              }),
           );
+        } catch {
+          if (receiving && !signal.aborted) restart();
+        }
+      });
+      source.addEventListener("cancel", (event: MessageEvent<string>) => {
+        try {
+          const { commandId } = commandCancelSchema.parse(JSON.parse(event.data));
+          running.get(commandId)?.abort();
         } catch {
           if (receiving && !signal.aborted) restart();
         }

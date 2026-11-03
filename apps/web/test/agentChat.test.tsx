@@ -9,7 +9,7 @@ import { resolve } from "node:path";
 import { act, StrictMode } from "react";
 import { Client } from "eve/client";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { afterAll, beforeAll, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { AgentChat } from "../features/agent/components/AgentChat";
 import { createStores } from "../features/assemblies/assemblies";
 import { runCommand } from "../features/agent/commands";
@@ -106,8 +106,12 @@ beforeAll(async () => {
   );
 }, 90_000);
 
-afterAll(async () => {
+afterEach(() => {
   probe?.unmount();
+  probe = undefined;
+});
+
+afterAll(async () => {
   lifetime.abort();
   vi.unstubAllGlobals();
   for (const child of children) {
@@ -212,6 +216,9 @@ it("rejects requests without a valid browser-session header", async () => {
 });
 
 it("Stop cancels an active reply and allows another message", async () => {
+  probe = await renderWithProbe(
+    <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+  );
   await send("wait for stop");
   await vi.waitFor(() => expect(document.body.textContent).toContain("Waiting for Stop."), {
     timeout: 15_000,
@@ -230,7 +237,7 @@ it("Stop cancels an active reply and allows another message", async () => {
         document
           .querySelector('[role="log"]')
           ?.textContent?.match(/Hello from the genome browser agent/g),
-      ).toHaveLength(2),
+      ).toHaveLength(1),
     { timeout: 15_000 },
   );
 }, 50_000);
