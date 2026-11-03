@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { AccountSettingsError, requestAccountSettings } from "../account/settings";
 
 /**
@@ -18,7 +18,7 @@ type Event =
   | { type: "loaded"; enabled: boolean }
   | { type: "failed"; unauthenticated: boolean };
 
-function transition(state: State, event: Event): State {
+function reduce(state: State, event: Event): State {
   switch (event.type) {
     case "save":
       return state.status === "saved"
@@ -60,7 +60,7 @@ export type RemoteControlPreference = {
  * account: requests belong to the account signed in when they start.
  */
 export function useRemoteControlPreference(): RemoteControlPreference {
-  const [state, setState] = useState<State>({ status: "loading" });
+  const [state, dispatch] = useReducer(reduce, { status: "loading" });
   // One request at a time. A read never interrupts a save; a save replaces a read.
   const request = useRef<{ controller: AbortController; save: boolean }>(undefined);
 
@@ -69,12 +69,12 @@ export function useRemoteControlPreference(): RemoteControlPreference {
     request.current?.controller.abort();
     const controller = new AbortController();
     request.current = { controller, save: save !== undefined };
-    if (save !== undefined) setState((state) => transition(state, { type: "save", enabled: save }));
+    if (save !== undefined) dispatch({ type: "save", enabled: save });
     // A replaced or unmounted request changes nothing.
     const settle = (event: Event) => {
       if (controller.signal.aborted) return;
       request.current = undefined;
-      setState((state) => transition(state, event));
+      dispatch(event);
     };
     requestAccountSettings(
       controller.signal,
