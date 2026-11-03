@@ -402,7 +402,7 @@
             "patterns": [
               {
                 "regex": "(?:^|/)(?:app|composition|shared)(?:/|$)",
-                "message": "The Eve agent reaches the app through agent commands; it must not import routes, composition, or workspace UI."
+                "message": "The Eve agent reaches the app through authenticated channels and MCP; it must not import routes, composition, or workspace UI."
               },
               {
                 "group": [

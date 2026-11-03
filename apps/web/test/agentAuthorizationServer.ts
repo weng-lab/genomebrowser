@@ -32,6 +32,10 @@ export async function startAgentAuthorizationServer() {
   vi.stubEnv("DATABASE_URL", database.url);
   const { proxy } = await import("../proxy");
   const { GET } = await import("../app/api/sessions/[id]/agent-auth/route");
+  const { POST: mcp } = await import("../app/api/mcp/route");
+  const { getCommandRelay } = await import("../features/agent/commands/server/relay");
+  vi.stubEnv("REDIS_URL", process.env.GB_TEST_REDIS_URL ?? "redis://127.0.0.1:6379");
+  vi.stubEnv("GB_AGENT_NAMESPACE", `test-${crypto.randomUUID()}`);
   const { getSessions, getAccountSettings } = await import("../composition/server");
 
   function token(userId: string) {
@@ -76,10 +80,21 @@ export async function startAgentAuthorizationServer() {
       for (const [name, value] of Object.entries(incoming.headers)) {
         if (typeof value === "string") headers.set(name, value);
       }
-      const request = new NextRequest(`http://127.0.0.1${incoming.url}`, { headers });
+      const chunks: Buffer[] = [];
+      for await (const chunk of incoming) chunks.push(Buffer.from(chunk));
+      const abort = new AbortController();
+      outgoing.on("close", () => abort.abort());
+      const request = new NextRequest(`http://${incoming.headers.host}${incoming.url}`, {
+        signal: abort.signal,
+        headers,
+        method: incoming.method,
+        ...(chunks.length && { body: Buffer.concat(chunks) }),
+      });
       const id = request.nextUrl.pathname.split("/")[3];
       const response = await authenticated(request, () =>
-        GET(request, { params: Promise.resolve({ id }) }),
+        request.nextUrl.pathname === "/api/mcp"
+          ? mcp(request)
+          : GET(request, { params: Promise.resolve({ id }) }),
       );
       outgoing.writeHead(response.status, Object.fromEntries(response.headers));
       outgoing.end(await response.text());
@@ -109,6 +124,7 @@ export async function startAgentAuthorizationServer() {
         (await getAccountSettings()).update({ remoteControlEnabled: enabled }),
       ),
     async close() {
+      await getCommandRelay().close();
       server.closeAllConnections();
       await new Promise<void>((resolve, reject) =>
         server.close((error) => (error ? reject(error) : resolve())),

@@ -3,11 +3,8 @@ import { exportImage } from "./exportImage";
 import type { CommandMessage, CommandResult } from "./protocol";
 import { setRegion } from "./setRegion";
 
-/**
- * Every agent command. Each one becomes an agent tool, through a one-line file
- * in `agent/tools/` named after it, and runs in the browser tab. To add one,
- * define it with `defineCommand`, list it here, and add its tool file.
- */
+/** Define a command once and list it here. MCP publishes it automatically;
+ * the browser executes this same definition, and Eve discovers it through MCP. */
 export const commands = [setRegion, exportImage] as const;
 
 export type { Command, CommandApp, CommandOutcome } from "./define";

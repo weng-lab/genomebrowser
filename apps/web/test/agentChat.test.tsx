@@ -19,6 +19,7 @@ import { testRedisUrl } from "./redis";
 import { testServerUrl } from "./sessionFixtures";
 import { startAgentAuthorizationServer } from "./agentAuthorizationServer";
 
+const available = Boolean(testServerUrl && testRedisUrl);
 const proxyOrigin = "https://browser.test:8443";
 let sessionId = "e376d6ef-36c9-4d01-ad52-9847bad99f3c";
 let authorization: Awaited<ReturnType<typeof startAgentAuthorizationServer>> | undefined;
@@ -99,8 +100,8 @@ beforeAll(async () => {
     directory,
     {
       NODE_ENV: "development",
-      GB_AGENT_DEV_ORIGINS: proxyOrigin,
       GB_AGENT_APP_ORIGIN: authorization?.origin ?? "",
+      GB_AGENT_NAMESPACE: process.env.GB_AGENT_NAMESPACE ?? "",
       ...(testRedisUrl && { REDIS_URL: testRedisUrl }),
     },
   );
@@ -118,7 +119,8 @@ beforeAll(async () => {
   );
 }, 90_000);
 
-afterEach(() => {
+afterEach(({ task }) => {
+  if (task.result?.state === "fail") console.error(logs.slice(-10_000));
   probe?.unmount();
   probe = undefined;
 });
@@ -154,7 +156,7 @@ async function send(message: string) {
   });
 }
 
-it.skipIf(!testRedisUrl)(
+it.skipIf(!available)(
   "streams chat and runs a tool in the bound session's tab, applying the region in the browser stores",
   async () => {
     // The tab's side of the relay, as the command stream route runs it.
@@ -220,7 +222,7 @@ it.skipIf(!testRedisUrl)(
   70_000,
 );
 
-it.skipIf(!testRedisUrl)("rejects requests without a valid browser-session header", async () => {
+it.skipIf(!available)("rejects requests without a valid browser-session header", async () => {
   const response = await nativeFetch(`${eve}/eve/v1/session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -229,7 +231,48 @@ it.skipIf(!testRedisUrl)("rejects requests without a valid browser-session heade
   expect(response.status).toBe(401);
 });
 
-it.skipIf(!testRedisUrl)(
+it.skipIf(!available)(
+  "Stop cancels a command across Eve's real MCP connection",
+  async () => {
+    const relay = createCommandRelay({ url: testRedisUrl! });
+    const tab = new AbortController();
+    const stream = await relay.connect(sessionId, crypto.randomUUID(), tab.signal);
+    const reader = stream!.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = "";
+    async function event(type: string) {
+      for (;;) {
+        const match = new RegExp(`event: ${type}\\ndata: ([^\\n]+)\\n\\n`).exec(buffer);
+        if (match) {
+          buffer = buffer.slice(match.index + match[0].length);
+          return JSON.parse(match[1]) as { commandId: string };
+        }
+        const chunk = await reader.read();
+        if (chunk.done) throw new Error("Tab disconnected before cancellation");
+        buffer += chunk.value;
+      }
+    }
+    try {
+      probe = await renderWithProbe(
+        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+      );
+      await send("navigate to chr1:1001-2000");
+      const delivered = await event("command");
+      await act(async () => {
+        [...document.querySelectorAll("button")]
+          .find((button) => button.textContent === "Stop")!
+          .click();
+      });
+      expect(await event("cancel")).toEqual({ commandId: delivered.commandId });
+    } finally {
+      tab.abort();
+      await reader.cancel();
+      await relay.close();
+    }
+  },
+  30_000,
+);
+
+it.skipIf(!available)(
   "Stop cancels an active reply and allows another message",
   async () => {
     probe = await renderWithProbe(
@@ -260,7 +303,7 @@ it.skipIf(!testRedisUrl)(
   50_000,
 );
 
-it.skipIf(!testRedisUrl)(
+it.skipIf(!available)(
   "rejects requests without a trusted caller even with a session header",
   async () => {
     const response = await nativeFetch(`${eve}/eve/v1/session`, {
@@ -276,7 +319,7 @@ it.skipIf(!testRedisUrl)(
   },
 );
 
-it.skipIf(!testServerUrl || !testRedisUrl)(
+it.skipIf(!available)(
   "accepts Clerk cookies and rejects forged credentials, unowned sessions, and disabled RC",
   async () => {
     const headers = {
@@ -312,7 +355,7 @@ it.skipIf(!testServerUrl || !testRedisUrl)(
   },
 );
 
-it.skipIf(!testServerUrl || !testRedisUrl)(
+it.skipIf(!available)(
   "lets only the pinned owner stop after deleting the browser session",
   async () => {
     const browser = await authorization!.createSession("user_alice");
@@ -334,7 +377,7 @@ it.skipIf(!testServerUrl || !testRedisUrl)(
   },
 );
 
-it.skipIf(!testServerUrl || !testRedisUrl)(
+it.skipIf(!available)(
   "binds conversation reads, messages, and Stop to its user and browser session",
   async () => {
     const alice = await nativeFetch(`${eve}/eve/v1/session`, {
@@ -375,7 +418,7 @@ it.skipIf(!testServerUrl || !testRedisUrl)(
   },
 );
 
-it.skipIf(!testRedisUrl).each(["unmount", "abort"])(
+it.skipIf(!available).each(["unmount", "abort"])(
   "cancels a first message accepted after %s and releases its stream",
   async (teardown) => {
     probe?.unmount();

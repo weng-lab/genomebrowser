@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   exportBrowserImage,
   getDefaultImageFilename,
@@ -37,8 +45,9 @@ const RemoteControlContext = createContext<RemoteControl>({
  */
 export function RemoteControlProvider({ children }: { children: ReactNode }) {
   const svgRef = useBrowserSvgRef();
-  // Names this tab, so it can reconnect while it holds its session's commands.
-  const [tabId] = useState(() => crypto.randomUUID());
+  // One identity per opened session, retained across reconnects and Strict Mode
+  // effect replay. Opening another session or re-enabling RC creates a new attachment.
+  const attachment = useRef<{ signal: AbortSignal; id: string } | undefined>(undefined);
   const { settings, pending, error, setRemoteControl: setEnabled } = useAccountSettings();
   const enabled = settings?.remoteControlEnabled ?? false;
   const [state, setState] = useState<RemoteControlState>("off");
@@ -53,7 +62,12 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (!enabled || !id || !stores || !signal) return;
+    if (!enabled || !id || !stores || !signal) {
+      attachment.current = undefined;
+      return;
+    }
+    if (attachment.current?.signal !== signal)
+      attachment.current = { signal, id: crypto.randomUUID() };
     const app: CommandApp = {
       stores,
       exportImage: (format, { filename, ...options }, signal) => {
@@ -63,8 +77,13 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
       },
       showImage: (image) => setPreview({ image, open: true }),
     };
-    return connectRemoteControl(`/api/sessions/${id}/commands?tab=${tabId}`, app, signal, setState);
-  }, [enabled, id, stores, signal, svgRef, tabId]);
+    return connectRemoteControl(
+      `/api/sessions/${id}/commands?tab=${attachment.current.id}`,
+      app,
+      signal,
+      setState,
+    );
+  }, [enabled, id, stores, signal, svgRef]);
 
   return (
     <RemoteControlContext value={remoteControl}>

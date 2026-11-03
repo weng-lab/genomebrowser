@@ -19,11 +19,13 @@
     "sessions:import-sqlite": "node --env-file-if-exists=.env.local scripts/importSqliteSessions.ts"
   },
   "dependencies": {
+    "@clerk/mcp-tools": "^0.8.0",
     "@clerk/nextjs": "^7.9.17",
     "@emotion/cache": "catalog:",
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@google-cloud/cloud-sql-connector": "^1.12.1",
+    "@modelcontextprotocol/server": "^2.4.0",
     "@mui/icons-material": "catalog:",
     "@mui/material": "catalog:",
     "@mui/material-nextjs": "catalog:",
@@ -47,6 +49,7 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
     "@next/env": "16.3.3",
     "@types/node": "catalog:",
     "@types/pg": "^8.23.1",

@@ -1,4 +1,4 @@
-import { createClient } from "redis";
+import { agentRedisPrefix, withAgentRedis } from "./server/redis";
 
 // Access metadata only: chat history and execution remain in Eve/Workflow.
 // Ephemeral panel conversations must be restarted after this grant expires.
@@ -8,27 +8,15 @@ if redis.call("GET", KEYS[1]) == ARGV[1] then return 1 end
 return 0`;
 
 async function access(conversationId: string, principalId: string, create: boolean) {
-  const url = process.env.REDIS_URL;
-  if (!url) throw new Error("REDIS_URL is required for agent conversation access");
-  const client = createClient({
-    url,
-    disableOfflineQueue: true,
-    socket: { connectTimeout: 5_000, socketTimeout: 5_000, reconnectStrategy: false },
-  });
-  client.on("error", (error: unknown) => console.error("Agent access Redis error", error));
-  try {
-    await client.connect();
-    const redis = client.withCommandOptions({ timeout: 5_000 });
-    const key = `gb:agent-access:${conversationId}`;
+  return withAgentRedis(async (redis) => {
+    const key = `${agentRedisPrefix()}agent-access:${conversationId}`;
     return create
       ? (await redis.eval(bind, {
           keys: [key],
           arguments: [principalId, String(lifetimeSeconds)],
         })) === 1
       : (await redis.get(key)) === principalId;
-  } finally {
-    if (client.isOpen) client.destroy();
-  }
+  });
 }
 
 /** Pin a newly created conversation to its verified user and browser session. */

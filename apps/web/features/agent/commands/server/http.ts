@@ -23,7 +23,8 @@ async function authorize(getSessions: () => Promise<Sessions>, sessionId: string
 /**
  * Open the SSE stream of agent commands for the browser tab named by the `tab`
  * query parameter. Only the signed-in owner of the session may connect, and
- * only one tab at a time; another tab gets 409 until this one disconnects.
+ * a newly opened tab supersedes the previous attachment. Superseded tabs must
+ * stop retrying rather than stealing control back.
  */
 export async function openCommandStream(
   request: Request,
@@ -35,8 +36,8 @@ export async function openCommandStream(
   const denied = await authorize(getSessions, sessionId);
   if (denied) return denied;
   const stream = await relay.connect(sessionId, tabId.data, request.signal);
-  if (!stream) return error(409, "The session is already connected in another tab");
-  return new Response(stream, {
+  const body = stream ?? "event: superseded\ndata: {}\n\n";
+  return new Response(body, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",

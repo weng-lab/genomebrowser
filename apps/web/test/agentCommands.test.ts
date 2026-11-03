@@ -187,14 +187,48 @@ describe.skipIf(!redisUrl)("agent commands", () => {
     expect(response.status).toBe(404);
   });
 
-  it("keeps the session for the first tab, rejects others, and lets the first reconnect", async () => {
+  it("new tabs supersede older ones, whose reconnects cannot steal control back", async () => {
     const id = session();
-    const tabId = randomUUID();
-    const first = await connect(id, tabId);
-    expect((await connect(id)).response.status).toBe(409);
+    const oldTab = randomUUID();
+    const first = await connect(id, oldTab);
+    const pending = agent.dispatch(id, setRegion, new AbortController().signal);
+    await first.next!();
+    const second = await connect(id);
+    expect(await first.event!()).toMatchObject({ type: "superseded" });
+    expect(await pending).toMatchObject({ code: "NOT_CONNECTED" });
+    const retry = await connect(id, oldTab);
+    expect(await retry.event!()).toMatchObject({ type: "superseded" });
     first.close!();
-    const again = await connect(id, tabId);
-    expect(again.response.status).toBe(200);
+    const next = agent.dispatch(id, setRegion, new AbortController().signal);
+    const { commandId } = await second.next!();
+    const result = { ok: true, value: {} };
+    await reply(id, { commandId, result });
+    expect(await next).toEqual(result);
+  });
+
+  it("keeps command routing and replies isolated between deployments of the same session", async () => {
+    const id = session();
+    const first = await connect(id);
+    const preview = createCommandRelay({ url: redisUrl!, prefix: `${prefix}other-preview:` });
+    const lifetime = new AbortController();
+    const stream = await preview.connect(id, randomUUID(), lifetime.signal);
+    const reader = stream!.pipeThrough(new TextDecoderStream()).getReader();
+    try {
+      const pending = agent.dispatch(id, setRegion, new AbortController().signal);
+      const { commandId } = await first.next!();
+      expect(await preview.acknowledge(id, { commandId, result: { ok: true, value: {} } })).toBe(
+        false,
+      );
+      await reply(id, { commandId, result: { ok: true, value: {} } });
+      expect(await pending).toMatchObject({ ok: true });
+      // The original deployment's command never entered this preview's stream.
+      const chunk = await reader.read();
+      expect(chunk.value).toBe(": connected\n\n");
+    } finally {
+      lifetime.abort();
+      await reader.cancel();
+      await preview.close();
+    }
   });
 
   it("keeps the session for a tab's new connection when its old one ends later", async () => {
@@ -208,7 +242,6 @@ describe.skipIf(!redisUrl)("agent commands", () => {
     first.close!();
     // Let the old connection free what it holds.
     await new Promise((resolve) => setTimeout(resolve, 100));
-    expect((await connect(id)).response.status).toBe(409);
     const result = { ok: true, value: {} };
     await reply(id, { commandId, result });
     expect(await pending).toEqual(result);

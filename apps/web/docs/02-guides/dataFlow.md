@@ -47,7 +47,7 @@ The tab looks up each command, validates its parameters, and runs it. The server
 
 ## Apply a command
 
-1. The model calls a command's tool, such as `set_region`, with the command's parameters. Eve validates them against its `params` schema. The tool reads the session ID from the conversation, not from the model.
+1. Eve or an external agent calls the app's `/api/mcp` tool, such as `set_region`. MCP validates parameters and authorizes the caller, session ownership, and RC preference. Eve supplies the conversation's session outside the model; external callers select an owned session explicitly.
 2. The tool listens for the reply, then publishes the command, with a `commandId` and `expiresAt`, to the session's Redis channel. When no tab's stream is subscribed, it fails with `NOT_CONNECTED`.
 3. The tab's stream route forwards the command as an SSE `command` event.
 4. The tab ignores expired commands and rejects commands for a session that is no longer open and saving with `SESSION_CLOSED`. It runs the command and posts its reply to `/api/sessions/:id/commands`: the command's result on success, or the store's failure.
@@ -55,7 +55,7 @@ The tab looks up each command, validates its parameters, and runs it. The server
 
 ```mermaid
 sequenceDiagram
-  participant Agent as Eve tool
+  participant Agent as App MCP tool
   participant Redis
   participant Route as Command stream route
   participant Tab as Browser tab and stores
@@ -70,7 +70,7 @@ sequenceDiagram
 
 The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. Commands expire after five seconds and are not replayed on reconnect. Timeout, cancellation, and the tab's disconnect end a pending command. The five seconds include reaching Redis. A command cancelled after delivery also reaches the tab as an SSE `cancel` event, which aborts it if it is still running; a command cancelled before delivery is never sent.
 
-Only the first tab to open a session's stream receives its commands. The route answers later tabs with 409, and they retry every second until the first tab disconnects; the first tab itself may reconnect at once. Opening the stream and replying both require the session's signed-in owner. Turning off remote control in Settings closes the stream. So does the session's `signal` from `features/sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
+The newest tab attachment receives commands immediately. Its predecessor receives a superseded event and stops reconnecting; retrying with that older attachment ID cannot steal control back. Reloading creates a new attachment. Redis routing is isolated by deployment ID. Opening the stream and replying both require the session's signed-in owner. Turning off remote control in Settings closes the stream. So does the session's `signal` from `features/sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
 
 ## Save and restore
 

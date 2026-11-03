@@ -173,8 +173,11 @@ it("attaches to the open session only once restored, and leaves it before attach
   ]);
   act(() => latest().onopen!());
   expect(text()).toContain(`Connected. Agent commands for session "${beta}" run in this tab.`);
-  // One tab ID across sessions lets this tab reconnect while it still holds a session.
-  expect([...Stream.tabs]).toEqual([expect.stringMatching(/^[\da-f-]{36}$/)]);
+  // Explicitly opening another session creates a fresh attachment.
+  expect([...Stream.tabs]).toEqual([
+    expect.stringMatching(/^[\da-f-]{36}$/),
+    expect.stringMatching(/^[\da-f-]{36}$/),
+  ]);
 
   await click('nav a[aria-label="Settings"]');
   await click('input[type="checkbox"]');
@@ -600,4 +603,26 @@ it("budgets remote-control renders when a connected session is replaced", async 
       "RemoteControlProvider": 3,
     }
   `);
+});
+
+it("stops reconnecting and executing commands after a newer tab supersedes it", async () => {
+  const first = latest();
+  const before = region();
+  vi.useFakeTimers();
+  await act(async () => {
+    first.send({}, "superseded");
+    // A buffered command can arrive before the Effect scope finishes closing.
+    first.send({
+      commandId,
+      name: "set_region",
+      expiresAt: Date.now() + 5000,
+      params: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
+    });
+  });
+  expect(first.closed).toBe(true);
+  await act(async () => vi.advanceTimersByTimeAsync(5000));
+  expect(Stream.opened).toEqual([first]);
+  await setRegion("chr1", 1000);
+  expect(region()).toBe(before);
+  expect(server.rpc).not.toHaveBeenCalled();
 });

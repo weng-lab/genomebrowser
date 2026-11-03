@@ -37,7 +37,7 @@ export type Command<
   Params extends z.ZodObject = z.ZodObject,
   Result extends z.ZodObject = z.ZodObject,
 > = {
-  /** Tool name, in snake_case. The agent's tool file has the same name. */
+  /** Tool name, in snake_case. MCP publishes this name directly. */
   name: string;
   /** Shown to agents. Say what the command does and how to fill in its parameters. */
   description: string;

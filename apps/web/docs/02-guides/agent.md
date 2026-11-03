@@ -1,51 +1,76 @@
 # Agent and commands
 
-The Eve agent lives in `agent/`, next to `next.config.ts`. Next.js starts it through `withEve`, serves its routes under `/eve/v1/*`, and renders chat from Eve's `SessionStore`. Its tools are the app's commands: each runs in the browser tab where the conversation's session is open. Optional Eve sandbox tools are disabled.
+Genomebrowser owns its MCP endpoint at `/api/mcp`. The embedded Eve agent and external MCP clients use that same endpoint. Browser commands run against the live stores in the connected tab; saved sessions and their autosave remain owned by the web app.
+
+The Eve agent lives in `agent/`, next to `next.config.ts`. Next.js starts it through `withEve`, serves chat routes under `/eve/v1/*`, and renders chat from Eve's `SessionStore`. Its single `genomebrowser` MCP connection discovers the app's tools. Optional Eve sandbox tools are disabled. App code, MCP routes, and Eve ship together in each Vercel deployment.
 
 ## Run locally
 
-Start Redis with `pnpm web db:start`, sign in to ChatGPT locally with `codex login`, then run `pnpm dev` from the repository root. Without an AI Gateway key, local development uses that login through Eve's `chatgpt()` provider. Without Codex, run `pnpm --filter @weng-lab/web exec eve dev` and select ChatGPT Subscription from `/login`. Open a browser session and open the Agent panel. Try “Hello”, then “Navigate to chr1:1001-2000” or “Export an SVG image”.
+Configure Clerk as described in the [web app guide](../../README.md#identity), start PostgreSQL and Redis with `pnpm web db:start`, apply migrations, and run `pnpm dev` from the repository root. Eve calls the local app at `http://localhost:3000`; override `GB_AGENT_APP_ORIGIN` when using another web port. Sign in, open a browser session and the Agent panel. Try “Hello”, “Navigate to chr1:1001-2000”, or “Export an SVG image”.
 
-The model is selected at runtime in `agent/agent.ts`. A nonempty `AI_GATEWAY_API_KEY` selects `openai/gpt-6-luna` through Vercel AI Gateway. Set this server-only variable in `apps/web/.env.local` for local use or in the Vercel project's Preview/Production environment. Production builds also select Gateway without an explicit key, allowing Vercel OIDC authentication; they never fall back to a local login. Local development without a key uses `chatgpt("gpt-6-luna-fast")`. Eve is pinned to `1.0.0-rc.1`; its installed documentation is in `node_modules/eve/docs/`.
+The model is selected at runtime in `agent/agent.ts`. A nonempty `AI_GATEWAY_API_KEY` selects `openai/gpt-6-luna` through Vercel AI Gateway. Set it server-side in `apps/web/.env.local` or Vercel Preview/Production. Production also selects Gateway without an explicit key, allowing Vercel OIDC authentication. Local development without a key uses `codex login` through Eve's `chatgpt("gpt-6-luna-fast")`. Eve is pinned to `1.0.0-rc.1`; its installed docs are in `node_modules/eve/docs/`.
 
-Remote control is an account setting stored in PostgreSQL. It defaults on; Settings saves changes for the signed-in user. The tab waits for that preference before connecting. Same-browser tabs refresh it on a storage notification, and tabs refresh on window focus. Command routes reject new connections and replies while it is off.
+Remote control is an account setting stored in PostgreSQL and defaults on. The tab waits for that preference before connecting. Tabs refresh it on storage notifications and window focus. MCP checks the saved preference and session ownership on every tool call.
 
-Each chat supplies its browser session ID in an HTTP header. The channel validates it and records it on the Eve session, and every command tool reads it from there, so the model cannot target another session. Switching browser sessions starts a new chat and requests cancellation of the old turn. Chat is ephemeral in the panel; Eve keeps local runtime data in its ignored directories. Closing the panel only collapses it, preserving the conversation. Navigating away unmounts chat and requests cancellation. Closing or replacing the session, signing out, or disabling remote control also unmounts chat and cancels its active turn.
+## Connect an external agent
 
-Stop requests cooperative cancellation. The relay tells the tab to cancel a command still running, such as an export, which then shows no preview. Already-applied browser changes remain. Disabling remote control also disconnects the tab and prevents further commands while it is off.
+Configure a Streamable HTTP MCP client with the app's URL:
 
-## How a command runs
+```json
+{
+  "mcpServers": {
+    "genomebrowser": {
+      "url": "https://YOUR_APP_HOST/api/mcp"
+    }
+  }
+}
+```
 
-`features/agent/commands` owns commands from definition to reply:
+Sign in through the client's OAuth flow using your Clerk account. The app publishes OAuth protected-resource metadata at `/.well-known/oauth-protected-resource/api/mcp`, and Clerk supplies authorization, consent, token issuance and refresh. In Clerk's **OAuth applications → Settings → Client onboarding**, enable CIMD support and, for clients that need it, DCR support. Allow/default `openid`, `profile`, and `email` scopes. Configure development and production instances independently. See [Clerk's MCP guide](https://clerk.com/docs/nextjs/guides/ai/mcp/build-mcp-server).
 
-1. A command's tool sends it through the relay to the session's tab, with a `commandId` and an expiry five seconds away.
-2. The tab's stream route receives it from Redis and forwards it over SSE. The tab validates the parameters and runs the command against its open session.
-3. The tab posts its result to the same route, which publishes it to the waiting tool. The tool checks it against the command's `result` schema and returns it to the model, or fails with `CODE: message`.
+Each tool takes a `sessionId`: copy the UUID from the browser's `/browser/<id>` URL. Only your own sessions are authorized, and a browser tab with RC enabled must have the target session open. Session IDs are routing information, not credentials. External callers explicitly select their session; Eve supplies its conversation's session through `providedArguments`, hiding it from the model. Both clients discover the same command schemas and receive the same results/errors. Valid Clerk session bearer tokens are also accepted for programmatic testing; browser cookies alone do not authorize the MCP endpoint.
 
-The agent and Next.js may run in different processes, so the relay passes commands and replies through Redis pub/sub rather than memory. It stores nothing; a command no tab receives fails at once. Callers use `dispatch(sessionId, command, signal)`, `connect(sessionId, tabId, signal)`, and `acknowledge(sessionId, reply)`; the relay owns subscription ordering, deadlines, cancellation, and tab leases.
+Vercel Deployment Protection is separate from Clerk. Protected previews require the external client to pass that deployment gate as well; app OAuth does not bypass it. Eve sends the project's Vercel OIDC token in the trusted-source header when calling its own protected deployment, independently of user authorization.
 
-One Redis publisher is shared per relay. Each pending command and tab stream owns a dedicated subscriber, destroyed when that operation ends. This costs a connection per pending command, but completion never depends on a shared subscriber or an `UNSUBSCRIBE` acknowledgement. Stop and deadlines settle locally even if Redis stops replying; cancellation delivery remains cooperative and depends on connectivity. Redis commands are not queued for replay while disconnected. `close()` ends active operations and streams and permanently closes the relay.
+## Browser attachment and interruption
 
-Command publication atomically selects the current lease holder's connection channel. An older stream can remain open until its next heartbeat, but cannot receive commands sent to its replacement.
+Opening a session creates a fresh attachment and supersedes its previous attachment immediately. Re-enabling RC also creates a fresh attachment. The previous tab stops its connection, cancels browser work, and unmounts its chat, requesting cancellation of the active turn. It remains available for manual browsing and normal autosave. Reload it to create a new attachment and take control again. Automatic reconnects retain the same attachment identity and cannot steal control back after supersession. Attachment identities are remembered for 24 hours.
 
-## Add a command
+An attachment ends when its session closes, is replaced or deleted, the account changes, RC is disabled locally, or its edits can no longer be saved. A command arriving after session replacement fails with `SESSION_CLOSED`. Transient disconnections reconnect; commands are never replayed. Already-applied edits stay applied even if a reply is lost.
 
-1. Define it in `features/agent/commands/<name>.ts` with `defineCommand`: its snake_case tool `name`, a `description` for agents, Zod `params` and `result` schemas, and `run(app, params, signal)`. `run` makes edits synchronously through `app.stores`, or uses another `CommandApp` action, and returns `{ ok: true, value }` or `{ ok: false, code, error }`.
+Each chat is ephemeral and bound to its original browser session. Switching sessions starts a new chat and cancels the old turn. Collapsing the panel preserves chat; navigating away, closing/replacing a session, signing out, disabling RC, or supersession unmounts it and requests cancellation. Persistent chat is outside this implementation.
+
+Eve and MCP clients negotiating the 2026 protocol cancel an active HTTP call by closing its request. Legacy clients that only send a separate cancellation notification cannot cancel across stateless function instances; their browser commands remain bounded by the five-second deadline.
+
+Stop requests cooperative cancellation. The relay notifies the tab to abort a running command, such as PNG export, before showing a preview. Already-applied changes remain. Immediate account-wide revocation of every existing stream and model turn is not implemented.
+
+## Define a command once
+
+1. Define `features/agent/commands/<name>.ts` with `defineCommand`: snake_case `name`, agent-facing `description`, Zod `params` and `result`, and `run(app, params, signal)`.
 2. List it in `commands` in `features/agent/commands/index.ts`.
-3. Add `agent/tools/<name>.ts`, which Eve names the tool after: `export default commandTool(yourCommand);`.
 
-Command files may import Zod, other command files, and types. The agent loads them on the server, so lint rejects runtime imports of React or browser packages there. When a command needs browser work, such as exporting an image, add an action to `CommandApp` and implement it where `RemoteControl.tsx` builds the app. Test the command through `runCommand` or the tab in `test/remoteControl.test.tsx`; `test/agentTools.test.ts` fails when a command has no tool file.
+That definition is the browser executor and MCP tool contract. MCP publishes every entry automatically, and Eve discovers the tools remotely; no per-command Eve file or second implementation is needed. For example, `setRegion.ts` calls `app.stores.useBrowserStore.getState().setRegion(region)` and returns the actual normalized region and whether it was clamped.
 
-## Authentication and access
+`run` returns `{ ok: true, value }` or `{ ok: false, code, error }`. Synchronous edits finish before the returned promise yields. Asynchronous actions must check cancellation before user-visible effects. The MCP adapter owns authorization, delivery, result validation and protocol errors; command definitions do not know about Redis, HTTP, Clerk, or Eve.
 
-On Vercel, the channel forwards the incoming Clerk cookies or bearer token to the same deployment's `/api/sessions/:id/agent-auth` route. Next.js verifies sign-in, ownership of that browser session, and the saved RC preference. The destination comes from `VERCEL_URL`, never from a caller's headers. Set `GB_AGENT_APP_ORIGIN` to an explicit app origin for local or self-hosted authorization. A failed check cannot fall back to development access.
+Command files import Zod, other app modules allowed by feature boundaries, and types. Lint rejects runtime React/browser-package imports. DOM work goes through `CommandApp` actions, implemented where `RemoteControl.tsx` builds the app. Test commands through `runCommand` or the tab integration tests. MCP discovery tests ensure the published tool list matches the registry.
 
-Eve authenticates routes but supplies no conversation ACL. The channel records each new conversation's verified user/browser-session principal in Redis before returning its ID. Every subsequent message, stream, and control checks that binding. These access records expire after 24 hours; reloading the page starts another ephemeral conversation. Missing records deny access. They contain no chat history or workflow state.
+## Delivery and authorization
 
-Local development without an app origin uses Eve's loopback-only authorization. To use an authenticated private proxy such as Tailscale Serve, set `GB_AGENT_DEV_ORIGINS` in `apps/web/.env.local` to its exact origin, including scheme and port. Restart `pnpm dev` after changing it. The agent still requires a local development runtime and a loopback connection; the proxy provides remote access control. Do not configure public proxies as trusted origins. A session ID routes calls; it is not a credential.
+A browser opens `/api/sessions/<id>/commands?tab=<attachment UUID>` as an SSE stream and posts replies to the same route. The current transport remains SSE plus HTTP. Both routes require the signed-in owner. MCP is Streamable HTTP, a separate protocol from this browser attachment transport.
 
-The tab's command stream and replies require the session's signed-in owner. External MCP clients are not connected yet; Eve's MCP channel can publish the same tools once each call can be authorized for a session.
+MCP checks identity, session ownership, and RC, then calls the relay's `dispatch(sessionId, command, signal)`. The relay sends a unique command ID and five-second deadline to the current connection through Redis pub/sub. The browser validates and executes it and posts a reply. MCP validates the reply with the same command definition's result schema. Normal failure results become MCP tool errors, not successful text claims.
 
-`pnpm verify` builds the agent and runs the web integration test with a scripted model, a real Eve process, its command tools, Redis, the React chat hook, and the tab's command handling. It needs `GB_TEST_REDIS_URL`; setting `GB_TEST_DATABASE_URL` also exercises the real Next.js authorization route and Clerk verification with locally signed test tokens. Coverage includes cookie authentication, rejected forged tokens, ownership, disabled RC, conversation isolation, chat, and tool execution. No model credentials are needed. It does not evaluate model quality or verify Vercel deployment protection.
+The relay owns deadlines, cooperative cancellation, atomic connection selection, takeover, renewal and cleanup. It shares a publisher and gives each operation its own subscriber, destroyed on completion. Stop/deadline completion never waits for Redis cleanup. Unavailable Redis never queues commands for replay. The stream lasts at most one Vercel invocation, then reconnects. A stale stream cannot receive commands published to its replacement or release the replacement's lease.
+
+Redis keys/channels are prefixed by `VERCEL_DEPLOYMENT_ID` (or `VERCEL_URL`), isolating old/new previews and production. Local development defaults to `local`; use `GB_AGENT_NAMESPACE` when running multiple local checkouts against the same Redis. Redis carries commands, replies, bounded attachment metadata, short-lived MCP credentials and conversation access bindings; it is not the browser state store.
+
+Eve's channel delegates Clerk identity, browser-session ownership and RC to `/api/sessions/:id/agent-auth` on the same app deployment. Destinations come from configuration, never caller headers. The verified user/session identity supplies an expiring, session-scoped app credential for the MCP connection. Raw Clerk cookies/tokens are not saved in the agent's identity or supplied to its model. Every MCP tool still checks current ownership and RC. Owners may Stop a pinned conversation after disabling RC or deleting its saved session.
+
+Eve supplies no conversation ACL, so the app pins each conversation to its verified user/session in Redis. Every subsequent message, stream, and control checks it. Bindings expire after 24 hours; reload the page to start a new ephemeral conversation. Missing records deny access. No chat history or workflow state is stored there.
+
+## Verification
+
+Set `GB_TEST_REDIS_URL` and `GB_TEST_DATABASE_URL` to exercise the real boundaries. Tests use a scripted model, a real Eve process and MCP connection, the app's MCP endpoint, Clerk verification with locally signed tokens, PostgreSQL, Redis, and actual browser stores. Separate external MCP tests discover/invoke tools and check ownership, RC, session-scoped credentials, invalid credentials and cancellation. Attachment tests cover new-tab takeover and rejection of superseded retries. No model credentials are needed. These checks do not establish live model quality, an interactive Clerk OAuth login, or Vercel Deployment Protection behavior.
 
 [Back to the docs home](../README.md)

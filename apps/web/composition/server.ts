@@ -29,12 +29,23 @@ export async function getAccountSettings() {
   return (await getServices()).accountSettings;
 }
 
+/** Account operations for an already verified MCP caller; identity never comes from tool input. */
+export async function getMcpAccount(userId: string) {
+  const { db } = await getServices();
+  const identity = { userId: async () => userId };
+  return {
+    sessions: createSessions({ db, identity }),
+    settings: createAccountSettings(db, identity),
+  };
+}
+
 async function composeServices() {
   const mode = identityMode(process.env);
   const pool = await connectDatabase(process.env);
   const db = drizzle({ client: pool });
   const identity = createIdentity(mode);
   return {
+    db,
     sessions: createSessions({ db, identity }),
     accountSettings: createAccountSettings(db, identity),
   };

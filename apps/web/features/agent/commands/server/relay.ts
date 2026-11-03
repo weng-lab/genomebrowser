@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "redis";
 import { commandResultSchema, type CommandReply, type CommandResult } from "../protocol";
+import { agentRedisPrefix } from "../../server/redis";
 
 export type CommandRelayOptions = {
   /** Redis server, such as `redis://127.0.0.1:6379`. */
@@ -16,8 +17,8 @@ export type CommandRelayOptions = {
 /**
  * Delivers commands from agent tools to the browser tab connected for a
  * session, and the tab's replies back, through Redis. Tools and tab streams
- * may run in different processes. Only the first tab to connect a session
- * receives its commands. Nothing is stored: a command no tab receives fails,
+ * may run in different processes. A newly opened tab supersedes the previous
+ * attachment. Nothing is queued: a command no tab receives fails,
  * and commands are never replayed.
  */
 export type CommandRelay = {
@@ -35,8 +36,8 @@ export type CommandRelay = {
   ): Promise<CommandResult>;
   /**
    * An SSE stream of commands for tab `tabId`, open until `signal` aborts or
-   * the stream is cancelled. Null while another tab holds the session. The same
-   * tab may reconnect at once.
+   * the stream is cancelled. A new tab takes control. Null when this tab has
+   * been superseded; its automatic reconnect cannot take control back.
    */
   connect(
     sessionId: string,
@@ -53,14 +54,19 @@ export type CommandRelay = {
 };
 
 // A holder is `tabId/connectionId`, so a stream frees or renews only its own hold.
-// Take the session for a connection unless another tab holds it. The same tab
-// may take it over from its previous connection.
-const hold = `local holder = redis.call("GET", KEYS[1])
-if holder == false or string.find(holder, ARGV[1] .. "/", 1, true) == 1 then
-  redis.call("SET", KEYS[1], ARGV[1] .. "/" .. ARGV[2], "PX", ARGV[3])
-  return 1
+// Remember each attachment for a day, so an automatic retry is distinguishable
+// from opening a NEW tab. New attachments win; superseded ones stay superseded.
+const hold = `local first = redis.call("SET", KEYS[3], "1", "NX", "EX", 86400)
+if first == false and redis.call("GET", KEYS[2]) ~= ARGV[1] then return 0 end
+local old = redis.call("GET", KEYS[1])
+local owner = ARGV[1] .. "/" .. ARGV[2]
+redis.call("SET", KEYS[2], ARGV[1], "EX", 86400)
+redis.call("SET", KEYS[1], owner, "PX", ARGV[3])
+if old and string.find(old, ARGV[1] .. "/", 1, true) ~= 1 then
+  redis.call("PUBLISH", ARGV[4] .. old, "superseded")
+  redis.call("PUBLISH", KEYS[4], old)
 end
-return 0`;
+return 1`;
 const renew = `if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("PEXPIRE", KEYS[1], ARGV[2]) end
 return 0`;
 const release = `if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("DEL", KEYS[1]) end
@@ -76,13 +82,15 @@ function failure(code: string, error: string): CommandResult {
 }
 
 export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
-  const prefix = options.prefix ?? "gb:";
+  const prefix = options.prefix ?? agentRedisPrefix();
   const timeoutMs = options.commandTimeoutMs ?? 5_000;
   const heartbeatMs = options.heartbeatIntervalMs ?? 15_000;
   // A tab stream that ends without cleanup, such as a stopped function, frees its session after this.
   const holdMs = heartbeatMs * 3;
   const keys = {
     holder: (sessionId: string) => `${prefix}tab:${sessionId}`,
+    attachment: (sessionId: string) => `${prefix}attachment:${sessionId}`,
+    seen: (sessionId: string, tabId: string) => `${prefix}attachment:${sessionId}:${tabId}`,
     commands: (sessionId: string, owner: string) => `${prefix}commands:${sessionId}:${owner}`,
     cancelled: (sessionId: string) => `${prefix}cancelled:${sessionId}`,
     disconnected: (sessionId: string) => `${prefix}disconnected:${sessionId}`,
@@ -298,9 +306,12 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
       });
       // A published lease must already have a subscriber, including during reconnect.
       await Promise.all([
-        subscriber.subscribe(keys.commands(sessionId, owner), (message) =>
-          write(`event: command\ndata: ${message}\n\n`),
-        ),
+        subscriber.subscribe(keys.commands(sessionId, owner), (message) => {
+          if (message === "superseded") {
+            write("event: superseded\ndata: {}\n\n");
+            finish();
+          } else write(`event: command\ndata: ${message}\n\n`);
+        }),
         subscriber.subscribe(keys.cancelled(sessionId), (message) =>
           write(`event: cancel\ndata: ${message}\n\n`),
         ),
@@ -312,7 +323,15 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
             abortSignal: lifetime.signal,
             timeout: timeoutMs,
           })
-          .eval(hold, { keys: [holder], arguments: [tabId, connectionId, String(holdMs)] })) === 1;
+          .eval(hold, {
+            keys: [
+              holder,
+              keys.attachment(sessionId),
+              keys.seen(sessionId, tabId),
+              keys.disconnected(sessionId),
+            ],
+            arguments: [tabId, connectionId, String(holdMs), keys.commands(sessionId, "")],
+          })) === 1;
       if (!held || finished) {
         finish();
         return null;

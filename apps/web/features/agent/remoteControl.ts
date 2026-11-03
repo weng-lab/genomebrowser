@@ -2,12 +2,12 @@ import { Deferred, Effect, Exit, Scope } from "effect";
 import { runCommand, type CommandApp, type CommandResult } from "./commands";
 import { commandCancelSchema, commandMessageSchema } from "./commands/protocol";
 
-export type RemoteControlState = "off" | "connecting" | "connected";
+export type RemoteControlState = "off" | "connecting" | "connected" | "superseded";
 
 /**
  * Accept agent commands for one session from `rpcUrl` until `signal` aborts,
- * then disconnect. Only the first tab to connect receives them; other tabs keep
- * retrying until it closes. Commands are never replayed, and a command
+ * then disconnect. A new tab supersedes the previous attachment; that tab
+ * stops retrying and cancels its browser work. Commands are never replayed, and a command
  * that arrives once `signal` has aborted fails without running. A command still
  * running when the session closes, the tab detaches, the command expires, or
  * the agent cancels it is cancelled.
@@ -21,6 +21,8 @@ export function connectRemoteControl(
   const lifetime = Scope.makeUnsafe();
   const detached = new AbortController();
   let attached = true;
+  const superseded = Deferred.makeUnsafe<void>();
+  let replaced = false;
   // Commands still running, by ID. They outlive the connection that delivered them.
   const running = new Map<string, AbortController>();
 
@@ -125,7 +127,14 @@ export function connectRemoteControl(
           if (receiving && !signal.aborted) restart();
         }
       });
-      // HTTP errors include the 409 for a session open in another tab.
+      source.addEventListener("superseded", () => {
+        if (!receiving || !attached) return;
+        replaced = true;
+        receiving = false;
+        detached.abort();
+        Deferred.doneUnsafe(superseded, Effect.void);
+      });
+      // Retry transport failures with this same attachment identity.
       source.onerror = restart;
       yield* Deferred.await(reconnect);
     }),
@@ -139,8 +148,8 @@ export function connectRemoteControl(
   );
   Effect.runSync(
     Effect.forkIn(
-      Effect.raceFirst(stopped, reconnecting).pipe(
-        Effect.ensuring(Effect.sync(() => onState("off"))),
+      Effect.raceFirst(Effect.raceFirst(stopped, Deferred.await(superseded)), reconnecting).pipe(
+        Effect.ensuring(Effect.sync(() => onState(replaced ? "superseded" : "off"))),
       ),
       lifetime,
     ),

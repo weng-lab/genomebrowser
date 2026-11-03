@@ -7,7 +7,12 @@ import Switch from "@mui/material/Switch";
 import Alert from "@mui/material/Alert";
 import { useRemoteControl } from "../../agent/RemoteControl";
 
-const stateLabels = { off: "Off", connecting: "Connecting…", connected: "Connected" };
+const stateLabels = {
+  off: "Off",
+  connecting: "Connecting…",
+  connected: "Connected",
+  superseded: "Agent control moved to another tab",
+};
 
 export function SettingsView() {
   const remote = useRemoteControl();

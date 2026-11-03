@@ -20,9 +20,9 @@ export default defineAgent({
       const turn = options.prompt.slice(user);
       const prompt = JSON.stringify(turn);
       const navigate = prompt.includes("navigate");
-      const called = turn.some(
-        (message) => message.role === "tool" && JSON.stringify(message).includes("set_region"),
-      );
+      const results = turn.filter((message) => message.role === "tool");
+      const searched = results.some((message) => JSON.stringify(message).includes("eve__search"));
+      const called = results.some((message) => JSON.stringify(message).includes("eve__tool"));
       const tool = navigate && !called;
       return {
         stream: new ReadableStream({
@@ -42,8 +42,15 @@ export default defineAgent({
               controller.enqueue({
                 type: "tool-call",
                 toolCallId: crypto.randomUUID(),
-                toolName: "set_region",
-                input: JSON.stringify({ region: { chromosome: "chr1", start: 1000, end: 2000 } }),
+                toolName: searched ? "eve__tool" : "eve__search",
+                input: JSON.stringify(
+                  searched
+                    ? {
+                        name: "genomebrowser__set_region",
+                        input: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
+                      }
+                    : { query: "genomebrowser navigate coordinates", detail: "full" },
+                ),
               });
             } else {
               controller.enqueue({ type: "text-start", id: "answer" });
