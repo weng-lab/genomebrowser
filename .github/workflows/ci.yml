@@ -80,4 +80,5 @@ jobs:
         run: pnpm build
 
       - name: Test
-        run: pnpm test
+        # Each package starts its own Vitest workers; avoid competing worker pools.
+        run: pnpm test --concurrency=1
