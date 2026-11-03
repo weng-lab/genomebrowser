@@ -7,4 +7,9 @@ export type WorkspaceNavigationItem = {
   icon: ReactNode;
   placement?: "top" | "bottom";
 };
-export type WorkspacePanel = { title: string; children: ReactNode };
+export type WorkspacePanel = {
+  title: string;
+  /** Shown beside the title on the right panel's button. */
+  icon?: ReactNode;
+  children: ReactNode;
+};

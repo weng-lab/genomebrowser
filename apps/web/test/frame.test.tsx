@@ -52,6 +52,26 @@ it("collapses independently and restores panels through accessible controls", ()
   act(() => toggle.click());
   expect(toggle.getAttribute("aria-expanded")).toBe("true");
 });
+it("keeps the right panel's button in the title row and closes the panel from its own button", () => {
+  setup();
+  const button = () =>
+    container.querySelector<HTMLButtonElement>('header button[aria-controls="right-panel"]')!;
+  expect(button().textContent).toBe("Assistant");
+  expect(button().getAttribute("aria-expanded")).toBe("true");
+
+  act(() =>
+    container
+      .querySelector<HTMLButtonElement>('button[aria-label="Close Assistant panel"]')!
+      .click(),
+  );
+  expect(container.querySelector("#right-panel")?.hasAttribute("inert")).toBe(true);
+  expect(button().getAttribute("aria-expanded")).toBe("false");
+
+  act(() => button().click());
+  expect(container.querySelector("#right-panel")?.hasAttribute("inert")).toBe(false);
+  expect(button().getAttribute("aria-expanded")).toBe("true");
+});
+
 it("renders page-supplied content without side panels and a sidebar footer", () => {
   setup();
   act(() =>

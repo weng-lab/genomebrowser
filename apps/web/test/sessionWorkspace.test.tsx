@@ -361,12 +361,12 @@ it("offers to save over a version saved elsewhere, keeping the edits until then"
   const a = server.add("Alpha", defaults());
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  const status = () => document.querySelector("main output")?.textContent;
-  expect(status()).toBe("Saved");
+  const status = () => document.querySelector("header output")?.textContent;
+  expect(status()).toBe("All changes saved");
   Object.assign(server.stored.get(a)!, { name: "Elsewhere", revision: 2 });
   await click(button("Pan right"));
   const edited = region();
-  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   expect(document.querySelector('[role="alert"]')?.textContent).toBe(
     "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.",
   );
@@ -374,7 +374,7 @@ it("offers to save over a version saved elsewhere, keeping the edits until then"
   expect(closeTab()).toBe(true);
 
   await click(withText("button", "Save over it"));
-  await vi.waitFor(() => expect(status()).toBe("Saved"));
+  await vi.waitFor(() => expect(status()).toBe("All changes saved"));
   expect(document.querySelector('[role="alert"]')).toBeNull();
   expect(server.stored.get(a)).toMatchObject({ name: "Alpha", revision: 3 });
   expect(region()).toBe(edited);
@@ -387,14 +387,14 @@ it("keeps conflict recovery after another session is deleted", async () => {
   const gamma = server.add("Gamma", defaults());
   await visit(`/browser/${alpha}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  const status = () => document.querySelector("main output")?.textContent;
+  const status = () => document.querySelector("header output")?.textContent;
   const saveOver = () => withText("button", "Save over it");
   const discard = () => withText("button", "Close without saving");
 
   Object.assign(server.stored.get(alpha)!, { name: "Elsewhere", revision: 2 });
   await click(button("Pan right"));
   const kept = region();
-  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   await openSessions();
   await click(button("Delete session Beta"));
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha", "Gamma"]));
@@ -403,7 +403,7 @@ it("keeps conflict recovery after another session is deleted", async () => {
   expect(discard()).toBeTruthy();
 
   await click(saveOver());
-  await vi.waitFor(() => expect(status()).toBe("Saved"));
+  await vi.waitFor(() => expect(status()).toBe("All changes saved"));
   expect(saveOver()).toBeUndefined();
   expect(discard()).toBeUndefined();
   expect(server.stored.get(alpha)).toMatchObject({ name: "Alpha", revision: 3 });
@@ -413,7 +413,7 @@ it("keeps conflict recovery after another session is deleted", async () => {
 
   Object.assign(server.stored.get(alpha)!, { revision: 4 });
   await click(button("Pan right"));
-  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   await openSessions();
   await click(button("Delete session Gamma"));
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));

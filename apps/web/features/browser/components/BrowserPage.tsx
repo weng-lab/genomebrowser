@@ -1,6 +1,8 @@
 import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
+import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import { AgentPanel } from "../../agent/components/AgentPanel";
 import { BrowserView } from "./BrowserView";
+import { SaveStatus } from "../../sessions/components/SaveStatus";
 import { SessionSwitcher } from "../../sessions/components/SessionSwitcher";
 
 /** `sessionId` is the session in the URL, which may still be opening. */
@@ -9,7 +11,8 @@ export function BrowserPage({ sessionId }: { sessionId?: string }) {
     <WorkspacePage
       title="Browser"
       heading={<SessionSwitcher />}
-      right={{ title: "Agent", children: <AgentPanel /> }}
+      actions={<SaveStatus />}
+      right={{ title: "Agent", icon: <AutoAwesomeOutlined />, children: <AgentPanel /> }}
     >
       <BrowserView sessionId={sessionId} />
     </WorkspacePage>

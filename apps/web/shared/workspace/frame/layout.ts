@@ -6,15 +6,15 @@ export const TITLE_ROW_HEIGHT = 48;
 /** The side bar's width: a 40px icon button, 4px padding on each side, and its border. */
 export const SIDE_BAR_WIDTH = 49;
 
-/** Padding that keeps a title row's content clear of a header toggle at that end. */
+/** Padding that keeps a title row's content clear of the header's left panel toggle. */
 export const TOGGLE_CLEARANCE = 6.5;
 
 /**
  * The top row of each column. The rows line up so their bottom borders form one line.
  * Set `animate` while a panel toggle animates, so content slides clear of the header's
- * toggles with the panel; otherwise the padding changes instantly, as on page changes.
+ * toggle with the panel; otherwise the padding changes instantly, as on page changes.
  */
-export function titleRowSx({ clearLeft = false, clearRight = false, animate = false } = {}) {
+export function titleRowSx({ clearLeft = false, animate = false } = {}) {
   return {
     display: "flex",
     alignItems: "center",
@@ -24,7 +24,7 @@ export function titleRowSx({ clearLeft = false, clearRight = false, animate = fa
     boxSizing: "content-box",
     height: TITLE_ROW_HEIGHT,
     pl: clearLeft ? TOGGLE_CLEARANCE : 1.5,
-    pr: clearRight ? TOGGLE_CLEARANCE : 1.5,
+    pr: 1.5,
     borderBottom: 1,
     borderColor: "divider",
     // Give every title the same line box, including in browsers without text-box support.

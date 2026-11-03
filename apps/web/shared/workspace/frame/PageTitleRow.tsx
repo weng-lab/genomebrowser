@@ -10,10 +10,10 @@ type PageTitleRowProps = {
   title?: ReactNode;
   /** Replaces the breadcrumbs. It renders the page's own `h1`. */
   heading?: ReactNode;
+  /** Controls at the row's right end, such as the right panel's button. */
+  actions?: ReactNode;
   /** Set when the row sits beside the side bar, under the left panel toggle. */
   clearLeftToggle: boolean;
-  /** Set when the row reaches the window's right edge, under the right panel toggle. */
-  clearRightToggle: boolean;
   /** Set while a panel toggle animates, so the padding slides with the panel. */
   animate: boolean;
 };
@@ -23,15 +23,12 @@ export function PageTitleRow({
   label,
   title,
   heading,
+  actions,
   clearLeftToggle,
-  clearRightToggle,
   animate,
 }: PageTitleRowProps) {
   return (
-    <Box
-      component="header"
-      sx={titleRowSx({ clearLeft: clearLeftToggle, clearRight: clearRightToggle, animate })}
-    >
+    <Box component="header" sx={titleRowSx({ clearLeft: clearLeftToggle, animate })}>
       {heading ?? (
         <Breadcrumbs aria-label="Breadcrumb" sx={{ minWidth: 0, typography: "body2" }}>
           <Typography
@@ -48,6 +45,11 @@ export function PageTitleRow({
             </Typography>
           )}
         </Breadcrumbs>
+      )}
+      {actions && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: "auto", pl: 1 }}>
+          {actions}
+        </Box>
       )}
     </Box>
   );

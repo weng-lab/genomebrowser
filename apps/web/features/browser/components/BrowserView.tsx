@@ -15,7 +15,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
-import { SaveStatus } from "../../sessions/components/SaveStatus";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
 
@@ -25,7 +24,6 @@ export function BrowserView({ sessionId }: { sessionId?: string }) {
   const stores = useSession((session) => session.active?.stores);
   return (
     <Box>
-      <SaveStatus />
       <SessionAlert />
       {stores ? <BrowserContent key={id} stores={stores} /> : <NoSession sessionId={sessionId} />}
     </Box>

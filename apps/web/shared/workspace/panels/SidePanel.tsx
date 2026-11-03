@@ -1,4 +1,6 @@
+import Close from "@mui/icons-material/Close";
 import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import { useId } from "react";
 import { titleRowSx } from "../frame/layout";
@@ -17,10 +19,12 @@ type SidePanelProps = {
   panel: WorkspacePanel | undefined;
   open: boolean;
   animate: boolean;
+  /** Adds a close button to the title row. */
+  onClose?: () => void;
 };
 
 /** A workspace panel with persistent sizing, a title, and page-supplied content. */
-export function SidePanel({ side, panel, open, animate }: SidePanelProps) {
+export function SidePanel({ side, panel, open, animate, onClose }: SidePanelProps) {
   const titleId = useId();
   const width = usePanelState((state) => (side === "left" ? state.leftWidth : state.rightWidth));
   const setWidth = usePanelState((state) => state.setWidth);
@@ -41,10 +45,21 @@ export function SidePanel({ side, panel, open, animate }: SidePanelProps) {
           aria-labelledby={titleId}
           sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}
         >
-          <Box sx={titleRowSx({ clearLeft: side === "left", clearRight: side === "right" })}>
+          <Box sx={{ ...titleRowSx({ clearLeft: side === "left" }), pr: onClose ? 0.5 : 1.5 }}>
             <Typography id={titleId} variant="subtitle2" component="h2" noWrap>
               {panel.title}
             </Typography>
+            {onClose && (
+              <IconButton
+                size="small"
+                aria-label={`Close ${panel.title} panel`}
+                title={`Close ${panel.title} panel`}
+                onClick={onClose}
+                sx={{ ml: "auto" }}
+              >
+                <Close fontSize="small" />
+              </IconButton>
+            )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
             {panel.children}
