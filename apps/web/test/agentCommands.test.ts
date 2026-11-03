@@ -330,6 +330,54 @@ describe.skipIf(!redisUrl)("agent commands", () => {
     expect(replacement.response.status).toBe(200);
   });
 
+  it("does not advertise a lease before its command subscription is ready", async () => {
+    const id = session();
+    const sockets = new Set<Socket>();
+    const subscribed = Promise.withResolvers<void>();
+    const destination = new URL(redisUrl!);
+    const proxy = createServer((downstream) => {
+      const upstream = connectSocket(Number(destination.port || 6379), destination.hostname);
+      sockets.add(downstream);
+      sockets.add(upstream);
+      let requests = "";
+      downstream.on("data", (data) => {
+        requests += data.toString();
+        if (requests.includes(`${prefix}commands:${id}:`)) {
+          subscribed.resolve(); // Withhold SUBSCRIBE from Redis.
+          return;
+        }
+        upstream.write(data);
+      });
+      upstream.on("data", (data) => downstream.write(data));
+      downstream.on("error", () => upstream.destroy());
+      upstream.on("error", () => downstream.destroy());
+      downstream.on("close", () => upstream.destroy());
+      upstream.on("close", () => downstream.destroy());
+    });
+    await new Promise<void>((resolve) => proxy.listen(0, "127.0.0.1", resolve));
+    const address = proxy.address();
+    if (!address || typeof address === "string") throw new Error("Missing proxy address");
+    const url = new URL(redisUrl!);
+    url.hostname = "127.0.0.1";
+    url.port = String(address.port);
+    const isolated = createCommandRelay({ url: url.href, prefix });
+    const lifetime = new AbortController();
+    const pending = isolated.connect(id, randomUUID(), lifetime.signal);
+    try {
+      await subscribed.promise;
+      // A different tab can claim the session while this subscription is blocked.
+      expect((await connect(id)).response.status).toBe(200);
+    } finally {
+      lifetime.abort();
+      await pending;
+      await isolated.close();
+      for (const socket of sockets) socket.destroy();
+      await new Promise<void>((resolve, reject) =>
+        proxy.close((error) => (error ? reject(error) : resolve())),
+      );
+    }
+  });
+
   it.each(["timeout", "abort"])(
     "settles %s even when Redis stops acknowledging publications",
     async (ending) => {

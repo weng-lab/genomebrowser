@@ -30,10 +30,23 @@ export async function respondAccountSettings(operation: () => Promise<unknown>) 
 }
 
 export async function readAccountSettings(request: Request) {
-  const body = await request.text();
-  if (body.length > 4096) throw new AccountSettingsError(400, "Account settings are too large");
+  const tooLarge = () => new AccountSettingsError(400, "Account settings are too large");
+  if (Number(request.headers.get("content-length")) > 4096) throw tooLarge();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const reader = request.body?.getReader();
+  while (reader) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > 4096) {
+      await reader.cancel();
+      throw tooLarge();
+    }
+    chunks.push(value);
+  }
   try {
-    return JSON.parse(body) as unknown;
+    return JSON.parse(new TextDecoder().decode(Buffer.concat(chunks))) as unknown;
   } catch {
     throw new AccountSettingsError(400, "The request body must be JSON");
   }

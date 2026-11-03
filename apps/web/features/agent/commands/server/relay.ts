@@ -279,6 +279,30 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     try {
       [publisher] = await Promise.all([connected(lifetime.signal), subscriber.connect()]);
       if (finished) return null;
+      const encoder = new TextEncoder();
+      const write = (text: string) => {
+        if (!finished) controller!.enqueue(encoder.encode(text));
+      };
+      const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+        start(streamController) {
+          controller = streamController;
+        },
+        cancel() {
+          // A cancelled stream has already closed its controller.
+          controller = undefined;
+          finish();
+        },
+      });
+      // A published lease must already have a subscriber, including during reconnect.
+      await Promise.all([
+        subscriber.subscribe(keys.commands(sessionId, owner), (message) =>
+          write(`event: command\ndata: ${message}\n\n`),
+        ),
+        subscriber.subscribe(keys.cancelled(sessionId), (message) =>
+          write(`event: cancel\ndata: ${message}\n\n`),
+        ),
+      ]);
+      if (finished) return null;
       held =
         (await publisher
           .withCommandOptions({
@@ -290,49 +314,22 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
         finish();
         return null;
       }
-      const encoder = new TextEncoder();
-      return new ReadableStream<Uint8Array<ArrayBuffer>>({
-        async start(streamController) {
-          controller = streamController;
-          const write = (text: string) => {
-            if (!finished) controller!.enqueue(encoder.encode(text));
-          };
-          try {
-            await Promise.all([
-              subscriber.subscribe(keys.commands(sessionId, owner), (message) =>
-                write(`event: command\ndata: ${message}\n\n`),
-              ),
-              subscriber.subscribe(keys.cancelled(sessionId), (message) =>
-                write(`event: cancel\ndata: ${message}\n\n`),
-              ),
-            ]);
-            if (finished) return;
-            clearTimeout(setupTimer);
-            // A missed renewal ends this connection rather than retaining stale ownership.
-            heartbeat = setInterval(() => {
-              write(": heartbeat\n\n");
-              publisher!
-                .withCommandOptions({ timeout: heartbeatMs })
-                .eval(renew, {
-                  keys: [holder],
-                  arguments: [owner, String(holdMs)],
-                })
-                .then((held) => {
-                  if (held !== 1) finish();
-                }, finish);
-            }, heartbeatMs);
-            write(": connected\n\n");
-          } catch (error) {
-            finish();
-            if (!signal.aborted) throw error;
-          }
-        },
-        cancel() {
-          // A cancelled stream has already closed its controller.
-          controller = undefined;
-          finish();
-        },
-      });
+      clearTimeout(setupTimer);
+      // A missed renewal ends this connection rather than retaining stale ownership.
+      heartbeat = setInterval(() => {
+        write(": heartbeat\n\n");
+        publisher!
+          .withCommandOptions({ timeout: heartbeatMs })
+          .eval(renew, {
+            keys: [holder],
+            arguments: [owner, String(holdMs)],
+          })
+          .then((held) => {
+            if (held !== 1) finish();
+          }, finish);
+      }, heartbeatMs);
+      write(": connected\n\n");
+      return stream;
     } catch (error) {
       finish();
       if (signal.aborted) return null;

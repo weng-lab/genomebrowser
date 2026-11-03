@@ -39,6 +39,39 @@ describe.skipIf(!testServerUrl)("account settings routes", () => {
     expect(await (await settings.GET()).json()).toEqual({ remoteControlEnabled: false });
   });
 
+  it("limits settings by UTF-8 bytes rather than string length", async () => {
+    user = "mock_user_1";
+    const response = await write({ remoteControlEnabled: true, padding: "é".repeat(2200) });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ message: "Account settings are too large" });
+  });
+
+  it("cancels a chunked settings body as soon as it exceeds 4 KiB", async () => {
+    let cancelled = false;
+    let chunks = 0;
+    const response = await settings.PUT(
+      new Request("http://localhost/api/account/settings", {
+        method: "PUT",
+        body: new ReadableStream(
+          {
+            pull(controller) {
+              if (++chunks > 2) throw new Error("Read past the settings size limit");
+              controller.enqueue(new Uint8Array(3000));
+            },
+            cancel() {
+              cancelled = true;
+            },
+          },
+          { highWaterMark: 0 },
+        ),
+        duplex: "half",
+      } as RequestInit),
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ message: "Account settings are too large" });
+    expect(cancelled).toBe(true);
+  });
+
   it("rejects unsigned callers, invalid settings, and client-selected owners", async () => {
     expect((await write({ remoteControlEnabled: "yes" })).status).toBe(400);
     expect((await write({ remoteControlEnabled: true, userId: "mock_user_2" })).status).toBe(400);
