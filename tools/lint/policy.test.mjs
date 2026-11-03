@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
+import { findCaseCollisions } from "./path-case.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const oxlint = join(root, "node_modules/.bin/oxlint");
@@ -163,4 +164,31 @@ listen(async () => {});
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }
+});
+
+test("path policy reports names that differ only in letter case", () => {
+  assert.deepEqual(
+    findCaseCollisions([
+      "apps/web/agent/RemoteControl.tsx",
+      "apps/web/agent/remoteControl.ts",
+      "docs/Guide.md",
+      "docs/guide.md",
+      "apps/Web/page.tsx",
+    ]),
+    [
+      ["apps/web/agent/RemoteControl.tsx", "apps/web/agent/remoteControl.ts"],
+      ["apps/Web/", "apps/web/"],
+      ["docs/Guide.md", "docs/guide.md"],
+    ].map((group) => group.sort()),
+  );
+  assert.deepEqual(
+    findCaseCollisions([
+      "apps/web/agent/remoteControl.ts",
+      "apps/web/agent/remoteControl.test.ts",
+      "apps/web/agent/index.ts",
+      "apps/web/agent/index.css",
+      "apps/web/agent.ts",
+    ]),
+    [],
+  );
 });

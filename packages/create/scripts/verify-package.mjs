@@ -1,9 +1,9 @@
 import { execFileSync } from "node:child_process";
 
-const output = execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+const output = execFileSync("pnpm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
   encoding: "utf8",
 });
-const [pack] = JSON.parse(output);
+const pack = JSON.parse(output);
 const paths = new Set(pack.files.map((file) => file.path));
 
 for (const requiredPath of [
