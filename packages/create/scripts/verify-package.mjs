@@ -1,6 +1,5 @@
 import { execFileSync } from "node:child_process";
 
-// Check pnpm's file list because releases publish with pnpm, whose version the workspace pins.
 const output = execFileSync("pnpm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
   encoding: "utf8",
 });
