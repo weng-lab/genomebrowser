@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import type { ReactNode } from "react";
-import { RemoteControlProvider } from "../features/agent/RemoteControl";
+import { RemoteControlProvider } from "../features/agent/RemoteControlProvider";
 import { BrowserSvgProvider } from "../features/browser/BrowserSvg";
 import { WorkspaceSkeleton } from "../shared/workspace/WorkspaceSkeleton";
 import { SessionProvider } from "../features/sessions/SessionProvider";
