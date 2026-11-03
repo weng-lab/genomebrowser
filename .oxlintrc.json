@@ -241,19 +241,9 @@
                 "message": "Redis connections belong in feature server modules and server composition."
               },
               {
-                "group": [
-                  "@weng-lab/*",
-                  "@weng-lab/*/**",
-                  "react",
-                  "react/**",
-                  "react-dom",
-                  "react-dom/**",
-                  "@mui/**",
-                  "../../browser/*",
-                  "!../../browser/region"
-                ],
+                "group": ["*", "!zod", "!zod/**", "!./**", "!../../browser/region"],
                 "allowTypeImports": true,
-                "message": "Command definitions also load on the server for MCP. Reach browser code through CommandApp."
+                "message": "Command definitions load in the browser and the MCP server. Import schemas, types, and other command files; reach browser code through CommandApp."
               }
             ]
           }
@@ -282,6 +272,10 @@
                   "pg/**"
                 ],
                 "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
               }
             ]
           }
@@ -317,6 +311,10 @@
                   "pg/**"
                 ],
                 "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
               }
             ]
           }
@@ -364,6 +362,10 @@
                   "pg/**"
                 ],
                 "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
               }
             ]
           }

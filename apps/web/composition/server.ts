@@ -80,10 +80,8 @@ let mcp: ReturnType<typeof createMcpEndpoint> | undefined;
 /** The MCP endpoint. Requests act for the Clerk user of their session or OAuth token. */
 export function getMcpEndpoint() {
   return (mcp ??= createMcpEndpoint({
-    async authenticate() {
-      if (!(await clerkAgentIdentity.userId())) return null;
-      return (await getServices()).agent;
-    },
-    relay: getCommandRelay(),
+    authenticate: async () => (await clerkAgentIdentity.userId()) !== null,
+    account: async () => (await getServices()).agent,
+    relay: getCommandRelay,
   }));
 }
