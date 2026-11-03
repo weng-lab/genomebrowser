@@ -5,21 +5,20 @@ description: Help draft new genomebrowser feature requests through simple Q&A, a
 
 # GitHub contribution
 
-Read [contribution guidance](../../../docs/02-contributing/README.md) and the relevant template in `.github/`. For PR handoff, also read [verification guidance](../../../docs/02-contributing/verify.md). Paths in these links are relative to this skill.
+Read [contribution guidance](../../../docs/contributing/README.md) and the relevant template in `.github/`. For PR handoff, also read [verification](../../../docs/contributing/verify.md).
 
-1. Identify the requested operation, current diff, and related issue or PR. Load only the context needed for that contribution.
-   For user-facing features, use `.github/ISSUE_TEMPLATE/feature.md`: user stories, designs, and additional context. Keep one parent feature issue, with optional task checkboxes or sub-issues linking back to it. Do not add mandatory planning or acceptance-criteria sections. Focused technical changes can use `change.md`.
-2. Use the native issue Type field (Feature, Task, or Bug), not the retired feature label. Choose the type for the issue itself, including sub-issues. Use the January MVP milestone for agreed launch work. Inspect available issue types and repository labels and [resolve the contributor's GitHub account](../../../docs/02-contributing/README.md#resolve-the-contributors-github-account) before setting metadata. Use the documented Git and GitHub CLI checks; ask only when the available evidence leaves the identity unclear. Follow the shared guidance for attribution and writing.
-3. Prepare the requested commit, issue, or PR from the actual scope. For a PR, explain the implementation and direct review to its key files. Follow the verification guidance at handoff.
-4. Perform only the operations authorized by the user. A request to implement code does not by itself authorize posting issues, creating PRs, or merging. When updating an existing contribution, preserve unrelated content and metadata.
-5. Check the resulting text and metadata against the final change, and report the outcome with the issue or PR link when applicable.
+1. Identify the operation, diff, and related issue or PR. Load only needed context. For user-facing features use `.github/ISSUE_TEMPLATE/feature.md` (user stories, designs, additional context). One parent feature issue; optional task checkboxes or sub-issues. Focused technical changes can use `change.md`.
+2. Use the native issue Type (Feature, Task, Bug), not the retired feature label. January MVP milestone for agreed launch work. Resolve the contributor's GitHub account per the contributing guide before setting assignee metadata. Ask only when evidence is unclear.
+3. Prepare the commit, issue, or PR from actual scope. For a PR, explain the implementation and point review at key files. Follow verification guidance at handoff.
+4. Perform only operations the user authorized. Implementing code does not by itself authorize posting issues, opening PRs, or merging. When updating an existing contribution, preserve unrelated content and metadata.
+5. Check text and metadata against the final change; report links when applicable.
 
 ## New feature requests
 
-Keep the walkthrough conversational. Use what the user has already told you, check for an existing issue, and ask one short question at a time only where information is missing:
+Keep the walkthrough conversational. Use what the user already said, check for an existing issue, and ask one short question at a time when information is missing:
 
 - What should the user be able to do?
 - Is there a Figma link or mockup? A placeholder is fine.
-- Any other context or open questions worth keeping?
+- Any other context or open questions?
 
-Draft a title and the template's three sections: User stories, Designs, and Additional context. Leave undecided details as questions rather than inventing requirements. Show the draft for review before posting, unless the user has already approved the wording and authorized posting. Keep implementation breakdowns for later unless requested.
+Draft title plus User stories, Designs, and Additional context. Leave undecided details as questions. Show the draft before posting unless the user already approved wording and authorized posting.

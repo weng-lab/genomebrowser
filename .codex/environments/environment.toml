@@ -10,7 +10,7 @@ pnpm install'''
 [[actions]]
 name = "Run"
 icon = "run"
-command = "pnpm playground dev"
+command = "pnpm dev"
 
 [[actions]]
 name = "Verify"

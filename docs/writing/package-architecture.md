@@ -1,6 +1,6 @@
 # Package documentation architecture
 
-This is the target architecture. Existing files may not have migrated yet; do not treat their current placement as precedent or move unrelated docs during a focused edit.
+Package docs follow this layout. Do not move unrelated docs during a focused edit.
 
 ```text
 packages/<package>/
@@ -65,4 +65,4 @@ Update the affected canonical pages and export index when behavior changes. Reor
 
 Retire legacy pages after their useful tutorial, guide, or troubleshooting content has a current home or has deliberately been retired, and update inbound links. Complete export coverage alone does not replace those workflows.
 
-For API grouping and completeness, see [API reference writing](apiReference.md). Repository-only guidance follows [Maintainer documentation](maintainerDocs.md).
+For API grouping and completeness, see [API reference writing](api-reference.md). Repository-only guidance follows [Knowledge base](../README.md).

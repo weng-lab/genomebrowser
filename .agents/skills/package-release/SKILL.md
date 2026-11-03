@@ -5,11 +5,11 @@ description: Prepare genomebrowser package releases, recommend versions or use m
 
 # Package release
 
-Read [release guidance](../../../docs/03-tooling/releases.md) for version selection, validation, publishing responsibilities, and release-note conventions. It is the shared authority. Links are relative to this skill.
+Read [release guidance](../../../docs/tooling/releases.md) and [ADR 0005](../../../docs/adr/0005-independent-package-releases.md). That guidance is authoritative.
 
-1. Establish the requested stage and package scope. If the maintainer has not specified packages or explicitly selected a coordinated release, ask which packages to release before preparing changes or drafts. A version alone does not establish package scope. Follow the shared guide for independent package versions. Inspect current manifests, publishing scripts, the working tree, npm versions and tags, and existing GitHub releases. Find each package's verified publication baseline and compare it with the intended release commit.
-2. Present the affected packages, consumer changes, and maintainer-specified or recommended versions. Resolve any uncertainty that could change the version or release channel before updating files. Do not infer a beta requirement from existing configuration.
-3. For authorized preparation, update versions, necessary dependency minimums, channel configuration, lockfile, and affected docs. Read the template's AGENTS.md if changing it. Follow the linked verification and schema guidance. Inspect packed artifacts and dry-run the intended selection.
-4. Prepare package-specific changelogs and GitHub drafts within the requested scope, following the release guide's changes-first format and adding upgrade notes from the previous published version only where needed. Follow [contribution guidance](../../../docs/02-contributing/README.md) for requested commits or PRs. Use structured text arguments or a notes file for multiline release bodies.
-5. Hand off the exact npm publishing command and validated release details to the human, following the publication boundary in the release guide. After the human publishes, verify npm read-only and identify any partial failures.
-6. When separately requested, publish the GitHub releases after confirming npm publication. Verify their tags, target commits, prerelease status, and resulting links. Report completed releases and any remaining work. Distinguish drafts from published releases.
+1. Establish stage and package scope. If packages or a coordinated release were not specified, ask before editing release files. A version alone is not scope.
+2. Present affected packages, consumer-facing changes, and versions. Resolve channel/version uncertainty before updating files.
+3. For authorized preparation: versions, needed dependency minimums, lockfile, docs; verify and inspect packed artifacts; dry-run the selection. Follow [verify](../../../docs/contributing/verify.md) and [schemas](../../../docs/tooling/collection-schemas.md).
+4. Prepare per-package changelogs and GitHub drafts when requested ([contributing](../../../docs/contributing/README.md) for commits/PRs).
+5. Hand the exact npm publish command to the human. After they publish, verify read-only and report partial failures.
+6. Publish GitHub releases only on separate explicit request after npm succeeds.
