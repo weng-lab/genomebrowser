@@ -9,7 +9,7 @@ Read [contribution guidance](../../../docs/contributing/README.md) and the relev
 
 1. Identify the operation, diff, and related issue or PR. Load only needed context. For user-facing features use `.github/ISSUE_TEMPLATE/feature.md` (user stories, designs, additional context). One parent feature issue; optional task checkboxes or sub-issues. Focused technical changes can use `change.md`.
 2. Use the native issue Type (Feature, Task, Bug), not the retired feature label. January MVP milestone for agreed launch work. Resolve the contributor's GitHub account per the contributing guide before setting assignee metadata. Ask only when evidence is unclear.
-3. Prepare the commit, issue, or PR from actual scope. For a PR, explain the implementation and point review at key files. Follow verification guidance at handoff.
+3. Prepare the commit, issue, or PR from actual scope. For a PR, write the body by following the comments in `.github/pull_request_template.md`. Follow verification guidance at handoff.
 4. Perform only operations the user authorized. Implementing code does not by itself authorize posting issues, opening PRs, or merging. When updating an existing contribution, preserve unrelated content and metadata.
 5. Check text and metadata against the final change; report links when applicable.
 
