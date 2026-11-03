@@ -62,6 +62,11 @@ const renew = `if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("
 return 0`;
 const release = `if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("DEL", KEYS[1]) end
 return 0`;
+// Select the lease and publish atomically, so a reconnect cannot deliver to
+// both its replacement and an older stream still waiting for its heartbeat.
+const publish = `local owner = redis.call("GET", KEYS[1])
+if owner == false then return 0 end
+return redis.call("PUBLISH", ARGV[1] .. owner, ARGV[2])`;
 
 function failure(code: string, error: string): CommandResult {
   return { ok: false, code, error };
@@ -75,7 +80,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
   const holdMs = heartbeatMs * 3;
   const keys = {
     holder: (sessionId: string) => `${prefix}tab:${sessionId}`,
-    commands: (sessionId: string) => `${prefix}commands:${sessionId}`,
+    commands: (sessionId: string, owner: string) => `${prefix}commands:${sessionId}:${owner}`,
     cancelled: (sessionId: string) => `${prefix}cancelled:${sessionId}`,
     disconnected: (sessionId: string) => `${prefix}disconnected:${sessionId}`,
     reply: (sessionId: string, commandId: string) => `${prefix}reply:${sessionId}:${commandId}`,
@@ -100,7 +105,17 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     if (!ready) {
       publisher = createRedisClient();
       const current = publisher;
-      ready = current.connect().then(() => current);
+      ready = current
+        .connect()
+        .then(() => current)
+        .catch((error: unknown) => {
+          if (publisher === current) {
+            publisher = undefined;
+            ready = undefined;
+          }
+          if (current.isOpen) current.destroy();
+          throw error;
+        });
     }
     if (!signal) return ready;
     signal.throwIfAborted();
@@ -198,7 +213,13 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
         .withCommandOptions({
           abortSignal: delivery.signal,
         })
-        .publish(keys.commands(sessionId), JSON.stringify({ ...command, commandId, expiresAt }));
+        .eval(publish, {
+          keys: [keys.holder(sessionId)],
+          arguments: [
+            keys.commands(sessionId, ""),
+            JSON.stringify({ ...command, commandId, expiresAt }),
+          ],
+        });
       if (receivers === 0)
         finish(
           failure(
@@ -278,7 +299,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
           };
           try {
             await Promise.all([
-              subscriber.subscribe(keys.commands(sessionId), (message) =>
+              subscriber.subscribe(keys.commands(sessionId, owner), (message) =>
                 write(`event: command\ndata: ${message}\n\n`),
               ),
               subscriber.subscribe(keys.cancelled(sessionId), (message) =>

@@ -26,6 +26,8 @@ The agent and Next.js may run in different processes, so the relay passes comman
 
 One Redis publisher is shared per relay. Each pending command and tab stream owns a dedicated subscriber, destroyed when that operation ends. This costs a connection per pending command, but completion never depends on a shared subscriber or an `UNSUBSCRIBE` acknowledgement. Stop and deadlines settle locally even if Redis stops replying; cancellation delivery remains cooperative and depends on connectivity. Redis commands are not queued for replay while disconnected. `close()` ends active operations and streams and permanently closes the relay.
 
+Command publication atomically selects the current lease holder's connection channel. An older stream can remain open until its next heartbeat, but cannot receive commands sent to its replacement.
+
 ## Add a command
 
 1. Define it in `features/agent/commands/<name>.ts` with `defineCommand`: its snake_case tool `name`, a `description` for agents, Zod `params` and `result` schemas, and `run(app, params, signal)`. `run` makes edits synchronously through `app.stores`, or uses another `CommandApp` action, and returns `{ ok: true, value }` or `{ ok: false, code, error }`.

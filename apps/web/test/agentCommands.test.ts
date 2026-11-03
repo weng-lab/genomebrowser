@@ -159,6 +159,22 @@ describe.skipIf(!redisUrl)("agent commands", () => {
     }
   });
 
+  it("delivers only to the replacement while the old stream is still live", async () => {
+    const id = session();
+    const tabId = randomUUID();
+    const first = await connect(id, tabId);
+    const second = await connect(id, tabId);
+    const oldDelivery = first.next!().then(
+      () => "command",
+      () => "closed",
+    );
+    const pending = agent.dispatch(id, setRegion, new AbortController().signal);
+    const { commandId } = await second.next!();
+    await reply(id, { commandId, result: { ok: true, value: {} } });
+    expect(await pending).toEqual({ ok: true, value: {} });
+    expect(await oldDelivery).toBe("closed");
+  });
+
   it("fails clearly when the session has no open tab", async () => {
     expect(await agent.dispatch(session(), setRegion, new AbortController().signal)).toMatchObject({
       ok: false,
