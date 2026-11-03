@@ -4,6 +4,8 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { useState } from "react";
+import { ConfirmDialog } from "../ConfirmDialog/confirmDialog";
 import { HighlightCard } from "./highlightCard";
 import { resolveHighlightRegion } from "./highlightRegion";
 
@@ -37,9 +39,7 @@ export function HighlightList({
         <Typography color="text.secondary" variant="caption">
           Newest first
         </Typography>
-        <Button color="error" onClick={clearHighlights} size="small">
-          Remove all
-        </Button>
+        <RemoveAllButton onRemoveAll={clearHighlights} />
       </Box>
       {highlights.toReversed().map((highlight) => {
         const region = resolveHighlightRegion(highlight, currentChromosome);
@@ -55,5 +55,31 @@ export function HighlightList({
         );
       })}
     </Stack>
+  );
+}
+
+function RemoveAllButton({ onRemoveAll }: { onRemoveAll: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+
+  function confirmRemoveAll() {
+    onRemoveAll();
+    setConfirming(false);
+  }
+
+  return (
+    <>
+      <Button color="error" onClick={() => setConfirming(true)} size="small">
+        Remove all
+      </Button>
+      <ConfirmDialog
+        open={confirming}
+        title="Remove all highlights?"
+        text="This will remove every highlight from the browser."
+        confirmLabel="Remove all"
+        confirmColor="error"
+        onClose={() => setConfirming(false)}
+        onConfirm={confirmRemoveAll}
+      />
+    </>
   );
 }

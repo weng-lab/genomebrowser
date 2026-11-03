@@ -47,7 +47,7 @@ Highlights appear newest first, using the reverse of their order in the browser 
 
 Selecting a highlight's arrow action sets the browser viewport to that highlight's exact region.
 
-**Remove all** appears above the list while any highlights exist. It removes every highlight in the browser store immediately, without confirmation.
+**Remove all** appears above the list while any highlights exist. It asks for confirmation, then removes every highlight in the browser store.
 
 ## API
 

@@ -2,7 +2,7 @@ import type { TrackStore } from "@weng-lab/genomebrowser";
 import type { TrackSelectColumnOverrides } from "../collection/collectionColumns";
 import type { CompiledTrackCollections } from "../collection/collectionCompilation";
 import type { TrackSelectInteractionResolver } from "../collection/collectionInteraction";
-import { ConfirmDialog } from "../dialogs/confirmDialog";
+import { ConfirmDialog } from "../../ConfirmDialog/confirmDialog";
 import { TrackSelectContext, useTrackSelect } from "../session/trackSelectContext";
 import { useTrackSelectState } from "../session/useTrackSelectState";
 import { TrackSelectActionBar } from "./trackSelectActionBar";

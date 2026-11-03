@@ -1,4 +1,4 @@
-import Button from "@mui/material/Button";
+import Button, { type ButtonProps } from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -12,6 +12,7 @@ type ConfirmDialogProps = {
   text: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmColor?: ButtonProps["color"];
   onClose: () => void;
   onConfirm?: () => void;
 };
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   text,
   confirmLabel = "OK",
   cancelLabel = "Cancel",
+  confirmColor = "secondary",
   onClose,
   onConfirm,
 }: ConfirmDialogProps) {
@@ -34,7 +36,7 @@ export function ConfirmDialog({
       <DialogActions>
         {onConfirm ? <Button onClick={onClose}>{cancelLabel}</Button> : null}
         <Button
-          color={onConfirm ? "secondary" : "primary"}
+          color={onConfirm ? confirmColor : "primary"}
           variant="contained"
           onClick={onConfirm ?? onClose}
         >
