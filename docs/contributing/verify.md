@@ -8,7 +8,7 @@ Web database tests are skipped locally unless `GB_TEST_DATABASE_URL` is set, so 
 
 ## Lint policy
 
-`pnpm lint` checks package source and exercises the import rules with allowed and forbidden examples. The rules in [`.oxlintrc.json`](../../.oxlintrc.json) enforce package ownership, app dependency direction, and database import placement. App source also rejects circular imports. Unused variables and missing React dependencies are errors.
+`pnpm lint` checks package source and exercises the import rules with allowed and forbidden examples. It first rejects tracked names that differ only in letter case once file extensions are ignored, such as `Panel.tsx` and `panel.ts`. Case-insensitive file systems on macOS and Windows resolve them to the same file, which Linux CI would otherwise miss. The rules in [`.oxlintrc.json`](../../.oxlintrc.json) enforce package ownership, app dependency direction, and database import placement. App source also rejects circular imports. Unused variables and missing React dependencies are errors.
 
 The web and MCP apps enable type-aware `no-floating-promises` and `no-misused-promises`. Turbo builds dependency declarations before linting. Await or return asynchronous work, or handle its rejection where its lifetime is owned. A `void` statement alone does not handle rejection. The session lifecycle observes Effect failures and exposes nonrejecting completion promises; its intentional detached calls have local exceptions explaining that guarantee. Keep exceptions narrow rather than introducing catch-and-log helpers solely to satisfy lint.
 
