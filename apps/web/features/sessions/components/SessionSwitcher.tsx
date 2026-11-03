@@ -21,10 +21,11 @@ export function SessionSwitcher() {
   const close = () => setAnchor(null);
   const menuId = useId();
   return (
-    <Box ref={title} sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+    <Box ref={title} sx={switcherSx}>
       <SessionTitle />
       <IconButton
         size="small"
+        sx={{ flexShrink: 0 }}
         aria-label="Sessions"
         aria-haspopup="dialog"
         aria-expanded={menuOpen}
@@ -46,3 +47,14 @@ export function SessionSwitcher() {
     </Box>
   );
 }
+
+/**
+ * At most 360px or half the title row, so a long name truncates and leaves room for the
+ * row's other controls. The arrow never shrinks.
+ */
+const switcherSx = {
+  display: "flex",
+  alignItems: "center",
+  minWidth: 0,
+  maxWidth: "min(360px, 50%)",
+} as const;

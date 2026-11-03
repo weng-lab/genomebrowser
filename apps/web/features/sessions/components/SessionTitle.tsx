@@ -95,7 +95,8 @@ const nameButtonSx = {
 /** Sits where the name was, at the same size and padding. */
 const renameFieldSx = {
   typography: "body2",
-  minWidth: 160,
+  width: 240,
+  maxWidth: "100%",
   px: 0.75,
   borderRadius: 1,
   bgcolor: "action.hover",
