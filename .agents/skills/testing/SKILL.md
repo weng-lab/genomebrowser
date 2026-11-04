@@ -5,14 +5,10 @@ description: Use when deciding whether a change gets a test, writing, reviewing,
 
 # Testing
 
-Policy: [testing](../../../docs/contributing/testing.md). Read it before you start, and follow it over nearby tests that disagree.
+Read the [testing policy](../../../docs/contributing/testing.md) and apply its decision, boundary, two-edit, and snapshot guidance. Follow it over nearby tests that disagree.
 
-1. Decide whether the change gets a test, and write the one-line reason for the PR: "No test: …" or "Test: …, catches …".
-2. Find the boundary in the policy's table. Reuse the package's existing harness and fixtures. Do not add mocks of repository modules.
-3. Write expected values as literals from the requirement, not from a run of the code.
-4. Break the behavior on purpose, run the test, and check that the failure message shows the wrong value for the reason you expect. Then restore the code.
-5. Apply the two-edit check to every test you wrote or touched. Rewrite or delete tests that fail it.
-6. If a track snapshot changed, open the old and new SVGs. Update with `vitest -u` only when the visual change is intended, and say so in the PR.
-7. Run the package's tests, then follow [verify](../../../docs/contributing/verify.md).
+Agent steps:
 
-When you report, name the decision and what it changed, for example: "No test: per the testing policy, it would only restate the constant."
+1. Before writing a new test, break the behavior on purpose, run the test, and confirm the failure message shows the wrong value for the reason you expect. Restore the code.
+2. In the handoff and PR, report the test or no-test decision with its one-line reason, and the verification you ran.
+3. Follow [verify](../../../docs/contributing/verify.md) before handoff.
