@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import { alpha, type Theme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
+import { narrowTitleRow, visuallyHidden } from "../../../shared/workspace/frame/layout";
 import type { SaveStatus as Status } from "../autosave";
 import { useSession } from "../SessionProvider";
 
@@ -42,6 +43,8 @@ export function SaveStatus() {
         // Gray while saving; otherwise a light tint of the status color, with darker text.
         color: color ? `${color}.dark` : "text.secondary",
         bgcolor: color ? (theme: Theme) => alpha(theme.palette[color].main, 0.12) : "action.hover",
+        // Just the dot or spinner, so the session name keeps its room.
+        [narrowTitleRow]: { px: 1 },
       }}
     >
       {busy ? (
@@ -49,7 +52,11 @@ export function SaveStatus() {
       ) : (
         <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: `${color}.main` }} />
       )}
-      <Typography variant="caption" noWrap sx={{ fontWeight: "fontWeightMedium" }}>
+      <Typography
+        variant="caption"
+        noWrap
+        sx={{ fontWeight: "fontWeightMedium", [narrowTitleRow]: visuallyHidden }}
+      >
         {label}
       </Typography>
     </Box>

@@ -231,6 +231,5 @@ describe("pan commit inside loaded data", () => {
         "renders": 136,
       }
     `);
-    // Loading real track data takes most of 5 seconds on CI runners.
   }, 15_000);
 });

@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
 import { useId, useRef, useState } from "react";
+import { narrowTitleRow } from "../../../shared/workspace/frame/layout";
 import { SessionMenu } from "./SessionMenu";
 import { SessionTitle } from "./SessionTitle";
 
@@ -50,11 +51,13 @@ export function SessionSwitcher() {
 
 /**
  * At most 360px or half the title row, so a long name truncates and leaves room for the
- * row's other controls. The arrow never shrinks.
+ * row's other controls. The arrow never shrinks. In a narrow row the controls drop their
+ * labels, so the name takes whatever room they leave.
  */
 const switcherSx = {
   display: "flex",
   alignItems: "center",
   minWidth: 0,
   maxWidth: "min(360px, 50%)",
+  [narrowTitleRow]: { maxWidth: "none" },
 } as const;

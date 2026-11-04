@@ -10,6 +10,25 @@ export const SIDE_BAR_WIDTH = 49;
 export const TOGGLE_CLEARANCE = 6.5;
 
 /**
+ * Styles for a title row too narrow for its controls' labels, such as on a phone or
+ * beside an open panel. Controls drop their labels so the page's heading stays usable.
+ */
+export const narrowTitleRow = "@container title-row (max-width: 480px)";
+
+/** Hides text from view while screen readers still read it. */
+export const visuallyHidden = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  margin: "-1px",
+  padding: 0,
+  border: 0,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+} as const;
+
+/**
  * The top row of each column. The rows line up so their bottom borders form one line.
  * Set `animate` while a panel toggle animates, so content slides clear of the header's
  * toggle with the panel; otherwise the padding changes instantly, as on page changes.
@@ -19,6 +38,8 @@ export function titleRowSx({ clearLeft = false, animate = false } = {}) {
     display: "flex",
     alignItems: "center",
     flexShrink: 0,
+    containerType: "inline-size",
+    containerName: "title-row",
     // The content area matches the header's height, with the border drawn below it, so
     // title text and the header's toggles share the same vertical center.
     boxSizing: "content-box",
