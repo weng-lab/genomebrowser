@@ -648,6 +648,23 @@ it("creates a session with the assembly's defaults after saving the active one",
   expect(state().active!.id).toBe(created.id);
 });
 
+it("creates no session while the active one cannot be saved", async () => {
+  const a = server.add("A", defaults());
+  await state().open(a);
+  const write = server.hold("PUT");
+  setRegion(1000);
+  const creating = state().create({ name: "New session", assembly: "hg38" });
+  await vi.waitFor(() => expect(puts()).toHaveLength(1));
+  write.fail();
+  await creating;
+
+  expect(writes()).not.toContain("POST");
+  expect(state().active!.id).toBe(a);
+  expect(state().renaming).toBeUndefined();
+  expect(state().error).toBe("Could not save “A”. Its changes are kept here.");
+  expect(state().sessions.map(({ name }) => name)).toEqual(["A"]);
+});
+
 it("lists sessions, retrying while unavailable", async () => {
   stop();
   server.add("Saved", defaults());

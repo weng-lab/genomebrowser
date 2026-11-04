@@ -2,8 +2,10 @@
 
 import ButtonBase from "@mui/material/ButtonBase";
 import InputBase from "@mui/material/InputBase";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useRef, useState, type KeyboardEvent } from "react";
+import { sessionInputSchema } from "../schema";
 import { useSession } from "../SessionProvider";
 
 /** The open session's name as the page heading. Clicking it edits the name in place. */
@@ -44,16 +46,19 @@ export function SessionTitle() {
 
 /**
  * Edits the open session's name, starting with it all selected so typing replaces it.
- * Enter or leaving the field saves it; Escape cancels.
+ * Enter or leaving the field saves it; Escape cancels. A name that cannot be saved
+ * keeps the field open with the draft, marked invalid.
  */
 function RenameField({ initialName, onDone }: { initialName: string; onDone: () => void }) {
   const rename = useSession((session) => session.rename);
   const [draft, setDraft] = useState(initialName);
+  const [rejected, setRejected] = useState(false);
   // Ending the edit removes the field, which may blur it; finish only once.
   const finished = useRef(false);
 
   function finish(save: boolean) {
     if (finished.current) return;
+    if (save && !sessionInputSchema.shape.name.safeParse(draft).success) return setRejected(true);
     finished.current = true;
     if (save && draft !== initialName) rename(draft);
     onDone();
@@ -64,19 +69,40 @@ function RenameField({ initialName, onDone }: { initialName: string; onDone: () 
   }
 
   return (
-    <InputBase
-      // oxlint-disable-next-line jsx-a11y/no-autofocus -- The field replaces the name the user just clicked to edit.
-      autoFocus
-      value={draft}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={() => finish(true)}
-      onKeyDown={handleKeyDown}
-      onFocus={(event) => event.target.select()}
-      inputProps={{ "aria-label": "Session name", maxLength: 200 }}
-      sx={renameFieldSx}
-    />
+    <Tooltip
+      open={rejected}
+      title={nameRequired}
+      placement="bottom-start"
+      arrow
+      describeChild
+      disableFocusListener
+      disableHoverListener
+      disableTouchListener
+    >
+      <InputBase
+        // oxlint-disable-next-line jsx-a11y/no-autofocus -- The field replaces the name the user just clicked to edit.
+        autoFocus
+        value={draft}
+        error={rejected}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          setRejected(false);
+        }}
+        onBlur={() => finish(true)}
+        onKeyDown={handleKeyDown}
+        onFocus={(event) => event.target.select()}
+        inputProps={{
+          "aria-label": "Session name",
+          "aria-description": rejected ? nameRequired : undefined,
+          maxLength: 200,
+        }}
+        sx={renameFieldSx}
+      />
+    </Tooltip>
   );
 }
+
+const nameRequired = "Enter a name, or press Escape to keep the current one.";
 
 /** Reads as plain title text, highlighted on hover and focus to show it can be edited. */
 const nameButtonSx = {
@@ -101,4 +127,5 @@ const renameFieldSx = {
   borderRadius: 1,
   bgcolor: "action.hover",
   "& input": { py: 0.5, height: "auto" },
+  "&.Mui-error": { outline: 1, outlineColor: "error.main" },
 } as const;

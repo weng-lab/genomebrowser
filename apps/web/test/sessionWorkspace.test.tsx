@@ -164,8 +164,15 @@ it("renames the open session from its title and saves the name", async () => {
   expect(field()).toBeNull();
   expect(heading()).toBe("Alpha");
 
+  // A blank name keeps the field open with the draft.
   await click(document.querySelector("h1 button"));
+  await type(field()!, "   ");
+  await keyDown("Enter");
+  expect(field()!.value).toBe("   ");
+  expect(field()!.getAttribute("aria-invalid")).toBe("true");
+
   await type(field()!, "Promoter scan");
+  expect(field()!.getAttribute("aria-invalid")).toBe("false");
   await keyDown("Enter");
   expect(heading()).toBe("Promoter scan");
   await vi.waitFor(() => expect(server.stored.get(a)!.name).toBe("Promoter scan"));
@@ -297,8 +304,7 @@ it("discards the open session when the account changes elsewhere", async () => {
   await pendingPut();
   server.user = "user_bob";
   act(() => clerk.signIn("user_bob"));
-  await vi.waitFor(() => expect(text()).toContain("No saved sessions yet."));
-  expect(heading()).not.toBe("Alpha");
+  await vi.waitFor(() => expect(heading()).toBe("No session open"));
   expect(closeTab()).toBe(false);
   await act(async () => write.release());
   expect(server.writes()).toHaveLength(1);
