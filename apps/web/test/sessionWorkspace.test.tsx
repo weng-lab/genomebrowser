@@ -127,7 +127,8 @@ it("creates a session, saves edits, and keeps it open across workspace pages", a
   expect(sessionLoads()).toEqual([]);
   // Panel children that reset per session must not share a key.
   expect(errors.mock.calls.flat().join("\n")).not.toContain("same key");
-});
+  // As the file's first test it also loads the workspace, which takes most of 5 seconds on CI runners.
+}, 15_000);
 
 it("opens the session in the URL, from links, and from history", async () => {
   const a = server.add("Alpha", defaults());
