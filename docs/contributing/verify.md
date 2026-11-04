@@ -40,7 +40,7 @@ A failed formatting check is work to finish, not just a result to report. Apply 
 
 ## Reporting results
 
-Report failures, checks that could not run, and any remaining uncertainty about the changed behavior. Passing automated checks does not establish behavior they do not exercise. Keep PR descriptions focused on the implementation and relevant review limits rather than copying check logs.
+Report failures, checks that could not run, and any remaining uncertainty about the changed behavior. Passing automated checks does not establish behavior they do not exercise. Record verification limits in the risk section of the PR description.
 
 ## Automated PR review
 

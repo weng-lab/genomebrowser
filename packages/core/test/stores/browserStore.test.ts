@@ -351,6 +351,28 @@ describe("createBrowserStore", () => {
     ]);
   });
 
+  it("clears all highlights in one update and leaves an empty list unchanged", () => {
+    const store = createBrowserStore({
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 20, end: 40 },
+      highlights: [
+        { id: "enhancer", region: { chromosome: "chr1", start: 20, end: 30 }, color: "#ff0000" },
+        { id: "promoter", region: { start: 30, end: 35 }, color: "#00ff00" },
+      ],
+    });
+    const notify = vi.fn();
+    store.subscribe(notify);
+
+    store.getState().clearHighlights();
+    expect(store.getState().highlights).toEqual([]);
+    expect(notify).toHaveBeenCalledTimes(1);
+
+    const cleared = store.getState();
+    store.getState().clearHighlights();
+    expect(store.getState()).toBe(cleared);
+    expect(notify).toHaveBeenCalledTimes(1);
+  });
+
   it("accepts outlined highlights and rejects unknown types at both input boundaries", () => {
     const highlight = {
       id: "outline",

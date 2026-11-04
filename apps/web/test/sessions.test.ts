@@ -1,7 +1,6 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { identityMode } from "../features/account/server/identity";
 import { createSessions } from "../features/sessions/server/sessions";
 import type { SessionInput, SessionUpdate } from "../features/sessions/schema";
 import { sessionsTable } from "../features/sessions/server/table";
@@ -218,18 +217,5 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(alice().load("local")).rejects.toMatchObject({ code: "NOT_FOUND" });
     expect(await alice().list()).toEqual([]);
-  });
-});
-
-describe("identity selection", () => {
-  it("uses mock users only when explicitly enabled outside production", () => {
-    expect(identityMode({ NODE_ENV: "development" })).toBe("clerk");
-    expect(identityMode({ NODE_ENV: "development", GB_IDENTITY: "mock" })).toBe("mock");
-    expect(() => identityMode({ NODE_ENV: "production", GB_IDENTITY: "mock" })).toThrow(
-      "Mock identity is unavailable in production",
-    );
-    expect(() => identityMode({ NODE_ENV: "development", GB_IDENTITY: "mok" })).toThrow(
-      "GB_IDENTITY must be",
-    );
   });
 });

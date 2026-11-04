@@ -2,7 +2,6 @@
 
 import { UserAvatar, useAuth, useClerk } from "@clerk/nextjs";
 import LoginOutlined from "@mui/icons-material/LoginOutlined";
-import PersonOutline from "@mui/icons-material/PersonOutline";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -16,20 +15,16 @@ import Tooltip from "@mui/material/Tooltip";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useSession } from "../../sessions/SessionProvider";
-
-/** How the server identifies users, resolved for each request by the workspace layout. */
-export type Account =
-  | { mode: "clerk"; signInPath: string }
-  | { mode: "mock"; userId: string | null; users: readonly string[]; cookie: string };
+import { signInPath } from "../signIn";
 
 type Change = () => void | Promise<void>;
 
 /**
- * Account actions in the sidebar. Signing out or switching users first closes
- * the open session, saving its edits. If they cannot be saved, the user stays,
- * tries again, or discards them before the account changes.
+ * Account actions in the sidebar. Signing out or managing the account first
+ * closes the open session, saving its edits. If they cannot be saved, the user
+ * stays, tries again, or discards them before the account changes.
  */
-export function AccountControls({ account }: { account: Account }) {
+export function AccountControls() {
   const close = useSession((session) => session.close);
   const [leaving, setLeaving] = useState(false);
   const [unsaved, setUnsaved] = useState<Change>();
@@ -44,11 +39,7 @@ export function AccountControls({ account }: { account: Account }) {
 
   return (
     <>
-      {account.mode === "clerk" ? (
-        <ClerkControls signInPath={account.signInPath} leaving={leaving} leave={leave} />
-      ) : (
-        <MockUserMenu {...account} leaving={leaving} leave={leave} />
-      )}
+      <ClerkControls leaving={leaving} leave={leave} />
       <Dialog open={unsaved !== undefined} onClose={() => setUnsaved(undefined)}>
         <DialogTitle>Changes not saved</DialogTitle>
         <DialogContent>
@@ -71,7 +62,7 @@ export function AccountControls({ account }: { account: Account }) {
 
 type LeaveProps = { leaving: boolean; leave: (change: Change) => Promise<void> };
 
-function ClerkControls({ signInPath, leaving, leave }: { signInPath: string } & LeaveProps) {
+function ClerkControls({ leaving, leave }: LeaveProps) {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
   if (!isSignedIn) {
@@ -110,44 +101,6 @@ function ClerkControls({ signInPath, leaving, leave }: { signInPath: string } & 
           Sign out
         </MenuItem>,
       ]}
-    </AccountMenu>
-  );
-}
-
-/** Local development only: act as one of the mock users, or as signed out. */
-function MockUserMenu({
-  userId,
-  users,
-  cookie,
-  leaving,
-  leave,
-}: { userId: string | null; users: readonly string[]; cookie: string } & LeaveProps) {
-  function actAs(user: string, dismiss: () => void) {
-    dismiss();
-    // oxlint-disable-next-line typescript/no-floating-promises -- close observes Effect and account-change failures, so leave always resolves.
-    void leave(() => {
-      document.cookie = `${cookie}=${user}; path=/; SameSite=Lax`;
-      window.location.reload();
-    });
-  }
-  return (
-    <AccountMenu
-      label="Mock user"
-      title={userId ? `Mock user ${userId}` : "Signed out"}
-      icon={userId ? <PersonOutline /> : <LoginOutlined />}
-    >
-      {(dismiss) =>
-        [...users, null].map((user) => (
-          <MenuItem
-            key={user ?? "signed-out"}
-            selected={user === userId}
-            disabled={leaving || user === userId}
-            onClick={() => actAs(user ?? "signed-out", dismiss)}
-          >
-            {user ?? "Signed out"}
-          </MenuItem>
-        ))
-      }
     </AccountMenu>
   );
 }

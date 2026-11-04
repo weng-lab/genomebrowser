@@ -31,6 +31,8 @@ export function BrowserWithHighlights() {
 }
 ```
 
+`ControlToolbar` and `ManagementControls` provide a **Manage highlights** icon button through `onManageHighlights`, so `onManageHighlights={() => setOpen(true)}` can replace the button above.
+
 The region field accepts the formats supported by `parseDisplayRegion`. Positions such as `chr12:53,372,922-53,423,700` or `chr12:53,372,922` are one-based and inclusive, as in the UCSC Genome Browser. Three whitespace-delimited fields such as `chr12 53372921 53423700` are zero-based BED coordinates. Both examples select the same bases. The dialog shows existing highlights in the one-based form, while the browser store keeps zero-based, half-open regions. The region must fit within the browser store's assembly. Highlight IDs must be unique in that store.
 
 **Clear** resets the add form and its validation messages to the default values without changing existing highlights.
@@ -44,6 +46,8 @@ Select a highlight's pencil action to edit its ID, region, type, color, and opac
 Highlights appear newest first, using the reverse of their order in the browser store. Editing a highlight keeps its position; initial highlights follow the order supplied by the application. Drag-created highlights have region-based IDs, with numeric suffixes when needed to keep IDs unique.
 
 Selecting a highlight's arrow action sets the browser viewport to that highlight's exact region.
+
+**Remove all** appears above the list while any highlights exist. It asks for confirmation, then removes every highlight in the browser store.
 
 ## API
 

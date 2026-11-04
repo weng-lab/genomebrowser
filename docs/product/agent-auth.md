@@ -32,7 +32,7 @@ Agent features start enabled. The agent can read browser state, track metadata, 
 
 The account-wide setting disables all LLM operations. It closes MCP connections and prevents reconnection, new reads, and commands across the user's tabs. It also stops active agent work from applying further changes. Hiding the panel alone does not meet this requirement. Disabling access cannot recall data already sent or reverse completed changes.
 
-Guest preference storage and enforcement details belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited.
+The setting is saved per account and starts on. Currently each tab honors it by not connecting when it is off; server enforcement at the MCP boundary and immediate effect across devices are not implemented yet. Guest preference storage and enforcement details belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited.
 
 ## Integration choices still open
 

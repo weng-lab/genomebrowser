@@ -6,35 +6,34 @@ import { useSession } from "../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
+import {
+  useRemoteControlPreference,
+  type RemoteControlPreference,
+} from "./remoteControlPreference";
 
-type RemoteControl = {
-  state: RemoteControlState;
-  enabled: boolean;
-  setEnabled: (enabled: boolean) => void;
-};
-const RemoteControlContext = createContext<RemoteControl>({
-  state: "off",
-  enabled: false,
-  setEnabled: () => {},
-});
+type RemoteControl = { state: RemoteControlState; preference: RemoteControlPreference };
+const RemoteControlContext = createContext<RemoteControl | null>(null);
 
 /**
- * Optional agent control through the MCP server. Off until enabled in Settings.
- * While enabled, it attaches to the active session once restored. It detaches
- * as soon as that session is replaced or closed, or can no longer save edits.
+ * Agent control through the MCP server, allowed by the account's saved
+ * preference, which new accounts start with on. While allowed, it attaches to
+ * the active session once restored. It detaches as soon as that session is
+ * replaced or closed, or can no longer save edits, or the preference turns off.
  * Sessions open and save without it. Images that agents export are shown in a
- * preview, which stays open until the user closes or downloads it.
+ * preview, which stays open until the user closes or downloads it. Mount it once
+ * per account.
  */
 export function RemoteControlProvider({ children }: { children: ReactNode }) {
   const svgRef = useBrowserSvgRef();
-  const [enabled, setEnabled] = useState(false);
+  const preference = useRemoteControlPreference();
+  const enabled = preference.allowed;
   const [state, setState] = useState<RemoteControlState>("off");
   // The image stays while the preview animates closed, then is released.
   const [preview, setPreview] = useState<{ image: BrowserImage; open: boolean } | null>(null);
   const id = useSession((session) => session.active?.id);
   const stores = useSession((session) => session.active?.stores);
   const signal = useSession((session) => session.active?.signal);
-  const remoteControl = useMemo(() => ({ state, enabled, setEnabled }), [state, enabled]);
+  const remoteControl = useMemo(() => ({ state, preference }), [state, preference]);
 
   useEffect(() => {
     if (!enabled || !id || !stores || !signal) return;
@@ -63,5 +62,7 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
 }
 
 export function useRemoteControl() {
-  return useContext(RemoteControlContext);
+  const remoteControl = useContext(RemoteControlContext);
+  if (!remoteControl) throw new Error("RemoteControlProvider is required");
+  return remoteControl;
 }

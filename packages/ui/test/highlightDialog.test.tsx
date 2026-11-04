@@ -205,6 +205,27 @@ describe("HighlightDialog", () => {
     expect(document.body.textContent).toContain("No highlights added.");
   });
 
+  it("removes all highlights at once after confirmation", () => {
+    const browserStore = createTestStore();
+    for (const id of ["First", "Second"]) {
+      browserStore
+        .getState()
+        .addHighlight({ id, region: { start: 100, end: 200 }, color: "#3366cc" });
+    }
+    const highlights = browserStore.getState().highlights;
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+
+    clickButton("Remove all");
+    clickButton("Cancel", getDialog("Remove all highlights?"));
+    expect(browserStore.getState().highlights).toBe(highlights);
+
+    clickButton("Remove all");
+    clickButton("Remove all", getDialog("Remove all highlights?"));
+    expect(browserStore.getState().highlights).toEqual([]);
+    expect(document.body.textContent).toContain("No highlights added.");
+    expect(document.body.textContent).not.toContain("Remove all");
+  });
+
   it("sets the browser to the exact highlight region", () => {
     const browserStore = createTestStore();
     browserStore.getState().addHighlight({
@@ -249,8 +270,16 @@ function setTextInput(label: string, value: string) {
   act(() => input.dispatchEvent(new Event("input", { bubbles: true })));
 }
 
-function clickButton(name: string) {
-  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
+function getDialog(title: string) {
+  const dialog = Array.from(document.body.querySelectorAll<HTMLElement>('[role="dialog"]')).find(
+    (candidate) => candidate.textContent?.includes(title),
+  );
+  if (!dialog) throw new Error(`Could not find dialog titled ${title}`);
+  return dialog;
+}
+
+function clickButton(name: string, scope: ParentNode = document.body) {
+  const button = Array.from(scope.querySelectorAll<HTMLButtonElement>("button")).find(
     (candidate) =>
       candidate.textContent?.trim() === name || candidate.getAttribute("aria-label") === name,
   );

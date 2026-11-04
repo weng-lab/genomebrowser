@@ -5,6 +5,7 @@ import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { GenomeBrowser } from "@weng-lab/genomebrowser";
 import {
   DownloadImageDialog,
+  HighlightDialog,
   InteractionControls,
   ManagementControls,
   NavigationControls,
@@ -87,6 +88,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   const { useBrowserStore, useTrackStore } = stores;
   const svgRef = useBrowserSvgRef();
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [highlightsOpen, setHighlightsOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   // Read the tracks when Sort is clicked rather than subscribing, so track changes
   // do not re-render the controls. A sort is a one-time operation.
@@ -97,6 +99,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
     setSortOptions(getTrackSortOptions(useTrackStore.getState().tracks));
     setSortOpen(true);
   };
+
   return (
     <>
       <Box
@@ -114,7 +117,11 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         />
         <NavigationControls browserStore={useBrowserStore} />
         <InteractionControls browserStore={useBrowserStore} />
-        <ManagementControls onSortTracks={openSort} onDownloadImage={() => setDownloadOpen(true)} />
+        <ManagementControls
+          onSortTracks={openSort}
+          onManageHighlights={() => setHighlightsOpen(true)}
+          onDownloadImage={() => setDownloadOpen(true)}
+        />
       </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} svgRef={svgRef} />
       <DownloadImageDialog
@@ -122,6 +129,11 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         svgRef={svgRef}
         open={downloadOpen}
         onClose={() => setDownloadOpen(false)}
+      />
+      <HighlightDialog
+        browserStore={useBrowserStore}
+        open={highlightsOpen}
+        onClose={() => setHighlightsOpen(false)}
       />
       <TrackSortDialog
         trackStore={useTrackStore}

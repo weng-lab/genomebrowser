@@ -1,5 +1,6 @@
 import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { vi } from "vitest";
+import { accountSettingsSchema } from "../features/account/settings";
 import {
   maxSessionBytes,
   sessionInputSchema,
@@ -24,10 +25,12 @@ type Stored = {
 type Outcome = Response | undefined | "lost";
 
 /**
- * The `/api/sessions` contract in memory, installed as `fetch`: owner-scoped
- * list, load, create, update, and delete with the same status codes, error
- * bodies, and size limit as the route handlers. Tests can hold or fail the next request of a
- * method. Requests honor their abort signal, including while a body is read.
+ * The `/api/sessions` and `/api/account/settings` contracts in memory, installed
+ * as `fetch`: owner-scoped list, load, create, update, and delete with the same
+ * status codes, error bodies, and size limit as the route handlers, and each
+ * user's settings. Tests can hold or fail the next request of a method; settings
+ * requests are named `settings GET` and `settings PUT`. Requests honor their
+ * abort signal, including while a body is read.
  */
 export function installSessionServer() {
   const stored = new Map<string, Stored>();
@@ -35,7 +38,12 @@ export function installSessionServer() {
   const gates: { method: string; gate: Promise<Outcome> }[] = [];
   const server = {
     user: "user_alice" as string | null,
+    /** Session requests, oldest first. */
     requests,
+    /** Saved Remote Control preferences by user. Users without one have it on. */
+    remoteControl: new Map<string, boolean>(),
+    /** Settings requests, oldest first: `GET`, or the preference a `PUT` saved. */
+    settingsRequests: [] as (boolean | "GET")[],
     /** Saved sessions of any owner, by ID. */
     stored,
     add(name: string, snapshot: SessionSnapshot, owner?: string): string {
@@ -88,6 +96,17 @@ export function installSessionServer() {
     return { id, name, createdAt, updatedAt, revision, trackCount: snapshot.tracks.length };
   }
 
+  function handleSettings(method: string, body: unknown) {
+    const owner = server.user;
+    if (!owner) return rejected("UNAUTHENTICATED", 401);
+    if (method === "PUT") {
+      const input = accountSettingsSchema.safeParse(body);
+      if (!input.success) return rejected("INVALID_INPUT", 400);
+      server.remoteControl.set(owner, input.data.remoteControl);
+    }
+    return json({ remoteControl: server.remoteControl.get(owner) ?? true });
+  }
+
   function handle({ method, id, body, bytes }: Request) {
     const owner = server.user;
     if (!owner) return rejected("UNAUTHENTICATED", 401);
@@ -128,14 +147,20 @@ export function installSessionServer() {
   async function fetch(input: string, init: RequestInit = {}) {
     const url = new URL(input, "http://localhost");
     if (url.pathname.startsWith("/rpc/")) return server.rpc(input, init);
-    if (!url.pathname.startsWith("/api/sessions")) throw new Error(`Unexpected request ${input}`);
+    const settings = url.pathname === "/api/account/settings";
+    if (!settings && !url.pathname.startsWith("/api/sessions"))
+      throw new Error(`Unexpected request ${input}`);
     const request: Request = {
-      method: init.method ?? "GET",
+      method: `${settings ? "settings " : ""}${init.method ?? "GET"}`,
       id: url.pathname.split("/")[3],
       body: init.body ? JSON.parse(String(init.body)) : undefined,
       bytes: init.body ? new TextEncoder().encode(String(init.body)).byteLength : 0,
     };
-    requests.push(request);
+    if (settings)
+      server.settingsRequests.push(
+        (request.body as { remoteControl?: boolean } | undefined)?.remoteControl ?? "GET",
+      );
+    else requests.push(request);
     const signal = init.signal ?? undefined;
     const aborted = new Promise<never>((_, reject) => {
       if (signal?.aborted) reject(signal.reason);
@@ -144,8 +169,10 @@ export function installSessionServer() {
     const index = gates.findIndex((gate) => gate.method === request.method);
     const gated =
       index < 0 ? undefined : await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
-    if (gated !== "lost") return gated ?? handle(request);
-    handle(request);
+    const respond = () =>
+      settings ? handleSettings(init.method ?? "GET", request.body) : handle(request);
+    if (gated !== "lost") return gated ?? respond();
+    respond();
     throw new TypeError("Failed to fetch");
   }
 

@@ -1,7 +1,11 @@
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { useState } from "react";
+import { ConfirmDialog } from "../ConfirmDialog/confirmDialog";
 import { HighlightCard } from "./highlightCard";
 import { resolveHighlightRegion } from "./highlightRegion";
 
@@ -16,6 +20,7 @@ export function HighlightList({
   const currentChromosome = useBrowserStore((state) => state.region.chromosome);
   const highlights = useBrowserStore((state) => state.highlights);
   const removeHighlight = useBrowserStore((state) => state.removeHighlight);
+  const clearHighlights = useBrowserStore((state) => state.clearHighlights);
   const setRegion = useBrowserStore((state) => state.setRegion);
 
   if (highlights.length === 0) {
@@ -30,9 +35,12 @@ export function HighlightList({
 
   return (
     <Stack spacing={0.75}>
-      <Typography color="text.secondary" variant="caption">
-        Newest first
-      </Typography>
+      <Box sx={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
+        <Typography color="text.secondary" variant="caption">
+          Newest first
+        </Typography>
+        <RemoveAllButton onRemoveAll={clearHighlights} />
+      </Box>
       {highlights.toReversed().map((highlight) => {
         const region = resolveHighlightRegion(highlight, currentChromosome);
         return (
@@ -47,5 +55,31 @@ export function HighlightList({
         );
       })}
     </Stack>
+  );
+}
+
+function RemoveAllButton({ onRemoveAll }: { onRemoveAll: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+
+  function confirmRemoveAll() {
+    onRemoveAll();
+    setConfirming(false);
+  }
+
+  return (
+    <>
+      <Button color="error" onClick={() => setConfirming(true)} size="small">
+        Remove all
+      </Button>
+      <ConfirmDialog
+        open={confirming}
+        title="Remove all highlights?"
+        text="This will remove every highlight from the browser."
+        confirmLabel="Remove all"
+        confirmColor="error"
+        onClose={() => setConfirming(false)}
+        onConfirm={confirmRemoveAll}
+      />
+    </>
   );
 }

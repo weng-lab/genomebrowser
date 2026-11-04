@@ -1,12 +1,12 @@
 # Web app
 
-`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, and rewrites to the optional Node.js MCP server in `apps/server`. Clerk identifies users in production; local development uses mock users.
+`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, and rewrites to the optional Node.js MCP server in `apps/server`. Clerk identifies users, locally and in deployments.
 
 The [app docs](docs/README.md) cover [architecture and data flow](docs/02-guides/dataFlow.md), adding routes, panel behavior, and styling. Terms are defined in the [app glossary](glossary.md).
 
 ## Run locally
 
-Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL with Docker, and apply the migrations:
+Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL with Docker, and apply the migrations. Before starting, set the Clerk development instance's keys in `apps/web/.env.local`; see [Accounts](#accounts).
 
 ```sh
 pnpm install --frozen-lockfile
@@ -42,11 +42,11 @@ The saved-session list refreshes when the window regains focus. Visiting Setting
 
 ### Accounts
 
-Without `GB_IDENTITY`, the app uses Clerk. `proxy.ts` runs `clerkMiddleware()` on every route except static files, the root layout renders `ClerkProvider`, and `/sign-in` shows Clerk's sign-in form. The sidebar's account menu saves and closes the current session before opening Clerk's account management or signing out, or the sidebar shows a sign-in link when signed out. It replaces Clerk's user button, whose sign-out cannot wait for saving. Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` at runtime. `CLERK_JWT_KEY`, the instance's PEM public key, lets Clerk verify session tokens without fetching its keys. Without keys in development, Clerk starts its keyless mode, which creates a temporary Clerk application. The root layout renders on each request, so builds need no Clerk keys. Sign-in through the Clerk development instance works on Vercel deployments. A production instance accepts only its own domain; see [Deploy to Vercel](docs/02-guides/deployment.md#configure-clerk).
+Clerk identifies every user. `proxy.ts` runs `clerkMiddleware()` on every route except static files, the root layout renders `ClerkProvider`, and `/sign-in` shows Clerk's sign-in form. The sidebar's account menu saves and closes the current session before opening Clerk's account management or signing out, or the sidebar shows a sign-in link when signed out. It replaces Clerk's user button, whose sign-out cannot wait for saving. Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` at runtime, locally too. Local development uses the same Clerk development instance as Vercel previews, so get its `pk_test_` and `sk_test_` keys from the Clerk Dashboard or from a project maintainer. Without both keys, every request fails with an error naming the missing key, rather than Clerk starting keyless mode with a temporary application. `CLERK_JWT_KEY`, the instance's PEM public key, lets Clerk verify session tokens without fetching its keys. The root layout renders on each request, so builds need no Clerk keys. Sign-in through the Clerk development instance works on Vercel deployments. A production instance accepts only its own domain; see [Deploy to Vercel](docs/02-guides/deployment.md#configure-clerk).
 
-`GB_IDENTITY=mock` makes requests act as local mock users, with no Clerk keys or Clerk service. Requests act as `mock_user_1` by default. The sidebar's person button switches to `mock_user_2` or to signed out: it closes the open session, then sets the `gb_mock_user` cookie and reloads. `/sign-in` returns 404 in this mode. Mock identity is refused when `NODE_ENV` is `production`, which includes `next start`; every request then fails with that error.
+A development instance keeps a browser signed in per site, so each Vercel deployment URL needs its own sign-in. A branch's preview URL stays the same across pushes. Tests need no Clerk instance: server tests sign Clerk session tokens with a local key that Clerk verifies offline, and workspace tests replace Clerk's React hooks.
 
-Signing out or switching users from the sidebar first saves and closes the open session. If saving fails, a dialog offers to stay with the edits, try again, or discard them; the account changes only after that choice. An account change made elsewhere, such as signing out in another tab, discards the tab's open session, list, and pending writes, unsaved edits included. They cannot be saved without the old account's credentials, and nothing from one account reaches another.
+Signing out or managing the account from the sidebar first saves and closes the open session. If saving fails, a dialog offers to stay with the edits, try again, or discard them; the account changes only after that choice. An account change made elsewhere, such as signing out in another tab, discards the tab's open session, list, and pending writes, unsaved edits included. They cannot be saved without the old account's credentials, and nothing from one account reaches another.
 
 The dev and start scripts bind to `localhost`. With `--hostname 127.0.0.1`, Next.js gives the proxy `localhost` URLs, and every request that passes through Clerk fails.
 
@@ -65,6 +65,10 @@ The browser calls these route handlers. Each derives the user from the request a
 Session metadata, which every route but `DELETE` returns, includes `trackCount`, the number of tracks in the saved snapshot. Sessions carry a `revision`, starting at 1. `PUT` takes `{ name, snapshot, revision, saveId }`: the revision the edits were based on and a new UUID for each logical save. It never recreates a deleted session. It applies only at the current revision and returns the metadata with the next one. Sending the same `saveId` again after its response was lost returns that result without applying it twice.
 
 Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `INVALID_INPUT`, 401 `UNAUTHENTICATED`, 404 `NOT_FOUND` (including another user's session), 409 `ASSEMBLY_CHANGED`, or 409 `CONFLICT` when the session is at another revision. Other failures return 500 without detail and log the error on the server.
+
+### Account settings route
+
+`GET /api/account/settings` returns the signed-in user's `{ remoteControl }`, with `true` for an account that never saved a choice. `PUT` replaces it with a body of the same shape, at most 1 KB, and returns what was saved. The server derives the account; a body naming one, or any other field, is rejected with 400 `INVALID_INPUT`. Signed-out requests get 401 `UNAUTHENTICATED`. The preference is stored in the `account_settings` table. The server does not yet refuse MCP calls when it is off; the tab simply does not connect.
 
 Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
@@ -99,13 +103,13 @@ Before this app saved sessions, the MCP server kept them in SQLite by URL name, 
 pnpm web sessions:import-sqlite --sqlite ../server/data/browser.sqlite --owner <user ID>
 ```
 
-Each copy gets a new UUID and keeps the old ID as its name. Add `--session <old ID>` once per session to copy only some. The script opens the SQLite file read-only. It skips sessions already copied unchanged for that owner and lists any snapshot that fails validation. The owner is a Clerk user ID, or a mock user ID locally.
+Each copy gets a new UUID and keeps the old ID as its name. Add `--session <old ID>` once per session to copy only some. The script opens the SQLite file read-only. It skips sessions already copied unchanged for that owner and lists any snapshot that fails validation. The owner is a Clerk user ID.
 
 ## Control a browser tab
 
 Agents control the browser through MCP. Each command is an MCP tool that takes a `sessionId` and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. `export_image` shows an image of the current view to the user in a preview with a Download button and returns its file name and size; the image is not sent to the agent, and nothing is saved until the user downloads it. `sort_tracks` sorts the loaded tracks once by the fields it names, as the Sort tracks dialog does, and returns their new order; tracks added later stay where they are added. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
 
-Remote control is optional and off by default. Turn it on under **Remote control** in Settings. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; MCP calls for the session then fail. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
+Remote control is a saved account preference, on for new accounts. Turn it off or on under **Remote control** in Settings; the choice applies to every tab of the account and survives reloads and new sign-ins. Each tab reads it when the workspace loads and again when the window regains focus. Turning it off closes this tab's connection at once; turning it on connects once the choice is saved. If the save fails, Settings reports it and the switch returns to the saved choice. If the preference cannot be loaded, the tab stays disconnected and Settings offers to retry. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; MCP calls for the session then fail. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
 
 Connect an MCP client to `http://localhost:3000/mcp`, or to `http://127.0.0.1:3001/mcp` to skip Next.js. For example, with Claude Code:
 

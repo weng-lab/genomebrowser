@@ -3,7 +3,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import type { ReactNode } from "react";
-import { identityMode, signInPath } from "../features/account/server/identity";
+import { signInPath } from "../features/account/signIn";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,18 +12,15 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  // Identity is runtime configuration. Rendering per request keeps it out of the
-  // build, which then needs no Clerk keys.
+  // Clerk's keys are runtime configuration. Rendering per request keeps them out
+  // of the build, which then needs no Clerk keys. The proxy rejects requests without them.
   await connection();
-  const content = <AppRouterCacheProvider>{children}</AppRouterCacheProvider>;
   return (
     <html lang="en">
       <body>
-        {identityMode(process.env) === "clerk" ? (
-          <ClerkProvider signInUrl={signInPath}>{content}</ClerkProvider>
-        ) : (
-          content
-        )}
+        <ClerkProvider signInUrl={signInPath}>
+          <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

@@ -1,22 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+// Import first: it configures Clerk offline before the app's server modules load.
+import { signIn as as } from "./clerkServer";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
-// The route handlers, mock identity, session operations, and PostgreSQL are real.
-// The `next/headers` mock supplies each request's cookies, as Next does for a route.
-let user: string | undefined = "mock_user_1";
-vi.mock("next/headers", () => ({
-  cookies: async () => ({
-    get: (name: string) => (name === "gb_mock_user" && user ? { value: user } : undefined),
-  }),
-}));
-vi.stubEnv("GB_IDENTITY", "mock");
+// The proxy, Clerk verification, route handlers, session operations, and PostgreSQL
+// are real; Clerk users sign in with locally signed session tokens.
 
 const collection = await import("../app/api/sessions/route");
 const single = await import("../app/api/sessions/[id]/route");
 
-function as(next: string | undefined) {
-  user = next;
-}
 function body(value: unknown, init: RequestInit = {}) {
   return new Request("http://localhost/api/sessions", {
     method: "POST",
@@ -47,7 +39,7 @@ describe.skipIf(!testServerUrl)("session routes", () => {
   });
 
   it("creates, lists, loads, saves, and deletes the acting user's sessions", async () => {
-    as("mock_user_1");
+    await as("user_alice");
     const created = await create({ name: "Promoter scan", snapshot: snapshot() });
     expect(created.status).toBe(200);
     expect(created.headers.get("cache-control")).toBe("no-store");
@@ -87,10 +79,10 @@ describe.skipIf(!testServerUrl)("session routes", () => {
   });
 
   it("keeps each user's sessions private and rejects signed-out requests", async () => {
-    as("mock_user_1");
+    await as("user_alice");
     const { id } = await (await create({ name: "Private", snapshot: snapshot() })).json();
 
-    as("mock_user_2");
+    await as("user_bob");
     expect(await (await collection.GET()).json()).toEqual([]);
     for (const response of [
       await load(id),
@@ -104,18 +96,18 @@ describe.skipIf(!testServerUrl)("session routes", () => {
     ])
       expect(response.status).toBe(404);
 
-    as("someone_else");
+    await as(null);
     const signedOut = await collection.GET();
     expect(signedOut.status).toBe(401);
     expect(await signedOut.json()).toMatchObject({ code: "UNAUTHENTICATED" });
 
-    as("mock_user_1");
+    await as("user_alice");
     expect(await (await load(id)).json()).toMatchObject({ name: "Private" });
   });
 
   it("rejects an owner in the request, invalid bodies, oversized bodies, and assembly changes", async () => {
-    as("mock_user_1");
-    const owned = await create({ name: "Mine", owner: "mock_user_2", snapshot: snapshot() });
+    await as("user_alice");
+    const owned = await create({ name: "Mine", owner: "user_bob", snapshot: snapshot() });
     expect(owned.status).toBe(400);
     expect(await owned.json()).toMatchObject({ code: "INVALID_INPUT" });
     expect((await create("{not json")).status).toBe(400);

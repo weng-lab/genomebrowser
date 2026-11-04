@@ -6,7 +6,7 @@ loadEnvConfig(process.cwd());
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./features/sessions/server/table.ts",
+  schema: "./features/*/server/table.ts",
   out: "./drizzle",
   dbCredentials: { url: process.env.DATABASE_URL ?? "" },
 });
