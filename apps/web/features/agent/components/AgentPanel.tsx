@@ -30,7 +30,7 @@ export function AgentPanel() {
           {message}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Connect an MCP client to <Box component="code">/mcp</Box> on this site.
+          Connect an MCP client to <Box component="code">/api/mcp</Box> on this site.
         </Typography>
       </Stack>
     </Box>

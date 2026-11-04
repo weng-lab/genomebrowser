@@ -1,12 +1,12 @@
 # Web app
 
-`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, and rewrites to the optional Node.js MCP server in `apps/server`. Clerk identifies users, locally and in deployments.
+`@weng-lab/web` is the Next.js genome browser application. It owns product routes, user-owned saved sessions in PostgreSQL, the generic workspace layout, agent commands, and the MCP endpoint that delivers them to browser tabs through Redis. Clerk identifies users, locally and in deployments.
 
 The [app docs](docs/README.md) cover [architecture and data flow](docs/02-guides/dataFlow.md), adding routes, panel behavior, and styling. Terms are defined in the [app glossary](glossary.md).
 
 ## Run locally
 
-Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL with Docker, and apply the migrations. Before starting, set the Clerk development instance's keys in `apps/web/.env.local`; see [Accounts](#accounts).
+Use Node.js 24 or newer. Install dependencies from the repository root, start PostgreSQL and Redis with Docker, and apply the migrations. Before starting, set the Clerk development instance's keys in `apps/web/.env.local`; see [Accounts](#accounts).
 
 ```sh
 pnpm install --frozen-lockfile
@@ -18,9 +18,7 @@ pnpm dev
 
 Open `http://localhost:3000/browser`. With no session open, the browser asks you to open or create one. `/collections` and `/settings` are separate Next.js routes; unknown URLs return 404. The shared route layout keeps the providers, the open session, and its stores mounted during navigation.
 
-`pnpm dev:web` starts only Next.js. Sessions load and save without the MCP server. `pnpm dev:server` starts only the MCP server. Both bind to loopback.
-
-Next.js rewrites `/mcp` and each tab's command stream, `/rpc/:id`, to the MCP server at `http://127.0.0.1:3001`. Set `GB_SERVER_URL` to use another address; rewrites are fixed when Next.js starts in development and when it builds for production. The `/api/sessions` routes are this app's own.
+Redis at `REDIS_URL` carries agent commands to browser tabs. Sessions load and save without it; only remote control and MCP need it.
 
 ## Sessions
 
@@ -68,7 +66,7 @@ Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `
 
 ### Account settings route
 
-`GET /api/account/settings` returns the signed-in user's `{ remoteControl }`, with `true` for an account that never saved a choice. `PUT` replaces it with a body of the same shape, at most 1 KB, and returns what was saved. The server derives the account; a body naming one, or any other field, is rejected with 400 `INVALID_INPUT`. Signed-out requests get 401 `UNAUTHENTICATED`. The preference is stored in the `account_settings` table. The server does not yet refuse MCP calls when it is off; the tab simply does not connect.
+`GET /api/account/settings` returns the signed-in user's `{ remoteControl }`, with `true` for an account that never saved a choice. `PUT` replaces it with a body of the same shape, at most 1 KB, and returns what was saved. The server derives the account; a body naming one, or any other field, is rejected with 400 `INVALID_INPUT`. Signed-out requests get 401 `UNAUTHENTICATED`. The preference is stored in the `account_settings` table. When it is off, tabs do not connect, and the server refuses MCP tool calls, tab streams, and replies.
 
 Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
@@ -85,9 +83,9 @@ await sessions.update(saved.id, {
 
 ### Database
 
-`compose.yaml` runs PostgreSQL on `127.0.0.1:5432` with a named volume, matching `DATABASE_URL` in the example file. `pnpm web db:stop` stops it. Any PostgreSQL server works if you change `DATABASE_URL`. After changing `features/sessions/server/table.ts`, run `pnpm web db:generate` and commit the new files in `drizzle/`.
+`compose.yaml` runs PostgreSQL on `127.0.0.1:5432` with a named volume and Redis on `127.0.0.1:6379`, matching `DATABASE_URL` and `REDIS_URL` in the example file. `pnpm web db:stop` stops them. Any PostgreSQL or Redis server works if you change those variables. After changing `features/sessions/server/table.ts`, run `pnpm web db:generate` and commit the new files in `drizzle/`.
 
-The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a connection that may create databases, such as `postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postgres` with the compose database. Each run creates and drops its own database. Without the variable, the tests are skipped locally and fail in CI, which runs a PostgreSQL service.
+The database tests need a PostgreSQL server. Set `GB_TEST_DATABASE_URL` to a connection that may create databases, such as `postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postgres` with the compose database. Each run creates and drops its own database. Without the variable, the tests are skipped locally and fail in CI, which runs a PostgreSQL service. The relay and MCP tests also need Redis: set `GB_TEST_REDIS_URL`, such as `redis://127.0.0.1:6379` with the compose server. Each test uses its own key namespace.
 
 In production, sessions use Google Cloud SQL through Google's Cloud SQL connector, which encrypts the connection to the instance's public IP without authorized networks. Set `INSTANCE_CONNECTION_NAME` (`<project>:<region>:<instance>`), `DB_NAME`, `DB_USER`, and `DB_PASSWORD`; `DATABASE_URL` is then ignored, and missing Cloud SQL settings fail instead of falling back to it. Outside Vercel, the connector uses the machine's Google application default credentials.
 
@@ -97,31 +95,25 @@ Builds do not run migrations. `pnpm web db:migrate` reads only `DATABASE_URL`, s
 
 ### Sessions saved by the old server
 
-Before this app saved sessions, the MCP server kept them in SQLite by URL name, with no owner. Neither the browser nor the server reads that file now, and nothing claims those sessions automatically. An administrator can copy them to one user:
+Before this app saved sessions, a separate MCP server kept them in SQLite by URL name, with no owner. Nothing reads that file now, and nothing claims those sessions automatically. An administrator can copy them to one user:
 
 ```sh
-pnpm web sessions:import-sqlite --sqlite ../server/data/browser.sqlite --owner <user ID>
+pnpm web sessions:import-sqlite --sqlite <path to browser.sqlite> --owner <user ID>
 ```
 
 Each copy gets a new UUID and keeps the old ID as its name. Add `--session <old ID>` once per session to copy only some. The script opens the SQLite file read-only. It skips sessions already copied unchanged for that owner and lists any snapshot that fails validation. The owner is a Clerk user ID.
 
 ## Control a browser tab
 
-Agents control the browser through MCP. Each command is an MCP tool that takes a `sessionId` and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. `export_image` shows an image of the current view to the user in a preview with a Download button and returns its file name and size; the image is not sent to the agent, and nothing is saved until the user downloads it. `sort_tracks` sorts the loaded tracks once by the fields it names, as the Sort tracks dialog does, and returns their new order; tracks added later stay where they are added. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
+Agents control the browser through MCP. Each command is an MCP tool that takes a `sessionId` and returns its own result once the tab applies it; `set_region` returns the region shown and whether it was clamped. `export_image` shows an image of the current view to the user in a preview with a Download button and returns its file name and size; the image is not sent to the agent, and nothing is saved until the user downloads it. `sort_tracks` sorts the loaded tracks once by the fields it names, as the Sort tracks dialog does, and returns their new order; tracks added later stay where they are added. Only one tab receives a session's commands: the first to attach. Another tab keeps retrying and takes over when that tab closes or leaves the session.
 
-Remote control is a saved account preference, on for new accounts. Turn it off or on under **Remote control** in Settings; the choice applies to every tab of the account and survives reloads and new sign-ins. Each tab reads it when the workspace loads and again when the window regains focus. Turning it off closes this tab's connection at once; turning it on connects once the choice is saved. If the save fails, Settings reports it and the switch returns to the saved choice. If the preference cannot be loaded, the tab stays disconnected and Settings offers to retry. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. Turning remote control off closes the stream; MCP calls for the session then fail. A stopped or unreachable MCP server only leaves the Agent panel reconnecting; sessions still load and save.
+Remote control is a saved account preference, on for new accounts. Turn it off or on under **Remote control** in Settings; the choice applies to every tab of the account and survives reloads and new sign-ins. Each tab reads it when the workspace loads and again when the window regains focus. Turning it off closes this tab's connection at once; turning it on connects once the choice is saved. If the save fails, Settings reports it and the switch returns to the saved choice. If the preference cannot be loaded, the tab stays disconnected and Settings offers to retry. While on, the tab connects the open session once it has loaded. The connection closes as soon as that session is replaced, closed, or deleted, the account changes, or its edits can no longer be saved, such as after it was deleted elsewhere. The tab then connects the next session it opens. A command that arrives after its session was replaced fails with `SESSION_CLOSED` and changes nothing. The server also checks the preference for every tool call and tab connection, so MCP calls fail with `REMOTE_CONTROL_DISABLED` as soon as it is saved off. An unreachable Redis only leaves the Agent panel reconnecting; sessions still load and save.
 
-Connect an MCP client to `http://localhost:3000/mcp`, or to `http://127.0.0.1:3001/mcp` to skip Next.js. For example, with Claude Code:
+The MCP endpoint is `/api/mcp` on the same site, such as `http://localhost:3000/api/mcp`. Every request needs the Clerk identity of the session's owner: a Clerk session token or an OAuth access token Clerk issued, sent as `Authorization: Bearer <token>`. Requests without one get 401, and the endpoint refuses browser requests from other sites. Pass the session ID from the URL, which the Agent panel also shows, and a zero-based, half-open region such as `{"chromosome":"chr1","start":100000,"end":200000}`. Success means the store accepted the region; it does not mean track data has finished rendering.
 
-```sh
-claude mcp add --transport http genome-browser http://localhost:3000/mcp
-```
+A tool call fails with an MCP validation error for invalid parameters, `NOT_FOUND` for a session the caller does not own, `REMOTE_CONTROL_DISABLED` when the account turned remote control off, `NOT_CONNECTED` when no tab has the session open with remote control on or the tab disconnects, `TIMEOUT` when the tab does not reply within five seconds, `CANCELLED` when the caller cancels the request, `BUSY` when 32 commands for the session are already waiting, `RELAY_UNAVAILABLE` when Redis cannot be reached in time, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. A cancelled or timed-out command is also stopped in the tab if it is still running. `export_image` fails with `EXPORT_FAILED` when the browser page is not open, tracks are still loading, or the image is too large, and with `CANCELLED` when it is stopped; a stopped export shows no preview. `sort_tracks` fails with `UNKNOWN_SORT_FIELD`, listing the available fields, when it names a field the tracks cannot be sorted by. A timeout, cancellation, or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
 
-Then ask the agent to call `set_region` with the session ID from the URL, which the Agent panel also shows, and a zero-based, half-open region such as `{"chromosome":"chr1","start":100000,"end":200000}`. Success means the store accepted the region; it does not mean track data has finished rendering.
-
-A tool call fails with an MCP validation error for invalid parameters, `NOT_CONNECTED` when no tab has the session open with remote control on, `TIMEOUT` when the tab does not reply within five seconds, and the store's own code, such as `UNKNOWN_CHROMOSOME`, when the tab rejects the command. `export_image` fails with `EXPORT_FAILED` when the browser page is not open, tracks are still loading, or the image is too large, and with `CANCELLED` when the export outlasts the five-second limit; a cancelled export shows no preview. `sort_tracks` fails with `UNKNOWN_SORT_FIELD`, listing the available fields, when it names a field the tracks cannot be sorted by. A timeout or disconnect can occur after the tab changes its state but before its reply reaches the agent. Do not assume a failed call left the region unchanged.
-
-The tab opens an SSE stream at `/rpc/:id`, which Next.js forwards to the MCP server. The MCP server has no database and does not check session ownership; anyone who can reach it and knows a session ID can control a connected tab. Commands carry a unique `commandId` and `expiresAt`, and the tab posts its reply to the same path. Commands are not replayed after reconnection. The server tracks open tabs and pending commands in memory.
+Each tab opens an SSE stream at `/api/sessions/<id>/commands?tab=<tab ID>` and posts replies to the same path. Both require the signed-in owner and the preference on. A tab keeps its tab ID while it reconnects, so a reconnect replaces its own earlier connection; another tab gets 409 until the session is free. Redis holds a short lease naming the one connection that receives the session's commands, renewed by the stream's heartbeat, so a connection whose server stopped without cleanup frees the session within 45 seconds. A stream ends itself after four minutes and the tab reconnects. Commands carry a unique `commandId` and `expiresAt` and are never replayed. Redis carries only commands, cancellations, replies, and leases, in a namespace per Vercel deployment, so an older preview's agents cannot reach a newer preview's tabs.
 
 ## Change the product
 
@@ -132,11 +124,35 @@ shared/        # Generic workspace shell, panels, and theme
 composition/   # Concrete providers, navigation, and server dependencies
 ```
 
-Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns the Effect remote-control connection and command handlers. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/feature-placement.md#web-app).
+Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns command definitions, the Effect remote-control connection, and the Redis relay; MCP owns the endpoint that publishes commands as tools. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/feature-placement.md#web-app).
 
 The workspace layout mounts one session provider per account. Use `useSession` with focused selectors and call its complete operations; panels should not coordinate saving, cancellation, or navigation themselves. Keep providers above routes so navigation preserves their state. See [data flow](docs/02-guides/dataFlow.md) for lifetimes and [routing](docs/02-guides/routing.md) for URL behavior.
 
-To add a product page, put its UI in `features/`, import it from a thin `app/` route, and add its navigation entry in `composition/navigation.tsx`. Follow [Pages and panels](docs/02-guides/pages.md). To add an agent command, define its contract in `@weng-lab/contracts` and its handler in `features/agent/commands.ts`; follow [Add a command](../contracts/README.md#add-a-command).
+To add a product page, put its UI in `features/`, import it from a thin `app/` route, and add its navigation entry in `composition/navigation.tsx`. Follow [Pages and panels](docs/02-guides/pages.md). To add an agent command, follow [Add a command](#add-a-command).
+
+### Add a command
+
+1. Define the command in its own file under `features/agent/commands/`:
+
+   ```ts
+   export const setRegion = defineCommand({
+     name: "set_region",
+     description: "Move the genome browser to a region. ...",
+     params: z.strictObject({ region: regionSchema }),
+     result: z.strictObject({ region: regionSchema, clamped: z.boolean() }),
+     run({ stores }, { region }) {
+       const outcome = stores.useBrowserStore.getState().setRegion(region);
+       if (!outcome.ok) return outcome;
+       return { ok: true, value: { region: outcome.region, clamped: outcome.clamped } };
+     },
+   });
+   ```
+
+   Do not add `sessionId` to `params`; the MCP tool adds it. Return what the command did, not the whole session. Call an existing action rather than reimplementing its validation, and return `{ ok: true, value }` or the action's `{ ok: false, code, error }`.
+
+2. List it in `commands` in `features/agent/commands/index.ts`. The MCP endpoint publishes it as a tool, and the tab runs the same definition.
+
+`run` receives `CommandApp`, which holds the open session's stores and the app actions that need browser code, plus an `AbortSignal`. Make edits synchronously. A command can be async for work that only reads; the signal aborts when the session closes, remote control turns off, the command expires, or its caller cancels it, so check it before anything the user would see. Command files also load on the server, so lint allows only type imports from browser packages there. When a command needs browser work, add an action to `CommandApp` and supply it in `RemoteControlProvider.tsx`. Add a web test that sends the command to the tab, following `test/remoteControl.test.tsx`.
 
 Run `pnpm verify` for the workspace check. React changes also follow the [render verification guidance](../../docs/contributing/testing.md).
 
@@ -145,12 +161,6 @@ Run `pnpm verify` for the workspace check. React changes also follow the [render
 ```sh
 pnpm exec turbo run build --filter=@weng-lab/web
 pnpm --filter @weng-lab/web start
-pnpm exec turbo run build --filter=@weng-lab/mcp
-pnpm --filter @weng-lab/mcp start
 ```
 
-Run Next.js and, for agent control, the MCP server as separate processes. Set `GB_SERVER_URL` before `next build` if the server is not at `http://127.0.0.1:3001`. For an HPC deployment reached through an SSH tunnel, forwarding web port 3000 is sufficient because the rewrites reach the server on loopback. Set `GB_ALLOWED_ORIGINS` if the browser uses a different web origin.
-
-For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. Sessions need Next.js, Cloud SQL, and Clerk; follow [Deploy to Vercel](docs/02-guides/deployment.md) to configure them. MCP needs the separate server.
-
-The MCP server has no authentication and rejects non-loopback hosts. Add authentication and session authorization for tab streams and MCP before deploying it beyond loopback. It needs a persistent process for long-lived SSE streams and pending commands.
+For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. Sessions need Cloud SQL and Clerk; remote control and MCP also need Redis. Follow [Deploy to Vercel](docs/02-guides/deployment.md) to configure them. The UI, saved sessions, MCP endpoint, and tab command routes deploy together, so each preview is complete on its own.

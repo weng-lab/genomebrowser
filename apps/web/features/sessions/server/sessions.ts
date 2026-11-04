@@ -48,6 +48,8 @@ export type Sessions = {
   /** Replace the name and snapshot of an existing session. Never recreates a deleted one. */
   update(id: string, input: SessionUpdate): Promise<Session>;
   remove(id: string): Promise<void>;
+  /** Succeeds when the acting user owns the session, without loading it. */
+  authorize(id: string): Promise<void>;
 };
 
 const metadata = {
@@ -163,6 +165,15 @@ export function createSessions({
         .where(owned(owner, id))
         .returning({ id: sessionsTable.id });
       if (removed.length === 0) throw notFound();
+    },
+
+    async authorize(id) {
+      const owner = await actingUser();
+      const [session] = await db
+        .select({ id: sessionsTable.id })
+        .from(sessionsTable)
+        .where(owned(owner, id));
+      if (!session) throw notFound();
     },
   };
 }

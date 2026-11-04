@@ -183,59 +183,12 @@
       }
     },
     {
-      "files": ["apps/web/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
-                "message": "Web and MCP communicate through contracts, never through each other's source."
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "files": ["apps/server/src/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "regex": "(?:^|/)apps/web/|^(?:\\.\\./)+web/(?:app|features|composition|shared)(?:/|$)|^@weng-lab/web(?:/|$)",
-                "message": "Web and MCP communicate through contracts, never through each other's source."
-              },
-              {
-                "group": [
-                  "drizzle-orm",
-                  "drizzle-orm/**",
-                  "drizzle-kit",
-                  "drizzle-kit/**",
-                  "pg",
-                  "pg/**"
-                ],
-                "message": "The MCP server delivers commands; session persistence belongs in the web app."
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
       "files": ["apps/web/features/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
             "patterns": [
-              {
-                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
-                "message": "Web and MCP communicate through contracts, never through each other's source."
-              },
               {
                 "regex": "(?:^|/)(?:app|composition)(?:/|$)",
                 "message": "Features expose capabilities to routes and composition; they must not import those callers."
@@ -250,6 +203,47 @@
                   "pg/**"
                 ],
                 "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
+              }
+            ]
+          }
+        ]
+      },
+      "excludeFiles": ["apps/web/features/**/server/**", "**/*.test.*", "**/*.spec.*"]
+    },
+    {
+      "files": ["apps/web/features/agent/commands/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)(?:app|composition)(?:/|$)",
+                "message": "Features expose capabilities to routes and composition; they must not import those callers."
+              },
+              {
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
+              },
+              {
+                "group": ["*", "!zod", "!zod/**", "!./**", "!../../browser/region"],
+                "allowTypeImports": true,
+                "message": "Command definitions load in the browser and the MCP server. Import schemas, types, and other command files; reach browser code through CommandApp."
               }
             ]
           }
@@ -265,10 +259,6 @@
           {
             "patterns": [
               {
-                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
-                "message": "Web and MCP communicate through contracts, never through each other's source."
-              },
-              {
                 "regex": "(?:^|/)(?:features|app|composition)(?:/|$)",
                 "message": "Shared presentation must not depend on product features, routes, or composition."
               },
@@ -282,6 +272,10 @@
                   "pg/**"
                 ],
                 "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
               }
             ]
           }
@@ -304,10 +298,6 @@
                 "message": "Keep the workspace shell independent of domain pages, session state, and server implementation."
               },
               {
-                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
-                "message": "Web and MCP communicate through contracts, never through each other's source."
-              },
-              {
                 "regex": "(?:^|/)(?:features|composition)(?:/|$)",
                 "message": "Keep workspace presentation independent of product features and composition."
               },
@@ -321,6 +311,10 @@
                   "pg/**"
                 ],
                 "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
               }
             ]
           }
@@ -328,41 +322,13 @@
       }
     },
     {
-      "files": ["apps/contracts/src/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "group": ["*", "!zod", "!zod/**", "!./**"],
-                "message": "Contracts contain protocol schemas and types; only schema dependencies belong here."
-              },
-              {
-                "regex": "(?:^|/)(?:apps|packages|web|server)(?:/|$)",
-                "message": "Contracts must not import app implementations or browser libraries."
-              },
-              {
-                "regex": "^\\.\\./",
-                "message": "Keep contract schemas within contracts/src; parent imports escape the schema owner."
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "files": [
-        "apps/web/{app,composition,features,shared}/**",
-        "apps/server/src/**",
-        "apps/contracts/src/**"
-      ],
+      "files": ["apps/web/{app,composition,features,shared}/**"],
       "rules": {
         "import/no-cycle": "error"
       }
     },
     {
-      "files": ["apps/web/**", "apps/server/**"],
+      "files": ["apps/web/**"],
       "rules": {
         "typescript/no-floating-promises": [
           "error",
@@ -387,10 +353,6 @@
           {
             "patterns": [
               {
-                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
-                "message": "Web and MCP communicate through contracts, never through each other's source."
-              },
-              {
                 "group": [
                   "drizzle-orm",
                   "drizzle-orm/**",
@@ -400,6 +362,10 @@
                   "pg/**"
                 ],
                 "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
               }
             ]
           }
@@ -413,10 +379,6 @@
           "error",
           {
             "patterns": [
-              {
-                "regex": "(?:^|/)apps/server/|^(?:\\.\\./)+server/src(?:/|$)|^@weng-lab/mcp(?:/|$)",
-                "message": "Web and MCP communicate through contracts, never through each other's source."
-              },
               {
                 "regex": "(?:^|/)(?:app|composition)(?:/|$)",
                 "message": "Features expose capabilities to routes and composition; they must not import those callers."

@@ -1,6 +1,6 @@
 # Web app glossary
 
-Terms for the Next.js browser product, saved sessions, the MCP server, and generic workspace layout. Entries define what a term means, not how the app currently implements it; the [app docs](docs/README.md) cover current behavior. The [project glossary](../../docs/glossary.md) covers browser and track terms.
+Terms for the Next.js browser product, saved sessions, agent commands, and generic workspace layout. Entries define what a term means, not how the app currently implements it; the [app docs](docs/README.md) cover current behavior. The [project glossary](../../docs/glossary.md) covers browser and track terms.
 
 ## Application and session
 
@@ -18,17 +18,21 @@ The object that manages sessions for one account. It lists saved sessions, owns 
 
 ## Commands and persistence
 
-### MCP server
+### MCP endpoint
 
-The optional persistent process, also called the browser server, that exposes commands to agents over MCP and delivers each call to the browser tab connected for the session. It relays commands; it does not own persistence or live browser state.
+The app route that exposes commands to agents over MCP. It authorizes each call for the caller's own session and delivers it to the browser tab attached to that session. It does not own live browser state.
+
+### Command relay
+
+Delivers commands, cancellations, and replies between the server instance handling an MCP call and the one holding the tab's command stream, through Redis. A session's **lease** names the one connection that receives its commands.
 
 ### Remote control
 
-A tab's connection to the MCP server for one session, through which the tab receives commands. Saving does not depend on it. Whether tabs connect is a preference saved for each account, on for new accounts.
+A tab's attachment to the command relay for one session, through which the tab receives commands. Saving does not depend on it. Whether tabs connect is a preference saved for each account, on for new accounts.
 
 ### Command and reply
 
-A command is an app action an agent can request. Its **command contract** defines the tool name, description, parameter schema, and result schema. The web app's **command handler** carries it out. The **reply** is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
+A command is an app action an agent can request. Its **command definition** gives the tool name, description, parameter schema, result schema, and the function the tab runs to carry it out. The **reply** is the command's result on success, or the action's failure. Success means applied to the store, not finished loading track data or saved to the database.
 
 A **pending command** has been sent to a tab and is waiting for its reply.
 

@@ -20,7 +20,7 @@ UI holds controls useful to embedding apps (SCREEN, PsychSCREEN, Factorbook, and
 
 Put product pages and workflows in `apps/web`. Routes stay thin; features own UI and operations; composition wires providers and navigation; `shared/workspace` stays free of domain imports and browser state. Features must not import composition.
 
-Command contracts live in `apps/contracts`. Handlers live in the web app; MCP delivery lives in `apps/server`. Neither app imports the other's source ([ADR 0002](adr/0002-web-owns-persistence-mcp-is-relay.md), [ADR 0003](adr/0003-private-contracts-package.md)).
+Each agent command is one definition in `features/agent/commands/`, which the tab runs and the MCP endpoint in `features/mcp/` publishes as a tool. Command delivery between server instances and tabs lives in `features/agent/server/` ([ADR 0007](adr/0007-app-owned-mcp-redis-relay.md)).
 
 Import and cycle rules are enforced by `.oxlintrc.json` and `tools/lint/policy.test.mjs`. When changing a boundary, update the lint rule and fixtures together. Behavioral invariants belong in schemas, runtime checks, and tests, not new prose rules.
 

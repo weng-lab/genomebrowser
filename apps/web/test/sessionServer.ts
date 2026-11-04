@@ -72,8 +72,8 @@ export function installSessionServer() {
         respond: (response: Response) => open(response),
       };
     },
-    /** Replies to tab command results posted for remote control. */
-    rpc: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
+    /** Answers command results that tabs post for remote control. */
+    replies: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
       Response.json({ ok: true }),
     ),
     /** Fail the next request of `method` with `status`. */
@@ -146,7 +146,7 @@ export function installSessionServer() {
 
   async function fetch(input: string, init: RequestInit = {}) {
     const url = new URL(input, "http://localhost");
-    if (url.pathname.startsWith("/rpc/")) return server.rpc(input, init);
+    if (/^\/api\/sessions\/[^/]+\/commands$/.test(url.pathname)) return server.replies(input, init);
     const settings = url.pathname === "/api/account/settings";
     if (!settings && !url.pathname.startsWith("/api/sessions"))
       throw new Error(`Unexpected request ${input}`);

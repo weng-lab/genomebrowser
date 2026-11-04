@@ -19,9 +19,7 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 
 Applications and their private shared packages live under `apps/`:
 
-- [Web app](apps/web/README.md) (`@weng-lab/web`) owns the browser, collections, and settings routes, browser session, workspace layout, and command proxy.
-- [Browser server](apps/server/README.md) (`@weng-lab/mcp`) is the optional MCP server. It relays agent commands to connected browser tabs and stores nothing.
-- [App contracts](apps/contracts/README.md) (`@weng-lab/contracts`) provides command definitions, wire schemas, and the shared region schema for both apps.
+- [Web app](apps/web/README.md) (`@weng-lab/web`) owns the browser, collections, and settings routes, saved sessions, workspace layout, agent commands, and the MCP endpoint.
 
 Archived applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace and its development and verification commands.
 
@@ -59,13 +57,13 @@ dependencies from the repository root:
 pnpm install --frozen-lockfile
 ```
 
-Use Node.js 24 or newer for the browser server. Start the web app and persistent command relay together:
+Use Node.js 24 or newer. Start PostgreSQL and Redis as the [web app guide](apps/web/README.md#run-locally) describes, then start the web app:
 
 ```sh
 pnpm dev
 ```
 
-Open `http://localhost:3000/browser`. `pnpm dev:web` and `pnpm dev:server` start each process separately. Local access requires no token or login. Session IDs select sessions and are not credentials. The [web app guide](apps/web/README.md) covers local setup, remote control, adding pages and commands, and cloud hosting.
+Open `http://localhost:3000/browser` and sign in with Clerk. Session IDs select sessions and are not credentials. The [web app guide](apps/web/README.md) covers local setup, remote control, adding pages and commands, and cloud hosting.
 
 The workspace packages use the root Oxlint and Oxfmt installations and pin
 their framework and TypeScript dependencies in their own manifests.

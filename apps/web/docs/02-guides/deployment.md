@@ -1,12 +1,14 @@
 # Deploy to Vercel
 
-This guide sets up the web app on Vercel with sessions stored in Google Cloud SQL and accounts in Clerk, and explains how to apply database migrations. It covers the Google Cloud, Vercel, and Clerk configuration, the local tools for maintenance, and the errors each misconfiguration produces. The optional MCP server is not part of this deployment; see [Build and host](../../README.md#build-and-host).
+This guide sets up the web app on Vercel with sessions stored in Google Cloud SQL, accounts in Clerk, and agent commands relayed through Redis, and explains how to apply database migrations. It covers the Google Cloud, Vercel, Clerk, and Redis configuration, the local tools for maintenance, and the errors each misconfiguration produces. One deployment serves the UI, saved sessions, and the MCP endpoint, previews included.
 
 ## How the pieces connect
 
 A Vercel function reaches Cloud SQL without a stored Google key. Vercel issues each deployment an OIDC token for the team. Google's Workload Identity Federation exchanges that token for credentials of a Google service account, and Google's Cloud SQL connector uses those credentials to open an encrypted connection to the instance's public IP. The app then logs into PostgreSQL with an ordinary database username and password. Google decides whether the deployment may connect; PostgreSQL decides what the login may do.
 
 Clerk is independent of that chain. The browser loads Clerk from the instance named by the publishable key, and the server verifies sessions with the secret key from the same instance.
+
+Redis is independent too. An MCP tool call and the tab's command stream may run in different function instances, so the app publishes commands and replies through Redis. It stores no application state there, only short-lived leases naming each session's attached connection. Every key and channel starts with the deployment's `VERCEL_DEPLOYMENT_ID`, so Preview and Production can share one Redis server without one deployment's agents reaching another's tabs.
 
 Preview and Production currently share one Cloud SQL database and one service account, while each environment can use its own Clerk instance. [Production deployment](../../../../docs/product/production.md) lists what to replace before launch.
 
@@ -73,6 +75,7 @@ Set these environment variables for each environment that should save sessions. 
 | `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | The pool and provider IDs                                              |
 | `GCP_SERVICE_ACCOUNT_EMAIL`                                               | The service account's email                                            |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`                   | Keys from one Clerk instance; see [Configure Clerk](#configure-clerk)  |
+| `REDIS_URL`                                                               | A Redis server's URL; see [Configure Redis](#configure-redis)          |
 
 Vercel applies variable changes only to new deployments. After changing a variable, redeploy the affected environment; pushing a commit to a PR branch also creates a new preview. When Cloud SQL settings are incomplete, session requests fail with an error naming the missing variable rather than falling back to another database.
 
@@ -83,6 +86,12 @@ A Clerk development instance accepts requests from any domain, so its `pk_test_`
 A Clerk production instance accepts requests only from its own domain and that domain's subdomains. The lab's production instance belongs to `wenglab.org`, so its `pk_live_` keys work only for the app on `wenglab.org` or a subdomain such as `genomebrowser.wenglab.org`. On a `vercel.app` domain, every Clerk request fails with `host_invalid`. To use the production instance, add a `wenglab.org` subdomain to the Vercel project for Production, create the DNS record Vercel shows, and open the app on that domain.
 
 Always set the publishable and secret keys from the same instance. Sessions belong to Clerk user IDs, so changing instances changes which sessions a person sees.
+
+## Configure Redis
+
+Remote control and MCP need a Redis server that supports publish/subscribe and Lua scripts over a TCP connection, such as a Redis database added through the Vercel Marketplace. HTTP-only Redis APIs do not work. Set its connection URL as `REDIS_URL`, using `rediss://` when the provider requires TLS. Sessions load and save without Redis; without it, the Agent panel keeps reconnecting and MCP calls fail with `RELAY_UNAVAILABLE`.
+
+The tab command stream route allows up to 300 seconds and ends each stream after four minutes, then the tab reconnects. Keep the project's maximum function duration at 300 seconds or more.
 
 ## Apply migrations
 
@@ -139,6 +148,8 @@ Run the migration and the insert in one transaction, as a user that owns the tab
 
 Open the deployment, sign in, create a session, change the region, then reload and reopen it. Deployments are behind Vercel Authentication, so viewers need a Vercel team login. If the app shows that saved sessions are unavailable, open the deployment's runtime logs in the Vercel dashboard and find the `Session request failed` errors for `/api/sessions`.
 
+To check remote control, open a session with remote control on and confirm the Agent panel shows Connected. If it keeps reconnecting, find `Remote control request failed` or `Command relay Redis error` in the runtime logs for `/api/sessions/<id>/commands`.
+
 | Error                                                             | Cause and fix                                                                                               |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Clerk `host_invalid` in the browser                               | Production instance keys on a domain outside `wenglab.org`. Use development keys or a `wenglab.org` domain. |
@@ -148,5 +159,6 @@ Open the deployment, sign in, create a session, change the region, then reload a
 | `password authentication failed`                                  | `DB_USER` or `DB_PASSWORD` is wrong.                                                                        |
 | `column … does not exist` or `relation … does not exist`          | The database schema is behind the code. Apply the migrations.                                               |
 | `permission denied for table …`                                   | The app's login lacks grants on a table. Grant access as the table owner.                                   |
+| `REDIS_URL must be set for agent commands`                        | `REDIS_URL` is missing for that environment. Set it and redeploy.                                           |
 
 [Back to the docs home](../README.md)

@@ -24,3 +24,15 @@ export function requireClerkKeys(env: NodeJS.ProcessEnv) {
   if (missing.length)
     throw new Error(`${missing.join(" and ")} must be set to the project's Clerk instance keys`);
 }
+
+/**
+ * The Clerk user an agent request acts for: a signed-in session, or an OAuth
+ * access token Clerk issued to an agent the user authorized.
+ */
+export const clerkAgentIdentity: Identity = {
+  async userId() {
+    const caller = await auth({ acceptsToken: ["session_token", "oauth_token"] });
+    if (!caller.isAuthenticated) return null;
+    return caller.tokenType === "oauth_token" ? caller.subject : caller.userId;
+  },
+};

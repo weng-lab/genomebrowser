@@ -1,6 +1,6 @@
 # ADR 0002: Web owns persistence; MCP is a relay
 
-- Status: accepted
+- Status: superseded by [ADR 0007](0007-app-owned-mcp-redis-relay.md)
 - Date: 2026-10-29 (codified from existing docs)
 
 ## Context

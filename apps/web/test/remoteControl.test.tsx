@@ -18,10 +18,17 @@ class Stream extends EventTarget {
   onerror: (() => void) | null = null;
   onopen: (() => void) | null = null;
   closed = false;
-  constructor(readonly url: string) {
+  /** The commands URL, without the tab query. */
+  readonly url: string;
+  /** The tab this connection belongs to. */
+  readonly tab: string | null;
+  constructor(url: string) {
     super();
+    const parsed = new URL(url, "http://localhost");
+    this.url = parsed.pathname;
+    this.tab = parsed.searchParams.get("tab");
     Stream.opened.push(this);
-    Stream.log.push(`open ${url}`);
+    Stream.log.push(`open ${this.url}`);
   }
   close() {
     this.closed = true;
@@ -44,7 +51,7 @@ const heading = () => document.querySelector("h1")?.textContent;
 const region = () =>
   document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')?.textContent;
 const latest = () => Stream.opened.at(-1)!;
-const reply = (call = 0) => JSON.parse(server.rpc.mock.calls[call][1].body as string);
+const reply = (call = 0) => JSON.parse(server.replies.mock.calls[call][1].body as string);
 const setRegion = (chromosome: string, start: number, expiresAt = Date.now() + 5000) =>
   act(async () =>
     latest().send({
@@ -100,7 +107,7 @@ afterEach(() => {
 it("starts on for an account without a saved choice", async () => {
   server.remoteControl.clear();
   await reload();
-  await vi.waitFor(() => expect(Stream.log).toEqual([`open /rpc/${alpha}`]));
+  await vi.waitFor(() => expect(Stream.log).toEqual([`open /api/sessions/${alpha}/commands`]));
   await click('nav a[aria-label="Settings"]');
   expect(toggle().checked).toBe(true);
 });
@@ -119,10 +126,10 @@ it("keeps the saved choice across reloads, and sessions save while it is off", a
   // It attaches only once the choice is saved.
   expect(Stream.opened).toEqual([]);
   await act(async () => save.release());
-  await vi.waitFor(() => expect(Stream.log).toEqual([`open /rpc/${alpha}`]));
+  await vi.waitFor(() => expect(Stream.log).toEqual([`open /api/sessions/${alpha}/commands`]));
 
   await reload();
-  await vi.waitFor(() => expect(Stream.log.at(-1)).toBe(`open /rpc/${alpha}`));
+  await vi.waitFor(() => expect(Stream.log.at(-1)).toBe(`open /api/sessions/${alpha}/commands`));
   expect(server.settingsRequests).toEqual(["GET", true, "GET"]);
 });
 
@@ -150,7 +157,7 @@ it("reports a preference that cannot be loaded and loads it on retry", async () 
   await click('[role="alert"] button');
   await vi.waitFor(() => expect(toggle().checked).toBe(true));
   expect(text()).not.toContain("could not be loaded");
-  await vi.waitFor(() => expect(Stream.log).toEqual([`open /rpc/${alpha}`]));
+  await vi.waitFor(() => expect(Stream.log).toEqual([`open /api/sessions/${alpha}/commands`]));
 });
 
 it.each([
@@ -186,7 +193,7 @@ it("follows a choice saved in another tab when the window regains focus", async 
 
 it("attaches to the open session only once restored, and leaves it before attaching to the next", async () => {
   await enableRemoteControl();
-  expect(Stream.log).toEqual([`open /rpc/${alpha}`]);
+  expect(Stream.log).toEqual([`open /api/sessions/${alpha}/commands`]);
   expect(text()).toContain("Connecting…");
   act(() => latest().onopen!());
   expect(text()).toContain("Connected");
@@ -196,7 +203,11 @@ it("attaches to the open session only once restored, and leaves it before attach
   expect(Stream.log).toHaveLength(1);
   load.release();
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
-  expect(Stream.log).toEqual([`open /rpc/${alpha}`, `close /rpc/${alpha}`, `open /rpc/${beta}`]);
+  expect(Stream.log).toEqual([
+    `open /api/sessions/${alpha}/commands`,
+    `close /api/sessions/${alpha}/commands`,
+    `open /api/sessions/${beta}/commands`,
+  ]);
   act(() => latest().onopen!());
   expect(text()).toContain(`Connected. MCP tools called with sessionId "${beta}" run in this tab.`);
 
@@ -211,7 +222,7 @@ it("applies a region command in the browser, replies with the region, and saves 
   await act(async () => route.back());
   await setRegion("chr1", 1000);
   expect(region()).toBe("chr1:1,001-2,000");
-  expect(server.rpc.mock.calls[0][0]).toBe(`/rpc/${alpha}`);
+  expect(server.replies.mock.calls[0][0]).toBe(`/api/sessions/${alpha}/commands`);
   expect(reply()).toEqual({
     commandId,
     result: {
@@ -256,7 +267,7 @@ it("returns the store's rejection and ignores expired commands without changing 
   await setRegion("not-a-chromosome", 1000);
   expect(reply().result).toMatchObject({ ok: false, code: "UNKNOWN_CHROMOSOME" });
   await setRegion("chr1", 1000, Date.now() - 1000);
-  expect(server.rpc).toHaveBeenCalledTimes(1);
+  expect(server.replies).toHaveBeenCalledTimes(1);
   expect(region()).toBe(before);
 });
 
@@ -300,7 +311,7 @@ it("sorts tracks for the agent, replies with the new order, and saves it", async
   );
 });
 
-it("keeps saving while the MCP server is unavailable, then reconnects", async () => {
+it("keeps saving while the command stream is unavailable, then reconnects", async () => {
   await enableRemoteControl();
   await act(async () => route.back());
   const first = latest();
@@ -309,9 +320,20 @@ it("keeps saving while the MCP server is unavailable, then reconnects", async ()
   await click('button[aria-label="Pan right"]');
   await vi.waitFor(() => expect(server.writes()).toHaveLength(1));
   await vi.waitFor(() => expect(latest()).not.toBe(first), { timeout: 2000 });
+  // A reconnect belongs to the same tab, so it replaces that tab's connection.
+  expect(latest().tab).toBe(first.tab);
   act(() => latest().onopen!());
   await setRegion("chr2", 2000);
   expect(region()).toBe("chr2:2,001-3,000");
+});
+
+it("attaches as a new tab each time it attaches again", async () => {
+  await enableRemoteControl();
+  const first = latest();
+  expect(first.tab).toMatch(/^[0-9a-f-]{36}$/);
+  await act(async () => route.push(`/browser/${beta}`));
+  await vi.waitFor(() => expect(latest().url).toBe(`/api/sessions/${beta}/commands`));
+  expect(latest().tab).not.toBe(first.tab);
 });
 
 const exportImage = (params: object, expiresAt = Date.now() + 5000) =>
@@ -343,7 +365,7 @@ it("shows an exported image to the user and saves it only when they download it"
   await enableRemoteControl();
   await act(async () => route.back());
   await exportImage({ format: "svg", filename: "Figure 1", includeTitles: false });
-  await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
   const { result } = reply();
   expect(result).toMatchObject({ ok: true, value: { filename: "Figure 1.svg", format: "svg" } });
   expect(result.value.width).toBeGreaterThan(0);
@@ -365,7 +387,7 @@ it("reports an export failure to the agent without showing a preview", async () 
   await enableRemoteControl();
   // The Settings page is open, so no browser is rendered to capture.
   await exportImage({});
-  await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
   expect(reply().result).toEqual({
     ok: false,
     code: "EXPORT_FAILED",
@@ -380,7 +402,29 @@ it("cancels an export that outlasts its command, without showing a preview", asy
   await enableRemoteControl();
   await act(async () => route.back());
   await exportImage({ format: "png" }, Date.now() + 100);
-  await vi.waitFor(() => expect(server.rpc).toHaveBeenCalledTimes(1));
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  expect(reply().result).toMatchObject({ ok: false, code: "CANCELLED" });
+  expect(preview()).toBeNull();
+});
+
+it("stops an export when its caller cancels it, without showing a preview", async () => {
+  // jsdom never loads the image that PNG encoding waits for.
+  stubDownloads();
+  await enableRemoteControl();
+  await act(async () => route.back());
+  await exportImage({ format: "png" });
+  expect(server.replies).not.toHaveBeenCalled();
+  // A cancellation for another command changes nothing.
+  await act(async () =>
+    latest().dispatchEvent(
+      new MessageEvent("cancel", { data: JSON.stringify({ commandId: crypto.randomUUID() }) }),
+    ),
+  );
+  expect(server.replies).not.toHaveBeenCalled();
+  await act(async () =>
+    latest().dispatchEvent(new MessageEvent("cancel", { data: JSON.stringify({ commandId }) })),
+  );
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
   expect(reply().result).toMatchObject({ ok: false, code: "CANCELLED" });
   expect(preview()).toBeNull();
 });
@@ -388,7 +432,7 @@ it("cancels an export that outlasts its command, without showing a preview", asy
 /** A real pending HTTP reply: aborting the request rejects it. */
 function holdReply() {
   let release!: (response: Response) => void;
-  server.rpc.mockImplementationOnce(
+  server.replies.mockImplementationOnce(
     (_url, { signal }) =>
       new Promise<Response>((resolve, reject) => {
         release = resolve;
@@ -405,7 +449,7 @@ it.each(["session replacement", "remote control disabled"])(
     await enableRemoteControl();
     const finishReply = holdReply();
     await setRegion("chr1", 1000);
-    const pending = server.rpc.mock.calls[0][1].signal!;
+    const pending = server.replies.mock.calls[0][1].signal!;
     const first = latest();
     expect(pending.aborted).toBe(false);
 
@@ -419,7 +463,7 @@ it.each(["session replacement", "remote control disabled"])(
     const streams = Stream.opened.length;
     await act(async () => finishReply(503));
     expect(Stream.opened).toHaveLength(streams);
-    expect(server.rpc).toHaveBeenCalledTimes(1);
+    expect(server.replies).toHaveBeenCalledTimes(1);
   },
 );
 
@@ -442,7 +486,7 @@ it.each([409, 503, "network failure"] as const)(
     await act(async () => route.back());
     let fail!: () => void;
     if (status === "network failure") {
-      server.rpc.mockImplementationOnce(
+      server.replies.mockImplementationOnce(
         () =>
           new Promise((_resolve, reject) => {
             fail = () => reject(new Error("Offline"));
@@ -463,7 +507,7 @@ it.each([409, 503, "network failure"] as const)(
     expect(Stream.opened).toHaveLength(status === 409 ? 1 : 2);
     expect(first.closed).toBe(status !== 409);
     expect(region()).toBe(edited);
-    expect(server.rpc).toHaveBeenCalledTimes(1);
+    expect(server.replies).toHaveBeenCalledTimes(1);
   },
 );
 
@@ -499,7 +543,7 @@ it("rejects a command for a session replaced before remote control detaches from
   await act(async () => route.push(`/browser/${beta}`));
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
 
-  expect(server.rpc.mock.calls[0][0]).toBe(`/rpc/${alpha}`);
+  expect(server.replies.mock.calls[0][0]).toBe(`/api/sessions/${alpha}/commands`);
   expect(reply().result).toMatchObject({ ok: false, code: "SESSION_CLOSED" });
   // Replacing the session closed its stream before React rendered Beta.
   expect(closedOnOpen).toBe(true);
@@ -540,8 +584,10 @@ it("detaches when the account menu signs out, and old commands cannot run", asyn
       params: { region: { chromosome: "chr5", start: 5000, end: 6000 } },
     }),
   );
-  expect(server.rpc).not.toHaveBeenCalled();
-  expect(Stream.opened.filter(({ url }) => url === `/rpc/${alpha}`)).toEqual([stream]);
+  expect(server.replies).not.toHaveBeenCalled();
+  expect(Stream.opened.filter(({ url }) => url === `/api/sessions/${alpha}/commands`)).toEqual([
+    stream,
+  ]);
   expect(server.stored.get(alpha)!.snapshot.browser.region).toEqual(defaults().browser.region);
 });
 
@@ -554,7 +600,7 @@ it("detaches when the account changes elsewhere and the workspace remounts", asy
   expect(stream.closed).toBe(true);
   // Its stream is closed, so the server fails the command; a late event runs nothing.
   await setRegion("chr5", 5000);
-  expect(server.rpc).not.toHaveBeenCalled();
+  expect(server.replies).not.toHaveBeenCalled();
   expect(server.stored.get(alpha)!.snapshot.browser.region).toEqual(defaults().browser.region);
 });
 
@@ -591,7 +637,7 @@ it.each([false, true])(
     // A successful DELETE may already have committed while its response is delayed.
     if (!fails) server.stored.delete(alpha);
     await setRegion("chr6", 6000);
-    expect(reply(server.rpc.mock.calls.length - 1).result).toMatchObject({
+    expect(reply(server.replies.mock.calls.length - 1).result).toMatchObject({
       ok: false,
       code: "SESSION_CLOSED",
     });
@@ -603,7 +649,7 @@ it.each([false, true])(
       expect(heading()).toBe("Alpha");
       expect(region()).toBe(before);
       await setRegion("chr2", 2000);
-      expect(reply(server.rpc.mock.calls.length - 1).result.ok).toBe(true);
+      expect(reply(server.replies.mock.calls.length - 1).result.ok).toBe(true);
       await vi.waitFor(() =>
         expect(server.stored.get(alpha)!.snapshot.browser.region.chromosome).toBe("chr2"),
       );
