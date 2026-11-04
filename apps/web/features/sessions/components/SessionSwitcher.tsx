@@ -6,12 +6,13 @@ import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
 import { useId, useRef, useState } from "react";
 import { narrowTitleRow } from "../../../shared/workspace/frame/layout";
+import { NewSessionDialog } from "./NewSessionDialog";
 import { SessionMenu } from "./SessionMenu";
 import { SessionTitle } from "./SessionTitle";
 
 /**
  * The browser's title: the open session's name, which renames it when clicked,
- * and an arrow that opens the menu of recent sessions.
+ * and an arrow that opens the menu of recent sessions and the New session dialog.
  */
 export function SessionSwitcher() {
   // The whole title, so the menu lines up with the name's left edge. Set only while the
@@ -21,6 +22,7 @@ export function SessionSwitcher() {
   const menuOpen = anchor !== null;
   const close = () => setAnchor(null);
   const menuId = useId();
+  const [creating, setCreating] = useState(false);
   return (
     <Box ref={title} sx={switcherSx}>
       <SessionTitle />
@@ -43,8 +45,15 @@ export function SessionSwitcher() {
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         slotProps={{ paper: { sx: { width: 280, maxWidth: "calc(100vw - 32px)" } } }}
       >
-        <SessionMenu onDone={close} />
+        <SessionMenu
+          onDone={close}
+          onNewSession={() => {
+            close();
+            setCreating(true);
+          }}
+        />
       </Popover>
+      <NewSessionDialog open={creating} onClose={() => setCreating(false)} />
     </Box>
   );
 }

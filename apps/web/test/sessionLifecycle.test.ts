@@ -576,6 +576,7 @@ it("keeps a newer name through list refreshes and acknowledgements, sorted by na
     createdAt: stored.createdAt,
     updatedAt: stored.updatedAt,
     revision: stored.revision,
+    assembly: "hg38",
     trackCount: stored.snapshot.tracks.length,
   });
 });
@@ -660,7 +661,6 @@ it("creates no session while the active one cannot be saved", async () => {
 
   expect(writes()).not.toContain("POST");
   expect(state().active!.id).toBe(a);
-  expect(state().renaming).toBeUndefined();
   expect(state().error).toBe("Could not save “A”. Its changes are kept here.");
   expect(state().sessions.map(({ name }) => name)).toEqual(["A"]);
 });
@@ -859,6 +859,7 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
       createdAt: loaded.createdAt,
       updatedAt: loaded.updatedAt,
       revision: loaded.revision,
+      assembly: loaded.snapshot.browser.assembly,
       trackCount: loaded.snapshot.tracks.length,
       snapshot: loaded.snapshot,
     });

@@ -50,6 +50,7 @@ describe.skipIf(!testServerUrl)("session routes", () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       revision: 1,
+      assembly: "hg38",
       trackCount: snapshot().tracks.length,
     });
 

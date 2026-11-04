@@ -94,22 +94,24 @@ it("creates a session, saves edits, and keeps it open across workspace pages", a
   await openSessions();
   await vi.waitFor(() => expect(text()).toContain("No saved sessions yet."));
 
+  // New session asks for a name and an assembly, starting at the only supported one.
   await click(menuItem("New session"));
-  // The new session opens with its whole name selected, ready to type over.
-  const field = () => document.querySelector<HTMLInputElement>('input[aria-label="Session name"]');
-  await vi.waitFor(() => expect(field()?.value).toBe("New session"));
+  const dialog = () => document.querySelector('[role="dialog"]');
+  const name = () => dialog()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
+  await vi.waitFor(() => expect(name()).toBeTruthy());
+  expect(dialog()!.querySelector("h2")?.textContent).toBe("New session");
+  expect(name()!.placeholder).toBe("New session");
+  expect(document.activeElement).toBe(name());
+  expect(dialog()!.querySelector('[role="combobox"]')?.textContent).toBe("Human (GRCh38/hg38)");
+  expect(server.writes()).toEqual([]);
+
+  await type(name()!, "Promoter scan");
+  await click(withText('[role="dialog"] button', "Create"));
+  await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
   const [id] = server.stored.keys();
   expect(route.pathname()).toBe(`/browser/${id}`);
-  expect(server.stored.get(id)).toMatchObject({ name: "New session", snapshot: defaults() });
-  expect(document.activeElement).toBe(field());
-  expect([field()!.selectionStart, field()!.selectionEnd]).toEqual([0, "New session".length]);
-
-  await type(field()!, "Promoter scan");
-  await act(async () =>
-    field()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
-  );
-  expect(heading()).toBe("Promoter scan");
-  await vi.waitFor(() => expect(server.stored.get(id)!.name).toBe("Promoter scan"));
+  expect(server.stored.get(id)).toMatchObject({ name: "Promoter scan", snapshot: defaults() });
+  await vi.waitFor(() => expect(dialog()).toBeNull());
   await openSessions();
   expect(sessionNames()).toEqual(["Promoter scan"]);
 
@@ -192,8 +194,10 @@ it("lists the open session and the three most recently saved others", async () =
   expect(sessionNames()).toEqual(["Alpha", "Epsilon", "Delta", "Gamma"]);
   const current = document.querySelector('[role="presentation"] nav [aria-current="page"]');
   expect(current?.querySelector(".MuiListItemText-primary")?.textContent).toBe("Alpha");
-  // The time it was saved, then its tracks: Coordinates, GENCODE, and cCREs.
-  expect(current?.querySelector(".MuiListItemText-secondary")?.textContent).toMatch(/ • 3 tracks$/);
+  // Its assembly, the time it was saved, then its tracks: Coordinates, GENCODE, and cCREs.
+  expect(current?.querySelector(".MuiListItemText-secondary")?.textContent).toMatch(
+    /^hg38 • .+ • 3 tracks$/,
+  );
   expect(menuItem("Open session…")?.getAttribute("aria-disabled")).toBe("true");
 });
 

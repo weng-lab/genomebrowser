@@ -10,7 +10,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import { useId, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { supportedAssemblies } from "../../assemblies/assemblies";
 import type { Session } from "../schema";
 import type { SessionState } from "../session";
 import { useSession } from "../SessionProvider";
@@ -18,7 +17,6 @@ import { itemSx, SessionRow } from "./SessionRow";
 
 /** Other sessions listed beside the open one. */
 const RECENT_COUNT = 3;
-const NEW_SESSION_NAME = "New session";
 
 const statusMessages = {
   loading: "Loading saved sessions…",
@@ -26,8 +24,15 @@ const statusMessages = {
   "signed-out": "Sign in to save sessions.",
 };
 
-/** Recent sessions, then opening and creating sessions. `onDone` closes the menu. */
-export function SessionMenu({ onDone }: { onDone: () => void }) {
+type SessionMenuProps = {
+  /** Called when a session is opened, to close the menu. */
+  onDone: () => void;
+  /** Called when New session is chosen, to ask for the session's name and assembly. */
+  onNewSession: () => void;
+};
+
+/** Recent sessions, then opening and creating sessions. */
+export function SessionMenu({ onDone, onNewSession }: SessionMenuProps) {
   const ids = useSession(useShallow(recentIds));
   const status = useSession((session) => session.status);
   const labelId = useId();
@@ -78,27 +83,19 @@ export function SessionMenu({ onDone }: { onDone: () => void }) {
           </ListItemIcon>
           <ListItemText primary="Open session…" />
         </ListItemButton>
-        <NewSession onCreate={onDone} />
+        <NewSession onClick={onNewSession} />
       </List>
     </>
   );
 }
 
-/** Creates a session named “New session” at the default assembly, then opens it. */
-function NewSession({ onCreate }: { onCreate: () => void }) {
+/** Starts creating a session, while sessions can be created. */
+function NewSession({ onClick }: { onClick: () => void }) {
   const disabled = useSession(
     (session) => session.status !== "ready" || session.pending !== undefined,
   );
-  const create = useSession((session) => session.create);
-
-  function handleClick() {
-    onCreate();
-    // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
-    void create({ name: NEW_SESSION_NAME, assembly: supportedAssemblies[0].id });
-  }
-
   return (
-    <ListItemButton disabled={disabled} onClick={handleClick} sx={itemSx}>
+    <ListItemButton disabled={disabled} onClick={onClick} sx={itemSx}>
       <ListItemIcon sx={iconSx}>
         <Add fontSize="small" />
       </ListItemIcon>

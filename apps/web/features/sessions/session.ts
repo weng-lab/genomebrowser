@@ -32,15 +32,6 @@ export type SessionState = {
   /** Why the latest operation or save failed, for display. */
   error: string | undefined;
   /**
-   * The session whose name is being edited. `create` sets it to the new session, so
-   * its name is ready to change. Kept here so it lasts while pages change.
-   */
-  renaming: string | undefined;
-  /** Start editing a session's name. */
-  startRenaming(id: string): void;
-  /** Stop editing a session's name, unless another session's name is being edited by then. */
-  stopRenaming(id: string): void;
-  /**
    * Restore a saved session after saving every edit to the active one. If either
    * step fails, the active session stays open with its edits. A newer request
    * to open a session supersedes an older one.
@@ -79,7 +70,6 @@ const idle = {
   saveStatus: undefined,
   pending: undefined,
   error: undefined,
-  renaming: undefined,
 } satisfies Partial<SessionState>;
 
 const unavailable = (error: SessionRequestError) => error.code === "UNAVAILABLE";
@@ -115,8 +105,6 @@ export function createSession({
     open,
     create,
     rename,
-    startRenaming,
-    stopRenaming,
     overwrite,
     remove,
     close,
@@ -372,9 +360,8 @@ export function createSession({
       remember(created.success);
       const { id, name: createdName, revision } = created.success;
       yield* activate({ id, name: createdName, revision, stores });
-      if (current?.id === id) return set({ renaming: id });
       // An edit made while it was created could not be saved, so the previous session stays open.
-      if (previous && current === previous && get().error === saveError) {
+      if (current === previous && previous && get().error === saveError) {
         saveError = `“${createdName}” was created but not opened: “${get().active?.name}” could not be saved. Its changes are kept here.`;
         set({ error: saveError });
       }
@@ -394,14 +381,6 @@ export function createSession({
       ),
     );
     current.autosave.renamed();
-  }
-
-  function startRenaming(id: string): void {
-    set({ renaming: id });
-  }
-
-  function stopRenaming(id: string): void {
-    if (get().renaming === id) set({ renaming: undefined });
   }
 
   function overwrite(): Promise<void> {

@@ -20,22 +20,24 @@ type SessionRowProps = {
 };
 
 /**
- * A recent session's link: its name, then when it was last saved and how many tracks
- * it has. The open session is highlighted and checked. The delete icon removes it.
+ * A recent session's link: its name, then its assembly, when it was last saved, and how
+ * many tracks it has. The open session is highlighted and checked. The delete icon removes it.
  */
 export function SessionRow({ id, now, onOpen }: SessionRowProps) {
   const find = ({ sessions }: SessionState) => sessions.find((saved) => saved.id === id);
   const name = useSession((session) => find(session)?.name);
   const savedAt = useSession((session) => find(session)?.updatedAt.getTime());
+  const assembly = useSession((session) => find(session)?.assembly);
   const trackCount = useSession((session) => find(session)?.trackCount);
   const active = useSession((session) => session.active?.id === id);
   const busy = useSession((session) => session.pending !== undefined);
   const remove = useSession((session) => session.remove);
 
   const details =
+    assembly !== undefined &&
     savedAt !== undefined &&
     trackCount !== undefined &&
-    `${formatSavedAt(new Date(savedAt), now)} • ${formatTrackCount(trackCount)}`;
+    `${assembly} • ${formatSavedAt(new Date(savedAt), now)} • ${formatTrackCount(trackCount)}`;
 
   return (
     <ListItem

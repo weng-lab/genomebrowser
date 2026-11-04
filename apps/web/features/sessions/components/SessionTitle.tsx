@@ -18,10 +18,6 @@ export function SessionTitle() {
       !session.active &&
       (session.pending?.operation === "open" || session.pending?.operation === "create"),
   );
-  // By ID, so opening another session ends the edit.
-  const editing = useSession((session) => id !== undefined && session.renaming === id);
-  const startRenaming = useSession((session) => session.startRenaming);
-  const stopRenaming = useSession((session) => session.stopRenaming);
 
   if (id === undefined || name === undefined)
     return (
@@ -29,15 +25,22 @@ export function SessionTitle() {
         {opening ? "Opening session…" : "No session open"}
       </Typography>
     );
+  // Keyed by session, so opening another session ends an edit.
+  return <SessionName key={id} name={name} />;
+}
+
+/** The open session's name, or the field editing it after the name is clicked. */
+function SessionName({ name }: { name: string }) {
+  const [editing, setEditing] = useState(false);
   if (editing)
     return (
       <Typography variant="body2" component="h1" sx={{ minWidth: 0 }}>
-        <RenameField initialName={name} onDone={() => stopRenaming(id)} />
+        <RenameField initialName={name} onDone={() => setEditing(false)} />
       </Typography>
     );
   return (
     <Typography variant="body2" component="h1" noWrap sx={{ minWidth: 0 }}>
-      <ButtonBase title="Rename session" onClick={() => startRenaming(id)} sx={nameButtonSx}>
+      <ButtonBase title="Rename session" onClick={() => setEditing(true)} sx={nameButtonSx}>
         {name}
       </ButtonBase>
     </Typography>

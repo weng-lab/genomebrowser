@@ -48,6 +48,7 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
       createdAt: expect.any(Date),
       updatedAt: saved.createdAt,
       revision: 1,
+      assembly: "hg38",
       trackCount: snapshot().tracks.length,
     });
     expect(saved.createdAt.getTime()).toBeGreaterThanOrEqual(before - 1000);
