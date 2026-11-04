@@ -1,4 +1,4 @@
-import { regionSchema } from "@weng-lab/contracts";
+import { regionSchema } from "../browser/region";
 import { z } from "zod";
 
 const highlightStyleSchema = z.strictObject({

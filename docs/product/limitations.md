@@ -1,6 +1,6 @@
 # App limitations
 
-These are current implementation constraints and deployment gaps. They do not redefine the [MVP scope](mvp.md): missing authorization, for example, is work needed for launch rather than a product exclusion. Setup and supported operations are documented in the [web app guide](../../apps/web/README.md) and [MCP server guide](../../apps/server/README.md).
+These are current implementation constraints and deployment gaps. They do not redefine the [MVP scope](mvp.md): missing authorization, for example, is work needed for launch rather than a product exclusion. Setup and supported operations are documented in the [web app guide](../../apps/web/README.md).
 
 ## Identity and deployment
 
@@ -8,7 +8,7 @@ These are current implementation constraints and deployment gaps. They do not re
 - A Clerk development instance keeps each site's sign-in separately, so every new preview deployment URL starts signed out.
 - App account controls save or ask the user to discard before changing accounts. External account changes, such as another tab signing out or the Clerk session ending, may discard unsaved state. Old credentials cannot save it, and a new account must not see it. Clerk multi-session switching is not offered.
 - Cloud SQL connections from Vercel are unverified against a deployment. Preview and Production share development resources; see [production deployment](production.md). Each server process holds up to five connections; validate the instance's connection limit against expected concurrency before production deployment.
-- MCP has no authentication or session authorization and stays on loopback. Any caller that can reach it and knows a session ID can control a connected tab. The cloud variant targets Google Cloud Run; deployment still needs access controls and changes to the loopback-only listener and Host checks. Its in-memory tab registry requires a single instance. Cloud Run's maximum-instances setting does not strictly guarantee that (spikes and overlapping revisions can briefly run more), and [session affinity](https://docs.cloud.google.com/run/docs/configuring/session-affinity) does not help: it is per client and best effort, and the agent and the browser are separate clients. SSE connections close at Cloud Run's [request timeout](https://docs.cloud.google.com/run/docs/configuring/request-timeout) (5 minutes by default, at most 60); the tab then reconnects, possibly to another instance, and in-flight commands fail and are not replayed.
+- MCP accepts the session owner's Clerk session token or a Clerk-issued OAuth access token. OAuth discovery and onboarding for external clients are not built yet, so outside automated tests a client needs a token obtained separately. Remote control and MCP on a deployment are unverified against a hosted Redis.
 - Next.js binds to `localhost` for Clerk request handling. This can resolve only to `::1`, so IPv4 clients or SSH forwarding to `127.0.0.1` may fail. Use the documented localhost URL and check the listening address before configuring a tunnel.
 
 ## Session behavior
@@ -22,7 +22,9 @@ These are current implementation constraints and deployment gaps. They do not re
 
 ## Remote control
 
-- The account preference is enforced by each tab, not the server: a tab that is off does not connect, but MCP does not check the preference. Other open tabs follow a change when their window regains focus or reloads.
+- The server checks the account preference for every tool call, tab connection, and reply, but does not close streams already open. Those tabs disconnect when their window regains focus or reloads; commands sent to them meanwhile are refused at dispatch.
+- A connection whose server instance stopped without cleanup keeps its session's lease for up to 45 seconds. Until then, a different tab or a new attachment of the same tab is refused and keeps retrying.
+- Cancellation is cooperative: the tab stops a command that is still running, but a change already applied stays.
 - A timeout or disconnect can occur after a command changed the stores but before its reply arrived. A failed call does not prove that nothing changed.
 - A terminal save failure, such as deletion elsewhere, disables MCP for that session. Remote control resumes when the next session opens. Refused edits that a further edit can fix do not end the attachment.
 

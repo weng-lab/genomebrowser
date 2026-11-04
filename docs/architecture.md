@@ -16,13 +16,11 @@ Recorded decisions: [ADR index](adr/README.md).
 | `packages/ui`           | Optional embedding controls (navigation, selection, highlights, overviews) |
 | `packages/create`       | Starter generator for v2 packages                                          |
 | `packages/render-probe` | Private render-budget test utility                                         |
-| `apps/web`              | Product Next.js app (sessions, routes, command handlers)                   |
-| `apps/server`           | Optional MCP relay to browser tabs (no database)                           |
-| `apps/contracts`        | Private command/wire/region schemas shared by the apps                     |
+| `apps/web`              | Product Next.js app (sessions, routes, agent commands, MCP endpoint)       |
 | `legacy/*`              | Archived playground and standalone; outside the pnpm workspace             |
 
 Core and reader are independent foundations. Tracks combines them. UI wraps the browser for host sites. The web app is one consumer, not the source of every shared component's requirements.
 
 Within core, keep sizing, data-controller lifetime, and SVG/paint ownership with `GenomeBrowser`, `BrowserProvider`, and `BrowserCanvas` respectively so callers do not coordinate those lifetimes. Details live in code and in core's packaged docs.
 
-For where a new capability belongs, see [feature placement](feature-placement.md). For app product intent, see [product](product/README.md). For runbooks, see `apps/web/README.md` and `apps/server/README.md`.
+For where a new capability belongs, see [feature placement](feature-placement.md). For app product intent, see [product](product/README.md). For runbooks, see `apps/web/README.md`.

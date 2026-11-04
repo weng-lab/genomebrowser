@@ -1,6 +1,6 @@
 # Getting started
 
-Follow the [app README](../README.md#run-locally) to start PostgreSQL, Next.js, and optionally the MCP server. Sign in with the Clerk development instance, whose keys the README describes; sessions use real PostgreSQL persistence and ownership checks. Open `/browser`, which shows the open session or an empty state, then use the sidebar to visit `/collections` and `/settings`.
+Follow the [app README](../README.md#run-locally) to start PostgreSQL, Redis, and Next.js. Sign in with the Clerk development instance, whose keys the README describes; sessions use real PostgreSQL persistence and ownership checks. Open `/browser`, which shows the open session or an empty state, then use the sidebar to visit `/collections` and `/settings`.
 
 The shared route layout composes `AppProviders`, `Workspace`, and route children. `AppProviders` composes the account-scoped session and remote-control providers. The session feature owns initialization and live browser and track stores; the agent feature owns the optional command connection. `Workspace` supplies the generic frame and persistent panel state. Each route renders its own content through `WorkspacePage`.
 
