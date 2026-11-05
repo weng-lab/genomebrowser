@@ -323,6 +323,60 @@ it("copies a saved session that is not open and opens the copy", async () => {
   expect(server.stored.get(beta)).toMatchObject({ name: "Beta", revision: 1 });
 });
 
+it.each(["saved elsewhere", "deleted elsewhere"])(
+  "moves edits that cannot be saved to a copy when the session was %s",
+  async (change) => {
+    const alpha = server.add("Alpha", defaults());
+    await visit(`/browser/${alpha}`);
+    await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+    if (change === "saved elsewhere") Object.assign(server.stored.get(alpha)!, { revision: 2 });
+    else server.stored.delete(alpha);
+    const original = server.stored.get(alpha);
+    await click(button("Pan right"));
+    await vi.waitFor(() => expect(server.writes().at(-1)?.method).toBe("PUT"));
+    await vi.waitFor(() => expect(document.querySelector('[role="alert"]')).not.toBeNull());
+
+    // An edit made while the copy is created moves to it too.
+    const creating = server.hold("POST");
+    await openSessions();
+    await click(button("Actions for session Alpha"));
+    await click(actionItem("Save a copy"));
+    await click(button("Pan right"));
+    const edited = region();
+    creating.release();
+    await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+    const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+    expect(route.pathname()).toBe(`/browser/${copy}`);
+    expect(region()).toBe(edited);
+    expect(document.querySelector('[role="alert"]')).toBeNull();
+    await vi.waitFor(() => expect(closeTab()).toBe(false));
+    expect(savedRegion(copy)).not.toEqual(defaults().browser.region);
+    expect(server.stored.get(alpha)).toEqual(original);
+  },
+);
+
+it("keeps the open session's edits when it cannot be reached to copy it", async () => {
+  const alpha = server.add("Alpha", defaults());
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  const save = server.hold("PUT");
+  await click(button("Pan right"));
+  const edited = region();
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  await act(async () => save.fail());
+  await vi.waitFor(() =>
+    expect(text()).toContain("Could not save “Alpha”. Its changes are kept here."),
+  );
+  expect(heading()).toBe("Alpha");
+  expect(region()).toBe(edited);
+  expect(server.stored.size).toBe(1);
+  await vi.waitFor(() => expect(closeTab()).toBe(false), { timeout: 3000 });
+  expect(savedRegion(alpha)).not.toEqual(defaults().browser.region);
+});
+
 it.each(["Sign out", "Manage account"])("saves before Clerk %s", async (action) => {
   const change = action === "Sign out" ? clerk.signOut : clerk.openUserProfile;
   const a = server.add("Alpha", defaults());

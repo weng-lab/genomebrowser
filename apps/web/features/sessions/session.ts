@@ -42,7 +42,8 @@ export type SessionState = {
   create(input: { name: string; assembly: string }): Promise<void>;
   /**
    * Save a copy of a session, named “Copy of” its name, then open the copy like `open`.
-   * A copy of the active session includes its unsaved edits.
+   * A copy of the active session includes its unsaved edits. When they can no longer
+   * be saved to it, such as after a conflict or deletion elsewhere, they move to the copy.
    */
   copy(id: string): Promise<void>;
   /** Rename the active session. The name saves with its next autosave. */
@@ -241,8 +242,15 @@ export function createSession({
     stay();
   }
 
-  /** Replace the active session once the previous one has no unsaved edits. */
-  const activate = ({ revision, ...next }: Omit<Active, "signal"> & { revision: number }) =>
+  /**
+   * Replace the active session once the previous one has no unsaved edits. With
+   * `takeOver`, its edits move to the next session instead, which saves them, and it
+   * closes without saving.
+   */
+  const activate = (
+    { revision, ...next }: Omit<Active, "signal"> & { revision: number },
+    { takeOver = false } = {},
+  ) =>
     Effect.gen(function* () {
       const sessionScope = yield* Scope.fork(scope!);
       const ended = new AbortController();
@@ -288,6 +296,19 @@ export function createSession({
       };
       const previous = current;
       if (!previous) return replace();
+      if (takeOver) {
+        // Started saving, so edits made since it was created save to it. Nothing
+        // yields until the stores are replaced, so no edit can fall between.
+        try {
+          restore(next.stores, snapshot(get().active!.stores));
+        } catch {
+          // Edits that cannot be serialized cannot be saved anywhere, so they stay behind.
+        }
+        replace();
+        // Its edits are no longer the previous session's, so its failure to save them no longer applies.
+        if (saveError && get().error === saveError) set({ error: undefined });
+        return yield* Scope.close(previous.scope, Exit.void);
+      }
       yield* finishSaving(previous, replace).pipe(
         Effect.catch((error) => Effect.sync(() => unsaved(error))),
         Effect.ensuring(
@@ -307,17 +328,19 @@ export function createSession({
 
   /**
    * Save every edit to the open session, then create a session from `stores` and open it.
-   * `refused` describes why the server refused to create it.
+   * `refused` describes why the server refused to create it. With `takeOver`, the open
+   * session's edits move to the new one instead of saving; see `activate`.
    */
   const createAndOpen = (
     name: string,
     stores: GenomeBrowserStores,
     refused: (error: SessionRequestError) => string,
+    { takeOver = false } = {},
   ) =>
     Effect.gen(function* () {
       // Save the open session first, so no session is created that it would keep from opening.
       const previous = current;
-      if (previous) {
+      if (previous && !takeOver) {
         const saved = yield* Effect.result(previous.autosave.flush);
         if (Result.isFailure(saved)) return unsaved(saved.failure);
       }
@@ -325,7 +348,7 @@ export function createSession({
       if (Result.isFailure(created)) return failed(created.failure, refused(created.failure));
       remember(created.success);
       const { id, name: createdName, revision } = created.success;
-      yield* activate({ id, name: createdName, revision, stores });
+      yield* activate({ id, name: createdName, revision, stores }, { takeOver });
       // An edit made while it was created could not be saved, so the previous session stays open.
       if (current === previous && previous && get().error === saveError) {
         saveError = `“${createdName}” was created but not opened: “${get().active?.name}” could not be saved. Its changes are kept here.`;
@@ -394,8 +417,21 @@ export function createSession({
     const operation = Effect.gen(function* () {
       const active = get().active;
       let source: { name: string; snapshot: SessionSnapshot };
-      if (active?.id === id) source = { name: active.name, snapshot: snapshot(active.stores) };
-      else {
+      // Whether the active session's edits can no longer be saved, so they move to the copy.
+      let takeOver = false;
+      if (active && current?.id === id) {
+        const saved = yield* Effect.result(current.autosave.flush);
+        // While unreachable, its edits may still save, so it stays open with them.
+        if (Result.isFailure(saved) && unavailable(saved.failure)) return unsaved(saved.failure);
+        takeOver = Result.isFailure(saved);
+        try {
+          source = { name: active.name, snapshot: snapshot(active.stores) };
+        } catch {
+          return set({
+            error: `“${active.name}” cannot be copied until its latest changes are valid.`,
+          });
+        }
+      } else {
         const loaded = yield* Effect.result(load(id));
         if (Result.isFailure(loaded)) {
           const name = get().sessions.find((session) => session.id === id)?.name ?? "the session";
@@ -417,10 +453,14 @@ export function createSession({
       } catch {
         return set({ error: "This session's saved state cannot be copied." });
       }
-      yield* createAndOpen(copyName(source.name), stores, (error) =>
-        error.code === "INVALID_INPUT"
-          ? `“${source.name}” is too large to copy.`
-          : `Could not copy “${source.name}”. Try again.`,
+      yield* createAndOpen(
+        copyName(source.name),
+        stores,
+        (error) =>
+          error.code === "INVALID_INPUT"
+            ? `“${source.name}” is too large to copy.`
+            : `Could not copy “${source.name}”. Try again.`,
+        { takeOver },
       );
     });
     return run(exclusive({ operation: "copy", id }, operation))?.done ?? Promise.resolve();
