@@ -1,6 +1,6 @@
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { Clock, Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
-import { observeSnapshot, snapshot } from "./storeSnapshot";
+import { snapshot } from "./storeSnapshot";
 import type { Session, SessionInput } from "./schema";
 import { SessionRequestError, type SessionTransport } from "./transport";
 
@@ -150,8 +150,11 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   });
 
   yield* Effect.acquireRelease(
-    Effect.sync(() => observeSnapshot(stores, changed)),
-    (unsubscribe) => Effect.sync(unsubscribe),
+    Effect.sync(() => [
+      stores.useBrowserStore.subscribe(changed),
+      stores.useTrackStore.subscribe(changed),
+    ]),
+    (subscriptions) => Effect.sync(() => subscriptions.forEach((unsubscribe) => unsubscribe())),
   );
   yield* Effect.forkScoped(
     Effect.gen(function* () {

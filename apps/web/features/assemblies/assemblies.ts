@@ -45,7 +45,7 @@ export function getAssembly(assemblyId: string) {
 /**
  * New browser and track stores for an assembly, starting at its default view and
  * tracks, or undefined for an unsupported assembly. Every first-party track module
- * is registered so a restored session can contain any of their tracks.
+ * is registered so their tracks can be added to the session later.
  */
 export function createStores(assemblyId: string): GenomeBrowserStores | undefined {
   const starter = Object.values(starters).find(({ assembly }) => assembly.id === assemblyId);
