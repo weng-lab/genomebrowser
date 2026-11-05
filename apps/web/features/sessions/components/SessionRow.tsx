@@ -27,7 +27,7 @@ type SessionRowProps = {
 
 /**
  * A recent session's link: its name, then its assembly, when it was last saved, and how
- * many tracks it has. The open session is highlighted and checked. Its actions menu deletes it.
+ * many tracks it has. The open session is highlighted and checked. Its actions menu copies or deletes it.
  */
 export function SessionRow({ id, now, onOpen }: SessionRowProps) {
   const find = ({ sessions }: SessionState) => sessions.find((saved) => saved.id === id);
@@ -71,6 +71,7 @@ export function SessionRow({ id, now, onOpen }: SessionRowProps) {
 /** A session's more-actions button and the menu it opens: save a copy and delete. */
 function SessionActions({ id, name }: { id: string; name: string | undefined }) {
   const busy = useSession((session) => session.pending !== undefined);
+  const copy = useSession((session) => session.copy);
   const remove = useSession((session) => session.remove);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const menuId = useId();
@@ -101,8 +102,13 @@ function SessionActions({ id, name }: { id: string; name: string | undefined }) 
         transformOrigin={{ vertical: "top", horizontal: "left" }}
         slotProps={{ list: { dense: true, "aria-label": label } }}
       >
-        {/* Saving a copy is not wired yet. */}
-        <MenuItem disabled>
+        <MenuItem
+          onClick={() => {
+            close();
+            // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
+            void copy(id);
+          }}
+        >
           <ListItemIcon>
             <ContentCopy fontSize="small" />
           </ListItemIcon>

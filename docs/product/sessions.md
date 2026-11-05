@@ -1,6 +1,6 @@
 # Sessions
 
-A session is a saved browsing setup for one assembly. Account-owned persistence is implemented in `apps/web`. [MVP scope](mvp.md) owns product requirements; guest restoration and session copying are planned, not implied by current code.
+A session is a saved browsing setup for one assembly. Account-owned persistence is implemented in `apps/web`. [MVP scope](mvp.md) owns product requirements; guest restoration is planned, not implied by current code. “Save a copy” is implemented for saved sessions.
 
 ## Planned product behavior
 

@@ -261,6 +261,68 @@ it("deletes the open session and shows the empty browser", async () => {
   expect(server.stored.has(a)).toBe(false);
 });
 
+/** A setup unlike the defaults: another region, a saved region, and reordered tracks. */
+function customized(chromosome: string) {
+  const saved = defaults();
+  return {
+    ...saved,
+    browser: {
+      ...saved.browser,
+      region: { chromosome, start: 1000, end: 2000 },
+      highlights: [{ id: "hs2", color: "#ff0000", region: { chromosome, start: 1200, end: 1400 } }],
+    },
+    tracks: saved.tracks.toReversed(),
+  };
+}
+
+it("copies the open session with its unsaved edits and opens the copy", async () => {
+  const alpha = server.add("Alpha", customized("chr2"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  // Copy while the edit is still unsaved: both sessions get it.
+  const save = server.hold("PUT");
+  await click(button("Pan right"));
+  const edited = region();
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  save.release();
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+  const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+  expect(route.pathname()).toBe(`/browser/${copy}`);
+  expect(region()).toBe(edited);
+  expect(server.stored.get(alpha)!.snapshot.browser.region).not.toEqual(
+    customized("chr2").browser.region,
+  );
+  expect(server.stored.get(copy)!.snapshot).toEqual(server.stored.get(alpha)!.snapshot);
+  expect(sessionNames()).toEqual(["Copy of Alpha", "Alpha"]);
+
+  // Edits to the copy leave the original alone.
+  const original = server.stored.get(alpha)!.snapshot;
+  await click(button("Pan right"));
+  await vi.waitFor(() => expect(closeTab()).toBe(false));
+  expect(savedRegion(copy)).not.toEqual(original.browser.region);
+  expect(server.stored.get(alpha)!.snapshot).toEqual(original);
+});
+
+it("copies a saved session that is not open and opens the copy", async () => {
+  const alpha = server.add("Alpha", defaults());
+  const beta = server.add("Beta", customized("chr3"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
+  const copy = [...server.stored.keys()].find((id) => id !== alpha && id !== beta)!;
+  expect(route.pathname()).toBe(`/browser/${copy}`);
+  expect(region()).toBe("Edit region chr3:1,001-2,000");
+  expect(server.stored.get(copy)!.snapshot).toEqual(customized("chr3"));
+  expect(server.stored.get(beta)).toMatchObject({ name: "Beta", revision: 1 });
+});
+
 it.each(["Sign out", "Manage account"])("saves before Clerk %s", async (action) => {
   const change = action === "Sign out" ? clerk.signOut : clerk.openUserProfile;
   const a = server.add("Alpha", defaults());

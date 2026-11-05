@@ -4,7 +4,7 @@ These components are internal to `apps/web`, not a published package API. The sh
 
 ## `AppProviders`
 
-Mounts `SessionProvider` and `RemoteControlProvider` for the signed-in account; changing accounts remounts both. `AccountControls` signs out or switches users only after `close` saves or discards the open session. `SessionProvider` owns saved sessions and the open session for the workspace's lifetime, and opens the session named in the URL. Read it with `useSession(selector)`, which returns `status`, `sessions`, `active` (the open session's ID, name, and stores), `saveStatus`, `pending`, `error`, and the operations `open`, `create`, `rename`, `remove`, and `close`. `useRemoteControl()` exposes the connection state and the Settings toggle. See [Sessions](../README.md#sessions) for the contract.
+Mounts `SessionProvider` and `RemoteControlProvider` for the signed-in account; changing accounts remounts both. `AccountControls` signs out or switches users only after `close` saves or discards the open session. `SessionProvider` owns saved sessions and the open session for the workspace's lifetime, and opens the session named in the URL. Read it with `useSession(selector)`, which returns `status`, `sessions`, `active` (the open session's ID, name, and stores), `saveStatus`, `pending`, `error`, and the operations `open`, `create`, `copy`, `rename`, `remove`, and `close`. `useRemoteControl()` exposes the connection state and the Settings toggle. See [Sessions](../README.md#sessions) for the contract.
 
 ## `Workspace`
 
