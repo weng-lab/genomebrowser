@@ -34,6 +34,13 @@ function click(element: Element | null | undefined) {
 async function openSessions() {
   if (button("Sessions")?.getAttribute("aria-expanded") !== "true") await click(button("Sessions"));
 }
+/** The open actions menu's item named `label`. */
+const actionItem = (label: string) => withText('[role="menu"] [role="menuitem"]', label);
+/** Delete the session named `name` from its actions menu in the session menu. */
+async function deleteSession(name: string) {
+  await click(button(`Actions for session ${name}`));
+  await click(actionItem("Delete"));
+}
 const menuItem = (label: string) =>
   [...document.querySelectorAll<HTMLElement>('[role="presentation"] [role="button"]')].find(
     (item) => item.textContent === label,
@@ -244,7 +251,7 @@ it("deletes the open session and shows the empty browser", async () => {
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
 
   await openSessions();
-  await click(button("Delete session Alpha"));
+  await deleteSession("Alpha");
   await vi.waitFor(() => expect(route.pathname()).toBe("/browser"));
   expect(heading()).toBe("No session open");
   expect(text()).toContain("Open a recent session or create one from the menu beside the title.");
@@ -252,6 +259,122 @@ it("deletes the open session and shows the empty browser", async () => {
   expect(button("Sessions")?.getAttribute("aria-expanded")).toBe("true");
   expect(sessionNames()).toEqual(["Beta"]);
   expect(server.stored.has(a)).toBe(false);
+});
+
+/** A setup unlike the defaults: another region, a saved region, and reordered tracks. */
+function customized(chromosome: string) {
+  const saved = defaults();
+  return {
+    ...saved,
+    browser: {
+      ...saved.browser,
+      region: { chromosome, start: 1000, end: 2000 },
+      highlights: [{ id: "hs2", color: "#ff0000", region: { chromosome, start: 1200, end: 1400 } }],
+    },
+    tracks: saved.tracks.toReversed(),
+  };
+}
+
+it("copies the open session with its unsaved edits and opens the copy", async () => {
+  const alpha = server.add("Alpha", customized("chr2"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  // Copy while the edit is still unsaved: both sessions get it.
+  const save = server.hold("PUT");
+  await click(button("Pan right"));
+  const edited = region();
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  save.release();
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+  const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+  expect(route.pathname()).toBe(`/browser/${copy}`);
+  expect(region()).toBe(edited);
+  expect(server.stored.get(alpha)!.snapshot.browser.region).not.toEqual(
+    customized("chr2").browser.region,
+  );
+  expect(server.stored.get(copy)!.snapshot).toEqual(server.stored.get(alpha)!.snapshot);
+  expect(sessionNames()).toEqual(["Copy of Alpha", "Alpha"]);
+
+  // Edits to the copy leave the original alone.
+  const original = server.stored.get(alpha)!.snapshot;
+  await click(button("Pan right"));
+  await vi.waitFor(() => expect(closeTab()).toBe(false));
+  expect(savedRegion(copy)).not.toEqual(original.browser.region);
+  expect(server.stored.get(alpha)!.snapshot).toEqual(original);
+});
+
+it("copies a saved session that is not open and opens the copy", async () => {
+  const alpha = server.add("Alpha", defaults());
+  const beta = server.add("Beta", customized("chr3"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
+  const copy = [...server.stored.keys()].find((id) => id !== alpha && id !== beta)!;
+  expect(route.pathname()).toBe(`/browser/${copy}`);
+  expect(region()).toBe("Edit region chr3:1,001-2,000");
+  expect(server.stored.get(copy)!.snapshot).toEqual(customized("chr3"));
+  expect(server.stored.get(beta)).toMatchObject({ name: "Beta", revision: 1 });
+});
+
+it.each(["saved elsewhere", "deleted elsewhere"])(
+  "moves edits that cannot be saved to a copy when the session was %s",
+  async (change) => {
+    const alpha = server.add("Alpha", defaults());
+    await visit(`/browser/${alpha}`);
+    await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+    if (change === "saved elsewhere") Object.assign(server.stored.get(alpha)!, { revision: 2 });
+    else server.stored.delete(alpha);
+    const original = server.stored.get(alpha);
+    await click(button("Pan right"));
+    await vi.waitFor(() => expect(server.writes().at(-1)?.method).toBe("PUT"));
+    await vi.waitFor(() => expect(document.querySelector('[role="alert"]')).not.toBeNull());
+
+    // An edit made while the copy is created moves to it too.
+    const creating = server.hold("POST");
+    await openSessions();
+    await click(button("Actions for session Alpha"));
+    await click(actionItem("Save a copy"));
+    await click(button("Pan right"));
+    const edited = region();
+    creating.release();
+    await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+    const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+    expect(route.pathname()).toBe(`/browser/${copy}`);
+    expect(region()).toBe(edited);
+    expect(document.querySelector('[role="alert"]')).toBeNull();
+    await vi.waitFor(() => expect(closeTab()).toBe(false));
+    expect(savedRegion(copy)).not.toEqual(defaults().browser.region);
+    expect(server.stored.get(alpha)).toEqual(original);
+  },
+);
+
+it("keeps the open session's edits when it cannot be reached to copy it", async () => {
+  const alpha = server.add("Alpha", defaults());
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  const save = server.hold("PUT");
+  await click(button("Pan right"));
+  const edited = region();
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  await act(async () => save.fail());
+  await vi.waitFor(() =>
+    expect(text()).toContain("Could not save “Alpha”. Its changes are kept here."),
+  );
+  expect(heading()).toBe("Alpha");
+  expect(region()).toBe(edited);
+  expect(server.stored.size).toBe(1);
+  await vi.waitFor(() => expect(closeTab()).toBe(false), { timeout: 3000 });
+  expect(savedRegion(alpha)).not.toEqual(defaults().browser.region);
 });
 
 it.each(["Sign out", "Manage account"])("saves before Clerk %s", async (action) => {
@@ -378,7 +501,7 @@ it("keeps conflict recovery after another session is deleted", async () => {
   const kept = region();
   await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   await openSessions();
-  await click(button("Delete session Beta"));
+  await deleteSession("Beta");
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha", "Gamma"]));
   expect(server.stored.has(beta)).toBe(false);
   expect(saveOver()).toBeTruthy();
@@ -397,7 +520,7 @@ it("keeps conflict recovery after another session is deleted", async () => {
   await click(button("Pan right"));
   await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   await openSessions();
-  await click(button("Delete session Gamma"));
+  await deleteSession("Gamma");
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   expect(server.stored.has(gamma)).toBe(false);
   expect(saveOver()).toBeTruthy();
@@ -536,8 +659,9 @@ it("budgets the session menu when another session is deleted", async () => {
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   await openSessions();
+  await click(button("Actions for session Beta"));
   const report = await probe!.measure(async () => {
-    button("Delete session Beta")!.click();
+    (actionItem("Delete") as HTMLElement).click();
     await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   });
   expect(report.pick("SessionMenu", "SessionTitle", "BrowserView", "BrowserContent"))

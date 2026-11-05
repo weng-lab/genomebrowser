@@ -630,7 +630,12 @@ it.each([false, true])(
     const stream = latest();
     const deletion = server.hold("DELETE");
     await click('button[aria-label="Sessions"]');
-    await click('button[aria-label="Delete session Alpha"]');
+    await click('button[aria-label="Actions for session Alpha"]');
+    await act(async () =>
+      [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+        .find((item) => item.textContent === "Delete")!
+        .click(),
+    );
     await vi.waitFor(() => expect(server.writes().at(-1)?.method).toBe("DELETE"));
     expect(stream.closed).toBe(true);
     const before = region();

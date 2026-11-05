@@ -16,7 +16,9 @@ export function SessionTitle() {
   const opening = useSession(
     (session) =>
       !session.active &&
-      (session.pending?.operation === "open" || session.pending?.operation === "create"),
+      (session.pending?.operation === "open" ||
+        session.pending?.operation === "create" ||
+        session.pending?.operation === "copy"),
   );
 
   if (id === undefined || name === undefined)
