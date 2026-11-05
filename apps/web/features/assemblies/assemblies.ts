@@ -37,6 +37,11 @@ export const supportedAssemblies = Object.values(starters).map(({ assembly, labe
   label,
 }));
 
+/** Resolve a supported assembly without constructing stores or default tracks. */
+export function getAssembly(assemblyId: string) {
+  return Object.values(starters).find(({ assembly }) => assembly.id === assemblyId)?.assembly;
+}
+
 /**
  * New browser and track stores for an assembly, starting at its default view and
  * tracks, or undefined for an unsupported assembly. Every first-party track module

@@ -20,7 +20,6 @@ function start() {
   shown = [];
   session = createSession({
     transport: createSessionTransport(),
-    createStores,
     navigation: { show: (id) => shown.push(id) },
   });
   stop = session.start();
@@ -734,7 +733,6 @@ it("asks before closing the tab only while edits are unsaved", async () => {
 function otherTab() {
   const tab = createSession({
     transport: createSessionTransport(),
-    createStores,
     navigation: { show() {} },
   });
   const stopTab = tab.start();

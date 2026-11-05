@@ -3,6 +3,8 @@ import {
   createTrackStore,
   type GenomeBrowserStores,
 } from "@weng-lab/genomebrowser";
+import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
+import { getAssembly } from "../assemblies/assemblies";
 import { sessionSnapshotSchema, type SessionSnapshot } from "./snapshot.ts";
 
 /** Serializable browser and track state, as saved and as returned to agents. */
@@ -31,23 +33,15 @@ export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
   return sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(values)));
 }
 
-export function restore(session: GenomeBrowserStores, saved: SessionSnapshot) {
-  // Validate both stores before changing either live store. Runtime actions and
-  // registered modules stay local; only serializable session values are restored.
-  const { assembly } = session.useBrowserStore.getState();
-  if (saved.browser.assembly !== assembly.id)
-    throw new Error(`Cannot restore a ${saved.browser.assembly} session into ${assembly.id}`);
-  const browser = createBrowserStore({ ...saved.browser, assembly }).getState();
-  const tracks = createTrackStore({
-    modules: session.useTrackStore.getState().registry.modules,
+/** Restore a saved snapshot into its final stores. Neither is exposed until both validate. */
+export function restoreSnapshot(saved: SessionSnapshot): GenomeBrowserStores {
+  const assembly = getAssembly(saved.browser.assembly);
+  if (!assembly) throw new Error(`Unsupported assembly ${saved.browser.assembly}`);
+  const useBrowserStore = createBrowserStore({ ...saved.browser, assembly });
+  const useTrackStore = createTrackStore({
+    modules: firstPartyTrackModules,
     tracks: saved.tracks,
     pinnedTrackIds: saved.pinnedTrackIds,
-  }).getState();
-  const { assembly: _assembly, ...values } = saved.browser;
-  session.useBrowserStore.setState({ ...values, region: browser.region });
-  session.useTrackStore.setState({
-    tracks: tracks.tracks,
-    order: tracks.order,
-    pinnedTrackIds: tracks.pinnedTrackIds,
   });
+  return { useBrowserStore, useTrackStore };
 }

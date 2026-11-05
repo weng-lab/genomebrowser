@@ -1,7 +1,8 @@
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { Cause, Effect, Exit, Result, Schedule, Scope, Semaphore, type Fiber } from "effect";
 import { createStore } from "zustand/vanilla";
-import { restore, snapshot } from "./storeSnapshot";
+import { createStores } from "../assemblies/assemblies";
+import { restoreSnapshot, snapshot } from "./storeSnapshot";
 import { startAutosave, type Autosave, type SaveStatus } from "./autosave";
 import { sessionInputSchema, type Session } from "./schema";
 import type { SessionRequestError, SessionTransport } from "./transport";
@@ -84,12 +85,9 @@ const byName = (a: Session, b: Session) =>
  */
 export function createSession({
   transport,
-  createStores,
   navigation,
 }: {
   transport: SessionTransport;
-  /** Fresh stores at an assembly's defaults, or undefined when it is not supported. */
-  createStores: (assembly: string) => GenomeBrowserStores | undefined;
   /** Show the active session, or none, once an operation settles. */
   navigation: { show(id: string | undefined): void };
 }) {
@@ -314,10 +312,9 @@ export function createSession({
       }
       const { snapshot: saved, ...session } = loaded.success;
       remember(session);
-      const stores = createStores(saved.browser.assembly);
+      let stores: GenomeBrowserStores;
       try {
-        if (!stores) throw new Error(`Unsupported assembly ${saved.browser.assembly}`);
-        restore(stores, saved);
+        stores = restoreSnapshot(saved);
       } catch {
         set({ error: "This session's saved state cannot be restored." });
         return stay();

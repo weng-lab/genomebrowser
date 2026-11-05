@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useStore } from "zustand";
-import { createStores } from "../assemblies/assemblies";
 import { sessionIdSchema } from "./schema";
 import { createSession, type SessionState, type SessionStore } from "./session";
 import { createSessionTransport } from "./transport";
@@ -20,7 +19,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session] = useState(() =>
     createSession({
       transport: createSessionTransport(),
-      createStores,
       navigation: {
         show(id) {
           // Pages without a session, such as Settings, keep their URL.
