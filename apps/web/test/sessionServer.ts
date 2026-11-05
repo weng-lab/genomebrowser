@@ -170,21 +170,13 @@ export function installSessionServer() {
       );
     else requests.push(request);
     const signal = init.signal ?? undefined;
-    signal?.throwIfAborted();
+    const aborted = new Promise<never>((_, reject) => {
+      if (signal?.aborted) reject(signal.reason);
+      signal?.addEventListener("abort", () => reject(signal.reason));
+    });
     const index = gates.findIndex((gate) => gate.method === request.method);
-    let gated: Outcome;
-    if (index >= 0) {
-      let abort!: () => void;
-      try {
-        const aborted = new Promise<never>((_, reject) => {
-          abort = () => reject(signal?.reason);
-          signal?.addEventListener("abort", abort, { once: true });
-        });
-        gated = await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
-      } finally {
-        signal?.removeEventListener("abort", abort);
-      }
-    }
+    const gated =
+      index < 0 ? undefined : await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
     const respond = () =>
       settings ? handleSettings(init.method ?? "GET", request.body) : handle(request);
     if (gated !== "lost") return gated ?? respond();
