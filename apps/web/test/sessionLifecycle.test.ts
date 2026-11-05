@@ -287,6 +287,25 @@ it("continues saving after clearing an optional track setting", async () => {
   expect(server.stored.get(id)!.snapshot.tracks[0].config).not.toHaveProperty("sequenceUrl");
 });
 
+it("keeps locally invalid edits unsaved and flushes them once repaired", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  expect(() => stores().useBrowserStore.setState({ fontSize: NaN })).not.toThrow();
+  expect(state().saveStatus).toBe("failed");
+  expect(closeTab()).toBe(true);
+  expect(await state().close()).toBe(false);
+  expect(state().active?.id).toBe(id);
+  expect(puts()).toEqual([]);
+
+  stores().useBrowserStore.setState({ fontSize: 18 });
+  expect(state().saveStatus).toBe("saving");
+  expect(await state().close()).toBe(true);
+  expect(server.stored.get(id)!.snapshot.browser.fontSize).toBe(18);
+  expect(puts()).toHaveLength(1);
+  expect(state().active).toBeUndefined();
+  expect(closeTab()).toBe(false);
+});
+
 it("retries failed writes with backoff, keeping edits made meanwhile pending until saved", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
