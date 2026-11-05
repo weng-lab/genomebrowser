@@ -5,8 +5,6 @@ import { TITLE_ROW_HEIGHT } from "./layout";
 type HeaderProps = {
   /** The left panel toggle, shown just right of the side bar. */
   leftToggle?: ReactNode;
-  /** The right panel toggle, shown at the far right. */
-  rightToggle?: ReactNode;
 };
 
 /**
@@ -14,7 +12,7 @@ type HeaderProps = {
  * full window height and slide beneath it, so its controls stay in place on every page.
  * Only its controls take pointer input; the rest passes through to the title rows.
  */
-export function Header({ leftToggle, rightToggle }: HeaderProps) {
+export function Header({ leftToggle }: HeaderProps) {
   const controlSx = {
     position: "absolute",
     top: 0,
@@ -35,7 +33,6 @@ export function Header({ leftToggle, rightToggle }: HeaderProps) {
       }}
     >
       {leftToggle && <Box sx={{ ...controlSx, left: 4 }}>{leftToggle}</Box>}
-      {rightToggle && <Box sx={{ ...controlSx, right: 4 }}>{rightToggle}</Box>}
     </Box>
   );
 }

@@ -18,13 +18,14 @@ Routes compose their content with this component:
 type WorkspacePageProps = {
   title: string;
   subtitle?: ReactNode;
-  left?: { title: string; children: ReactNode };
-  right?: { title: string; children: ReactNode };
+  heading?: ReactNode;
+  left?: { title: string; icon?: ReactNode; children: ReactNode };
+  right?: { title: string; icon?: ReactNode; children: ReactNode };
   children: ReactNode;
 };
 ```
 
-`title` names the center panel; `subtitle` adds optional title content. `left` and `right` supply side-panel titles and elements. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
+`title` names the center panel; `subtitle` adds optional title content. `heading` replaces the title row's breadcrumbs and must render the page's own `h1`; the browser uses it for the session switcher. `left` and `right` supply side-panel titles and elements. The right panel's title and `icon` label its button at the right end of the center title row; the browser's is **Agent** with a sparkle. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
 
 ## Side panel behavior
 
@@ -37,7 +38,7 @@ type WorkspacePageProps = {
 
 Drag a panel's interior edge to resize it. With the edge focused, Left and Right arrow keys resize it by 16 pixels, Home sets the minimum, and End sets the maximum. Double-click restores the default width.
 
-Header toggles collapse and reopen panels with a short width animation; reduced-motion settings disable it. Route changes update panels instantly. A collapsed panel keeps its current content mounted but inert and hidden from assistive technology. Route navigation can unmount that content. Widths and collapsed state last for the shared workspace mount and are not saved across refreshes.
+The left panel's toggle floats at the top left. The right panel's button stays in the center title row and is highlighted while the panel is open; the panel's close button also hides it. Panels collapse and reopen with a short width animation; reduced-motion settings disable it. Route changes update panels instantly. A collapsed panel keeps its current content mounted but inert and hidden from assistive technology. Route navigation can unmount that content. Widths and collapsed state last for the shared workspace mount and are not saved across refreshes.
 
 Panel toggles reference `left-panel` and `right-panel` with `aria-controls`. Render one workspace per document.
 

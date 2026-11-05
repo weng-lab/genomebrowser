@@ -342,6 +342,12 @@ export function createSession({
     const operation = Effect.gen(function* () {
       const stores = createStores(assembly);
       if (!stores) return set({ error: `The ${assembly} assembly is not supported.` });
+      // Save the open session first, so no session is created that it would keep from opening.
+      const previous = current;
+      if (previous) {
+        const saved = yield* Effect.result(previous.autosave.flush);
+        if (Result.isFailure(saved)) return unsaved(saved.failure);
+      }
       const created = yield* Effect.result(transport.create({ name, snapshot: snapshot(stores) }));
       if (Result.isFailure(created)) {
         return failed(
@@ -354,6 +360,11 @@ export function createSession({
       remember(created.success);
       const { id, name: createdName, revision } = created.success;
       yield* activate({ id, name: createdName, revision, stores });
+      // An edit made while it was created could not be saved, so the previous session stays open.
+      if (current === previous && previous && get().error === saveError) {
+        saveError = `“${createdName}” was created but not opened: “${get().active?.name}” could not be saved. Its changes are kept here.`;
+        set({ error: saveError });
+      }
     });
     return run(exclusive({ operation: "create" }, operation))?.done ?? Promise.resolve();
   }

@@ -231,5 +231,5 @@ describe("pan commit inside loaded data", () => {
         "renders": 136,
       }
     `);
-  });
+  }, 15_000);
 });

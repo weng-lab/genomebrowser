@@ -629,6 +629,7 @@ it.each([false, true])(
     await setRegion("chr1", 1000);
     const stream = latest();
     const deletion = server.hold("DELETE");
+    await click('button[aria-label="Sessions"]');
     await click('button[aria-label="Delete session Alpha"]');
     await vi.waitFor(() => expect(server.writes().at(-1)?.method).toBe("DELETE"));
     expect(stream.closed).toBe(true);

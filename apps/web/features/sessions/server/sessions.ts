@@ -58,6 +58,9 @@ const metadata = {
   createdAt: sessionsTable.createdAt,
   updatedAt: sessionsTable.updatedAt,
   revision: sessionsTable.revision,
+  // Read in the database so listing sessions does not send their snapshots.
+  assembly: sql<string>`${sessionsTable.snapshot}->'browser'->>'assembly'`,
+  trackCount: sql<number>`jsonb_array_length(${sessionsTable.snapshot}->'tracks')`.mapWith(Number),
 };
 
 export function createSessions({
@@ -134,17 +137,13 @@ export function createSessions({
       if (updated) return updated;
       // Nothing was written. Any state read now is one the update could have met.
       const [existing] = await db
-        .select({
-          ...metadata,
-          saveId: sessionsTable.saveId,
-          assembly: sql<string>`${sessionsTable.snapshot}->'browser'->>'assembly'`,
-        })
+        .select({ ...metadata, saveId: sessionsTable.saveId })
         .from(sessionsTable)
         .where(owned(owner, id));
       if (!existing) throw notFound();
-      const { saveId: lastSaveId, assembly, ...session } = existing;
+      const { saveId: lastSaveId, ...session } = existing;
       if (lastSaveId === saveId && session.revision === revision + 1) return session;
-      if (assembly !== snapshot.browser.assembly) {
+      if (session.assembly !== snapshot.browser.assembly) {
         throw new SessionError(
           "ASSEMBLY_CHANGED",
           "A session's assembly cannot change; create a new session instead",

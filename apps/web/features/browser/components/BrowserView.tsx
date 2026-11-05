@@ -16,7 +16,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
-import { SaveStatus } from "../../sessions/components/SaveStatus";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
 
@@ -26,7 +25,6 @@ export function BrowserView({ sessionId }: { sessionId?: string }) {
   const stores = useSession((session) => session.active?.stores);
   return (
     <Box>
-      <SaveStatus />
       <SessionAlert />
       {stores ? <BrowserContent key={id} stores={stores} /> : <NoSession sessionId={sessionId} />}
     </Box>
@@ -68,7 +66,7 @@ function NoSession({ sessionId }: { sessionId?: string }) {
   const opening = useSession((session) => session.pending?.operation === "open");
   const failed = useSession((session) => session.error !== undefined);
   const open = useSession((session) => session.open);
-  let message = "Open a saved session or create one in the Sessions panel.";
+  let message = "Open a recent session or create one from the menu beside the title.";
   if (status === "signed-out") message = "Sign in to open and save sessions.";
   else if (opening || (sessionId && !failed)) message = "Opening session…";
   else if (status === "loading") message = "Loading sessions…";
