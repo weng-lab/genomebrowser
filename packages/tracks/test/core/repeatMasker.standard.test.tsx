@@ -159,7 +159,8 @@ describe("standard RepeatMasker BED6+11", () => {
     expect(pack.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
     expect(pack.querySelector("[data-repeatmasker-label]")).not.toBeNull();
     const dense = markup(data, "dense");
-    expect(dense.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
+    expect(dense.querySelector("[data-repeatmasker-summary]")).not.toBeNull();
+    expect(dense.querySelector("[data-repeatmasker-block]")).toBeNull();
     expect(dense.querySelector("[data-repeatmasker-label]")).toBeNull();
   });
   it("rejects unrelated layouts and mismatched AutoSQL without filename inference", async () => {
@@ -203,7 +204,32 @@ describe("standard RepeatMasker BED6+11", () => {
       kind: "detail-required",
     });
   });
-  it("bounds crowded dense DOM while retaining every overlapping repeat in detailed modes", async () => {
+  it("aggregates small overlapping Dense queries without record-order-dependent shading", async () => {
+    serveRepeats(standardRepeatFile);
+    const data = await fetchView(context());
+    if (data.kind !== "repeats") throw Error("expected details");
+    // Two identical regions with different divergence shades must describe coverage,
+    // rather than exposing the color of whichever individual rectangle paints last.
+    const repeats = data.repeats.slice(0, 2).map((repeat, index) => ({
+      ...repeat,
+      milliDiv: index * 500,
+      milliDel: 0,
+      milliIns: 0,
+    }));
+    const overlap = { chromosome: "chr1", start: 100, end: 280 };
+    const forward = markup({ kind: "repeats", repeats }, "dense", overlap);
+    const reverse = markup({ kind: "repeats", repeats: [...repeats].reverse() }, "dense", overlap);
+    const cells = forward.querySelectorAll("[data-repeatmasker-summary] rect");
+    expect(cells).toHaveLength(1000);
+    expect(forward.querySelector("[data-repeatmasker-block]")).toBeNull();
+    expect(Array.from(cells, (cell) => cell.getAttribute("fill"))).toEqual(
+      Array.from(reverse.querySelectorAll("[data-repeatmasker-summary] rect"), (cell) =>
+        cell.getAttribute("fill"),
+      ),
+    );
+    expect(cells[500]!.getAttribute("fill")).toBe("rgb(0,0,0)");
+  });
+  it("bounds Dense coverage DOM by plot width for crowded repeats", async () => {
     serveRepeats(standardRepeatFile);
     const data = await fetchView(context());
     if (data.kind !== "repeats") throw Error("expected details");

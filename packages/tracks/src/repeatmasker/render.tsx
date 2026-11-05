@@ -34,15 +34,10 @@ function RepeatMaskerRows({ mode, ...props }: Props & { mode: Mode }) {
   const Standard = standardRenderers[mode];
   const Joined = joinedRenderers[mode];
   return (
-    <g
-      data-repeatmasker-view={config.view}
-      data-repeatmasker-arrows={config.showStrandArrows}
-      data-repeatmasker-class-hover={config.highlightClassOnHover}
-    >
+    <g data-repeatmasker-view={config.view} data-repeatmasker-arrows={config.showStrandArrows}>
       <style>{`
         [data-repeatmasker-view][data-repeatmasker-arrows="false"] [data-repeatmasker-strand],
         [data-repeatmasker-view][data-repeatmasker-arrows="false"] [data-bigrmsk-strand] { display: none; }
-        [data-repeatmasker-view][data-repeatmasker-class-hover="false"] [data-repeatmasker-band-highlight] { fill-opacity: 0 !important; }
       `}</style>
       {data.view === "joined" ? (
         <Joined {...props} config={joinedConfig(config)} data={data.data} />

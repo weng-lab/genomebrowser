@@ -62,6 +62,14 @@ it("budgets presentation changes and label-only updates without re-reading the f
   const display = await probe.measure(() =>
     trackStore.getState().updateTrack("repeats", { base: { display: "full" } }),
   );
+  // Each fixed class label mounts once. The height commit is handled by the
+  // overlay context, without rendering unchanged label components again.
+  expect(display.pick("RepeatClassLabel", "TrackLabel")).toMatchInlineSnapshot(`
+    {
+      "RepeatClassLabel": 10,
+      "TrackLabel": 10,
+    }
+  `);
   expect(display.pick("FullStandardRepeatMasker", "RepeatRows")).toMatchInlineSnapshot(`
     {
       "FullStandardRepeatMasker": 2,
@@ -70,17 +78,28 @@ it("budgets presentation changes and label-only updates without re-reading the f
   `);
   expect(document.querySelectorAll("[data-repeatmasker-category]")).toHaveLength(10);
   const hoverRequestCount = fetch.mock.calls.length;
-  const classLabel = document.querySelector('[data-repeatmasker-category="SINE"] text')!;
+  const classLabel = document.querySelector(
+    '[data-repeatmasker-class-label="SINE"] [data-repeatmasker-label-hitbox]',
+  )!;
   // Hovering a class label is a visual affordance, with no React state or data changes.
   const hover = await probe.measure(() => {
     classLabel.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
   });
-  expect(hover.pick("FullStandardRepeatMasker", "RepeatRows", "RepeatGlyph"))
-    .toMatchInlineSnapshot(`
+  expect(
+    hover.pick(
+      "FullStandardRepeatMasker",
+      "RepeatClassLabel",
+      "RepeatRows",
+      "RepeatGlyph",
+      "TrackLabel",
+    ),
+  ).toMatchInlineSnapshot(`
     {
       "FullStandardRepeatMasker": 0,
+      "RepeatClassLabel": 0,
       "RepeatGlyph": 0,
       "RepeatRows": 0,
+      "TrackLabel": 0,
     }
   `);
   const leave = await probe.measure(() => {
@@ -88,12 +107,21 @@ it("budgets presentation changes and label-only updates without re-reading the f
       new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }),
     );
   });
-  expect(leave.pick("FullStandardRepeatMasker", "RepeatRows", "RepeatGlyph"))
-    .toMatchInlineSnapshot(`
+  expect(
+    leave.pick(
+      "FullStandardRepeatMasker",
+      "RepeatClassLabel",
+      "RepeatRows",
+      "RepeatGlyph",
+      "TrackLabel",
+    ),
+  ).toMatchInlineSnapshot(`
     {
       "FullStandardRepeatMasker": 0,
+      "RepeatClassLabel": 0,
       "RepeatGlyph": 0,
       "RepeatRows": 0,
+      "TrackLabel": 0,
     }
   `);
   expect(fetch).toHaveBeenCalledTimes(hoverRequestCount);
@@ -102,6 +130,14 @@ it("budgets presentation changes and label-only updates without re-reading the f
   const pan = await probe.measure(() =>
     browserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 3100 }),
   );
+  // The genomic glyph positions change, while the stationary labels retain
+  // the same category, vertical position, and highlight configuration.
+  expect(pan.pick("RepeatClassLabel", "TrackLabel")).toMatchInlineSnapshot(`
+    {
+      "RepeatClassLabel": 0,
+      "TrackLabel": 0,
+    }
+  `);
   expect(pan.pick("FullStandardRepeatMasker", "RepeatRows")).toMatchInlineSnapshot(`
     {
       "FullStandardRepeatMasker": 1,

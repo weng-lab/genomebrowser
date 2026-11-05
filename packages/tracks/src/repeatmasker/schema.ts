@@ -22,6 +22,7 @@ export function standardConfig(config: RepeatMaskerConfig): StandardRepeatMasker
     rowHeight: config.rowHeight,
     showLabels: config.showLabels,
     maxDetailBases: config.maxDetailBases,
+    highlightClassOnHover: config.highlightClassOnHover,
   };
 }
 export function joinedConfig(config: RepeatMaskerConfig): BigRmskConfig {

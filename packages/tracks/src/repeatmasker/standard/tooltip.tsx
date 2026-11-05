@@ -18,7 +18,10 @@ export function StandardRepeatMaskerTooltip({
           { label: "Region", value: location },
           { label: "Covered bases (estimated)", value: item.validCount.toFixed(2) },
           { label: "Mean overlap", value: item.mean.toFixed(2) },
-          { label: "Details", value: "Zoom in to inspect individual repeats" },
+          {
+            label: "Details",
+            value: "Use Full or Pack at a close zoom to inspect individual repeats",
+          },
         ]}
       />
     );

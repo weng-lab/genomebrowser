@@ -113,6 +113,31 @@ it("budgets visual settings and view switches without losing display, callbacks,
       showUnalignedExtents: true,
     },
   });
+  // Switching from Pack to Dense mounts the coverage renderer, then row layout
+  // commits the one-row height. Each commit displays a new mode or layout.
+  const dense = await probe.measure(() =>
+    trackStore.getState().updateTrack("repeats", { base: { display: "dense" } }),
+  );
+  expect(
+    dense.pick("DenseRepeatMasker", "RepeatMaskerRows", "DenseStandardRepeatMasker", "RepeatRows"),
+  ).toMatchInlineSnapshot(`
+    {
+      "DenseRepeatMasker": 2,
+      "DenseStandardRepeatMasker": 2,
+      "RepeatMaskerRows": 2,
+      "RepeatRows": 2,
+    }
+  `);
+  const coverage = document.querySelectorAll("[data-repeatmasker-summary]");
+  expect(coverage.length).toBeGreaterThan(1);
+  await probe.measure(() => coverage[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  expect(onClick).toHaveBeenLastCalledWith(
+    expect.objectContaining({ kind: "summary", mean: 2 }),
+    expect.objectContaining({
+      type: "repeatmasker",
+      base: expect.objectContaining({ display: "dense" }),
+    }),
+  );
 });
 
 it("cancels a pending source switch and ignores its late response", async () => {

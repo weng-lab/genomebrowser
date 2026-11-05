@@ -1,6 +1,8 @@
+import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
 import { TrackRowLayoutSettings } from "../shared/settings/trackRowLayoutSettings";
@@ -33,16 +35,16 @@ export function RepeatMaskerSettings({
           fullWidth
           size="small"
           label="Annotation view"
+          sx={{ mt: 1.5 }}
           value={config.view}
-          slotProps={{ select: { native: true } }}
           onChange={(event) =>
             updateTrack({
               config: { view: event.target.value === "joined" ? "joined" : "standard" },
             })
           }
         >
-          <option value="standard">Standard annotations</option>
-          <option value="joined">Joined repeats</option>
+          <MenuItem value="standard">Standard annotations</MenuItem>
+          <MenuItem value="joined">Joined repeats</MenuItem>
         </TextField>
         <FormControlLabel
           label="Show repeat names"
@@ -90,15 +92,17 @@ export function RepeatMaskerSettings({
         )}
       </TrackSettingsSection>
       <TrackSettingsSection title="Data sources and detail limit">
-        <TrackSettingsUrlField
-          required
-          label="Standard annotations URL"
-          disabled={track.source === "host"}
-          value={config.sources.standard}
-          onCommit={(standard) =>
-            updateTrack({ config: { sources: { ...config.sources, standard } } })
-          }
-        />
+        <Box sx={{ mt: 1.5 }}>
+          <TrackSettingsUrlField
+            required
+            label="Standard annotations URL"
+            disabled={track.source === "host"}
+            value={config.sources.standard}
+            onCommit={(standard) =>
+              updateTrack({ config: { sources: { ...config.sources, standard } } })
+            }
+          />
+        </Box>
         <TrackSettingsUrlField
           required
           label="Joined repeats URL"

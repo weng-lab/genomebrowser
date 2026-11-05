@@ -4,6 +4,7 @@ import { createGenomicXScale } from "../../shared/coordinates";
 import { useRowLayout } from "../../shared/layout";
 import { packViewportRows } from "../../shared/layout/viewportRows";
 import { repeatShade } from "./presentation";
+import { RepeatClassLabel, REPEAT_CLASS_LABEL_WIDTH } from "./classLabel";
 import type { StandardRepeatMaskerConfig } from "./schema";
 import {
   repeatCategories,
@@ -52,7 +53,7 @@ function layoutRepeats({ config, data, region, visibleRegion, width }: LayoutInp
       const label =
         config.showLabels &&
         mode !== "dense" &&
-        (mode !== "full" || start > viewportLeft + 90) &&
+        (mode !== "full" || start > viewportLeft + REPEAT_CLASS_LABEL_WIDTH) &&
         end - start > repeat.name.length * fontSize * 0.6 + 4
           ? repeat.name
           : "";
@@ -86,8 +87,7 @@ function layoutRepeats({ config, data, region, visibleRegion, width }: LayoutInp
     rowCount += Math.max(1, band.rows.length);
     return { ...band, first };
   });
-  const summary =
-    data.kind !== "repeats" || (mode === "dense" && items.length > Math.max(1, width));
+  const summary = data.kind !== "repeats" || mode === "dense";
   return { layouts, rowCount: summary ? 1 : rowCount, summary, fontSize, viewportLeft };
 }
 
@@ -160,7 +160,7 @@ function RepeatRows(props: Props & { mode: Mode }) {
     <g data-repeatmasker-mode={mode}>
       {mode === "full" && (
         <style>{`
-          [data-repeatmasker-mode="full"] [data-repeatmasker-class-label]:hover > [data-repeatmasker-band-highlight] {
+          [data-repeatmasker-class-label][data-repeatmasker-class-hover="true"]:hover > [data-repeatmasker-band-highlight] {
             fill-opacity: 0.12;
           }
         `}</style>
@@ -180,33 +180,21 @@ function RepeatRows(props: Props & { mode: Mode }) {
             </g>
           ))}
           <text x={viewportLeft + 3} y={rowHeight * 0.35} fontSize={fontSize}>
-            Zoom in for individual repeats
+            {data.kind === "repeats"
+              ? "Use Full or Pack for individual repeats"
+              : "Zoom in for individual repeats"}
           </text>
         </>
       ) : (
         layouts.map((band) => (
           <g key={band.category} data-repeatmasker-category={band.category}>
             {band.category && (
-              <g data-repeatmasker-class-label="">
-                <rect
-                  data-repeatmasker-band-highlight=""
-                  x={0}
-                  y={band.first * rowHeight}
-                  width={width}
-                  height={Math.max(1, band.rows.length) * rowHeight}
-                  fill="#3b82f6"
-                  fillOpacity={0}
-                  pointerEvents="none"
-                />
-                <text
-                  x={viewportLeft + 3}
-                  y={band.first * rowHeight + fontSize}
-                  fontSize={fontSize}
-                  fill="#555"
-                >
-                  {band.category}
-                </text>
-              </g>
+              <RepeatClassLabel
+                category={band.category}
+                top={band.first * rowHeight}
+                height={Math.max(1, band.rows.length) * rowHeight}
+                highlightOnHover={config.highlightClassOnHover}
+              />
             )}
             {band.rows.flatMap((row, rowIndex) =>
               row.map((item) => (

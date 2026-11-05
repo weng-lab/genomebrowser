@@ -20,5 +20,5 @@ export const standardRepeatMaskerSchema = z.object({
 });
 export type StandardRepeatMaskerConfig = Pick<
   RepeatMaskerConfig,
-  "rowHeight" | "showLabels" | "maxDetailBases"
+  "rowHeight" | "showLabels" | "maxDetailBases" | "highlightClassOnHover"
 > & { url: string };

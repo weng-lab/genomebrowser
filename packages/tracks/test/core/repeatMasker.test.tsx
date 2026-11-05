@@ -102,9 +102,10 @@ describe("RepeatMasker public module", () => {
         ]),
       },
     });
-    for (const mode of ["full", "pack", "dense"] as const) {
+    for (const mode of ["full", "pack"] as const) {
       expect(markup(standard, mode).querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
     }
+    expect(markup(standard, "dense").querySelector("[data-repeatmasker-summary]")).not.toBeNull();
     expect(markup(standard, "full").querySelectorAll("[data-repeatmasker-category]")).toHaveLength(
       10,
     );
