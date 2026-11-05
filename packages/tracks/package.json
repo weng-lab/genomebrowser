@@ -71,6 +71,10 @@
     "./bam": {
       "types": "./dist/src/bam/index.d.ts",
       "import": "./dist/bam.js"
+    },
+    "./repeatmasker": {
+      "types": "./dist/src/repeatmasker/index.d.ts",
+      "import": "./dist/repeatmasker.js"
     }
   },
   "publishConfig": {
@@ -102,6 +106,7 @@
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@mui/material": "catalog:",
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@typescript/native": "catalog:",

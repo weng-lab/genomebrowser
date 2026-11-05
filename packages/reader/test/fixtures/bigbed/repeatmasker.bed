@@ -1,0 +1,11 @@
+chr1	100	280	repeat0	100	+	2500	123	20	7	-999	SINE	family?	-5	180	-12	1
+chr1	100	280	repeat1	101	-	2500	123	20	7	-999	SINE	family?	-5	180	-12	2
+chr1	700	880	repeat2	102	+	2500	123	20	7	-999	LINE?	family?	-5	180	-12	3
+chr1	900	1080	repeat3	103	-	2500	123	20	7	-999	LTR	family?	-5	180	-12	4
+chr1	1100	1280	repeat4	104	+	2500	123	20	7	-999	DNA	family?	-5	180	-12	5
+chr1	1300	1480	repeat5	105	-	2500	123	20	7	-999	Simple_repeat	family?	-5	180	-12	6
+chr1	1500	1680	repeat6	106	+	2500	123	20	7	-999	Low_complexity	family?	-5	180	-12	7
+chr1	1700	1880	repeat7	107	-	2500	123	20	7	-999	Satellite	family?	-5	180	-12	8
+chr1	1900	2080	repeat8	108	+	2500	123	20	7	-999	tRNA	family?	-5	180	-12	9
+chr1	2100	2280	repeat9	109	-	2500	123	20	7	-999	RC	family?	-5	180	-12	10
+chr1	2300	2480	repeat10	110	+	2500	123	20	7	-999	Unknown	family?	-5	180	-12	11

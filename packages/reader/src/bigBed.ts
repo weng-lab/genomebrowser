@@ -14,6 +14,9 @@ import {
 import type { ExactRangeMetadata } from "./internal/httpRange";
 import { validateHttpUrl, validateRegion } from "./internal/inputValidation";
 import { RequestRangeReader } from "./internal/requestRangeReader";
+import { readBbiZoomHeaders, type BbiZoomHeader } from "./internal/bbi/zoomHeaders";
+import { decodeBigWigZoomBlock } from "./internal/bigWigDecoder";
+import type { BigWigSummaryRecord } from "./bigWig";
 
 export const bed3Schema = z.object({});
 
@@ -48,7 +51,23 @@ type AwaitedSchemaOutput<Schema extends z.ZodObject> = keyof Schema["shape"] ext
 export type BigBedRecord<Schema extends z.ZodObject> = GenomicRecord &
   AwaitedSchemaOutput<Schema> & { fields: string[] };
 
-export type BigBedFile<Schema extends z.ZodObject> = GenomicFile<BigBedRecord<Schema>>;
+export type BigBedSummaryRecord = BigWigSummaryRecord;
+
+export type BigBedMetadata = Readonly<{
+  fieldCount: number;
+  definedFieldCount: number;
+  autoSql: string | undefined;
+  zoomLevels: readonly number[];
+}>;
+
+export interface BigBedFile<Schema extends z.ZodObject> extends GenomicFile<BigBedRecord<Schema>> {
+  getMetadata(options?: ReadOptions): Promise<BigBedMetadata>;
+  readZoomLevel(
+    region: GenomicRegion,
+    reductionLevel: number,
+    options?: ReadOptions,
+  ): Promise<BigBedSummaryRecord[]>;
+}
 
 export type BigBedFileOptions<Schema extends z.ZodObject> = {
   url: string;
@@ -66,6 +85,9 @@ type BigBedMetadataCache = {
   primaryRTreeHeader?: PrimaryRTreeHeader;
   primaryRTreeRoot?: ParsedPrimaryRTreeNode;
   rangeMetadata: ExactRangeMetadata;
+  metadata?: BigBedMetadata;
+  zoomHeaders?: readonly BbiZoomHeader[];
+  zoomIndexes: Map<number, { tree: PrimaryRTreeHeader; root?: ParsedPrimaryRTreeNode }>;
 };
 
 function isArrayIndexPropertyName(name: string): boolean {
@@ -98,6 +120,160 @@ function validateSchema(schema: unknown): asserts schema is z.ZodObject {
       throw new TypeError(`BigBed schema must not declare integer-index-like field ${fieldName}`);
     }
   }
+}
+
+async function prepareBigBed(url: string, cache: BigBedMetadataCache, options?: ReadOptions) {
+  const signal = options?.signal;
+  throwIfAborted(signal);
+  const rangeOptions = { signal, metadata: cache.rangeMetadata };
+  const requestReader =
+    cache.header === undefined
+      ? await RequestRangeReader.withPrefix(url, 64n, 2n * 1024n, rangeOptions)
+      : new RequestRangeReader(url, rangeOptions);
+  throwIfAborted(signal);
+  let header = cache.header;
+  if (header === undefined) {
+    header = await readBbiHeader(url, rangeOptions, requestReader);
+    throwIfAborted(signal);
+    if (header.format !== "bigBed") throw new Error("Expected a BigBed file");
+    cache.header = header;
+  }
+  return { header, requestReader, rangeOptions };
+}
+
+async function loadZoomHeaders(
+  url: string,
+  cache: BigBedMetadataCache,
+  prepared: Awaited<ReturnType<typeof prepareBigBed>>,
+) {
+  if (cache.zoomHeaders !== undefined) return cache.zoomHeaders;
+  const headers = await readBbiZoomHeaders(
+    url,
+    prepared.header,
+    prepared.rangeOptions,
+    prepared.requestReader,
+  );
+  throwIfAborted(prepared.rangeOptions.signal);
+  cache.zoomHeaders = headers;
+  return headers;
+}
+
+async function readAutoSql(
+  offset: bigint,
+  reader: RequestRangeReader,
+): Promise<string | undefined> {
+  if (offset === 0n) return undefined;
+  const chunks: number[] = [];
+  while (chunks.length < 65536) {
+    const bytes = await reader.readBounded(
+      offset + BigInt(chunks.length),
+      1n,
+      BigInt(Math.min(4096, 65536 - chunks.length)),
+    );
+    throwIfAborted(reader.signal);
+    const end = bytes.indexOf(0);
+    chunks.push(...bytes.subarray(0, end < 0 ? bytes.length : end));
+    if (end >= 0) return new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(chunks));
+    if (reader.resourceSize !== undefined && offset + BigInt(chunks.length) >= reader.resourceSize)
+      break;
+  }
+  throw new Error("BigBed AutoSQL must be NUL-terminated within 65536 bytes");
+}
+
+async function readBigBedMetadata(
+  url: string,
+  cache: BigBedMetadataCache,
+  options?: ReadOptions,
+): Promise<BigBedMetadata> {
+  throwIfAborted(options?.signal);
+  if (cache.metadata !== undefined) return cache.metadata;
+  const prepared = await prepareBigBed(url, cache, options);
+  const headers = await loadZoomHeaders(url, cache, prepared);
+  const autoSql = await readAutoSql(prepared.header.autoSqlOffset, prepared.requestReader);
+  throwIfAborted(options?.signal);
+  cache.metadata = Object.freeze({
+    fieldCount: prepared.header.fieldCount,
+    definedFieldCount: prepared.header.definedFieldCount,
+    autoSql,
+    zoomLevels: Object.freeze(headers.map((h) => h.reductionLevel).sort((a, b) => a - b)),
+  });
+  return cache.metadata;
+}
+
+async function readBigBedZoom(
+  url: string,
+  cache: BigBedMetadataCache,
+  region: GenomicRegion,
+  reductionLevel: number,
+  options?: ReadOptions,
+): Promise<BigBedSummaryRecord[]> {
+  validateRegion(region);
+  if (!Number.isSafeInteger(reductionLevel) || reductionLevel <= 0)
+    throw new RangeError("BigBed reductionLevel must be a positive safe integer");
+  const prepared = await prepareBigBed(url, cache, options);
+  const { header, requestReader, rangeOptions } = prepared;
+  const zoom = (await loadZoomHeaders(url, cache, prepared)).find(
+    (h) => h.reductionLevel === reductionLevel,
+  );
+  if (!zoom)
+    throw new RangeError(`BigBed reduction level ${reductionLevel} is not available in this file`);
+  let chromosome = cache.chromosomes.get(region.chromosome);
+  if (!cache.chromosomes.has(region.chromosome)) {
+    chromosome = await lookupChromosome(
+      url,
+      header,
+      region.chromosome,
+      rangeOptions,
+      requestReader,
+    );
+    throwIfAborted(options?.signal);
+    cache.chromosomes.set(region.chromosome, chromosome);
+  }
+  if (!chromosome) return [];
+  let index = cache.zoomIndexes.get(reductionLevel);
+  if (!index) {
+    const loaded = await bootstrapPrimaryRTree(
+      url,
+      header,
+      zoom.indexOffset,
+      rangeOptions,
+      requestReader,
+    );
+    throwIfAborted(options?.signal);
+    index = { tree: loaded.tree, root: loaded.root };
+    cache.zoomIndexes.set(reductionLevel, index);
+  }
+  if (index.root === undefined && index.tree.itemCount > 0n) {
+    const root = await readPrimaryRTreeRoot(url, header, index.tree, rangeOptions, requestReader);
+    throwIfAborted(options?.signal);
+    index.root = root;
+  }
+  const blocks = await readBbiDataBlocks(
+    url,
+    header,
+    index.tree,
+    { chromosomeId: chromosome.id, start: region.start, end: region.end },
+    rangeOptions,
+    requestReader,
+    index.root,
+  );
+  const records: BigBedSummaryRecord[] = [];
+  for (const block of blocks) {
+    throwIfAborted(options?.signal);
+    records.push(
+      ...decodeBigWigZoomBlock(
+        block.bytes,
+        header.byteOrder,
+        chromosome.id,
+        region.chromosome,
+        region.start,
+        region.end,
+        options?.signal,
+      ),
+    );
+  }
+  throwIfAborted(options?.signal);
+  return stableSortBigBedRecords(records);
 }
 
 async function readBigBed<Schema extends z.ZodObject>(
@@ -223,9 +399,19 @@ export function createBigBedFile<Schema extends z.ZodObject>(
   const url = validateHttpUrl(options.url);
   const schema = options.schema as Schema;
   const fieldNames = Object.keys(schema.shape);
-  const metadataCache: BigBedMetadataCache = { chromosomes: new Map(), rangeMetadata: {} };
+  const metadataCache: BigBedMetadataCache = {
+    chromosomes: new Map(),
+    rangeMetadata: {},
+    zoomIndexes: new Map(),
+  };
 
   return {
+    getMetadata(options) {
+      return readBigBedMetadata(url, metadataCache, options);
+    },
+    readZoomLevel(region, reductionLevel, options) {
+      return readBigBedZoom(url, metadataCache, region, reductionLevel, options);
+    },
     read(region, readOptions) {
       return readBigBed(url, schema, fieldNames, metadataCache, region, readOptions);
     },

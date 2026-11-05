@@ -1,3 +1,4 @@
+import { repeatMaskerModule } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { validateTrackCollection, type TrackInteraction } from "@weng-lab/genomebrowser";
@@ -53,7 +54,7 @@ import {
 import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("first-party track package", () => {
-  it("exports all nine pre-bound modules as a ready-made collection", () => {
+  it("exports all pre-bound modules as a ready-made collection", () => {
     expect(firstPartyTrackModules).toEqual([
       rulerModule,
       dynseqModule,
@@ -65,6 +66,7 @@ describe("first-party track package", () => {
       geneModule,
       methylCModule,
       bamModule,
+      repeatMaskerModule,
     ]);
     expect(firstPartyTrackModules.map((module) => module.type)).toEqual([
       "ruler",
@@ -77,6 +79,7 @@ describe("first-party track package", () => {
       "gene",
       "methylc",
       "bam",
+      "repeatmasker",
     ]);
     for (const module of firstPartyTrackModules) {
       expect(module.configSchema).toBeDefined();

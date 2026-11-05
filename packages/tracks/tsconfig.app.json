@@ -4,11 +4,12 @@
     "target": "ES2023",
     "useDefineForClassFields": true,
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
     "module": "ESNext",
     "skipLibCheck": true,
-
     "moduleResolution": "bundler",
     "paths": {
+      "@weng-lab/genomebrowser-tracks/repeatmasker": ["./src/repeatmasker/index.ts"],
       "@weng-lab/genomebrowser-tracks/bam": ["./src/bam/index.ts"],
       "@weng-lab/genomebrowser-tracks": ["./src/lib.ts"],
       "@weng-lab/genomebrowser-tracks/bigbed": ["./src/bigbed/index.ts"],
@@ -27,7 +28,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

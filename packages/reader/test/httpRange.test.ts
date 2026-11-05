@@ -39,6 +39,7 @@ describe("readExactRange", () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock).toHaveBeenCalledWith(url, {
       headers: { Range: `bytes=${offset}-${offset + 2n}` },
+      cache: "no-store",
       signal,
     });
   });
