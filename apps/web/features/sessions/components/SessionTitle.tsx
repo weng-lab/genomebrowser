@@ -49,8 +49,9 @@ function SessionName({ name }: { name: string }) {
 
 /**
  * Edits the open session's name, starting with it all selected so typing replaces it.
- * Enter or leaving the field saves it; Escape cancels. A name that cannot be saved
- * keeps the field open with the draft, marked invalid.
+ * Enter or leaving the field saves it; Escape cancels. Enter with a name that cannot be
+ * saved keeps the field open with the draft, marked invalid; leaving the field with one
+ * keeps the current name, since Escape no longer reaches the field.
  */
 function RenameField({ initialName, onDone }: { initialName: string; onDone: () => void }) {
   const rename = useSession((session) => session.rename);
@@ -59,9 +60,11 @@ function RenameField({ initialName, onDone }: { initialName: string; onDone: () 
   // Ending the edit removes the field, which may blur it; finish only once.
   const finished = useRef(false);
 
+  const valid = sessionInputSchema.shape.name.safeParse(draft).success;
+
   function finish(save: boolean) {
     if (finished.current) return;
-    if (save && !sessionInputSchema.shape.name.safeParse(draft).success) return setRejected(true);
+    if (save && !valid) return setRejected(true);
     finished.current = true;
     if (save && draft !== initialName) rename(draft);
     onDone();
@@ -91,7 +94,7 @@ function RenameField({ initialName, onDone }: { initialName: string; onDone: () 
           setDraft(event.target.value);
           setRejected(false);
         }}
-        onBlur={() => finish(true)}
+        onBlur={() => finish(valid)}
         onKeyDown={handleKeyDown}
         onFocus={(event) => event.target.select()}
         inputProps={{

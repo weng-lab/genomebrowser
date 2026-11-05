@@ -167,7 +167,14 @@ it("renames the open session from its title and saves the name", async () => {
   expect(field()).toBeNull();
   expect(heading()).toBe("Alpha");
 
-  // A blank name keeps the field open with the draft.
+  // Leaving the field with a blank name keeps the current one.
+  await click(document.querySelector("h1 button"));
+  await type(field()!, "   ");
+  await act(async () => field()!.blur());
+  expect(field()).toBeNull();
+  expect(heading()).toBe("Alpha");
+
+  // Entering a blank name keeps the field open with the draft.
   await click(document.querySelector("h1 button"));
   await type(field()!, "   ");
   await keyDown("Enter");
@@ -241,8 +248,8 @@ it("deletes the open session and shows the empty browser", async () => {
   await vi.waitFor(() => expect(route.pathname()).toBe("/browser"));
   expect(heading()).toBe("No session open");
   expect(text()).toContain("Open a recent session or create one from the menu beside the title.");
-  // The empty browser is another page, so the menu closed.
-  await openSessions();
+  // The menu stays open to switch to or create another session.
+  expect(button("Sessions")?.getAttribute("aria-expanded")).toBe("true");
   expect(sessionNames()).toEqual(["Beta"]);
   expect(server.stored.has(a)).toBe(false);
 });
