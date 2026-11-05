@@ -34,6 +34,13 @@ function click(element: Element | null | undefined) {
 async function openSessions() {
   if (button("Sessions")?.getAttribute("aria-expanded") !== "true") await click(button("Sessions"));
 }
+/** The open actions menu's item named `label`. */
+const actionItem = (label: string) => withText('[role="menu"] [role="menuitem"]', label);
+/** Delete the session named `name` from its actions menu in the session menu. */
+async function deleteSession(name: string) {
+  await click(button(`Actions for session ${name}`));
+  await click(actionItem("Delete"));
+}
 const menuItem = (label: string) =>
   [...document.querySelectorAll<HTMLElement>('[role="presentation"] [role="button"]')].find(
     (item) => item.textContent === label,
@@ -244,7 +251,7 @@ it("deletes the open session and shows the empty browser", async () => {
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
 
   await openSessions();
-  await click(button("Delete session Alpha"));
+  await deleteSession("Alpha");
   await vi.waitFor(() => expect(route.pathname()).toBe("/browser"));
   expect(heading()).toBe("No session open");
   expect(text()).toContain("Open a recent session or create one from the menu beside the title.");
@@ -378,7 +385,7 @@ it("keeps conflict recovery after another session is deleted", async () => {
   const kept = region();
   await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   await openSessions();
-  await click(button("Delete session Beta"));
+  await deleteSession("Beta");
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha", "Gamma"]));
   expect(server.stored.has(beta)).toBe(false);
   expect(saveOver()).toBeTruthy();
@@ -397,7 +404,7 @@ it("keeps conflict recovery after another session is deleted", async () => {
   await click(button("Pan right"));
   await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   await openSessions();
-  await click(button("Delete session Gamma"));
+  await deleteSession("Gamma");
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   expect(server.stored.has(gamma)).toBe(false);
   expect(saveOver()).toBeTruthy();
@@ -536,8 +543,9 @@ it("budgets the session menu when another session is deleted", async () => {
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   await openSessions();
+  await click(button("Actions for session Beta"));
   const report = await probe!.measure(async () => {
-    button("Delete session Beta")!.click();
+    (actionItem("Delete") as HTMLElement).click();
     await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   });
   expect(report.pick("SessionMenu", "SessionTitle", "BrowserView", "BrowserContent"))
