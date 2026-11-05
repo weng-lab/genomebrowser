@@ -4,10 +4,13 @@ import { BrowserSvgContext } from "../../../core/src/browser/svg/browserSvgState
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  createBrowserStore,
   createTrackStore,
+  GenomeBrowser,
   type TrackFetchContext,
   type TrackResources,
 } from "@weng-lab/genomebrowser";
+import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import {
   repeatMaskerModule as module,
   type RepeatMaskerConfig,
@@ -93,7 +96,12 @@ function markup(
   return element;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+let probe: Probe | undefined;
+afterEach(() => {
+  probe?.unmount();
+  probe = undefined;
+  vi.unstubAllGlobals();
+});
 
 describe("standard RepeatMasker BED6+11", () => {
   it("decodes named attributes and preserves raw classes, signed coordinates and tooltips", async () => {
@@ -228,6 +236,21 @@ describe("standard RepeatMasker BED6+11", () => {
       ),
     );
     expect(cells[500]!.getAttribute("fill")).toBe("rgb(0,0,0)");
+    // Unsorted, partially overlapping regions cover [100, 280), not 240 distinct bases.
+    const partial = [
+      { ...repeats[0]!, start: 200, end: 280 },
+      { ...repeats[1]!, start: 100, end: 260 },
+    ];
+    for (const records of [partial, [...partial].reverse()]) {
+      const view = markup({ kind: "repeats", repeats: records }, "dense", {
+        chromosome: "chr1",
+        start: 0,
+        end: 360000,
+      });
+      expect(view.querySelector("[data-repeatmasker-summary] rect")!.getAttribute("fill")).toBe(
+        "rgb(115,115,115)",
+      );
+    }
   });
   it("bounds Dense coverage DOM by plot width for crowded repeats", async () => {
     serveRepeats(standardRepeatFile);
@@ -245,5 +268,43 @@ describe("standard RepeatMasker BED6+11", () => {
     const cells = view.querySelectorAll("[data-repeatmasker-summary]");
     expect(cells.length).toBeGreaterThan(0);
     expect(cells.length).toBeLessThanOrEqual(1000);
+  });
+  it("separates covered bases from overlap depth in a partially covered Dense pixel", async () => {
+    serveRepeats(standardRepeatFile);
+    const onClick = vi.fn();
+    const browserStore = createBrowserStore({
+      assembly: { id: "hg38", chromosomes: { chr1: 248956422 } },
+      region: { chromosome: "chr1", start: 0, end: 360000 },
+      trackWidth: 1000,
+    });
+    const track = createTrack();
+    const trackStore = createTrackStore({
+      modules: [module],
+      tracks: [
+        module.create(
+          { base: { ...track.base, display: "dense" }, config: track.config },
+          { onClick },
+        ),
+      ],
+    });
+    probe = await renderWithProbe(
+      <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+    );
+    // The first 360-bp pixel contains two repeats, both covering [100, 280).
+    // Their union is 180 bp (half a pixel), while their total overlap is 360 bp.
+    const cell = document.querySelector("[data-repeatmasker-summary]")!;
+    await probe.measure(() => cell.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(onClick).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: "summary", start: 0, end: 360, validCount: 180, mean: 2 }),
+      expect.objectContaining({ base: expect.objectContaining({ display: "dense" }) }),
+    );
+    expect(cell.querySelector("rect")!.getAttribute("fill")).toBe("rgb(115,115,115)");
+    const Tooltip = module.tooltipComponent!;
+    const tip = document.createElement("div");
+    tip.innerHTML = renderToStaticMarkup(
+      <Tooltip item={onClick.mock.calls[0]![0]} context={track} />,
+    );
+    expect(tip.textContent).toContain("Covered bases (estimated)180.00");
+    expect(tip.textContent).toContain("Mean overlap2.00");
   });
 });
