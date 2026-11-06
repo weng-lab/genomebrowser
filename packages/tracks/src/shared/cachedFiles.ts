@@ -75,6 +75,15 @@ export async function readCachedBigBedRows<Schema extends z.ZodObject>(
   region: GenomicRegion,
   signal?: AbortSignal,
 ): Promise<BigBedRecord<Schema>[]> {
+  return getCachedBigBedFile(resources, url, schema).read(region, { signal });
+}
+
+/** Reuses a BigBed reader, including its metadata and indexed zoom access. */
+export function getCachedBigBedFile<Schema extends z.ZodObject>(
+  resources: TrackResources,
+  url: string,
+  schema: BigBedFileOptions<Schema>["schema"],
+) {
   const sources = cachedFiles<Map<z.ZodObject, ReturnType<typeof createBigBedFile<Schema>>>>(
     resources,
     BIG_BED_FILES,
@@ -89,7 +98,7 @@ export async function readCachedBigBedRows<Schema extends z.ZodObject>(
     file = createBigBedFile({ url, schema });
     files.set(schema, file);
   }
-  return file.read(region, { signal });
+  return file;
 }
 
 function cachedFiles<F>(resources: TrackResources, key: string): Map<string, F> {

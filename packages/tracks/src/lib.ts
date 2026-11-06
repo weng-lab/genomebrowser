@@ -1,3 +1,4 @@
+import { repeatMaskerModule } from "./repeatmasker";
 import { bamModule } from "./bam";
 import { dynseqModule } from "./dynseq";
 import { rulerModule } from "./ruler";
@@ -20,4 +21,5 @@ export const firstPartyTrackModules = [
   geneModule,
   methylCModule,
   bamModule,
+  repeatMaskerModule,
 ] as const;

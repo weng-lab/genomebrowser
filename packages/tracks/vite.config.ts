@@ -13,6 +13,7 @@ const trackEntries = {
   bam: path.resolve(__dirname, "src/bam/index.ts"),
   dynseq: path.resolve(__dirname, "src/dynseq/index.ts"),
   bigbed: path.resolve(__dirname, "src/bigbed/index.ts"),
+  repeatmasker: path.resolve(__dirname, "src/repeatmasker/index.ts"),
   bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
   bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),
   cave: path.resolve(__dirname, "src/cave/index.ts"),
