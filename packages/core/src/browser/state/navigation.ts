@@ -31,12 +31,16 @@ export function getPannedRegion(
   region: GenomicRegion,
   chromosomeLength: number,
   fraction: number,
-): GenomicRegion {
+): { region: GenomicRegion; clamped: boolean } {
   const span = region.end - region.start;
   const direction = fraction < 0 ? -1 : 1;
   const shift = Math.max(1, Math.round(span * Math.abs(fraction))) * direction;
-  const start = Math.min(Math.max(region.start + shift, 0), chromosomeLength - span);
-  return { chromosome: region.chromosome, start, end: start + span };
+  const requestedStart = region.start + shift;
+  const start = Math.min(Math.max(requestedStart, 0), chromosomeLength - span);
+  return {
+    region: { chromosome: region.chromosome, start, end: start + span },
+    clamped: start !== requestedStart,
+  };
 }
 
 function getValidChromosomeLength(region: GenomicRegion, assembly: AssemblyDefinition) {

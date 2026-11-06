@@ -191,9 +191,9 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
           };
         }
         const region = get().region;
-        return commitRegion(
-          getPannedRegion(region, assembly.chromosomes[region.chromosome], fraction),
-        );
+        const target = getPannedRegion(region, assembly.chromosomes[region.chromosome], fraction);
+        const result = commitRegion(target.region);
+        return result.ok ? { ...result, clamped: target.clamped || result.clamped } : result;
       },
       zoom: (factor, centerBase) => {
         if (!Number.isFinite(factor) || factor <= 0) {

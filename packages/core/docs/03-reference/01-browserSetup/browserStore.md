@@ -117,7 +117,7 @@ goToRegion("chr12:53,372,922-53,423,700");
 
 ### pan
 
-`pan(fraction: number): BrowserRegionMutationResult` moves the current region by `fraction` of its width. Negative values move toward the chromosome start, and positive values move toward its end. The shift is rounded to the nearest whole base, with a minimum of one base, and the region keeps its width while staying inside the chromosome. A fraction that is not finite, or is zero, returns `INVALID_PAN_FRACTION`.
+`pan(fraction: number): BrowserRegionMutationResult` moves the current region by `fraction` of its width. Negative values move toward the chromosome start, and positive values move toward its end. The shift is rounded to the nearest whole base, with a minimum of one base, and the region keeps its width while staying inside the chromosome. The successful result has `clamped: true` when a chromosome boundary limits the requested movement. A fraction that is not finite, or is zero, returns `INVALID_PAN_FRACTION`.
 
 ```ts
 const panned = useBrowserStore.getState().pan(-0.5);

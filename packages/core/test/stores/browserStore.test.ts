@@ -317,8 +317,20 @@ describe("createBrowserStore", () => {
     expect(store.getState().pan(-0.01)).toMatchObject({
       region: { chromosome: "chr1", start: 14, end: 34 },
     });
-    expect(store.getState().pan(-10)).toMatchObject({
+    expect(store.getState().pan(-10)).toEqual({
+      ok: true,
       region: { chromosome: "chr1", start: 0, end: 20 },
+      clamped: true,
+    });
+    expect(store.getState().pan(10)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 80, end: 100 },
+      clamped: true,
+    });
+    expect(store.getState().pan(-0.5)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 70, end: 90 },
+      clamped: false,
     });
     for (const fraction of [0, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(store.getState().pan(fraction)).toMatchObject({
@@ -326,7 +338,7 @@ describe("createBrowserStore", () => {
         code: "INVALID_PAN_FRACTION",
       });
     }
-    expect(store.getState().region).toEqual({ chromosome: "chr1", start: 0, end: 20 });
+    expect(store.getState().region).toEqual({ chromosome: "chr1", start: 70, end: 90 });
   });
 
   it("validates runtime track widths and returns the committed dimension", () => {
