@@ -1,20 +1,21 @@
 "use client";
 
 import Add from "@mui/icons-material/Add";
-import FolderOpenOutlined from "@mui/icons-material/FolderOpenOutlined";
 import Divider from "@mui/material/Divider";
+import MuiLink from "@mui/material/Link";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { SessionState } from "../session";
 import { byRecent } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
 import { useCreateDisabled } from "./NewSessionDialog";
-import { labelSx, listSx, SessionList, SessionListStatus } from "./SessionList";
+import { labelSx, listSx, SessionList, SessionListStatus, textSx } from "./SessionList";
 import { itemSx } from "./SessionRow";
 
 /** Other sessions listed beside the open one. */
@@ -27,7 +28,7 @@ type SessionMenuProps = {
   onNewSession: () => void;
 };
 
-/** Recent sessions, then opening and creating sessions. */
+/** Recent sessions with a link to all of them, then creating a session. */
 export function SessionMenu({ onDone, onNewSession }: SessionMenuProps) {
   const ids = useSession(useShallow(recentIds));
   const labelId = useId();
@@ -47,17 +48,20 @@ export function SessionMenu({ onDone, onNewSession }: SessionMenuProps) {
       </Typography>
       <SessionList ids={ids} now={now} onOpen={onDone} aria-labelledby={labelId} />
       <SessionListStatus count={ids.length} empty="No saved sessions yet." />
+      <MuiLink
+        component={Link}
+        href="/sessions"
+        variant="body2"
+        underline="hover"
+        onClick={onDone}
+        sx={allSessionsSx}
+      >
+        All sessions
+      </MuiLink>
 
       <Divider sx={{ my: 0.25 }} />
 
       <List dense sx={listSx}>
-        {/* Browsing every saved session comes with #334. */}
-        <ListItemButton disabled sx={itemSx}>
-          <ListItemIcon sx={iconSx}>
-            <FolderOpenOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Open session…" />
-        </ListItemButton>
         <NewSession onClick={onNewSession} />
       </List>
     </>
@@ -89,3 +93,6 @@ function recentIds({ sessions, active }: SessionState) {
 
 /** A row's leading icon, just wide enough for its glyph. */
 const iconSx = { minWidth: 28 } as const;
+
+/** Below the rows, lined up with their text. */
+const allSessionsSx = { ...textSx, display: "block", pt: 0.25, pb: 1 } as const;

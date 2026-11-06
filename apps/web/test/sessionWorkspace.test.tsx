@@ -212,7 +212,11 @@ it("lists the open session and the three most recently saved others", async () =
   expect(current?.querySelector(".MuiListItemText-secondary")?.textContent).toMatch(
     /^hg38 • .+ • 3 tracks$/,
   );
-  expect(menuItem("Open session…")?.getAttribute("aria-disabled")).toBe("true");
+
+  // Below them, a link goes to the Sessions page, which lists all five.
+  await click(link("All sessions"));
+  expect(route.pathname()).toBe("/sessions");
+  expect(document.querySelectorAll("main section li")).toHaveLength(5);
 });
 
 it("lists every saved session to search, and creates one into the browser", async () => {
