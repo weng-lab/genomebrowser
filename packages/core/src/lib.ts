@@ -4,6 +4,7 @@ export type { MutationFailure } from "./mutation";
 export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 export { createBrowserStore } from "./browser/state/browserStore";
+export { canPan, canZoom } from "./browser/state/navigation";
 export type {
   BasePairDetailSettings,
   BasePairDetailMutationResult,
@@ -19,6 +20,10 @@ export type {
   BrowserViewportMutationResult,
   Highlight,
 } from "./browser/state/browserStore";
+export { getDefaultHighlightOpacity, resolveHighlight } from "./browser/overlays/resolveHighlight";
+export type { HighlightType, ResolvedHighlight } from "./browser/overlays/resolveHighlight";
+export { HighlightRect } from "./browser/overlays/HighlightRect";
+export type { HighlightRectProps } from "./browser/overlays/HighlightRect";
 export { createTrackStore } from "./browser/state/trackStore";
 export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
 export type { ModuleRegistry } from "./modules/registry";
@@ -78,7 +83,9 @@ export type {
   TrackSettingsComponent,
   TrackSource,
   TrackSettingsProps,
+  TrackSettingsMutationResult,
   TrackUpdate,
+  TrackUpdater,
 } from "./modules/types";
 
 // Renderer integration

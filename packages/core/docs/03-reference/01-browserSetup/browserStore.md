@@ -115,6 +115,15 @@ function goToRegion(input: string) {
 goToRegion("chr12:53,372,922-53,423,700");
 ```
 
+### pan
+
+`pan(fraction: number): BrowserRegionMutationResult` moves the current region by `fraction` of its width. Negative values move toward the chromosome start, and positive values move toward its end. The shift is rounded to the nearest whole base, with a minimum of one base, and the region keeps its width while staying inside the chromosome. The successful result has `clamped: true` when a chromosome boundary limits the requested movement. A fraction that is not finite, or is zero, returns `INVALID_PAN_FRACTION`.
+
+```ts
+const panned = useBrowserStore.getState().pan(-0.5);
+if (!panned.ok) console.error(panned.error);
+```
+
 ### zoom
 
 `zoom(factor: number, centerBase?: number): BrowserRegionMutationResult` multiplies the current region width by a positive finite factor. Values below one zoom in; values above one zoom out. The target width is rounded to the nearest integer with a minimum of one base, and its start is rounded around the chosen center before normalization.
@@ -133,7 +142,7 @@ Boundary clamping can shorten the requested region. A successful store mutation 
 
 ### BrowserRegionMutationResult and BrowserRegionMutationErrorCode
 
-Both navigation actions return:
+`pan`, `zoom`, and `setRegion` return:
 
 ```ts
 import type { BrowserRegionMutationErrorCode, GenomicRegion } from "@weng-lab/genomebrowser";
@@ -143,7 +152,17 @@ type Result =
   | { ok: false; code: BrowserRegionMutationErrorCode; error: string };
 ```
 
-`BrowserRegionMutationErrorCode` includes every [RegionErrorCode](../02-assembliesAndRegions/regions.md#regionresult-and-regionerrorcode), plus `INVALID_ZOOM_FACTOR` and `INVALID_ZOOM_CENTER`. Even a finite zoom factor can produce an invalid coordinate if the calculated region overflows. Expected navigation failures return a result and leave state unchanged.
+`BrowserRegionMutationErrorCode` includes every [RegionErrorCode](../02-assembliesAndRegions/regions.md#regionresult-and-regionerrorcode), plus `INVALID_PAN_FRACTION`, `INVALID_ZOOM_FACTOR`, and `INVALID_ZOOM_CENTER`. Even a finite zoom factor can produce an invalid coordinate if the calculated region overflows. Expected navigation failures return a result and leave state unchanged.
+
+### canPan and canZoom
+
+`canPan(state: { region; assembly }, fraction: number): boolean` and `canZoom(state: { region; assembly }, factor: number): boolean` report whether a navigation control should be enabled. Pass browser store state, usually from a selector, so the result updates with the region:
+
+```tsx
+const canPanLeft = useBrowserStore((state) => canPan(state, -0.5));
+```
+
+Both return `false` for an argument the action rejects, or for a region outside its chromosome. Otherwise `canPan` is `false` when the region already touches the chromosome edge it would move toward. `canZoom` is `false` for a factor of one, when zooming in from a one-base region, or when zooming out from a region that spans the whole chromosome. These are boundary checks, not a preview: a factor close to one can be available even though the rounded result does not change the region.
 
 ## Base-pair detail
 
@@ -170,6 +189,8 @@ Renderers use [useBasePairDetail](../04-rendererIntegration/useBasePairDetail.md
 
 `BrowserSelectionMode` is `"pan" | "zoom" | "highlight"`. `setSelectionMode(mode: BrowserSelectionMode): BrowserSelectionMutationResult` replaces the active mode. Zoom and highlight modes remain active after a drag.
 
+A drag in highlight mode adds a chromosome-scoped highlight with the selection style. Its ID is the region written as [`formatDisplayRegion`](../02-assembliesAndRegions/regions.md#display-regions) writes it, such as `chr1:126-175` for the region `[125, 175)`. When that ID is taken, the browser appends ` (2)`, ` (3)`, and so on.
+
 `SelectionHighlightStyle` is `Pick<Highlight, "color" | "opacity" | "type">`. It requires `color`; omitted `opacity` and `type` use the highlight rendering defaults.
 
 `setSelectionHighlight(style: SelectionHighlightStyle): BrowserSelectionMutationResult` replaces the complete style. It does not merge omitted fields or restyle existing highlights.
@@ -194,7 +215,7 @@ See [selection interactions](../../01-gettingStarted/03-navigationAndSelection.m
 
 ## Highlights
 
-Highlights mark genomic regions across the track area. Add them programmatically with `addHighlight`, or let users draw them in highlight selection mode. The `Highlight` type describes each stored entry.
+Highlights mark genomic regions across the track area. Add them programmatically with `addHighlight`, or let users draw them in highlight selection mode. The `Highlight` type describes each stored entry, and [`highlightSchema`](../05-collectionsAndSchemas/stateSchemas.md#api) validates it.
 
 ### Highlight
 
@@ -208,9 +229,41 @@ Highlights mark genomic regions across the track area. Add them programmatically
 
 Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type` and `opacity` stay optional in stored entries; rendering applies their defaults.
 
-### addHighlight, removeHighlight, and clearHighlights
+### resolveHighlight and getDefaultHighlightOpacity
 
-`addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+`resolveHighlight(highlight, currentChromosome: string): ResolvedHighlight` applies the rules the browser uses to draw a stored entry. It returns `{ region, opacity, type }`: `region` is a complete `GenomicRegion` whose chromosome is `currentChromosome` when the highlight omits one, `type` defaults to `"filled"`, and `opacity` defaults to `getDefaultHighlightOpacity(type)`. `highlight` needs only `region`, `opacity`, and `type`. `HighlightType` is `"filled" | "outlined"`.
+
+`getDefaultHighlightOpacity(type?: HighlightType): number` returns `1` for `"outlined"` and `0.2` for `"filled"` or no type. Use it for a form that resets opacity when the type changes.
+
+```ts
+import { formatDisplayRegion, resolveHighlight } from "@weng-lab/genomebrowser";
+
+const { region: currentRegion, highlights } = useBrowserStore.getState();
+const labels = highlights.map((highlight) =>
+  formatDisplayRegion(resolveHighlight(highlight, currentRegion.chromosome).region),
+);
+```
+
+### HighlightRect
+
+`HighlightRect` draws one highlight band in SVG the way the browser does. A filled band covers `height` with `color` at `opacity`. An outlined band draws a 2-unit border that does not scale with SVG transforms, inset by one unit so it stays inside `height`. Use it with `resolveHighlight` to draw highlights in your own SVG, such as an overview of the chromosome.
+
+| Prop      | Type            | Description                                                     |
+| --------- | --------------- | --------------------------------------------------------------- |
+| `x`       | `number`        | Left edge in SVG units.                                         |
+| `width`   | `number`        | Band width in SVG units.                                        |
+| `height`  | `number`        | Band height in SVG units. The band starts at `y = 0`.           |
+| `color`   | `string`        | Fill color, or border color for an outline.                     |
+| `opacity` | `number`        | Fill or border opacity, such as `ResolvedHighlight["opacity"]`. |
+| `type`    | `HighlightType` | `"filled"` or `"outlined"`.                                     |
+
+Other SVG `<rect>` attributes, such as `pointerEvents` or `data-*` attributes, pass through to the element. `HighlightRectProps` is the props type.
+
+### addHighlight, updateHighlight, removeHighlight, and clearHighlights
+
+`addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`, `HIGHLIGHT_NOT_FOUND`, or `DUPLICATE_HIGHLIGHT_ID`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+
+`updateHighlight(id: string, highlight: Highlight): BrowserHighlightMutationResult` validates `highlight` like `addHighlight` and replaces the entry with ID `id`, keeping its position. The new entry may have a different ID. Invalid input returns `INVALID_HIGHLIGHT`, a missing `id` returns `HIGHLIGHT_NOT_FOUND`, and a new ID that another entry already uses returns `DUPLICATE_HIGHLIGHT_ID`. A failure leaves state unchanged.
 
 `removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
 

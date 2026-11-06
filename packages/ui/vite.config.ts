@@ -35,6 +35,7 @@ export default defineConfig({
         "react-dom",
         "react/jsx-runtime",
         "@weng-lab/genomebrowser",
+        /^@weng-lab\/genomebrowser\//,
         "@weng-lab/ui-components",
         "zod",
         /^node:.*/,

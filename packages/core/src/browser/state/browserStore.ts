@@ -3,27 +3,23 @@ import { z } from "zod";
 import { createAssemblyDefinition, type AssemblyDefinition } from "../../genome/assembly";
 import { normalizeRegion, type GenomicRegion, type RegionErrorCode } from "../../genome/region";
 import type { MutationFailure } from "../../mutation";
-import { formatZodError, parsePublicInput } from "../../modules/schemas";
+import {
+  basePairDetailSchema,
+  browserSettingsSchema,
+  highlightSchema,
+  selectionHighlightSchema,
+  selectionModeSchema,
+} from "../../schemas";
+import { formatZodError, parsePublicInput } from "../../validation";
+import { getPannedRegion } from "./navigation";
 
-export type Highlight = {
-  id: string;
-  region: {
-    chromosome?: string;
-    start: number;
-    end: number;
-  };
-  color: string;
-  opacity?: number;
-  type?: "filled" | "outlined";
-};
+export type Highlight = z.output<typeof highlightSchema>;
 
-export type BrowserSelectionMode = "pan" | "zoom" | "highlight";
-export type SelectionHighlightStyle = Pick<Highlight, "color" | "opacity" | "type">;
+export type BrowserSelectionMode = z.output<typeof selectionModeSchema>;
+export type SelectionHighlightStyle = z.output<typeof selectionHighlightSchema>;
 
-export type BasePairDetailSettings = {
-  /** Largest visible span eligible for base-pair data. Defaults to 100 bp. */
-  maxVisibleBases: number;
-};
+/** `maxVisibleBases` is the largest visible span eligible for base-pair data. Defaults to 100 bp. */
+export type BasePairDetailSettings = z.output<typeof basePairDetailSchema>;
 
 export type BasePairDetailMutationResult =
   | { ok: true }
@@ -45,6 +41,7 @@ export type BrowserStoreInput = {
 
 export type BrowserRegionMutationErrorCode =
   | RegionErrorCode
+  | "INVALID_PAN_FRACTION"
   | "INVALID_ZOOM_FACTOR"
   | "INVALID_ZOOM_CENTER";
 
@@ -60,7 +57,9 @@ export type BrowserSelectionMutationResult =
   | { ok: true }
   | MutationFailure<"INVALID_SELECTION_MODE" | "INVALID_SELECTION_HIGHLIGHT">;
 
-export type BrowserHighlightMutationResult = { ok: true } | MutationFailure<"INVALID_HIGHLIGHT">;
+export type BrowserHighlightMutationResult =
+  | { ok: true }
+  | MutationFailure<"INVALID_HIGHLIGHT" | "HIGHLIGHT_NOT_FOUND" | "DUPLICATE_HIGHLIGHT_ID">;
 
 export type BrowserStore = {
   basePairDetail: BasePairDetailSettings;
@@ -85,49 +84,21 @@ export type BrowserStore = {
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   /** Set the configured logical width for fixed views; responsive views measure themselves. */
   setTrackWidth: (trackWidth: number) => BrowserViewportMutationResult;
+  /** Moves the view by `fraction` of its width, negative toward the chromosome start, keeping its width. */
+  pan: (fraction: number) => BrowserRegionMutationResult;
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
   addHighlight: (highlight: Highlight) => BrowserHighlightMutationResult;
+  /** Replaces the highlight with ID `id`, which may be renamed to an unused ID. */
+  updateHighlight: (id: string, highlight: Highlight) => BrowserHighlightMutationResult;
   removeHighlight: (id: string) => void;
   clearHighlights: () => void;
 };
 
 export type BrowserStoreInstance = UseBoundStore<StoreApi<BrowserStore>>;
 
-const highlightSchema = z.object({
-  id: z.string().min(1),
-  region: z
-    .object({
-      chromosome: z.string().min(1).optional(),
-      start: z.number().int(),
-      end: z.number().int(),
-    })
-    .refine((region) => region.start < region.end, {
-      message: "start must be less than end",
-      path: ["start"],
-    }),
-  color: z.string().min(1),
-  opacity: z.number().min(0).max(1).optional(),
-  type: z.enum(["filled", "outlined"]).optional(),
-});
-
-const selectionModeSchema = z.enum(["pan", "zoom", "highlight"]);
-const selectionHighlightSchema = highlightSchema.pick({ color: true, opacity: true, type: true });
-
-const basePairDetailSchema = z.strictObject({
-  maxVisibleBases: z.number().int().positive(),
-});
-
-const browserStoreInputSchema = z.object({
-  basePairDetail: basePairDetailSchema.optional(),
+const browserStoreInputSchema = browserSettingsSchema.partial().extend({
   assembly: z.unknown().optional(),
   region: z.unknown().optional(),
-  marginWidth: z.number().positive().optional(),
-  trackWidth: z.number().positive().optional(),
-  fontSize: z.number().positive().optional(),
-  titleSize: z.number().positive().optional(),
-  highlights: z.array(highlightSchema).optional(),
-  selectionMode: selectionModeSchema.optional(),
-  selectionHighlight: selectionHighlightSchema.optional(),
 });
 
 export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstance {
@@ -211,6 +182,19 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         set({ trackWidth });
         return { ok: true, trackWidth };
       },
+      pan: (fraction) => {
+        if (!Number.isFinite(fraction) || fraction === 0) {
+          return {
+            ok: false,
+            code: "INVALID_PAN_FRACTION",
+            error: "Pan fraction must be a finite, nonzero number.",
+          };
+        }
+        const region = get().region;
+        const target = getPannedRegion(region, assembly.chromosomes[region.chromosome], fraction);
+        const result = commitRegion(target.region);
+        return result.ok ? { ...result, clamped: target.clamped || result.clamped } : result;
+      },
       zoom: (factor, centerBase) => {
         if (!Number.isFinite(factor) || factor <= 0) {
           return {
@@ -243,17 +227,39 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         });
       },
       addHighlight: (highlight) => {
-        const result = highlightSchema.safeParse(highlight);
-        if (!result.success)
-          return {
-            ok: false,
-            code: "INVALID_HIGHLIGHT",
-            error: `Highlight is invalid: ${formatZodError(result.error)}`,
-          };
-        const parsedHighlight = result.data;
+        const result = parseHighlight(highlight);
+        if (!result.ok) return result;
+        const parsedHighlight = result.highlight;
         if (get().highlights.some((existing) => existing.id === parsedHighlight.id))
           return { ok: true };
         set((state) => ({ highlights: [...state.highlights, parsedHighlight] }));
+        return { ok: true };
+      },
+      updateHighlight: (id, highlight) => {
+        const result = parseHighlight(highlight);
+        if (!result.ok) return result;
+        const parsedHighlight = result.highlight;
+        const { highlights } = get();
+        if (!highlights.some((existing) => existing.id === id))
+          return {
+            ok: false,
+            code: "HIGHLIGHT_NOT_FOUND",
+            error: `No highlight found for id: ${id}`,
+          };
+        if (
+          parsedHighlight.id !== id &&
+          highlights.some((existing) => existing.id === parsedHighlight.id)
+        )
+          return {
+            ok: false,
+            code: "DUPLICATE_HIGHLIGHT_ID",
+            error: `Duplicate highlight id: ${parsedHighlight.id}`,
+          };
+        set({
+          highlights: highlights.map((existing) =>
+            existing.id === id ? parsedHighlight : existing,
+          ),
+        });
         return { ok: true };
       },
       removeHighlight: (id) => {
@@ -266,4 +272,17 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
       },
     };
   });
+}
+
+function parseHighlight(
+  highlight: Highlight,
+): { ok: true; highlight: Highlight } | MutationFailure<"INVALID_HIGHLIGHT"> {
+  const result = highlightSchema.safeParse(highlight);
+  if (!result.success)
+    return {
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+      error: `Highlight is invalid: ${formatZodError(result.error)}`,
+    };
+  return { ok: true, highlight: result.data };
 }

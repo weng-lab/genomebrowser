@@ -2,7 +2,7 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import type {
   TrackBaseUpdate,
-  TrackMutationResult,
+  TrackSettingsMutationResult,
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 import { useState, type ReactNode } from "react";
@@ -14,7 +14,7 @@ import { TrackSettingsSection } from "./trackSettingsSection";
 export type TrackBaseSettingsProps = {
   track: { base: TrackSettingsProps<unknown>["track"]["base"] };
   displayOptions: readonly string[];
-  updateTrack: (update: { base: TrackBaseUpdate }) => TrackMutationResult;
+  updateTrack: (update: { base: TrackBaseUpdate }) => TrackSettingsMutationResult;
   children?: ReactNode;
   showColor?: boolean;
 };

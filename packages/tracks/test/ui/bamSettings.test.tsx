@@ -1,49 +1,53 @@
-import { createTrackStore } from "@weng-lab/genomebrowser";
 // @vitest-environment jsdom
+import { type ModuleCreateInput, type TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
-import { BamSettings } from "../../src/bam/settings";
+import { describe, expect, it } from "vitest";
+import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
 import type { BamConfig } from "../../src/bam/schema";
-import { TestBrowser } from "../testBrowser";
-import { type TrackUpdate } from "@weng-lab/genomebrowser";
+import { openTrackSettings } from "../testBrowser";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
-let root: Root | undefined;
-let container: HTMLDivElement | undefined;
-afterEach(() => {
-  act(() => root?.unmount());
-  container?.remove();
-  root = undefined;
-  container = undefined;
-});
+let container: Element;
 let defaults: BamConfig;
-function setup(source: "host" | "user", coverage?: Partial<BamConfig["coverage"]>) {
+let useTrackStore: TrackStoreInstance;
+
+async function setup(
+  source: "host" | "user",
+  config: Omit<ModuleCreateInput<typeof bamModule>["config"], "url" | "indexUrl"> = {},
+) {
   const track = bamModule.create({
     source,
     base: { id: "bam", title: "BAM" },
-    config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", coverage },
+    config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", ...config },
   });
-  const update = vi.fn(() => ({ ok: true as const }));
   defaults = track.config;
-  container = document.createElement("div");
-  document.body.appendChild(container);
-  root = createRoot(container);
-  act(() =>
-    root?.render(
-      <TestBrowser>
-        <BamSettings
-          track={track}
-          displayOptions={bamModule.displays}
-          updateTrack={update}
-          updateTracksOfType={() => ({ ok: true })}
-        />
-      </TestBrowser>,
-    ),
-  );
-  return update;
+  const settings = await openTrackSettings(bamModule, track);
+  container = settings.dialog;
+  useTrackStore = settings.trackStore;
+  return settings;
+}
+
+function storedConfig() {
+  return bamModule.validate(useTrackStore.getState().getTrack("bam")).config;
+}
+
+function inputLabeled(name: string) {
+  const label = [...container!.querySelectorAll("label")].find(
+    (label) => label.textContent?.replace(/\s*\*$/, "").trim() === name,
+  )!;
+  return document.getElementById(label.htmlFor) as HTMLInputElement;
+}
+
+function typeInto(input: HTMLInputElement, value: string) {
+  act(() => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+function pressEnter(input: HTMLInputElement) {
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
 }
 function duplicatesCheckbox() {
   return [...container!.querySelectorAll("label")]
@@ -51,8 +55,8 @@ function duplicatesCheckbox() {
     .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
 }
 describe("BAM settings", () => {
-  it("commits the index URL explicitly and exposes filtering and display controls", () => {
-    const update = setup("user");
+  it("commits the index URL explicitly and exposes filtering and display controls", async () => {
+    await setup("user");
     for (const label of [
       "Display mode",
       "BAM URL",
@@ -72,18 +76,17 @@ describe("BAM settings", () => {
       );
       index.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    expect(update).not.toHaveBeenCalled();
-    act(() =>
+    expect(storedConfig()).toEqual(defaults);
+    // A new index URL refetches the track; wait for the browser to settle again.
+    await act(async () =>
       container!.querySelector<HTMLButtonElement>('button[aria-label="Set BAI URL"]')!.click(),
     );
-    expect(update).toHaveBeenCalledWith({ config: { indexUrl: "UPDATED_INDEX" } });
+    expect(storedConfig().indexUrl).toBe("UPDATED_INDEX");
     act(() => duplicatesCheckbox().click());
-    expect(update).toHaveBeenCalledWith({
-      config: { filters: { ...defaults.filters, includeDuplicates: false } },
-    });
+    expect(storedConfig().filters).toEqual({ ...defaults.filters, includeDuplicates: false });
   });
-  it("locks all host-owned source URLs while allowing display settings", () => {
-    setup("host");
+  it("locks all host-owned source URLs while allowing display settings", async () => {
+    await setup("host");
     const urls = container!.querySelectorAll<HTMLInputElement>('input[type="url"]');
     expect(urls).toHaveLength(3);
     expect([...urls].every((input) => input.disabled)).toBe(true);
@@ -94,8 +97,8 @@ describe("BAM settings", () => {
   });
 });
 
-it("uses explicit strand controls and commits whole strand color groups for host tracks", () => {
-  const update = setup("host");
+it("uses explicit strand controls and commits whole strand color groups for host tracks", async () => {
+  await setup("host");
   const labels = [...container!.querySelectorAll("label")];
   expect(labels.some((label) => label.textContent?.replace(/\s*\*$/, "").trim() === "Color")).toBe(
     false,
@@ -111,15 +114,28 @@ it("uses explicit strand controls and commits whole strand color groups for host
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
-    expect(update).toHaveBeenLastCalledWith({
-      config: { strandColors: { ...defaults.strandColors, ...expected } },
-    });
+    act(() => pressEnter(input));
+    expect(storedConfig().strandColors).toMatchObject(expected);
   }
+  expect(storedConfig().strandColors).toEqual({ forward: "#123456", reverse: "#654321" });
 });
 
-it("shows controls for enabled sections and keeps at least one section visible", () => {
-  const update = setup("user");
+it("keeps both strand colors when their edits commit in one batch", async () => {
+  await setup("user");
+  const forward = inputLabeled("Forward color");
+  const reverse = inputLabeled("Reverse color");
+  typeInto(forward, "#123456");
+  typeInto(reverse, "#654321");
+  act(() => {
+    // React has not re-rendered the form between these commits.
+    pressEnter(forward);
+    pressEnter(reverse);
+  });
+  expect(storedConfig().strandColors).toEqual({ forward: "#123456", reverse: "#654321" });
+});
+
+it("shows controls for enabled sections and keeps at least one section visible", async () => {
+  const { unmount } = await setup("user");
   const text = container!.textContent;
   expect(text).toContain("Coverage height");
   expect(text).toContain("Row height");
@@ -129,29 +145,11 @@ it("shows controls for enabled sections and keeps at least one section visible",
       .find((label) => label.textContent === name)!
       .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
   act(() => switchFor("Splice junctions").click());
-  expect(update).toHaveBeenLastCalledWith({
-    config: { junctions: { ...defaults.junctions, show: true } },
-  });
+  expect(storedConfig().junctions).toEqual({ ...defaults.junctions, show: true });
   expect(switchFor("Coverage").disabled).toBe(false);
 
-  act(() => root?.unmount());
-  root = createRoot(container!);
-  const coverageOnly = bamModule.create({
-    base: { id: "bam", title: "BAM" },
-    config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", alignments: { show: false } },
-  });
-  act(() =>
-    root?.render(
-      <TestBrowser>
-        <BamSettings
-          track={coverageOnly}
-          displayOptions={bamModule.displays}
-          updateTrack={update}
-          updateTracksOfType={() => ({ ok: true })}
-        />
-      </TestBrowser>,
-    ),
-  );
+  unmount();
+  await setup("user", { alignments: { show: false } });
   expect(switchFor("Coverage").disabled).toBe(true);
   expect(container!.textContent).not.toContain("Row height");
   expect(container!.textContent).toContain("Strand colors");
@@ -163,44 +161,8 @@ it("shows controls for enabled sections and keeps at least one section visible",
   expect(container!.textContent).not.toContain("Show letters ·");
 });
 
-it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
-  const useTrackStore = createTrackStore({
-    modules: [bamModule],
-    tracks: [
-      bamModule.create({
-        base: { id: "bam", title: "BAM" },
-        config: {
-          url: "YOUR_URL_HERE",
-          indexUrl: "YOUR_URL_HERE",
-          junctions: { show: true, maximumSpan: 100 },
-        },
-      }),
-    ],
-  });
-  const update = vi.fn((patch: TrackUpdate<BamConfig, BamRecord>) =>
-    useTrackStore.getState().updateTrack("bam", patch),
-  );
-  function Settings() {
-    const track = useTrackStore((state) => state.getTrack("bam"))!;
-    return (
-      <BamSettings
-        track={bamModule.validate(track)}
-        displayOptions={bamModule.displays}
-        updateTrack={update}
-        updateTracksOfType={() => ({ ok: true })}
-      />
-    );
-  }
-  container = document.createElement("div");
-  document.body.appendChild(container);
-  root = createRoot(container);
-  act(() =>
-    root!.render(
-      <TestBrowser>
-        <Settings />
-      </TestBrowser>,
-    ),
-  );
+it("rejects unsafe intron spans and allows a valid span to be cleared", async () => {
+  await setup("user", { junctions: { show: true, maximumSpan: 100 } });
   const label = [...container.querySelectorAll("label")].find(
     (label) => label.textContent === "Maximum intron span (bp)",
   )!;
@@ -215,7 +177,6 @@ it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
   for (const invalid of ["9007199254740992", "9".repeat(400)]) {
     enter(invalid);
     expect(input.getAttribute("aria-invalid")).toBe("true");
-    expect(update).not.toHaveBeenCalled();
     expect(
       bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
     ).toBe(100);
@@ -232,78 +193,50 @@ it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
   ).toBeUndefined();
 });
 
-it("accepts a positive coverage maximum, rejects invalid limits, and clears to auto", () => {
-  const update = setup("user");
-  const label = [...container!.querySelectorAll("label")].find(
-    (label) => label.textContent === "Forward maximum",
-  )!;
-  const input = document.getElementById(label.htmlFor) as HTMLInputElement;
+it("accepts a positive coverage maximum, rejects invalid limits, and clears to auto", async () => {
+  await setup("user");
+  const input = inputLabeled("Forward maximum");
   expect(input.value).toBe("");
   expect(input.placeholder).toBe("Auto");
   const enter = (value: string) => {
-    act(() => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+    typeInto(input, value);
+    act(() => pressEnter(input));
   };
   for (const invalid of ["0", "-1", "Infinity", "oops"]) {
     enter(invalid);
     expect(input.getAttribute("aria-invalid")).toBe("true");
-    expect(update).not.toHaveBeenCalled();
+    expect(storedConfig()).toEqual(defaults);
   }
   enter("2.5");
-  expect(update).toHaveBeenLastCalledWith({
-    config: { coverage: { ...defaults.coverage, scale: { mode: "fixed", forwardMax: 2.5 } } },
+  expect(storedConfig().coverage).toEqual({
+    ...defaults.coverage,
+    scale: { mode: "fixed", forwardMax: 2.5 },
   });
-  update.mockClear();
   enter(" ");
   expect(input.getAttribute("aria-invalid")).toBe("false");
-  expect(update).toHaveBeenLastCalledWith({
-    config: { coverage: { ...defaults.coverage, scale: { mode: "auto" } } },
-  });
+  expect(storedConfig().coverage).toEqual({ ...defaults.coverage, scale: { mode: "auto" } });
   const toggle = [...container!.querySelectorAll("label")]
     .find((label) => label.textContent === "Show clamp indicators")!
     .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
   expect(toggle.checked).toBe(true);
   act(() => toggle.click());
-  expect(update).toHaveBeenLastCalledWith({
-    config: { coverage: { ...defaults.coverage, showClampIndicators: false } },
-  });
+  expect(storedConfig().coverage.showClampIndicators).toBe(false);
 });
 
-it("edits or clears one strand limit while preserving the other", () => {
-  const update = setup("user", { scale: { mode: "fixed", forwardMax: 3, reverseMax: 7 } });
-  const inputFor = (name: string) => {
-    const label = [...container!.querySelectorAll("label")].find(
-      (label) => label.textContent === name,
-    )!;
-    return document.getElementById(label.htmlFor) as HTMLInputElement;
-  };
-  const forward = inputFor("Forward maximum");
-  const reverse = inputFor("Reverse maximum");
+it("edits or clears one strand limit while preserving the other", async () => {
+  await setup("user", { coverage: { scale: { mode: "fixed", forwardMax: 3, reverseMax: 7 } } });
+  const forward = inputLabeled("Forward maximum");
+  const reverse = inputLabeled("Reverse maximum");
   expect(forward.value).toBe("3");
   expect(reverse.value).toBe("7");
-  const enter = (input: HTMLInputElement, value: string) => {
-    act(() => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
-  };
-  enter(forward, "");
-  expect(update).toHaveBeenLastCalledWith({
-    config: {
-      coverage: {
-        ...defaults.coverage,
-        scale: { mode: "fixed", forwardMax: undefined, reverseMax: 7 },
-      },
-    },
+  typeInto(forward, "");
+  act(() => pressEnter(forward));
+  expect(storedConfig().coverage.scale).toEqual({ mode: "fixed", reverseMax: 7 });
+  typeInto(forward, "4");
+  typeInto(reverse, "9");
+  act(() => {
+    pressEnter(forward);
+    pressEnter(reverse);
   });
-  enter(reverse, "9");
-  expect(update).toHaveBeenLastCalledWith({
-    config: {
-      coverage: { ...defaults.coverage, scale: { mode: "fixed", forwardMax: 3, reverseMax: 9 } },
-    },
-  });
+  expect(storedConfig().coverage.scale).toEqual({ mode: "fixed", forwardMax: 4, reverseMax: 9 });
 });

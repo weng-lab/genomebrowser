@@ -1,9 +1,8 @@
+import { hexColorSchema } from "@weng-lab/genomebrowser/schemas";
 import type { DraftValidation } from "./draftInput";
 
-const hexColorPattern = /^#[0-9a-f]{6}$/i;
-
 export function normalizeHexColor(value: string) {
-  return hexColorPattern.test(value) ? value.toUpperCase() : undefined;
+  return hexColorSchema.safeParse(value).success ? value.toUpperCase() : undefined;
 }
 
 export function validateHexColorDraft(value: string): DraftValidation<string> {

@@ -3,11 +3,10 @@ import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { resolveHighlight, type BrowserStoreInstance } from "@weng-lab/genomebrowser";
 import { useState } from "react";
 import { ConfirmDialog } from "../ConfirmDialog/confirmDialog";
 import { HighlightCard } from "./highlightCard";
-import { resolveHighlightRegion } from "./highlightRegion";
 
 export function HighlightList({
   browserStore,
@@ -42,7 +41,7 @@ export function HighlightList({
         <RemoveAllButton onRemoveAll={clearHighlights} />
       </Box>
       {highlights.toReversed().map((highlight) => {
-        const region = resolveHighlightRegion(highlight, currentChromosome);
+        const { region } = resolveHighlight(highlight, currentChromosome);
         return (
           <HighlightCard
             highlight={highlight}

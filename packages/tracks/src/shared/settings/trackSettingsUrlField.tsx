@@ -1,13 +1,13 @@
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import type { TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { TrackSettingsMutationResult } from "@weng-lab/genomebrowser";
 import { useDraftController } from "./draftInput";
 
 export type TrackSettingsUrlFieldProps = {
   disabled?: boolean;
   label?: string;
-  onCommit: (url: string) => TrackMutationResult;
+  onCommit: (url: string) => TrackSettingsMutationResult;
   placeholder?: string;
   required?: boolean;
   value: string;

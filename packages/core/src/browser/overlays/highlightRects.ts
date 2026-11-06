@@ -1,6 +1,7 @@
 import type { GenomicRegion } from "../../genome/region";
 import { createXScale } from "../../modules/utils/scale";
 import type { Highlight } from "../state/browserStore";
+import { resolveHighlight, type HighlightType } from "./resolveHighlight";
 
 export type HighlightRect = {
   id: string;
@@ -8,7 +9,7 @@ export type HighlightRect = {
   width: number;
   color: string;
   opacity: number;
-  type: "filled" | "outlined";
+  type: HighlightType;
 };
 
 export function getHighlightRects({
@@ -23,19 +24,19 @@ export function getHighlightRects({
   const xScale = createXScale(region, width);
 
   return highlights.flatMap((highlight) => {
-    const chromosome = highlight.region.chromosome ?? region.chromosome;
-    if (chromosome !== region.chromosome) return [];
+    const resolved = resolveHighlight(highlight, region.chromosome);
+    if (resolved.region.chromosome !== region.chromosome) return [];
 
-    const start = xScale(highlight.region.start);
-    const end = xScale(highlight.region.end);
+    const start = xScale(resolved.region.start);
+    const end = xScale(resolved.region.end);
     return [
       {
         id: highlight.id,
         x: start,
         width: end - start,
         color: highlight.color,
-        opacity: highlight.opacity ?? (highlight.type === "outlined" ? 1 : 0.2),
-        type: highlight.type ?? "filled",
+        opacity: resolved.opacity,
+        type: resolved.type,
       },
     ];
   });

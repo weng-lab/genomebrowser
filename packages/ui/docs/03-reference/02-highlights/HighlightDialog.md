@@ -41,9 +41,9 @@ Choose Filled or Outlined in the Type selector. New highlights also have a color
 
 Choosing a type sets opacity to 20% for Filled or 100% for Outlined. Adjust the opacity afterward if needed. An opacity of 0 is fully transparent, and 100 is fully opaque. Each highlight in the list shows its type.
 
-Select a highlight's pencil action to edit its ID, region, type, color, and opacity inside the dialog. The form starts with the existing values. **Save changes** updates that highlight in place. The back arrow, **Cancel**, or closing the dialog discard unsaved edits. IDs must remain unique, but keeping the highlight's current ID is allowed. Invalid input stays in the form for correction.
+Select a highlight's pencil action to edit its ID, region, type, color, and opacity inside the dialog. The form starts with the existing values. **Save changes** updates that highlight in place through the browser store's `updateHighlight`. If the store rejects the edit, the form stays open with the store's error. The back arrow, **Cancel**, or closing the dialog discard unsaved edits. IDs must remain unique, but keeping the highlight's current ID is allowed. Invalid input stays in the form for correction.
 
-Highlights appear newest first, using the reverse of their order in the browser store. Editing a highlight keeps its position; initial highlights follow the order supplied by the application. Drag-created highlights have region-based IDs, with numeric suffixes when needed to keep IDs unique.
+Highlights appear newest first, using the reverse of their order in the browser store. Editing a highlight keeps its position; initial highlights follow the order supplied by the application. Drag-created highlights are named by their region as the region display shows it, such as `chr1:101-200`, with numeric suffixes when needed to keep IDs unique.
 
 Selecting a highlight's arrow action sets the browser viewport to that highlight's exact region.
 

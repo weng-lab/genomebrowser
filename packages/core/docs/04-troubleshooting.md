@@ -26,7 +26,7 @@ Each registry needs unique module type names. Keep the module array shared betwe
 
 Track mutations validate the complete resulting instance before committing. A missing track ID, unsupported display, invalid config, or duplicate ID can therefore reject an otherwise small edit. Inspect `result.ok` and display `result.error` at the control that attempted the change. A rejected mutation leaves the previous store state intact.
 
-Creation and updates use different shapes. Create an instance with `module.create({ base, config })`; patch it with `updateTrack(id, { base, config })`. Patches merge top-level base and config fields, while nested values are replaced. A new `yRange: { min: 0 }`, for example, does not retain an old nested `max` automatically.
+Creation and updates use different shapes. Create an instance with `module.create({ base, config })`; patch it with `updateTrack(id, { base, config })`. Patches merge top-level base and config fields, while nested values are replaced. A new `yRange: { min: 0 }`, for example, does not retain an old nested `max` automatically. To keep the other nested fields, pass an updater such as `updateTrack(id, (track) => ({ config: { yRange: { ...track.config.yRange, min: 0 } } }))`, which reads the latest stored track.
 
 Settings-dialog callbacks can also return `INTERACTION_BLOCKED` while browser interactions are disabled. Treat that as a rejected edit rather than assuming it was queued. The [track-store reference](03-reference/01-browserSetup/trackStore.md) lists mutation results and patch behavior.
 

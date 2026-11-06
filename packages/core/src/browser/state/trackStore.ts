@@ -1,13 +1,16 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import type { MutationFailure } from "../../mutation";
-import { PublicInputValidationError } from "../../modules/schemas";
+import { PublicInputValidationError } from "../../validation";
 import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
 import type {
   AnyTrackInstance,
+  AnyTrackInteraction,
   AnyTrackModule,
   TrackMutationResult,
+  TrackBaseUpdate,
   TrackMutationErrorCode,
   TrackUpdate,
+  TrackUpdater,
 } from "../../modules/types";
 
 export type TrackStoreOptions<
@@ -34,11 +37,23 @@ export type TrackStore<Modules extends readonly AnyTrackModule[] = readonly AnyT
     remove?: string[];
   }) => TrackMutationResult;
   reorderTracks: (ids: string[]) => TrackMutationResult;
+  /** Merges a patch, or the patch an updater returns for the latest stored track, into one track. */
   updateTrack: <Config, InteractionItem = unknown>(
     id: string,
-    update: TrackUpdate<Config, InteractionItem>,
+    update: TrackUpdate<Config, InteractionItem> | TrackUpdater<Config, InteractionItem>,
+  ) => TrackMutationResult;
+  /** Merges the patch `createUpdate` returns into every selected track, committing all or none. */
+  updateTracks: (
+    select: (track: AnyTrackInstance) => boolean,
+    createUpdate: (track: AnyTrackInstance) => AnyTrackUpdate,
   ) => TrackMutationResult;
   getTrack: (id: string) => AnyTrackInstance | undefined;
+};
+
+type AnyTrackUpdate = {
+  base?: TrackBaseUpdate;
+  config?: unknown;
+  interaction?: Partial<AnyTrackInteraction>;
 };
 
 export type TrackStoreInstance<
@@ -124,29 +139,31 @@ export function createTrackStore<
       updateTrack: (id, update) => {
         const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
         if (!currentTrack) return mutationError("TRACK_NOT_FOUND", `No track found for id: ${id}`);
-        const currentConfig = isRecord(currentTrack.config) ? currentTrack.config : {};
-        const interaction =
-          currentTrack.interaction !== undefined || update.interaction !== undefined
-            ? { ...currentTrack.interaction, ...update.interaction }
-            : undefined;
+        const patch = typeof update === "function" ? update(currentTrack as never) : update;
         const result = getValidatedTrack(
-          {
-            ...currentTrack,
-            type: currentTrack.type,
-            base: {
-              ...currentTrack.base,
-              ...update.base,
-              id: currentTrack.base.id,
-            },
-            config: { ...currentConfig, ...update.config },
-            ...(interaction !== undefined ? { interaction } : {}),
-          },
+          mergeTrackUpdate(currentTrack, patch as AnyTrackUpdate),
           registry,
         );
         if (!result.ok) return result;
 
         set((state) => ({
           tracks: state.tracks.map((track) => (getTrackId(track) === id ? result.track : track)),
+          order: state.order,
+        }));
+        return mutationOk;
+      },
+      updateTracks: (select, createUpdate) => {
+        const updatedTracks = new Map<string, AnyTrackInstance>();
+        for (const track of get().tracks) {
+          if (!select(track)) continue;
+          const result = getValidatedTrack(mergeTrackUpdate(track, createUpdate(track)), registry);
+          if (!result.ok) return result;
+          updatedTracks.set(getTrackId(track), result.track);
+        }
+        if (updatedTracks.size === 0) return mutationOk;
+
+        set((state) => ({
+          tracks: state.tracks.map((track) => updatedTracks.get(getTrackId(track)) ?? track),
           order: state.order,
         }));
         return mutationOk;
@@ -179,6 +196,23 @@ type ValidatedTracksResult =
 
 function getTrackId(track: AnyTrackInstance) {
   return track.base.id;
+}
+
+function mergeTrackUpdate(
+  currentTrack: AnyTrackInstance,
+  update: AnyTrackUpdate,
+): AnyTrackInstance {
+  const currentConfig = isRecord(currentTrack.config) ? currentTrack.config : {};
+  const interaction =
+    currentTrack.interaction !== undefined || update.interaction !== undefined
+      ? { ...currentTrack.interaction, ...update.interaction }
+      : undefined;
+  return {
+    ...currentTrack,
+    base: { ...currentTrack.base, ...update.base, id: currentTrack.base.id },
+    config: { ...currentConfig, ...(update.config as Record<string, unknown> | undefined) },
+    ...(interaction !== undefined ? { interaction } : {}),
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -1,7 +1,7 @@
 import { fetchOnChange } from "@weng-lab/genomebrowser";
+import { hexColorSchema } from "@weng-lab/genomebrowser/schemas";
 import { z } from "zod";
 import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
-import { hexColorSchema } from "../shared/schemas";
 
 export const configSchema = z.object({
   url: fetchOnChange(z.string().min(1)),

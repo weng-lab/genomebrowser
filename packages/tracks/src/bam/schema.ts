@@ -1,6 +1,6 @@
 import { fetchOnChange } from "@weng-lab/genomebrowser";
+import { hexColorSchema } from "@weng-lab/genomebrowser/schemas";
 import { z } from "zod";
-import { hexColorSchema } from "../shared/schemas";
 import { rowHeightSchema } from "../shared/layout/rowLayout";
 
 const sectionHeightSchema = z.number().int().min(10).max(1000);

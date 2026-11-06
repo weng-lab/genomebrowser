@@ -23,6 +23,7 @@ Every current public export has one canonical destination below.
 | Shared UI           | `LabeledGroup`, `LabeledGroupProps`                       | [Control group](05-sharedUI/LabeledGroup.md#labeledgroupprops)                                                        |
 | Browser controls    | `ControlToolbar`, `ControlToolbarProps`                   | [Browser toolbar](01-browserControls/ControlToolbar.md#controltoolbarprops)                                           |
 | Browser controls    | `RegionControls`, `RegionControlsProps`                   | [RegionControls](01-browserControls/ControlToolbar.md#regioncontrols)                                                 |
+| Browser controls    | `getSearchResultRegion`                                   | [getSearchResultRegion](01-browserControls/ControlToolbar.md#getsearchresultregion)                                   |
 | Browser controls    | `NavigationControls`, `NavigationControlsProps`           | [NavigationControls](01-browserControls/ControlToolbar.md#navigationcontrols)                                         |
 | Browser controls    | `InteractionControls`, `InteractionControlsProps`         | [InteractionControls](01-browserControls/ControlToolbar.md#interactioncontrols)                                       |
 | Browser controls    | `ManagementControls`, `ManagementControlsProps`           | [ManagementControls](01-browserControls/ControlToolbar.md#managementcontrols)                                         |

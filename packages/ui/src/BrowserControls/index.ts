@@ -1,6 +1,7 @@
 export { ControlToolbar } from "./controlToolbar";
 export type { ControlToolbarProps } from "./controlToolbar";
 export { RegionControls } from "./regionControls";
+export { getSearchResultRegion } from "./searchResultRegion";
 export type { RegionControlsProps } from "./regionControls";
 export { NavigationControls } from "./navigationControls";
 export type { NavigationControlsProps } from "./navigationControls";

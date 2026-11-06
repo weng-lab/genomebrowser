@@ -28,12 +28,12 @@ function SignalSettings(props: TrackSettingsProps<BigWigConfig, SignalPoint>) {
 
 Title cannot be blank. Display selection appears when there is more than one option and commits immediately, showing returned errors. Title and color use the commit behavior of [TrackSettingsTextField](TrackSettingsTextField.md#commit-behavior) and [TrackSettingsColorField](TrackSettingsColorField.md#commit-behavior).
 
-| Prop             | Type                                                         | Default  | Description                                          |
-| ---------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------- |
-| `track`          | `{ base: Readonly<TrackBase> }`                              | Required | Current accepted base options.                       |
-| `displayOptions` | `readonly string[]`                                          | Required | Registered display modes.                            |
-| `updateTrack`    | `(update: { base: TrackBaseUpdate }) => TrackMutationResult` | Required | Submits a base patch and returns validation results. |
-| `children`       | `ReactNode`                                                  | None     | Additional controls, such as dimension settings.     |
+| Prop             | Type                                                                 | Default  | Description                                          |
+| ---------------- | -------------------------------------------------------------------- | -------- | ---------------------------------------------------- |
+| `track`          | `{ base: Readonly<TrackBase> }`                                      | Required | Current accepted base options.                       |
+| `displayOptions` | `readonly string[]`                                                  | Required | Registered display modes.                            |
+| `updateTrack`    | `(update: { base: TrackBaseUpdate }) => TrackSettingsMutationResult` | Required | Submits a base patch and returns validation results. |
+| `children`       | `ReactNode`                                                          | None     | Additional controls, such as dimension settings.     |
 
 ## Accessibility
 

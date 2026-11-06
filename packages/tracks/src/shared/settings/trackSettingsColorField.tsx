@@ -3,7 +3,7 @@ import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import Popover from "@mui/material/Popover";
 import TextField from "@mui/material/TextField";
-import type { TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { TrackSettingsMutationResult } from "@weng-lab/genomebrowser";
 import { useEffect, useRef, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { normalizeHexColor, validateHexColorDraft } from "./color";
@@ -16,7 +16,7 @@ type CommonTrackSettingsColorFieldProps = {
 
 export type TrackSettingsColorFieldProps = CommonTrackSettingsColorFieldProps & {
   value: string;
-  onCommit: (color: string) => TrackMutationResult;
+  onCommit: (color: string) => TrackSettingsMutationResult;
 };
 
 type PickerSession = {
@@ -48,7 +48,7 @@ function TrackSettingsColorFieldSession(props: TrackSettingsColorFieldProps) {
     isEqual: colorsAreEqual,
     onCommit: (color) => {
       if (props.disabled)
-        return { ok: false, code: "INTERACTION_BLOCKED", error: "The color field is disabled." };
+        return { ok: false, code: "FIELD_DISABLED", error: "The color field is disabled." };
       return props.onCommit(color);
     },
     debounceMs: false,

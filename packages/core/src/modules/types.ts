@@ -1,7 +1,7 @@
 import type { MutationFailure } from "../mutation";
 import type { ComponentType } from "react";
 import type { z } from "zod";
-import type { trackBaseSchema } from "./schemas";
+import type { trackBaseSchema, trackSourceSchema } from "../schemas";
 import type { AssemblyDefinition } from "../genome/assembly";
 import type { GenomicRegion } from "../genome/region";
 
@@ -10,7 +10,7 @@ export type TrackBaseInput<Display extends string = string> = z.input<
   TrackCreateInputSchema<z.ZodObject, Display>
 >["base"];
 
-export type TrackSource = "host" | "user";
+export type TrackSource = z.output<typeof trackSourceSchema>;
 
 export type TrackRuntimeContext<Config = unknown> = Readonly<{
   type: string;
@@ -112,10 +112,14 @@ export type TrackMutationErrorCode =
   | "UNKNOWN_TRACK_MODULE"
   | "DUPLICATE_TRACK_ID"
   | "TRACK_NOT_FOUND"
-  | "INVALID_TRACK_ORDER"
-  | "INTERACTION_BLOCKED";
+  | "INVALID_TRACK_ORDER";
 
 export type TrackMutationResult = { ok: true } | MutationFailure<TrackMutationErrorCode>;
+
+/** A track mutation made through hosted browser controls, rejected while interaction is blocked. */
+export type TrackSettingsMutationResult =
+  | TrackMutationResult
+  | MutationFailure<"INTERACTION_BLOCKED">;
 
 export type TrackBaseUpdate = Partial<Omit<TrackBase, "id">>;
 
@@ -124,6 +128,11 @@ export type TrackUpdate<Config, InteractionItem = unknown> = {
   config?: Partial<Config>;
   interaction?: Partial<TrackInteraction<InteractionItem, Config>>;
 };
+
+/** Computes a patch from the latest stored track, so several updates in one event compose. */
+export type TrackUpdater<Config, InteractionItem = unknown> = (
+  track: ReadonlyTrackInstance<Config, InteractionItem>,
+) => TrackUpdate<Config, InteractionItem>;
 
 export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<{
   type: string;
@@ -137,11 +146,11 @@ export type TrackSettingsProps<Config, InteractionItem = unknown> = {
   track: ReadonlyTrackInstance<Config, InteractionItem>;
   displayOptions: readonly string[];
   updateTracksOfType: (
-    createUpdate: (
-      track: ReadonlyTrackInstance<Config, InteractionItem>,
-    ) => TrackUpdate<Config, InteractionItem>,
-  ) => TrackMutationResult;
-  updateTrack: (update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult;
+    createUpdate: TrackUpdater<Config, InteractionItem>,
+  ) => TrackSettingsMutationResult;
+  updateTrack: (
+    update: TrackUpdate<Config, InteractionItem> | TrackUpdater<Config, InteractionItem>,
+  ) => TrackSettingsMutationResult;
 };
 
 export type TrackSettingsComponent<Config, InteractionItem = unknown> = ComponentType<
@@ -155,22 +164,22 @@ export type TrackTooltipComponent<Item, Config> = ComponentType<{
 
 export type AnyTrackTooltipComponent = TrackTooltipComponent<never, never>;
 
+type TrackBaseShape = (typeof trackBaseSchema)["shape"];
+
 export type TrackCreateInputSchema<
   ConfigSchema extends z.ZodObject,
   Display extends string = string,
 > = z.ZodObject<
   {
     base: z.ZodObject<
-      {
-        id: z.ZodString;
-        title: z.ZodString;
+      Omit<TrackBaseShape, "display" | "height" | "color"> & {
         display: z.ZodDefault<z.ZodType<Display, Display>>;
-        height: z.ZodDefault<z.ZodNumber>;
-        color: z.ZodDefault<z.ZodString>;
+        height: z.ZodDefault<TrackBaseShape["height"]>;
+        color: z.ZodDefault<TrackBaseShape["color"]>;
       },
       z.core.$strict
     >;
-    source: z.ZodDefault<z.ZodType<TrackSource, TrackSource>>;
+    source: z.ZodDefault<typeof trackSourceSchema>;
     config: ConfigSchema;
   },
   z.core.$strict

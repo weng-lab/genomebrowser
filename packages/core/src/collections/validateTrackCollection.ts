@@ -1,5 +1,5 @@
-import { z } from "zod";
 import type { AnyTrackModule } from "../modules/types";
+import { formatZodError } from "../validation";
 import {
   createTrackCollectionSchema,
   type TrackCollection,
@@ -8,12 +8,6 @@ import {
 
 const builtInFields = new Set(["id", "title", "type"]);
 
-function formatZodError(error: z.ZodError) {
-  return error.issues
-    .map((issue) => `${issue.path.join(".") || "collection"}: ${issue.message}`)
-    .join("; ");
-}
-
 function parseTrackCollection<Modules extends readonly AnyTrackModule[]>(
   input: unknown,
   modules: Modules,
@@ -21,7 +15,7 @@ function parseTrackCollection<Modules extends readonly AnyTrackModule[]>(
   const result = createTrackCollectionSchema(modules).safeParse(input);
 
   if (!result.success) {
-    throw new Error(`Track collection is invalid: ${formatZodError(result.error)}`);
+    throw new Error(`Track collection is invalid: ${formatZodError(result.error, "collection")}`);
   }
 
   // Execute module schemas to validate, but discard their track output so creation

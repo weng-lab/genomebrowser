@@ -1,6 +1,11 @@
 import { TrackDownloadControls } from "../download/TrackDownloadControls";
 import { DefaultSettingsModal } from "../settings/DefaultSettingsModal";
-import type { ReadonlyTrackInstance, TrackSettingsComponent } from "../../modules/types";
+import type {
+  AnyTrackInstance,
+  ReadonlyTrackInstance,
+  TrackSettingsComponent,
+  TrackUpdate,
+} from "../../modules/types";
 import {
   useSettingsStore,
   useRegistry,
@@ -65,6 +70,7 @@ function BoundModuleSettings({
   const { useTrackStore } = useGenomeBrowser();
   const track = useTrackStore((state) => state.getTrack(trackId));
   const updateStoredTrack = useTrackStore((state) => state.updateTrack);
+  const updateStoredTracks = useTrackStore((state) => state.updateTracks);
   const { runTrackMutation } = useTrackMutationGate();
 
   if (!track) return null;
@@ -80,23 +86,12 @@ function BoundModuleSettings({
       track={settingsTrack}
       displayOptions={displayOptions}
       updateTracksOfType={(createUpdate) =>
-        runTrackMutation(() => {
-          const state = useTrackStore.getState();
-          return state.setTracks(
-            state.tracks.map((candidate) => {
-              if (candidate.type !== track.type) return candidate;
-              const update = createUpdate(candidate as typeof settingsTrack);
-              return {
-                ...candidate,
-                base: { ...candidate.base, ...update.base, id: candidate.base.id },
-                config: { ...candidate.config, ...update.config },
-                ...(update.interaction
-                  ? { interaction: { ...candidate.interaction, ...update.interaction } }
-                  : {}),
-              };
-            }),
-          );
-        })
+        runTrackMutation(() =>
+          updateStoredTracks(
+            (candidate) => candidate.type === track.type,
+            createUpdate as (candidate: AnyTrackInstance) => TrackUpdate<unknown, never>,
+          ),
+        )
       }
       updateTrack={(update) => runTrackMutation(() => updateStoredTrack(track.base.id, update))}
     />

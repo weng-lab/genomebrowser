@@ -15,6 +15,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { formatDisplayRegion, type BrowserStoreInstance } from "@weng-lab/genomebrowser";
 import { type Result, GenomeSearch } from "@weng-lab/ui-components";
 import { LabeledGroup } from "../LabeledGroup/labeledGroup";
+import { getSearchResultRegion } from "./searchResultRegion";
 
 export type RegionControlsProps = {
   browserStore: BrowserStoreInstance;
@@ -33,12 +34,9 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
     if (restoreFocus) requestAnimationFrame(() => displayRef.current?.focus());
   }
   function submit(result: Result) {
-    if (!result.domain) return;
-    const domain =
-      result.type === "Coordinate"
-        ? { ...result.domain, start: result.domain.start - 1 }
-        : result.domain;
-    const mutation = useBrowserStore.getState().setRegion(domain);
+    const region = getSearchResultRegion(result);
+    if (!region) return;
+    const mutation = useBrowserStore.getState().setRegion(region);
     if (!mutation.ok) {
       setMessage(mutation.error);
       return;

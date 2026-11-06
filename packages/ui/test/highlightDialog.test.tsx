@@ -106,6 +106,32 @@ describe("HighlightDialog", () => {
     expect(browserStore.getState().region).toEqual({ chromosome: "chr2", start: 300, end: 450 });
   });
 
+  it("saves edits through the store and keeps the form open when it rejects them", () => {
+    const browserStore = createTestStore();
+    browserStore
+      .getState()
+      .addHighlight({ id: "Original", region: { start: 100, end: 200 }, color: "#3366cc" });
+    const original = browserStore.getState().highlights;
+    browserStore.setState({
+      updateHighlight: () => ({
+        ok: false,
+        code: "INVALID_HIGHLIGHT",
+        error: "Highlight rejected.",
+      }),
+    });
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+
+    clickButton("Edit Original");
+    setTextInput("ID", "Renamed");
+    clickButton("Save changes");
+
+    expect(document.body.querySelector('[role="alert"]')?.textContent).toContain(
+      "Highlight rejected.",
+    );
+    expect(getInput("ID").value).toBe("Renamed");
+    expect(browserStore.getState().highlights).toBe(original);
+  });
+
   it("retains invalid edits and cancels without modifying the highlight", () => {
     const browserStore = createTestStore();
     for (const id of ["Original", "Other"])

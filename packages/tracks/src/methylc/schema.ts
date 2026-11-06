@@ -1,6 +1,6 @@
 import { fetchOnChange } from "@weng-lab/genomebrowser";
+import { hexColorSchema } from "@weng-lab/genomebrowser/schemas";
 import { z } from "zod";
-import { hexColorSchema } from "../shared/schemas";
 
 const colors = { cpg: "#648bd8", chg: "#ff944d", chh: "#ff00ff", depth: "#525252" };
 const rangeSchema = z

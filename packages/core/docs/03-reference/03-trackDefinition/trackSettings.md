@@ -38,12 +38,12 @@ Set `settingsComponent: SignalSettings` in a module whose parsed config matches 
 
 `TrackSettingsComponent<Config, InteractionItem>` is a React component accepting `TrackSettingsProps<Config, InteractionItem>`:
 
-| Prop                 | Type                                                                                                                                     | Default  | Description                                                                                                   |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
-| `track`              | `ReadonlyTrackInstance<Config, InteractionItem>`                                                                                         | Required | The track instance with its current settings and callbacks.                                                   |
-| `displayOptions`     | `readonly string[]`                                                                                                                      | Required | Registered renderer names.                                                                                    |
-| `updateTrack`        | `(update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult`                                                                  | Required | Applies a shallow patch to this instance. Its ID is already bound.                                            |
-| `updateTracksOfType` | `(createUpdate: (track: ReadonlyTrackInstance<Config, InteractionItem>) => TrackUpdate<Config, InteractionItem>) => TrackMutationResult` | Required | Computes patches for every current same-type track, validates the resulting batch, and commits it atomically. |
+| Prop                 | Type                                                                                                                     | Default  | Description                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `track`              | `ReadonlyTrackInstance<Config, InteractionItem>`                                                                         | Required | The track instance with its current settings and callbacks.                                                                      |
+| `displayOptions`     | `readonly string[]`                                                                                                      | Required | Registered renderer names.                                                                                                       |
+| `updateTrack`        | `(update: TrackUpdate<Config, InteractionItem> \| TrackUpdater<Config, InteractionItem>) => TrackSettingsMutationResult` | Required | Applies a shallow patch, or the patch an updater returns for the latest stored track, to this instance. Its ID is already bound. |
+| `updateTracksOfType` | `(createUpdate: TrackUpdater<Config, InteractionItem>) => TrackSettingsMutationResult`                                   | Required | Computes patches for every current same-type track, validates the resulting batch, and commits it atomically.                    |
 
 The module supplies the complete form, including base controls. The browser opens the form in a dialog. Check mutation results to explain rejected edits in the form. Keep batch-update callbacks free of side effects because validation can reject the batch.
 
@@ -51,12 +51,22 @@ Every track has a settings button. The download section uses MUI buttons and an 
 
 ## Mutation behavior
 
-Both callbacks return [TrackMutationResult](../01-browserSetup/trackStore.md#mutation-results). Successful changes commit synchronously and do not wait for fetching or rendering. `updateTrack` uses the store's [shallow patch rules](../01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate).
+Both callbacks return `TrackSettingsMutationResult`, which is a [TrackMutationResult](../01-browserSetup/trackStore.md#mutation-results) or an `INTERACTION_BLOCKED` failure. Successful changes commit synchronously and do not wait for fetching or rendering. `updateTrack` calls the store's [`updateTrack`](../01-browserSetup/trackStore.md#updating-a-track) and uses its shallow patch rules.
 
-`updateTracksOfType` computes one patch for each same-type instance and validates the entire replacement list, including unchanged instances of other types. A rejected batch leaves all tracks unchanged.
+Pass an updater to `updateTrack` when a patch builds on the current config, such as one field of a nested object. Two fields can commit in the same event before the form re-renders, so the `track` prop can be one edit behind. An updater receives the latest stored track instead:
+
+```tsx
+onCommit={(forward) =>
+  updateTrack((current) => ({
+    config: { strandColors: { ...current.config.strandColors, forward } },
+  }))
+}
+```
+
+`updateTracksOfType` calls the store's [`updateTracks`](../01-browserSetup/trackStore.md#updatetracks) for every track of this module's type. It validates every updated instance, and a rejected batch leaves all tracks unchanged.
 
 Unexpected exceptions from a patch callback or custom schema code propagate.
 
-The browser supplies every prop in the table. `InteractionItem` defaults to `unknown`. Use `track.source` when your form needs to distinguish host-owned sources from user-editable sources; core does not identify or protect source config fields. Hosted controls sit inside a disabled fieldset while browser interactions are blocked. The callbacks also return `INTERACTION_BLOCKED` during that period.
+The browser supplies every prop in the table. `InteractionItem` defaults to `unknown`. Use `track.source` when your form needs to distinguish host-owned sources from user-editable sources; core does not identify or protect source config fields. Hosted controls sit inside a disabled fieldset while browser interactions are blocked. The callbacks also return `INTERACTION_BLOCKED` during that period, and the store does not change.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

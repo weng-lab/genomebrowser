@@ -1,5 +1,5 @@
 import { createContext, use } from "react";
-import type { TrackMutationResult } from "../../modules/types";
+import type { TrackMutationResult, TrackSettingsMutationResult } from "../../modules/types";
 import type { TrackDataController } from "../data/trackDataController";
 import type { TooltipStore } from "../tooltip/types";
 import type { TooltipStoreInstance } from "../tooltip/tooltipStore";
@@ -84,7 +84,7 @@ export function useTrackMutationGate() {
 
   return {
     isInteractionBlocked,
-    runTrackMutation: (mutation: () => TrackMutationResult): TrackMutationResult => {
+    runTrackMutation: (mutation: () => TrackMutationResult): TrackSettingsMutationResult => {
       if (isInteractionBlocked) {
         return {
           ok: false,

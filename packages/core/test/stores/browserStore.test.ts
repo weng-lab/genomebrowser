@@ -303,6 +303,44 @@ describe("createBrowserStore", () => {
     expect(store.getState()).toBe(before);
   });
 
+  it("pans by a fraction of the view width without leaving the chromosome", () => {
+    const store = createBrowserStore({
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 10, end: 30 },
+    });
+
+    expect(store.getState().pan(0.25)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 15, end: 35 },
+      clamped: false,
+    });
+    expect(store.getState().pan(-0.01)).toMatchObject({
+      region: { chromosome: "chr1", start: 14, end: 34 },
+    });
+    expect(store.getState().pan(-10)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 0, end: 20 },
+      clamped: true,
+    });
+    expect(store.getState().pan(10)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 80, end: 100 },
+      clamped: true,
+    });
+    expect(store.getState().pan(-0.5)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 70, end: 90 },
+      clamped: false,
+    });
+    for (const fraction of [0, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(store.getState().pan(fraction)).toMatchObject({
+        ok: false,
+        code: "INVALID_PAN_FRACTION",
+      });
+    }
+    expect(store.getState().region).toEqual({ chromosome: "chr1", start: 70, end: 90 });
+  });
+
   it("validates runtime track widths and returns the committed dimension", () => {
     const store = createTestStore();
 
@@ -348,6 +386,59 @@ describe("createBrowserStore", () => {
 
     expect(store.getState().highlights).toEqual([
       { id: "target", region: { start: 30, end: 35 }, color: "#00ff00" },
+    ]);
+  });
+
+  it("validates highlight edits and replaces the highlight in place", () => {
+    const store = createBrowserStore({
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 20, end: 40 },
+      highlights: [
+        { id: "enhancer", region: { start: 20, end: 30 }, color: "#ff0000" },
+        { id: "promoter", region: { start: 30, end: 35 }, color: "#00ff00" },
+      ],
+    });
+    const before = store.getState().highlights;
+
+    expect(
+      store.getState().updateHighlight("enhancer", {
+        id: "enhancer",
+        region: { start: 30, end: 20 },
+        color: "#ff0000",
+      }),
+    ).toMatchObject({ ok: false, code: "INVALID_HIGHLIGHT" });
+    expect(
+      store.getState().updateHighlight("enhancer", {
+        id: "promoter",
+        region: { start: 20, end: 30 },
+        color: "#ff0000",
+      }),
+    ).toMatchObject({ ok: false, code: "DUPLICATE_HIGHLIGHT_ID" });
+    expect(
+      store.getState().updateHighlight("missing", {
+        id: "missing",
+        region: { start: 20, end: 30 },
+        color: "#ff0000",
+      }),
+    ).toMatchObject({ ok: false, code: "HIGHLIGHT_NOT_FOUND" });
+    expect(store.getState().highlights).toBe(before);
+
+    expect(
+      store.getState().updateHighlight("enhancer", {
+        id: "silencer",
+        region: { chromosome: "chr2", start: 5, end: 15 },
+        color: "#0000ff",
+        type: "outlined",
+      }),
+    ).toEqual({ ok: true });
+    expect(store.getState().highlights).toEqual([
+      {
+        id: "silencer",
+        region: { chromosome: "chr2", start: 5, end: 15 },
+        color: "#0000ff",
+        type: "outlined",
+      },
+      { id: "promoter", region: { start: 30, end: 35 }, color: "#00ff00" },
     ]);
   });
 
