@@ -18,23 +18,25 @@ Look up an export below to find its documentation. Store methods and module memb
 
 Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `TrackImageFormat`](01-browserSetup/useTrackDownload.md#api). Experimental whole-browser downloads: [`useBrowserDownload`, `BrowserDownload`, `BrowserDownloadOptions`](01-browserSetup/useBrowserDownload.md#api), [`exportBrowserImage`, `saveBrowserImage`, `BrowserImage`](01-browserSetup/exportBrowserImage.md#api).
 
-| Exports                                                                             | Reference                                                                                                            |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `GenomeBrowser`, `GenomeBrowserProps`                                               | [GenomeBrowser](01-browserSetup/GenomeBrowser.md)                                                                    |
-| `createBrowserStore`, `BrowserStoreInput`                                           | [Store creation](01-browserSetup/browserStore.md#createbrowserstore-and-browserstoreinput)                           |
-| `BrowserStore`, `BrowserStoreInstance`                                              | [State and store instance](01-browserSetup/browserStore.md#browserstore-and-browserstoreinstance)                    |
-| `BrowserRegionMutationResult`, `BrowserRegionMutationErrorCode`                     | [Navigation results](01-browserSetup/browserStore.md#browserregionmutationresult-and-browserregionmutationerrorcode) |
-| `BasePairDetailSettings`, `BasePairDetailMutationResult`                            | [Base-pair detail settings](01-browserSetup/browserStore.md#base-pair-detail)                                        |
-| `BrowserViewportMutationResult`                                                     | [Fixed width](01-browserSetup/browserStore.md#fixed-width)                                                           |
-| `BrowserSelectionMode`, `SelectionHighlightStyle`, `BrowserSelectionMutationResult` | [Selection](01-browserSetup/browserStore.md#selection)                                                               |
-| `BrowserHighlightMutationResult`, `Highlight`                                       | [Highlights](01-browserSetup/browserStore.md#highlights)                                                             |
-| `useGenomeBrowser`, `GenomeBrowserStores`                                           | [Hosting browser stores](01-browserSetup/useGenomeBrowser.md#usegenomebrowser)                                       |
-| `createTrackStore`, `TrackStoreOptions`                                             | [Store creation](01-browserSetup/trackStore.md#createtrackstore-and-trackstoreoptions)                               |
-| `TrackStore`, `TrackStoreInstance`                                                  | [State and store instance](01-browserSetup/trackStore.md#trackstore-and-trackstoreinstance)                          |
-| `ModuleRegistry`                                                                    | [Module registry](01-browserSetup/trackStore.md#moduleregistry)                                                      |
-| `MutationFailure`, `TrackMutationErrorCode`, `TrackMutationResult`                  | [Mutation results](01-browserSetup/trackStore.md#mutation-results)                                                   |
-| `TrackUpdate`, `TrackBaseUpdate`                                                    | [Update patches](01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate)                                      |
-| `TrackUpdater`                                                                      | [Updating a track](01-browserSetup/trackStore.md#updating-a-track)                                                   |
+| Exports                                                                                | Reference                                                                                                            |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `GenomeBrowser`, `GenomeBrowserProps`                                                  | [GenomeBrowser](01-browserSetup/GenomeBrowser.md)                                                                    |
+| `createBrowserStore`, `BrowserStoreInput`                                              | [Store creation](01-browserSetup/browserStore.md#createbrowserstore-and-browserstoreinput)                           |
+| `BrowserStore`, `BrowserStoreInstance`                                                 | [State and store instance](01-browserSetup/browserStore.md#browserstore-and-browserstoreinstance)                    |
+| `BrowserRegionMutationResult`, `BrowserRegionMutationErrorCode`                        | [Navigation results](01-browserSetup/browserStore.md#browserregionmutationresult-and-browserregionmutationerrorcode) |
+| `BasePairDetailSettings`, `BasePairDetailMutationResult`                               | [Base-pair detail settings](01-browserSetup/browserStore.md#base-pair-detail)                                        |
+| `BrowserViewportMutationResult`                                                        | [Fixed width](01-browserSetup/browserStore.md#fixed-width)                                                           |
+| `BrowserSelectionMode`, `SelectionHighlightStyle`, `BrowserSelectionMutationResult`    | [Selection](01-browserSetup/browserStore.md#selection)                                                               |
+| `BrowserHighlightMutationResult`, `Highlight`                                          | [Highlights](01-browserSetup/browserStore.md#highlights)                                                             |
+| `resolveHighlight`, `getDefaultHighlightOpacity`, `ResolvedHighlight`, `HighlightType` | [Resolving highlights](01-browserSetup/browserStore.md#resolvehighlight-and-getdefaulthighlightopacity)              |
+| `HighlightRect`, `HighlightRectProps`                                                  | [HighlightRect](01-browserSetup/browserStore.md#highlightrect)                                                       |
+| `useGenomeBrowser`, `GenomeBrowserStores`                                              | [Hosting browser stores](01-browserSetup/useGenomeBrowser.md#usegenomebrowser)                                       |
+| `createTrackStore`, `TrackStoreOptions`                                                | [Store creation](01-browserSetup/trackStore.md#createtrackstore-and-trackstoreoptions)                               |
+| `TrackStore`, `TrackStoreInstance`                                                     | [State and store instance](01-browserSetup/trackStore.md#trackstore-and-trackstoreinstance)                          |
+| `ModuleRegistry`                                                                       | [Module registry](01-browserSetup/trackStore.md#moduleregistry)                                                      |
+| `MutationFailure`, `TrackMutationErrorCode`, `TrackMutationResult`                     | [Mutation results](01-browserSetup/trackStore.md#mutation-results)                                                   |
+| `TrackUpdate`, `TrackBaseUpdate`                                                       | [Update patches](01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate)                                      |
+| `TrackUpdater`                                                                         | [Updating a track](01-browserSetup/trackStore.md#updating-a-track)                                                   |
 
 ### Assemblies and regions
 

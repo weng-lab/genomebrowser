@@ -194,7 +194,7 @@ See [selection interactions](../../01-gettingStarted/03-navigationAndSelection.m
 
 ## Highlights
 
-Highlights mark genomic regions across the track area. Add them programmatically with `addHighlight`, or let users draw them in highlight selection mode. The `Highlight` type describes each stored entry.
+Highlights mark genomic regions across the track area. Add them programmatically with `addHighlight`, or let users draw them in highlight selection mode. The `Highlight` type describes each stored entry, and [`highlightSchema`](../05-collectionsAndSchemas/stateSchemas.md#api) validates it.
 
 ### Highlight
 
@@ -208,9 +208,41 @@ Highlights mark genomic regions across the track area. Add them programmatically
 
 Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type` and `opacity` stay optional in stored entries; rendering applies their defaults.
 
-### addHighlight, removeHighlight, and clearHighlights
+### resolveHighlight and getDefaultHighlightOpacity
 
-`addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+`resolveHighlight(highlight, currentChromosome: string): ResolvedHighlight` applies the rules the browser uses to draw a stored entry. It returns `{ region, opacity, type }`: `region` is a complete `GenomicRegion` whose chromosome is `currentChromosome` when the highlight omits one, `type` defaults to `"filled"`, and `opacity` defaults to `getDefaultHighlightOpacity(type)`. `highlight` needs only `region`, `opacity`, and `type`. `HighlightType` is `"filled" | "outlined"`.
+
+`getDefaultHighlightOpacity(type?: HighlightType): number` returns `1` for `"outlined"` and `0.2` for `"filled"` or no type. Use it for a form that resets opacity when the type changes.
+
+```ts
+import { formatDisplayRegion, resolveHighlight } from "@weng-lab/genomebrowser";
+
+const { region: currentRegion, highlights } = useBrowserStore.getState();
+const labels = highlights.map((highlight) =>
+  formatDisplayRegion(resolveHighlight(highlight, currentRegion.chromosome).region),
+);
+```
+
+### HighlightRect
+
+`HighlightRect` draws one highlight band in SVG the way the browser does. A filled band covers `height` with `color` at `opacity`. An outlined band draws a 2-unit border that does not scale with SVG transforms, inset by one unit so it stays inside `height`. Use it with `resolveHighlight` to draw highlights in your own SVG, such as an overview of the chromosome.
+
+| Prop      | Type            | Description                                                     |
+| --------- | --------------- | --------------------------------------------------------------- |
+| `x`       | `number`        | Left edge in SVG units.                                         |
+| `width`   | `number`        | Band width in SVG units.                                        |
+| `height`  | `number`        | Band height in SVG units. The band starts at `y = 0`.           |
+| `color`   | `string`        | Fill color, or border color for an outline.                     |
+| `opacity` | `number`        | Fill or border opacity, such as `ResolvedHighlight["opacity"]`. |
+| `type`    | `HighlightType` | `"filled"` or `"outlined"`.                                     |
+
+Other SVG `<rect>` attributes, such as `pointerEvents` or `data-*` attributes, pass through to the element. `HighlightRectProps` is the props type.
+
+### addHighlight, updateHighlight, removeHighlight, and clearHighlights
+
+`addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`, `HIGHLIGHT_NOT_FOUND`, or `DUPLICATE_HIGHLIGHT_ID`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+
+`updateHighlight(id: string, highlight: Highlight): BrowserHighlightMutationResult` validates `highlight` like `addHighlight` and replaces the entry with ID `id`, keeping its position. The new entry may have a different ID. Invalid input returns `INVALID_HIGHLIGHT`, a missing `id` returns `HIGHLIGHT_NOT_FOUND`, and a new ID that another entry already uses returns `DUPLICATE_HIGHLIGHT_ID`. A failure leaves state unchanged.
 
 `removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
 

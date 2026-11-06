@@ -55,7 +55,9 @@ export type BrowserSelectionMutationResult =
   | { ok: true }
   | MutationFailure<"INVALID_SELECTION_MODE" | "INVALID_SELECTION_HIGHLIGHT">;
 
-export type BrowserHighlightMutationResult = { ok: true } | MutationFailure<"INVALID_HIGHLIGHT">;
+export type BrowserHighlightMutationResult =
+  | { ok: true }
+  | MutationFailure<"INVALID_HIGHLIGHT" | "HIGHLIGHT_NOT_FOUND" | "DUPLICATE_HIGHLIGHT_ID">;
 
 export type BrowserStore = {
   basePairDetail: BasePairDetailSettings;
@@ -82,6 +84,8 @@ export type BrowserStore = {
   setTrackWidth: (trackWidth: number) => BrowserViewportMutationResult;
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
   addHighlight: (highlight: Highlight) => BrowserHighlightMutationResult;
+  /** Replaces the highlight with ID `id`, which may be renamed to an unused ID. */
+  updateHighlight: (id: string, highlight: Highlight) => BrowserHighlightMutationResult;
   removeHighlight: (id: string) => void;
   clearHighlights: () => void;
 };
@@ -206,17 +210,39 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         });
       },
       addHighlight: (highlight) => {
-        const result = highlightSchema.safeParse(highlight);
-        if (!result.success)
-          return {
-            ok: false,
-            code: "INVALID_HIGHLIGHT",
-            error: `Highlight is invalid: ${formatZodError(result.error)}`,
-          };
-        const parsedHighlight = result.data;
+        const result = parseHighlight(highlight);
+        if (!result.ok) return result;
+        const parsedHighlight = result.highlight;
         if (get().highlights.some((existing) => existing.id === parsedHighlight.id))
           return { ok: true };
         set((state) => ({ highlights: [...state.highlights, parsedHighlight] }));
+        return { ok: true };
+      },
+      updateHighlight: (id, highlight) => {
+        const result = parseHighlight(highlight);
+        if (!result.ok) return result;
+        const parsedHighlight = result.highlight;
+        const { highlights } = get();
+        if (!highlights.some((existing) => existing.id === id))
+          return {
+            ok: false,
+            code: "HIGHLIGHT_NOT_FOUND",
+            error: `No highlight found for id: ${id}`,
+          };
+        if (
+          parsedHighlight.id !== id &&
+          highlights.some((existing) => existing.id === parsedHighlight.id)
+        )
+          return {
+            ok: false,
+            code: "DUPLICATE_HIGHLIGHT_ID",
+            error: `Duplicate highlight id: ${parsedHighlight.id}`,
+          };
+        set({
+          highlights: highlights.map((existing) =>
+            existing.id === id ? parsedHighlight : existing,
+          ),
+        });
         return { ok: true };
       },
       removeHighlight: (id) => {
@@ -229,4 +255,17 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
       },
     };
   });
+}
+
+function parseHighlight(
+  highlight: Highlight,
+): { ok: true; highlight: Highlight } | MutationFailure<"INVALID_HIGHLIGHT"> {
+  const result = highlightSchema.safeParse(highlight);
+  if (!result.success)
+    return {
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+      error: `Highlight is invalid: ${formatZodError(result.error)}`,
+    };
+  return { ok: true, highlight: result.data };
 }

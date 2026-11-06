@@ -7,11 +7,14 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import {
   formatDisplayRegion,
+  getDefaultHighlightOpacity,
+  resolveHighlight,
   type BrowserStoreInstance,
   type Highlight,
+  type HighlightType,
 } from "@weng-lab/genomebrowser";
 import { useReducer, type SyntheticEvent } from "react";
-import { parseHighlightRegion, resolveHighlightRegion } from "./highlightRegion";
+import { parseHighlightRegion } from "./highlightRegion";
 
 const defaultColor = "#3366cc";
 
@@ -22,12 +25,12 @@ type FormValues = {
   region: string;
   color: string;
   opacity: string;
-  highlightType: NonNullable<Highlight["type"]>;
+  highlightType: HighlightType;
 };
 type FormState = FormValues & { errors: FormErrors };
 type FormAction =
   | { type: "fieldChanged"; field: Exclude<keyof FormValues, "highlightType">; value: string }
-  | { type: "typeChanged"; value: NonNullable<Highlight["type"]> }
+  | { type: "typeChanged"; value: HighlightType }
   | { type: "validationFailed"; errors: FormErrors }
   | { type: "reset" };
 
@@ -35,10 +38,14 @@ const initialFormState: FormState = {
   name: "",
   region: "",
   color: defaultColor,
-  opacity: "20",
+  opacity: formatOpacity(getDefaultHighlightOpacity("filled")),
   highlightType: "filled",
   errors: {},
 };
+
+function formatOpacity(opacity: number) {
+  return String(opacity * 100);
+}
 
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
@@ -53,7 +60,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
       return {
         ...state,
         highlightType: action.value,
-        opacity: action.value === "outlined" ? "100" : "20",
+        opacity: formatOpacity(getDefaultHighlightOpacity(action.value)),
       };
     case "validationFailed":
       return { ...state, errors: action.errors };
@@ -80,26 +87,22 @@ export function HighlightForm({
   const currentRegion = useBrowserStore((state) => state.region);
   const highlights = useBrowserStore((state) => state.highlights);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
+  const updateHighlight = useBrowserStore((state) => state.updateHighlight);
   const [
     { name, region: regionInput, color, opacity: opacityInput, highlightType, errors },
     dispatch,
-  ] = useReducer(
-    formReducer,
-    initialHighlight
-      ? {
-          name: initialHighlight.id,
-          region: formatDisplayRegion(
-            resolveHighlightRegion(initialHighlight, currentRegion.chromosome),
-          ),
-          color: initialHighlight.color,
-          opacity: String(
-            (initialHighlight.opacity ?? (initialHighlight.type === "outlined" ? 1 : 0.2)) * 100,
-          ),
-          highlightType: initialHighlight.type ?? "filled",
-          errors: {},
-        }
-      : initialFormState,
-  );
+  ] = useReducer(formReducer, undefined, () => {
+    if (!initialHighlight) return initialFormState;
+    const resolved = resolveHighlight(initialHighlight, currentRegion.chromosome);
+    return {
+      name: initialHighlight.id,
+      region: formatDisplayRegion(resolved.region),
+      color: initialHighlight.color,
+      opacity: formatOpacity(resolved.opacity),
+      highlightType: resolved.type,
+      errors: {},
+    };
+  });
 
   function handleUseCurrentRegion() {
     dispatch({ type: "fieldChanged", field: "region", value: formatDisplayRegion(currentRegion) });
@@ -140,21 +143,15 @@ export function HighlightForm({
       opacity: opacity / 100,
       type: highlightType,
     };
-    if (initialHighlight) {
-      browserStore.setState((state) => ({
-        highlights: state.highlights.map((highlight) =>
-          highlight.id === initialHighlight.id ? nextHighlight : highlight,
-        ),
-      }));
-      onSaved?.();
-    } else {
-      const result = addHighlight(nextHighlight);
-      if (!result.ok) {
-        dispatch({ type: "validationFailed", errors: { submit: result.error } });
-        return;
-      }
-      dispatch({ type: "reset" });
+    const result = initialHighlight
+      ? updateHighlight(initialHighlight.id, nextHighlight)
+      : addHighlight(nextHighlight);
+    if (!result.ok) {
+      dispatch({ type: "validationFailed", errors: { submit: result.error } });
+      return;
     }
+    if (initialHighlight) onSaved?.();
+    else dispatch({ type: "reset" });
   }
 
   return (

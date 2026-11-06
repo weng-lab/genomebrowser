@@ -7,6 +7,7 @@ import {
   getRenderWindow,
   PAN_OVERSCAN_MULTIPLIER,
 } from "../viewport/renderWindow";
+import { HighlightRect } from "./HighlightRect";
 import { getHighlightRects } from "./highlightRects";
 
 export function Highlights({
@@ -67,18 +68,14 @@ export function Highlights({
           transform={registerContentGroup ? undefined : `translate(${contentX},0)`}
         >
           {rects.map((rect) => (
-            <rect
+            <HighlightRect
               key={rect.id}
               x={rect.x}
-              y={rect.type === "outlined" ? 1 : 0}
               width={rect.width}
-              height={rect.type === "outlined" ? Math.max(0, totalHeight - 2) : totalHeight}
-              fill={rect.type === "outlined" ? "none" : rect.color}
-              stroke={rect.type === "outlined" ? rect.color : undefined}
-              strokeWidth={rect.type === "outlined" ? 2 : undefined}
-              strokeOpacity={rect.opacity}
-              vectorEffect="non-scaling-stroke"
-              fillOpacity={rect.opacity}
+              height={totalHeight}
+              color={rect.color}
+              opacity={rect.opacity}
+              type={rect.type}
             />
           ))}
         </g>

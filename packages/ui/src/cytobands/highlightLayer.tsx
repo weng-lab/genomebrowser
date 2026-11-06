@@ -1,4 +1,9 @@
-import { formatDisplayRegion, type Highlight } from "@weng-lab/genomebrowser";
+import {
+  formatDisplayRegion,
+  resolveHighlight,
+  type Highlight,
+  type HighlightType,
+} from "@weng-lab/genomebrowser";
 import { useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import type { CytobandsProps } from "./cytobandsTypes";
 import { HighlightTooltip } from "./highlightTooltip";
@@ -11,6 +16,8 @@ const narrowHighlightWidth = 2;
 export type renderedHighlight = {
   highlight: Highlight;
   chromosome: string;
+  opacity: number;
+  type: HighlightType;
   start: number;
   end: number;
   x: number;
@@ -135,8 +142,7 @@ function HighlightGlyph({
   onClick: (event: MouseEvent<SVGGElement>) => void;
   onKeyDown: (event: KeyboardEvent<SVGGElement>) => void;
 }) {
-  const { highlight } = rendered;
-  const opacity = highlight.opacity ?? (highlight.type === "outlined" ? 1 : 0.2);
+  const { highlight, opacity } = rendered;
   const hitX = Math.max(
     0,
     Math.min(
@@ -179,7 +185,7 @@ function HighlightGlyph({
           />
         </>
       ) : (
-        <HighlightInterval rendered={rendered} height={height} opacity={opacity} />
+        <HighlightInterval rendered={rendered} height={height} />
       )}
     </g>
   );
@@ -201,10 +207,10 @@ function getRenderedHighlights({
 
   return highlights
     .flatMap((highlight): renderedHighlight[] => {
-      const highlightChromosome = highlight.region.chromosome ?? chromosome;
-      const { start, end } = highlight.region;
+      const resolved = resolveHighlight(highlight, chromosome);
+      const { start, end } = resolved.region;
       if (
-        highlightChromosome !== chromosome ||
+        resolved.region.chromosome !== chromosome ||
         !Number.isSafeInteger(start) ||
         !Number.isSafeInteger(end) ||
         start >= end ||
@@ -220,7 +226,9 @@ function getRenderedHighlights({
       return [
         {
           highlight,
-          chromosome: highlightChromosome,
+          chromosome,
+          opacity: resolved.opacity,
+          type: resolved.type,
           start: clippedStart,
           end: clippedEnd,
           x,

@@ -3,7 +3,6 @@ import {
   parseDisplayRegion,
   type AssemblyDefinition,
   type GenomicRegion,
-  type Highlight,
 } from "@weng-lab/genomebrowser";
 
 type ParseHighlightRegionResult =
@@ -27,15 +26,4 @@ export function parseHighlightRegion(
     return { ok: false, error: "Region must fit within the chromosome bounds." };
   }
   return { ok: true, region: result.region };
-}
-
-export function resolveHighlightRegion(
-  highlight: Highlight,
-  currentChromosome: string,
-): GenomicRegion {
-  return {
-    chromosome: highlight.region.chromosome ?? currentChromosome,
-    start: highlight.region.start,
-    end: highlight.region.end,
-  };
 }
