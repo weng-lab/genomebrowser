@@ -112,6 +112,30 @@ explicit `z.never()` catchall. Loose, passthrough, value-producing catchall, obj
 wrapped, and object-level refined schemas are not supported. These restrictions keep positional
 mapping and the inferred output shape consistent.
 
+## Read the column layout
+
+Call `getHeader()` to learn how many columns a file's records have before choosing a schema. It
+reads only the file's fixed-size header, so it is also a quick way to confirm that a URL serves a
+readable BigBed file:
+
+```ts
+import { bed3Schema, createBigBedFile } from "@weng-lab/genomic-reader";
+
+const file = createBigBedFile({
+  url: "YOUR_URL_HERE",
+  schema: bed3Schema,
+});
+
+const { fieldCount, definedFieldCount } = await file.getHeader();
+```
+
+`fieldCount` counts every column, including the three coordinate columns. `definedFieldCount` counts
+the leading columns that are standard BED fields, the N in `bedN+M`. A file built with
+`bedToBigBed -type=bed6+4`, such as an ENCODE narrowPeak file, reports `fieldCount: 10` and
+`definedFieldCount: 6`. A schema that declares at most `fieldCount - 3` properties has a source
+column for each of them. The counts come from the header as written; `getHeader()` does not decode
+records to confirm them.
+
 ## Regions, results, and cancellation
 
 Coordinates are zero-based and half-open. A result overlaps a query when its start is before the
@@ -170,19 +194,20 @@ complete size remains supported; the reader falls back to smaller exact index re
 ## Lifecycle and failures
 
 Creating a file is synchronous and performs no request. Invalid factory options, URLs, and schemas
-throw synchronously before a file is returned. File contents and record compatibility are not
-checked until `read()`.
+throw synchronously before a file is returned. The file's contents are not checked until
+`getHeader()` or `read()`, and record compatibility not until `read()`.
 
 Each file object lazily caches its successfully loaded file header, primary regional-index header,
-and chromosome lookups, including unknown chromosome names. Repeated reads on that object reuse
-this immutable metadata, while index nodes, data blocks, decoded records, and regional results are
-loaded or computed for every read. Failed or aborted metadata loads can be retried. Create a new
-file object to refresh metadata if the content at a URL changes.
+and chromosome lookups, including unknown chromosome names. `getHeader()` and `read()` share the
+cached header, and repeated calls on that object reuse this immutable metadata, while index nodes,
+data blocks, decoded records, and regional results are loaded or computed for every read. Failed or
+aborted metadata loads can be retried. Create a new file object to refresh metadata if the content
+at a URL changes.
 
-Ordinary no-data cases return `[]`. Once a file exists, `read()` asynchronously rejects for invalid
-regions, network and HTTP contract failures, aborts, incompatible files, binary decode errors,
-decompression errors, and Zod parsing failures. These failures never become empty or partial
-results.
+Ordinary no-data cases return `[]`. Once a file exists, `getHeader()` asynchronously rejects for
+network and HTTP contract failures, aborts, and files that are not BigBed files. `read()` rejects
+for those same failures and also for invalid regions, binary decode errors, decompression errors,
+and Zod parsing failures. These failures never become empty or partial results.
 
 Column validation failures reject with `BigBedParseError`, a subclass of `z.ZodError`.
 Its `message` identifies the record, one-based BED column number, schema field, and raw value.
@@ -192,7 +217,8 @@ Zod `issues` include the schema field in `path`, and `cause` preserves the origi
 Other failures propagate unchanged.
 
 Schemas are explicit: the reader neither chooses a schema from column count nor falls back
-when validation fails.
+when validation fails. To choose one from the file, [read the column layout](#read-the-column-layout)
+first.
 
 ## Factory and file types
 
@@ -218,10 +244,21 @@ The option type excludes protected property names, symbol keys, and incompatible
 ### BigBedFile
 
 ```ts
-type BigBedFile<Schema extends z.ZodObject> = GenomicFile<BigBedRecord<Schema>>;
+interface BigBedFile<Schema extends z.ZodObject> extends GenomicFile<BigBedRecord<Schema>> {
+  getHeader(options?: ReadOptions): Promise<BigBedHeader>;
+}
 ```
 
 Its `read(region, options?)` returns `Promise<BigBedRecord<Schema>[]>`. Use `BigBedFile<typeof schema>` to name a configured reader in application APIs.
+
+`getHeader({ signal }?)` returns the file's [column counts](#bigbedheader), a new object on each call. Its first successful call requests only the 64-byte file header; later calls, and calls after a `read()`, use the cached header without a request. Pre-aborted and in-flight calls reject, including calls served from the cache. Aborting one call does not cancel other callers or prevent retrying.
+
+### BigBedHeader
+
+| Field               | Type     | Meaning                                                          |
+| ------------------- | -------- | ---------------------------------------------------------------- |
+| `fieldCount`        | `number` | Columns in each record, including the three coordinate columns.  |
+| `definedFieldCount` | `number` | Leading columns that are standard BED fields: the N in `bedN+M`. |
 
 ### BigBedRecord
 

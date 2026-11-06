@@ -1,19 +1,24 @@
 import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
+import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
+import type { ReactNode } from "react";
 import { AgentPanel } from "../../agent/components/AgentPanel";
-import { BrowserView } from "./BrowserView";
-import { SessionName } from "../../sessions/components/SessionName";
-import { SessionPanel } from "../../sessions/components/SessionPanel";
+import { SaveStatus } from "../../sessions/components/SaveStatus";
+import { SessionSwitcher } from "../../sessions/components/SessionSwitcher";
 
-/** `sessionId` is the session in the URL, which may still be opening. */
-export function BrowserPage({ sessionId }: { sessionId?: string }) {
+/**
+ * The browser's frame around `children`, the browser route's page. The browser layout
+ * renders it, so the session switcher and its menu stay open while the URL moves
+ * between sessions, such as when the open session is deleted.
+ */
+export function BrowserPage({ children }: { children: ReactNode }) {
   return (
     <WorkspacePage
       title="Browser"
-      subtitle={<SessionName />}
-      left={{ title: "Sessions", children: <SessionPanel /> }}
-      right={{ title: "Agent", children: <AgentPanel /> }}
+      heading={<SessionSwitcher />}
+      actions={<SaveStatus />}
+      right={{ title: "Agent", icon: <AutoAwesomeOutlined />, children: <AgentPanel /> }}
     >
-      <BrowserView sessionId={sessionId} />
+      {children}
     </WorkspacePage>
   );
 }

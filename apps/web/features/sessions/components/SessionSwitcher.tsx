@@ -1,0 +1,72 @@
+"use client";
+
+import ArrowDropDown from "@mui/icons-material/ArrowDropDown";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Popover from "@mui/material/Popover";
+import { useId, useRef, useState } from "react";
+import { narrowTitleRow } from "../../../shared/workspace/frame/layout";
+import { NewSessionDialog } from "./NewSessionDialog";
+import { SessionMenu } from "./SessionMenu";
+import { SessionTitle } from "./SessionTitle";
+
+/**
+ * The browser's title: the open session's name, which renames it when clicked,
+ * and an arrow that opens the menu of recent sessions and the New session dialog.
+ */
+export function SessionSwitcher() {
+  // The whole title, so the menu lines up with the name's left edge. Set only while the
+  // menu is open: Popover reads its anchor's document, which the server render lacks.
+  const title = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const menuOpen = anchor !== null;
+  const close = () => setAnchor(null);
+  const menuId = useId();
+  const [creating, setCreating] = useState(false);
+  return (
+    <Box ref={title} sx={switcherSx}>
+      <SessionTitle />
+      <IconButton
+        size="small"
+        sx={{ flexShrink: 0 }}
+        aria-label="Sessions"
+        aria-haspopup="dialog"
+        aria-expanded={menuOpen}
+        aria-controls={menuOpen ? menuId : undefined}
+        onClick={() => setAnchor(title.current)}
+      >
+        <ArrowDropDown fontSize="small" />
+      </IconButton>
+      <Popover
+        id={menuId}
+        open={menuOpen}
+        anchorEl={anchor}
+        onClose={close}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        slotProps={{ paper: { sx: { width: 280, maxWidth: "calc(100vw - 32px)" } } }}
+      >
+        <SessionMenu
+          onDone={close}
+          onNewSession={() => {
+            close();
+            setCreating(true);
+          }}
+        />
+      </Popover>
+      <NewSessionDialog open={creating} onClose={() => setCreating(false)} />
+    </Box>
+  );
+}
+
+/**
+ * At most 360px or half the title row, so a long name truncates and leaves room for the
+ * row's other controls. The arrow never shrinks. In a narrow row the controls drop their
+ * labels, so the name takes whatever room they leave.
+ */
+const switcherSx = {
+  display: "flex",
+  alignItems: "center",
+  minWidth: 0,
+  maxWidth: "min(360px, 50%)",
+  [narrowTitleRow]: { maxWidth: "none" },
+} as const;

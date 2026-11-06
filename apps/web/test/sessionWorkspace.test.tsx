@@ -23,13 +23,40 @@ const region = () =>
   document.querySelector('[aria-label^="Edit region"]')?.getAttribute("aria-label");
 const sessionLoads = () => server.requests.filter(({ method, id }) => method === "GET" && id);
 const sessionNames = () =>
-  [...document.querySelectorAll('[aria-label="Browser sessions"] a')].map((a) => a.textContent);
+  [...document.querySelectorAll('[role="presentation"] nav a .MuiListItemText-primary')].map(
+    (name) => name.textContent,
+  );
 function click(element: Element | null | undefined) {
   if (!element) throw new Error("Nothing to click");
   return act(async () => (element as HTMLElement).click());
 }
+/** Open the session menu beside the title, unless it is open. */
+async function openSessions() {
+  if (button("Sessions")?.getAttribute("aria-expanded") !== "true") await click(button("Sessions"));
+}
+/** The open actions menu's item named `label`. */
+const actionItem = (label: string) => withText('[role="menu"] [role="menuitem"]', label);
+/** Delete the session named `name` from its actions menu in the session menu. */
+async function deleteSession(name: string) {
+  await click(button(`Actions for session ${name}`));
+  await click(actionItem("Delete"));
+}
+const menuItem = (label: string) =>
+  [...document.querySelectorAll<HTMLElement>('[role="presentation"] [role="button"]')].find(
+    (item) => item.textContent === label,
+  );
+async function type(input: HTMLInputElement, value: string) {
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+/** A link named `name`, or the session menu's link to the session named `name`. */
 const link = (name: string) =>
-  [...document.querySelectorAll<HTMLAnchorElement>("a")].find((a) => a.textContent === name);
+  [...document.querySelectorAll<HTMLAnchorElement>("a")].find(
+    (a) =>
+      a.textContent === name || a.querySelector(".MuiListItemText-primary")?.textContent === name,
+  );
 const button = (label: string) =>
   document.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
 const withText = (selector: string, content: string) =>
@@ -69,23 +96,30 @@ afterEach(() => {
 it("creates a session, saves edits, and keeps it open across workspace pages", async () => {
   const errors = vi.spyOn(console, "error");
   await visit("/browser");
+  expect(heading()).toBe("No session open");
+  expect(text()).toContain("Open a recent session or create one from the menu beside the title.");
+  await openSessions();
   await vi.waitFor(() => expect(text()).toContain("No saved sessions yet."));
-  expect(text()).toContain("Open a saved session or create one in the Sessions panel.");
 
-  const input = document.querySelector<HTMLInputElement>('form[aria-label="New session"] input')!;
-  await act(async () => {
-    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(
-      input,
-      "Promoter scan",
-    );
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-  await act(async () =>
-    document.querySelector<HTMLFormElement>('form[aria-label="New session"]')!.requestSubmit(),
-  );
+  // New session asks for a name and an assembly, starting at the only supported one.
+  await click(menuItem("New session"));
+  const dialog = () => document.querySelector('[role="dialog"]');
+  const name = () => dialog()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
+  await vi.waitFor(() => expect(name()).toBeTruthy());
+  expect(dialog()!.querySelector("h2")?.textContent).toBe("New session");
+  expect(name()!.placeholder).toBe("New session");
+  expect(document.activeElement).toBe(name());
+  expect(dialog()!.querySelector('[role="combobox"]')?.textContent).toBe("Human (GRCh38/hg38)");
+  expect(server.writes()).toEqual([]);
+
+  await type(name()!, "Promoter scan");
+  await click(withText('[role="dialog"] button', "Create"));
   await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
   const [id] = server.stored.keys();
   expect(route.pathname()).toBe(`/browser/${id}`);
+  expect(server.stored.get(id)).toMatchObject({ name: "Promoter scan", snapshot: defaults() });
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await openSessions();
   expect(sessionNames()).toEqual(["Promoter scan"]);
 
   const before = region();
@@ -113,6 +147,7 @@ it("opens the session in the URL, from links, and from history", async () => {
   });
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await openSessions();
   expect(sessionNames()).toEqual(["Alpha", "Beta"]);
 
   await click(link("Beta"));
@@ -123,6 +158,116 @@ it("opens the session in the URL, from links, and from history", async () => {
   await act(async () => route.back());
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   expect(route.pathname()).toBe(`/browser/${a}`);
+});
+
+it("renames the open session from its title and saves the name", async () => {
+  const a = server.add("Alpha", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const field = () => document.querySelector<HTMLInputElement>('input[aria-label="Session name"]');
+  const keyDown = (key: string) =>
+    act(async () => field()!.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })));
+
+  await click(document.querySelector("h1 button"));
+  await type(field()!, "Discarded");
+  await keyDown("Escape");
+  expect(field()).toBeNull();
+  expect(heading()).toBe("Alpha");
+
+  // Leaving the field with a blank name keeps the current one.
+  await click(document.querySelector("h1 button"));
+  await type(field()!, "   ");
+  await act(async () => field()!.blur());
+  expect(field()).toBeNull();
+  expect(heading()).toBe("Alpha");
+
+  // Entering a blank name keeps the field open with the draft.
+  await click(document.querySelector("h1 button"));
+  await type(field()!, "   ");
+  await keyDown("Enter");
+  expect(field()!.value).toBe("   ");
+  expect(field()!.getAttribute("aria-invalid")).toBe("true");
+
+  await type(field()!, "Promoter scan");
+  expect(field()!.getAttribute("aria-invalid")).toBe("false");
+  await keyDown("Enter");
+  expect(heading()).toBe("Promoter scan");
+  await vi.waitFor(() => expect(server.stored.get(a)!.name).toBe("Promoter scan"));
+  expect(server.writes().map(({ method }) => method)).toEqual(["PUT"]);
+});
+
+it("lists the open session and the three most recently saved others", async () => {
+  const day = (n: number) => new Date(Date.UTC(2026, 0, n));
+  const ids = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"].map((name) =>
+    server.add(name, defaults()),
+  );
+  ids.forEach((id, index) => (server.stored.get(id)!.updatedAt = day(index + 1)));
+  await visit(`/browser/${ids[0]}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await openSessions();
+  expect(sessionNames()).toEqual(["Alpha", "Epsilon", "Delta", "Gamma"]);
+  const current = document.querySelector('[role="presentation"] nav [aria-current="page"]');
+  expect(current?.querySelector(".MuiListItemText-primary")?.textContent).toBe("Alpha");
+  // Its assembly, the time it was saved, then its tracks: Coordinates, GENCODE, and cCREs.
+  expect(current?.querySelector(".MuiListItemText-secondary")?.textContent).toMatch(
+    /^hg38 • .+ • 3 tracks$/,
+  );
+
+  // Below them, a link goes to the Sessions page, which lists all five.
+  await click(link("All sessions"));
+  expect(route.pathname()).toBe("/sessions");
+  expect(document.querySelectorAll("main section li")).toHaveLength(5);
+});
+
+it("lists every saved session to search, and creates one into the browser", async () => {
+  const day = (n: number) => new Date(Date.UTC(2026, 0, n));
+  const ids = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"].map((name) =>
+    server.add(name, defaults()),
+  );
+  ids.forEach((id, index) => (server.stored.get(id)!.updatedAt = day(index + 1)));
+  await visit("/sessions");
+  const names = () =>
+    [...document.querySelectorAll("main section nav .MuiListItemText-primary")].map(
+      (name) => name.textContent,
+    );
+  await vi.waitFor(() => expect(names()).toEqual(["Epsilon", "Delta", "Gamma", "Beta", "Alpha"]));
+  // Saved long before now, they share one group.
+  const groups = () =>
+    [...document.querySelectorAll("main section")].map((section) => [
+      section.querySelector("h2")?.textContent,
+      section.querySelectorAll("li").length,
+    ]);
+  expect(groups()).toEqual([["More than a month ago", 5]]);
+  // The heading says when each was saved; rows show the assembly and track count.
+  expect(document.querySelector("main section .MuiListItemText-secondary")?.textContent).toBe(
+    "hg38 • 3 tracks",
+  );
+
+  const search = document.querySelector<HTMLInputElement>('input[aria-label="Search sessions"]')!;
+  await type(search, "ta");
+  expect(names()).toEqual(["Delta", "Beta"]);
+  await type(search, "zeta");
+  expect(names()).toEqual([]);
+  expect(text()).toContain("No sessions match “zeta”.");
+
+  await click(withText("button", "New session"));
+  const name = () =>
+    document.querySelector<HTMLInputElement>('[role="dialog"] input:not([aria-hidden])');
+  await vi.waitFor(() => expect(name()).toBeTruthy());
+  await type(name()!, "Promoter scan");
+  await click(withText('[role="dialog"] button', "Create"));
+  await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
+  const created = [...server.stored.keys()].find((id) => !ids.includes(id));
+  expect(route.pathname()).toBe(`/browser/${created}`);
+
+  // Saved today, it heads the list.
+  await click(document.querySelector('nav a[aria-label="Sessions"]'));
+  await vi.waitFor(() =>
+    expect(groups()).toEqual([
+      ["Today", 1],
+      ["More than a month ago", 5],
+    ]),
+  );
 });
 
 it("returns to the open session when another cannot be opened", async () => {
@@ -141,12 +286,13 @@ it("returns to the open session when another cannot be opened", async () => {
 it("offers to retry a session URL that could not be opened", async () => {
   const id = server.add("Alpha", defaults());
   await visit("/browser");
+  await openSessions();
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   for (let attempt = 0; attempt < 3; attempt++) server.fail("GET");
   await act(async () => route.push(`/browser/${id}`));
   await vi.waitFor(() => expect(text()).toContain("Try again"), { timeout: 3000 });
   expect(route.pathname()).toBe(`/browser/${id}`);
-  expect(heading()).toBeFalsy();
+  expect(heading()).toBe("No session open");
   expect(server.writes()).toEqual([]);
 
   await click([...document.querySelectorAll("button")].find((b) => b.textContent === "Try again"));
@@ -159,11 +305,131 @@ it("deletes the open session and shows the empty browser", async () => {
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
 
-  await click(button("Delete session Alpha"));
+  await openSessions();
+  await deleteSession("Alpha");
   await vi.waitFor(() => expect(route.pathname()).toBe("/browser"));
-  expect(text()).toContain("Open a saved session or create one in the Sessions panel.");
+  expect(heading()).toBe("No session open");
+  expect(text()).toContain("Open a recent session or create one from the menu beside the title.");
+  // The menu stays open to switch to or create another session.
+  expect(button("Sessions")?.getAttribute("aria-expanded")).toBe("true");
   expect(sessionNames()).toEqual(["Beta"]);
   expect(server.stored.has(a)).toBe(false);
+});
+
+/** A setup unlike the defaults: another region, a saved region, and reordered tracks. */
+function customized(chromosome: string) {
+  const saved = defaults();
+  return {
+    ...saved,
+    browser: {
+      ...saved.browser,
+      region: { chromosome, start: 1000, end: 2000 },
+      highlights: [{ id: "hs2", color: "#ff0000", region: { chromosome, start: 1200, end: 1400 } }],
+    },
+    tracks: saved.tracks.toReversed(),
+  };
+}
+
+it("copies the open session with its unsaved edits and opens the copy", async () => {
+  const alpha = server.add("Alpha", customized("chr2"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  // Copy while the edit is still unsaved: both sessions get it.
+  const save = server.hold("PUT");
+  await click(button("Pan right"));
+  const edited = region();
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  save.release();
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+  const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+  expect(route.pathname()).toBe(`/browser/${copy}`);
+  expect(region()).toBe(edited);
+  expect(server.stored.get(alpha)!.snapshot.browser.region).not.toEqual(
+    customized("chr2").browser.region,
+  );
+  expect(server.stored.get(copy)!.snapshot).toEqual(server.stored.get(alpha)!.snapshot);
+  expect(sessionNames()).toEqual(["Copy of Alpha", "Alpha"]);
+
+  // Edits to the copy leave the original alone.
+  const original = server.stored.get(alpha)!.snapshot;
+  await click(button("Pan right"));
+  await vi.waitFor(() => expect(closeTab()).toBe(false));
+  expect(savedRegion(copy)).not.toEqual(original.browser.region);
+  expect(server.stored.get(alpha)!.snapshot).toEqual(original);
+});
+
+it("copies a saved session that is not open and opens the copy", async () => {
+  const alpha = server.add("Alpha", defaults());
+  const beta = server.add("Beta", customized("chr3"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
+  const copy = [...server.stored.keys()].find((id) => id !== alpha && id !== beta)!;
+  expect(route.pathname()).toBe(`/browser/${copy}`);
+  expect(region()).toBe("Edit region chr3:1,001-2,000");
+  expect(server.stored.get(copy)!.snapshot).toEqual(customized("chr3"));
+  expect(server.stored.get(beta)).toMatchObject({ name: "Beta", revision: 1 });
+});
+
+it.each(["saved elsewhere", "deleted elsewhere"])(
+  "moves edits that cannot be saved to a copy when the session was %s",
+  async (change) => {
+    const alpha = server.add("Alpha", defaults());
+    await visit(`/browser/${alpha}`);
+    await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+    if (change === "saved elsewhere") Object.assign(server.stored.get(alpha)!, { revision: 2 });
+    else server.stored.delete(alpha);
+    const original = server.stored.get(alpha);
+    await click(button("Pan right"));
+    await vi.waitFor(() => expect(server.writes().at(-1)?.method).toBe("PUT"));
+    await vi.waitFor(() => expect(document.querySelector('[role="alert"]')).not.toBeNull());
+
+    // An edit made while the copy is created moves to it too.
+    const creating = server.hold("POST");
+    await openSessions();
+    await click(button("Actions for session Alpha"));
+    await click(actionItem("Save a copy"));
+    await click(button("Pan right"));
+    const edited = region();
+    creating.release();
+    await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+    const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+    expect(route.pathname()).toBe(`/browser/${copy}`);
+    expect(region()).toBe(edited);
+    expect(document.querySelector('[role="alert"]')).toBeNull();
+    await vi.waitFor(() => expect(closeTab()).toBe(false));
+    expect(savedRegion(copy)).not.toEqual(defaults().browser.region);
+    expect(server.stored.get(alpha)).toEqual(original);
+  },
+);
+
+it("keeps the open session's edits when it cannot be reached to copy it", async () => {
+  const alpha = server.add("Alpha", defaults());
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+
+  const save = server.hold("PUT");
+  await click(button("Pan right"));
+  const edited = region();
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  await act(async () => save.fail());
+  await vi.waitFor(() =>
+    expect(text()).toContain("Could not save “Alpha”. Its changes are kept here."),
+  );
+  expect(heading()).toBe("Alpha");
+  expect(region()).toBe(edited);
+  expect(server.stored.size).toBe(1);
+  await vi.waitFor(() => expect(closeTab()).toBe(false), { timeout: 3000 });
+  expect(savedRegion(alpha)).not.toEqual(defaults().browser.region);
 });
 
 it.each(["Sign out", "Manage account"])("saves before Clerk %s", async (action) => {
@@ -228,8 +494,7 @@ it("discards the open session when the account changes elsewhere", async () => {
   await pendingPut();
   server.user = "user_bob";
   act(() => clerk.signIn("user_bob"));
-  await vi.waitFor(() => expect(text()).toContain("No saved sessions yet."));
-  expect(heading()).not.toBe("Alpha");
+  await vi.waitFor(() => expect(heading()).toBe("No session open"));
   expect(closeTab()).toBe(false);
   await act(async () => write.release());
   expect(server.writes()).toHaveLength(1);
@@ -256,12 +521,12 @@ it("offers to save over a version saved elsewhere, keeping the edits until then"
   const a = server.add("Alpha", defaults());
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  const status = () => document.querySelector("main output")?.textContent;
-  expect(status()).toBe("Saved");
+  const status = () => document.querySelector("header output")?.textContent;
+  expect(status()).toBe("All changes saved");
   Object.assign(server.stored.get(a)!, { name: "Elsewhere", revision: 2 });
   await click(button("Pan right"));
   const edited = region();
-  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
+  await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
   expect(document.querySelector('[role="alert"]')?.textContent).toBe(
     "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.",
   );
@@ -269,7 +534,7 @@ it("offers to save over a version saved elsewhere, keeping the edits until then"
   expect(closeTab()).toBe(true);
 
   await click(withText("button", "Save over it"));
-  await vi.waitFor(() => expect(status()).toBe("Saved"));
+  await vi.waitFor(() => expect(status()).toBe("All changes saved"));
   expect(document.querySelector('[role="alert"]')).toBeNull();
   expect(server.stored.get(a)).toMatchObject({ name: "Alpha", revision: 3 });
   expect(region()).toBe(edited);
@@ -282,22 +547,23 @@ it("keeps conflict recovery after another session is deleted", async () => {
   const gamma = server.add("Gamma", defaults());
   await visit(`/browser/${alpha}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  const status = () => document.querySelector("main output")?.textContent;
+  const status = () => document.querySelector("header output")?.textContent;
   const saveOver = () => withText("button", "Save over it");
   const discard = () => withText("button", "Close without saving");
 
   Object.assign(server.stored.get(alpha)!, { name: "Elsewhere", revision: 2 });
   await click(button("Pan right"));
   const kept = region();
-  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
-  await click(button("Delete session Beta"));
+  await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
+  await openSessions();
+  await deleteSession("Beta");
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha", "Gamma"]));
   expect(server.stored.has(beta)).toBe(false);
   expect(saveOver()).toBeTruthy();
   expect(discard()).toBeTruthy();
 
   await click(saveOver());
-  await vi.waitFor(() => expect(status()).toBe("Saved"));
+  await vi.waitFor(() => expect(status()).toBe("All changes saved"));
   expect(saveOver()).toBeUndefined();
   expect(discard()).toBeUndefined();
   expect(server.stored.get(alpha)).toMatchObject({ name: "Alpha", revision: 3 });
@@ -307,8 +573,9 @@ it("keeps conflict recovery after another session is deleted", async () => {
 
   Object.assign(server.stored.get(alpha)!, { revision: 4 });
   await click(button("Pan right"));
-  await vi.waitFor(() => expect(status()).toBe("Not saved. Changed elsewhere"));
-  await click(button("Delete session Gamma"));
+  await vi.waitFor(() => expect(status()).toBe("Changed elsewhere"));
+  await openSessions();
+  await deleteSession("Gamma");
   await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   expect(server.stored.has(gamma)).toBe(false);
   expect(saveOver()).toBeTruthy();
@@ -340,13 +607,14 @@ it("asks a signed-out user to sign in", async () => {
   clerk.signIn(null);
   await visit("/browser");
   await vi.waitFor(() => expect(text()).toContain("Sign in to open and save sessions."));
+  await openSessions();
   expect(text()).toContain("Sign in to save sessions.");
-  expect(document.querySelector('form[aria-label="New session"]')).toBeNull();
+  expect(menuItem("New session")?.getAttribute("aria-disabled")).toBe("true");
 });
 
-// Session panel subscriptions: a region edit changes neither the session list nor the
-// selection. Acknowledgements only change timestamps, which the panel does not
-// display. BrowserView and BrowserContent show the same stores.
+// Session title subscriptions: a region edit changes neither the open session's name nor
+// the session list. Acknowledgements only change timestamps, which the closed menu does
+// not read. BrowserView and BrowserContent show the same stores.
 it("budgets session readers for an edit and its save acknowledgement", async () => {
   const id = server.add("Alpha", defaults());
   await visit(`/browser/${id}`);
@@ -358,16 +626,16 @@ it("budgets session readers for an edit and its save acknowledgement", async () 
     pan.click();
     await vi.waitFor(() => expect(server.requests.at(-1)?.method).toBe("PUT"));
   });
-  expect(edit.pick("SessionPanel", "SessionName", "BrowserView", "SessionAlert", "SaveStatus"))
+  expect(edit.pick("SessionSwitcher", "SessionTitle", "BrowserView", "SessionAlert", "SaveStatus"))
     .toMatchInlineSnapshot(`
-      {
-        "BrowserView": 0,
-        "SaveStatus": 1,
-        "SessionAlert": 0,
-        "SessionName": 0,
-        "SessionPanel": 0,
-      }
-    `);
+    {
+      "BrowserView": 0,
+      "SaveStatus": 1,
+      "SessionAlert": 0,
+      "SessionSwitcher": 0,
+      "SessionTitle": 0,
+    }
+  `);
 
   const acknowledgement = await probe!.measure(async () => {
     write.release();
@@ -377,7 +645,8 @@ it("budgets session readers for an edit and its save acknowledgement", async () 
     acknowledgement.pick(
       "BrowserView",
       "BrowserContent",
-      "SessionPanel",
+      "SessionSwitcher",
+      "SessionTitle",
       "SessionAlert",
       "SaveStatus",
     ),
@@ -387,23 +656,26 @@ it("budgets session readers for an edit and its save acknowledgement", async () 
       "BrowserView": 0,
       "SaveStatus": 1,
       "SessionAlert": 0,
-      "SessionPanel": 0,
+      "SessionSwitcher": 0,
+      "SessionTitle": 0,
     }
   `);
 });
 
-// The saved names arrive once; the panel renders once to show them.
-it("budgets the session panel when saved sessions arrive", async () => {
+// The saved names arrive once; the open menu renders to show them.
+it("budgets the session menu when saved sessions arrive", async () => {
   server.add("Alpha", defaults());
   const list = server.hold("GET");
   await visit("/browser");
+  await openSessions();
   const report = await probe!.measure(async () => {
     list.release();
     await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   });
-  expect(report.pick("SessionPanel")).toMatchInlineSnapshot(`
+  expect(report.pick("SessionMenu", "SessionRow")).toMatchInlineSnapshot(`
     {
-      "SessionPanel": 1,
+      "SessionMenu": 1,
+      "SessionRow": 1,
     }
   `);
 });
@@ -423,6 +695,7 @@ it("budgets remote-control readers when the open session changes", async () => {
     </WorkspaceApp>,
   );
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await openSessions();
   const report = await probe.measure(async () => {
     link("Beta")!.click();
     await vi.waitFor(() => expect(heading()).toBe("Beta"));
@@ -434,43 +707,47 @@ it("budgets remote-control readers when the open session changes", async () => {
   `);
 });
 
-// Deleting another session updates row controls; the panel renders once to remove its ID.
-it("budgets the session panel when another session is deleted", async () => {
+// Deleting another session updates row controls; the menu renders once to remove its ID.
+it("budgets the session menu when another session is deleted", async () => {
   const a = server.add("Alpha", defaults());
   server.add("Beta", defaults());
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await openSessions();
+  await click(button("Actions for session Beta"));
   const report = await probe!.measure(async () => {
-    button("Delete session Beta")!.click();
+    (actionItem("Delete") as HTMLElement).click();
     await vi.waitFor(() => expect(sessionNames()).toEqual(["Alpha"]));
   });
-  expect(report.pick("SessionPanel", "BrowserView", "BrowserContent")).toMatchInlineSnapshot(`
+  expect(report.pick("SessionMenu", "SessionTitle", "BrowserView", "BrowserContent"))
+    .toMatchInlineSnapshot(`
     {
       "BrowserContent": 0,
       "BrowserView": 0,
-      "SessionPanel": 1,
+      "SessionMenu": 1,
+      "SessionTitle": 0,
     }
   `);
 });
 
 // The new URL mounts its page, still showing the open session; opening then swaps the stores.
-// Pending operations update the row controls, without rendering the panel.
 it("budgets session readers when the open session changes", async () => {
   const a = server.add("Alpha", defaults());
   server.add("Beta", defaults());
   await visit(`/browser/${a}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await openSessions();
   const report = await probe!.measure(async () => {
     link("Beta")!.click();
     await vi.waitFor(() => expect(heading()).toBe("Beta"));
   });
-  expect(report.pick("SessionPanel", "SessionName", "BrowserView", "BrowserContent"))
+  expect(report.pick("SessionSwitcher", "SessionTitle", "BrowserView", "BrowserContent"))
     .toMatchInlineSnapshot(`
     {
       "BrowserContent": 2,
       "BrowserView": 2,
-      "SessionName": 2,
-      "SessionPanel": 2,
+      "SessionSwitcher": 1,
+      "SessionTitle": 2,
     }
   `);
 });

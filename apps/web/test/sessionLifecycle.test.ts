@@ -576,6 +576,8 @@ it("keeps a newer name through list refreshes and acknowledgements, sorted by na
     createdAt: stored.createdAt,
     updatedAt: stored.updatedAt,
     revision: stored.revision,
+    assembly: "hg38",
+    trackCount: stored.snapshot.tracks.length,
   });
 });
 
@@ -645,6 +647,22 @@ it("creates a session with the assembly's defaults after saving the active one",
   await state().create({ name: "Mouse", assembly: "mm10" });
   expect(state().error).toBe("The mm10 assembly is not supported.");
   expect(state().active!.id).toBe(created.id);
+});
+
+it("creates no session while the active one cannot be saved", async () => {
+  const a = server.add("A", defaults());
+  await state().open(a);
+  const write = server.hold("PUT");
+  setRegion(1000);
+  const creating = state().create({ name: "New session", assembly: "hg38" });
+  await vi.waitFor(() => expect(puts()).toHaveLength(1));
+  write.fail();
+  await creating;
+
+  expect(writes()).not.toContain("POST");
+  expect(state().active!.id).toBe(a);
+  expect(state().error).toBe("Could not save “A”. Its changes are kept here.");
+  expect(state().sessions.map(({ name }) => name)).toEqual(["A"]);
 });
 
 it("lists sessions, retrying while unavailable", async () => {
@@ -841,6 +859,8 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
       createdAt: loaded.createdAt,
       updatedAt: loaded.updatedAt,
       revision: loaded.revision,
+      assembly: loaded.snapshot.browser.assembly,
+      trackCount: loaded.snapshot.tracks.length,
       snapshot: loaded.snapshot,
     });
     const first = server.hold("GET");

@@ -3,9 +3,11 @@ import { beforeEach, vi } from "vitest";
 import { AccountControls } from "../features/account/components/AccountControls";
 import { AppProviders } from "../composition/AppProviders";
 import { BrowserPage } from "../features/browser/components/BrowserPage";
+import { BrowserView } from "../features/browser/components/BrowserView";
 import BrowserIndexPage from "../app/(workspace)/browser/page";
 import CollectionsPage from "../app/(workspace)/collections/page";
 import { navigation } from "../composition/navigation";
+import SessionsPage from "../app/(workspace)/sessions/page";
 import SettingsPage from "../app/(workspace)/settings/page";
 import { Workspace } from "../shared/workspace/Workspace";
 
@@ -115,9 +117,21 @@ beforeEach(() => {
 function Page() {
   const pathname = useSyncExternalStore(history.subscribe, history.pathname);
   const sessionId = /^\/browser\/([^/]+)$/.exec(pathname)?.[1];
-  // Like Next, another session ID renders a new page.
-  if (sessionId) return <BrowserPage key={sessionId} sessionId={sessionId} />;
-  if (pathname === "/browser") return <BrowserIndexPage />;
+  // Like Next, the browser layout persists across browser URLs, and another session ID
+  // renders a new page inside it.
+  if (sessionId)
+    return (
+      <BrowserPage>
+        <BrowserView key={sessionId} sessionId={sessionId} />
+      </BrowserPage>
+    );
+  if (pathname === "/browser")
+    return (
+      <BrowserPage>
+        <BrowserIndexPage />
+      </BrowserPage>
+    );
+  if (pathname === "/sessions") return <SessionsPage />;
   if (pathname === "/settings") return <SettingsPage />;
   return <CollectionsPage />;
 }
