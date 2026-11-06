@@ -11,7 +11,7 @@ import {
   type ParsedPrimaryRTreeNode,
   type PrimaryRTreeHeader,
 } from "./internal/bbi/regionalIndex";
-import type { ExactRangeMetadata } from "./internal/httpRange";
+import type { ExactRangeMetadata, ExactRangeOptions } from "./internal/httpRange";
 import { validateHttpUrl, validateRegion } from "./internal/inputValidation";
 import { RequestRangeReader } from "./internal/requestRangeReader";
 import { readBbiZoomHeaders, type BbiZoomHeader } from "./internal/bbi/zoomHeaders";
@@ -51,6 +51,14 @@ type AwaitedSchemaOutput<Schema extends z.ZodObject> = keyof Schema["shape"] ext
 export type BigBedRecord<Schema extends z.ZodObject> = GenomicRecord &
   AwaitedSchemaOutput<Schema> & { fields: string[] };
 
+/** Column counts a BigBed file declares in its header. */
+export type BigBedHeader = {
+  /** Columns in each record, including the three coordinate columns. */
+  fieldCount: number;
+  /** Leading columns that are standard BED fields: the N in `bedN+M`. */
+  definedFieldCount: number;
+};
+
 export type BigBedSummaryRecord = BigWigSummaryRecord;
 
 export type BigBedMetadata = Readonly<{
@@ -61,6 +69,7 @@ export type BigBedMetadata = Readonly<{
 }>;
 
 export interface BigBedFile<Schema extends z.ZodObject> extends GenomicFile<BigBedRecord<Schema>> {
+  getHeader(options?: ReadOptions): Promise<BigBedHeader>;
   getMetadata(options?: ReadOptions): Promise<BigBedMetadata>;
   readZoomLevel(
     region: GenomicRegion,
@@ -122,6 +131,23 @@ function validateSchema(schema: unknown): asserts schema is z.ZodObject {
   }
 }
 
+/** Read and check the file's header once, then reuse it for the file object. */
+async function loadHeader(
+  url: string,
+  metadataCache: BigBedMetadataCache,
+  rangeOptions: ExactRangeOptions,
+  requestReader?: RequestRangeReader,
+): Promise<BbiHeader> {
+  if (metadataCache.header !== undefined) return metadataCache.header;
+  const header = await readBbiHeader(url, rangeOptions, requestReader);
+  throwIfAborted(rangeOptions.signal);
+  if (header.format !== "bigBed") {
+    throw new Error("Expected a BigBed file");
+  }
+  metadataCache.header = header;
+  return header;
+}
+
 async function prepareBigBed(url: string, cache: BigBedMetadataCache, options?: ReadOptions) {
   const signal = options?.signal;
   throwIfAborted(signal);
@@ -131,13 +157,8 @@ async function prepareBigBed(url: string, cache: BigBedMetadataCache, options?: 
       ? await RequestRangeReader.withPrefix(url, 64n, 2n * 1024n, rangeOptions)
       : new RequestRangeReader(url, rangeOptions);
   throwIfAborted(signal);
-  let header = cache.header;
-  if (header === undefined) {
-    header = await readBbiHeader(url, rangeOptions, requestReader);
-    throwIfAborted(signal);
-    if (header.format !== "bigBed") throw new Error("Expected a BigBed file");
-    cache.header = header;
-  }
+  const header = await loadHeader(url, cache, rangeOptions, requestReader);
+  throwIfAborted(signal);
   return { header, requestReader, rangeOptions };
 }
 
@@ -289,22 +310,14 @@ async function readBigBed<Schema extends z.ZodObject>(
   const rangeOptions = { signal, metadata: metadataCache.rangeMetadata };
   throwIfAborted(signal);
 
-  let header = metadataCache.header;
+  // A first read prefetches enough of the file to cover the chromosome tree too.
   const requestReader =
-    header === undefined
+    metadataCache.header === undefined
       ? await RequestRangeReader.withPrefix(url, 64n, 2n * 1024n, rangeOptions)
       : new RequestRangeReader(url, rangeOptions);
   throwIfAborted(signal);
-  if (header === undefined) {
-    header = await readBbiHeader(url, rangeOptions, requestReader);
-    throwIfAborted(signal);
-    if (header.format !== "bigBed") {
-      throw new Error("Expected a BigBed file");
-    }
-    metadataCache.header = header;
-  } else {
-    throwIfAborted(signal);
-  }
+  const header = await loadHeader(url, metadataCache, rangeOptions, requestReader);
+  throwIfAborted(signal);
 
   let chromosome: Chromosome | undefined;
   if (metadataCache.chromosomes.has(region.chromosome)) {
@@ -406,6 +419,17 @@ export function createBigBedFile<Schema extends z.ZodObject>(
   };
 
   return {
+    async getHeader(readOptions) {
+      const signal = readOptions?.signal;
+      throwIfAborted(signal);
+      // Reads only the fixed-size header, so checking a file costs one small request.
+      const header = await loadHeader(url, metadataCache, {
+        signal,
+        metadata: metadataCache.rangeMetadata,
+      });
+      throwIfAborted(signal);
+      return { fieldCount: header.fieldCount, definedFieldCount: header.definedFieldCount };
+    },
     getMetadata(options) {
       return readBigBedMetadata(url, metadataCache, options);
     },

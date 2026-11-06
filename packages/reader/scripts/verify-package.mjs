@@ -91,6 +91,7 @@ assertJsonEqual(
     "BamReference",
     "BigBedFile",
     "BigBedFileOptions",
+    "BigBedHeader",
     "BigBedMetadata",
     "BigBedParseContext",
     "BigBedRecord",

@@ -16,6 +16,7 @@ export { bed3Schema, createBigBedFile } from "./bigBed";
 export type {
   BigBedFile,
   BigBedFileOptions,
+  BigBedHeader,
   BigBedRecord,
   BigBedMetadata,
   BigBedSummaryRecord,
