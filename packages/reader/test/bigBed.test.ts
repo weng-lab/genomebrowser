@@ -345,17 +345,20 @@ describe("createBigBedFile", () => {
 
   // Each row is a moment in a browsing session. A file object sends fewer requests as it
   // caches more, so between them the rows cancel the stale read while it loads the header,
-  // looks up its chromosome, and reads data, beside a read of the same or another chromosome.
+  // looks up its chromosome, loads the region index, and reads data, beside a read of the
+  // same or another chromosome. Reading a chromosome the file lacks caches the header but
+  // not the index, as on a first read of a file too large for its index to fit in the
+  // header request.
   it.each([
     { moment: "on a new file", earlierChromosome: undefined, currentChromosome: "chr1" },
     {
-      moment: "before its chromosome is looked up, beside another chromosome",
-      earlierChromosome: "chr2",
+      moment: "after a chromosome the file lacks, beside another chromosome",
+      earlierChromosome: "chrM",
       currentChromosome: "chr2",
     },
     {
-      moment: "before its chromosome is looked up, beside the same chromosome",
-      earlierChromosome: "chr2",
+      moment: "after a chromosome the file lacks, beside the same chromosome",
+      earlierChromosome: "chrM",
       currentChromosome: "chr1",
     },
     {
