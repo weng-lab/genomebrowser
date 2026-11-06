@@ -3,7 +3,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
-import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
+import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "../../src/bigwig";
 import { BigWigSettings } from "../../src/bigwig/settings";
 import type { SignalPoint } from "../../src/shared/signal";
@@ -109,14 +109,15 @@ async function renderHarness() {
     },
     config: { url: "YOUR_URL_HERE" },
   });
-  const updateTrack = (update: TrackUpdate<BigWigConfig, SignalPoint>): TrackMutationResult => {
+  const updateTrack: TrackSettingsProps<BigWigConfig, SignalPoint>["updateTrack"] = (update) => {
     if (rejectNextUpdate) {
       rejectNextUpdate = false;
       return { ok: false, code: "INVALID_TRACK", error: "Rejected for test" };
     }
+    const patch = typeof update === "function" ? update(acceptedTrack) : update;
     acceptedTrack = bigWigModule.validate({
       ...acceptedTrack,
-      config: { ...acceptedTrack.config, ...update.config },
+      config: { ...acceptedTrack.config, ...patch.config },
     });
     root?.render(
       <BigWigSettings

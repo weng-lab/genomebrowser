@@ -10,11 +10,12 @@ import type {
   ModuleInstance,
   ReadonlyTrackInstance,
   TrackInteraction,
-  TrackMutationResult,
+  TrackSettingsMutationResult,
   TrackRuntimeContext,
   TrackSettingsComponent,
   TrackSettingsProps,
   TrackUpdate,
+  TrackUpdater,
   TrackStoreInstance,
 } from "../../src/lib";
 
@@ -231,7 +232,9 @@ describe("track module type contracts", () => {
 
     expectTypeOf<SettingsPropsA["track"]>().toEqualTypeOf<ReadonlyTrackInstance<ConfigA, ItemA>>();
     expectTypeOf<SettingsPropsA["updateTrack"]>().toEqualTypeOf<
-      (update: TrackUpdate<ConfigA, ItemA>) => TrackMutationResult
+      (
+        update: TrackUpdate<ConfigA, ItemA> | TrackUpdater<ConfigA, ItemA>,
+      ) => TrackSettingsMutationResult
     >();
     expectTypeOf<NonNullable<typeof moduleA.settingsComponent>>().toEqualTypeOf<
       TrackSettingsComponent<ConfigA, ItemA>

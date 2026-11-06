@@ -1,14 +1,14 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import type { TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { TrackSettingsMutationResult } from "@weng-lab/genomebrowser";
 import { parseFiniteNumber, useDraftController, type DraftValidation } from "./draftInput";
 
 type TrackDimensionFieldProps = {
   label: string;
   min: number;
-  onApplyToAll: (value: number) => TrackMutationResult;
-  onCommit: (value: number) => TrackMutationResult;
+  onApplyToAll: (value: number) => TrackSettingsMutationResult;
+  onCommit: (value: number) => TrackSettingsMutationResult;
   validate: (value: number) => string | undefined;
   value: number;
 };

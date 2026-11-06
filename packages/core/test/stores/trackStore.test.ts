@@ -606,14 +606,64 @@ describe("createTrackStore", () => {
     });
   });
 
-  it("exposes updateTrack as the only existing-track update API", () => {
+  it("computes updater patches from the latest stored track", () => {
+    const store = createTrackStore({ modules: [signalModule], tracks: [signalTrack()] });
+    const staleTrack = store.getState().getTrack("signal");
+
+    expect(
+      store.getState().updateTrack("signal", { config: { yRange: { min: 0, max: 10 } } }),
+    ).toEqual({ ok: true });
+    expect(
+      store.getState().updateTrack<{ yRange: { min: number; max: number } }>("signal", (track) => ({
+        config: { yRange: { ...track.config.yRange, max: 20 } },
+      })),
+    ).toEqual({ ok: true });
+
+    expect(staleTrack?.config).not.toHaveProperty("yRange");
+    expect(store.getState().getTrack("signal")?.config).toMatchObject({
+      yRange: { min: 0, max: 20 },
+    });
+  });
+
+  it("updates every selected track with one atomic commit", () => {
+    const onHover = () => undefined;
+    const hoverTrack = signalModule.create(
+      { base: { id: "hover", title: "Hover" }, config: { url: "YOUR_URL_HERE" } },
+      { onHover },
+    );
+    const intervalTrack = intervalModule.create({
+      base: { id: "interval", title: "Interval" },
+      config: { url: "YOUR_URL_HERE" },
+    });
     const store = createTrackStore({
       modules: [signalModule, intervalModule],
-      tracks: [signalTrack()],
+      tracks: [signalTrack(), hoverTrack, intervalTrack],
     });
+    const storedInterval = store.getState().getTrack("interval");
+    const subscriber = vi.fn<() => void>();
+    const unsubscribe = store.subscribe(subscriber);
+    const isSignal = (track: { type: string }) => track.type === "signal";
 
-    expect(store.getState().updateTrack).toBeTypeOf("function");
-    expect(store.getState()).not.toHaveProperty("updateBase");
-    expect(store.getState()).not.toHaveProperty("updateConfig");
+    const rejected = store.getState().updateTracks(isSignal, (track) => ({
+      config: { url: track.base.id === "hover" ? "" : "X" },
+    }));
+    expect(rejected).toMatchObject({ ok: false, code: "INVALID_TRACK" });
+    expect(store.getState().getTrack("signal")?.config.url).toBe("YOUR_URL_HERE");
+    expect(subscriber).not.toHaveBeenCalled();
+
+    expect(
+      store.getState().updateTracks(isSignal, (track) => ({
+        base: { height: track.base.height + 10 },
+      })),
+    ).toEqual({ ok: true });
+    expect(subscriber).toHaveBeenCalledTimes(1);
+    expect(store.getState().tracks.map((track) => [track.base.id, track.base.height])).toEqual([
+      ["signal", 90],
+      ["hover", 90],
+      ["interval", 80],
+    ]);
+    expect(store.getState().getTrack("hover")?.interaction).toEqual({ onHover });
+    expect(store.getState().getTrack("interval")).toBe(storedInterval);
+    unsubscribe();
   });
 });

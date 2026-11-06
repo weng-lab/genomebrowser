@@ -3,7 +3,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
+import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { caveModule } from "../../src/cave";
 import { CaveSettings } from "../../src/cave/settings";
 import type { CaveTooltipItem } from "../../src/cave/types";
@@ -50,9 +50,9 @@ async function renderSettings() {
     },
     config: { neurotransmitter: "GABA", age: "Adulthood" },
   });
-  const updateTrack = vi.fn<
-    (update: TrackUpdate<CaveConfig, CaveTooltipItem>) => TrackMutationResult
-  >(() => ({ ok: true }));
+  const updateTrack = vi.fn<TrackSettingsProps<CaveConfig, CaveTooltipItem>["updateTrack"]>(() => ({
+    ok: true,
+  }));
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);

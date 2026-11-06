@@ -14,7 +14,7 @@ import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumber
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextField";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { BulkBedRect } from "./types";
 import type { BulkBedConfig, BulkBedDataset } from "./schema";
 
@@ -27,15 +27,12 @@ type DatasetRow = {
 
 type BulkBedSettingsProps = TrackSettingsProps<BulkBedConfig, BulkBedRect>;
 type DatasetEdit =
-  | { type: "add"; dataset: BulkBedDataset }
+  | { type: "add" }
   | { type: "remove"; index: number }
   | { type: "field"; index: number; field: DatasetField; value: string };
 
-type DatasetEditorState = {
-  // This version prevents stale accepted edits replaying after controlled datasets change A -> B -> A.
-  baselineVersion: number;
-  acceptedEdits: DatasetEdit[];
-  baseDatasets: BulkBedDataset[];
+type DatasetRowsState = {
+  datasets: BulkBedDataset[];
   nextDatasetKey: number;
   rows: DatasetRow[];
   trackId: string;
@@ -98,62 +95,27 @@ function BulkBedDatasetsEditor({
   id: string;
   updateTrack: BulkBedSettingsProps["updateTrack"];
 }) {
-  const [editorState, setEditorState] = useState(() => createDatasetEditorState(datasets, id));
-  const latestEditorState = useRef(editorState);
-  const renderedEditorState = reconcileDatasetEditorState(editorState, datasets, id);
-  if (renderedEditorState !== editorState) {
-    setEditorState(renderedEditorState);
+  const [rowsState, setRowsState] = useState(() => createDatasetRowsState(datasets, id));
+  const renderedRowsState = reconcileDatasetRowsState(rowsState, datasets, id);
+  if (renderedRowsState !== rowsState) {
+    setRowsState(renderedRowsState);
   }
 
-  const currentDatasets = getCurrentDatasets(renderedEditorState);
-  const datasetCount = currentDatasets.length;
+  const datasetCount = datasets.length;
   const [topologyError, setTopologyError] = useState<string>();
 
-  const getCommittableEditorState = () =>
-    getCommittableEditorStateForProps(latestEditorState.current, renderedEditorState);
+  const commitDatasetEdit: CommitDatasetEdit = (edit) =>
+    updateTrack((current) => ({
+      config: { datasets: applyDatasetEdit(current.config.datasets, edit) },
+    }));
 
-  const commitDatasetEdit = (
-    edit: DatasetEdit,
-    currentEditorState = getCommittableEditorState(),
-  ) => {
-    const currentDatasets = getCurrentDatasets(currentEditorState);
-    const nextDatasets = applyDatasetEdit(currentDatasets, edit);
-    const result = updateTrack({ config: { datasets: nextDatasets } });
-    if (result.ok) {
-      const nextEditorState = applyAcceptedDatasetEdit(currentEditorState, edit);
-      // Compose accepted edits even when React batches multiple input commits.
-      latestEditorState.current = nextEditorState;
-      setEditorState(nextEditorState);
-    }
-    return result;
+  const commitTopologyEdit = (edit: DatasetEdit) => {
+    const result = commitDatasetEdit(edit);
+    setTopologyError(result.ok ? undefined : result.error);
   };
 
-  const addDataset = () => {
-    const currentEditorState = getCommittableEditorState();
-    const currentDatasets = getCurrentDatasets(currentEditorState);
-    const nextDataset: BulkBedDataset = {
-      name: `Dataset ${currentDatasets.length + 1}`,
-      url: "YOUR_URL_HERE",
-    };
-    const result = commitDatasetEdit({ type: "add", dataset: nextDataset }, currentEditorState);
-    if (result.ok) {
-      setTopologyError(undefined);
-    } else {
-      setTopologyError(result.error);
-    }
-  };
-
-  const removeDataset = (key: string) => {
-    const currentEditorState = getCommittableEditorState();
-    const datasetIndex = currentEditorState.rows.findIndex((dataset) => dataset.key === key);
-    if (datasetIndex === -1 || getCurrentDatasets(currentEditorState).length <= 1) return;
-
-    const result = commitDatasetEdit({ type: "remove", index: datasetIndex }, currentEditorState);
-    if (result.ok) {
-      setTopologyError(undefined);
-    } else {
-      setTopologyError(result.error);
-    }
+  const removeDataset = (index: number) => {
+    if (datasetCount > 1) commitTopologyEdit({ type: "remove", index });
   };
 
   return (
@@ -162,7 +124,7 @@ function BulkBedDatasetsEditor({
 
       <TrackSettingsSection title="Datasets">
         <Box sx={{ display: "grid", gap: 1.5, minWidth: 0 }}>
-          {renderedEditorState.rows.map((dataset, index) => {
+          {renderedRowsState.rows.map((dataset, index) => {
             const cannotRemove = datasetCount === 1;
 
             return (
@@ -201,7 +163,7 @@ function BulkBedDatasetsEditor({
                     sx={{ textTransform: "none" }}
                     type="button"
                     variant="outlined"
-                    onClick={() => removeDataset(dataset.key)}
+                    onClick={() => removeDataset(index)}
                   >
                     Remove
                   </Button>
@@ -215,7 +177,7 @@ function BulkBedDatasetsEditor({
 
                 <DatasetFields
                   commitDatasetEdit={commitDatasetEdit}
-                  datasets={currentDatasets}
+                  datasets={datasets}
                   disableUrl={disableUrls}
                   index={index}
                 />
@@ -228,7 +190,7 @@ function BulkBedDatasetsEditor({
             sx={{ justifySelf: "start", textTransform: "none" }}
             type="button"
             variant="contained"
-            onClick={addDataset}
+            onClick={() => commitTopologyEdit({ type: "add" })}
           >
             Add dataset
           </Button>
@@ -314,18 +276,10 @@ function updateDatasetField(
   return commitDatasetEdit({ type: "field", index, field, value });
 }
 
-function applyDatasetEdits(datasets: BulkBedDataset[], edits: DatasetEdit[]) {
-  return edits.reduce(applyDatasetEdit, datasets);
-}
-
-function getCurrentDatasets(state: DatasetEditorState) {
-  return applyDatasetEdits(state.baseDatasets, state.acceptedEdits);
-}
-
 function applyDatasetEdit(datasets: BulkBedDataset[], edit: DatasetEdit): BulkBedDataset[] {
   switch (edit.type) {
     case "add":
-      return [...datasets, edit.dataset];
+      return [...datasets, { name: `Dataset ${datasets.length + 1}`, url: "YOUR_URL_HERE" }];
     case "remove":
       return datasets.filter((_, index) => index !== edit.index);
     case "field":
@@ -335,29 +289,22 @@ function applyDatasetEdit(datasets: BulkBedDataset[], edit: DatasetEdit): BulkBe
   }
 }
 
-function createDatasetEditorState(datasets: BulkBedDataset[], id: string): DatasetEditorState {
+function createDatasetRowsState(datasets: BulkBedDataset[], id: string): DatasetRowsState {
   return {
-    baselineVersion: 0,
-    acceptedEdits: [],
-    baseDatasets: datasets,
+    datasets,
     nextDatasetKey: datasets.length,
     rows: datasets.map((dataset, index) => makeDatasetRow(datasetKey(id, index), dataset)),
     trackId: id,
   };
 }
 
-function reconcileDatasetEditorState(
-  state: DatasetEditorState,
+function reconcileDatasetRowsState(
+  state: DatasetRowsState,
   datasets: BulkBedDataset[],
   id: string,
-): DatasetEditorState {
-  if (state.baseDatasets === datasets && state.trackId === id) return state;
-  if (state.trackId !== id) {
-    return {
-      ...createDatasetEditorState(datasets, id),
-      baselineVersion: state.baselineVersion + 1,
-    };
-  }
+): DatasetRowsState {
+  if (state.datasets === datasets && state.trackId === id) return state;
+  if (state.trackId !== id) return createDatasetRowsState(datasets, id);
 
   const matchedRows = matchDatasetRows(state.rows, datasets);
   let nextDatasetKey = state.nextDatasetKey;
@@ -371,49 +318,11 @@ function reconcileDatasetEditorState(
   });
 
   return {
-    baselineVersion: state.baselineVersion + 1,
-    acceptedEdits: [],
-    baseDatasets: datasets,
+    datasets,
     nextDatasetKey,
     rows,
     trackId: id,
   };
-}
-
-function getCommittableEditorStateForProps(
-  latestState: DatasetEditorState,
-  renderedState: DatasetEditorState,
-) {
-  return latestState.baselineVersion === renderedState.baselineVersion
-    ? latestState
-    : renderedState;
-}
-
-function applyAcceptedDatasetEdit(
-  state: DatasetEditorState,
-  edit: DatasetEdit,
-): DatasetEditorState {
-  const acceptedEdits = [...state.acceptedEdits, edit];
-  switch (edit.type) {
-    case "add":
-      return {
-        ...state,
-        acceptedEdits,
-        nextDatasetKey: state.nextDatasetKey + 1,
-        rows: [
-          ...state.rows,
-          makeDatasetRow(datasetKey(state.trackId, state.nextDatasetKey), edit.dataset),
-        ],
-      };
-    case "remove":
-      return {
-        ...state,
-        acceptedEdits,
-        rows: state.rows.filter((_, index) => index !== edit.index),
-      };
-    case "field":
-      return { ...state, acceptedEdits };
-  }
 }
 
 function matchDatasetRows(rows: DatasetRow[], datasets: BulkBedDataset[]) {

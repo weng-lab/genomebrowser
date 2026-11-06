@@ -28,12 +28,12 @@ Height edits require a finite value of at least 20 pixels. Apply to all sends th
 
 This component accepts core's `TrackSettingsProps<Config, Item>`. It has no separate exported props type.
 
-| Prop                 | Type                                                                                                               | Default  | Description                                                                    |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------ |
-| `track`              | `ReadonlyTrackInstance<Config, Item>`                                                                              | Required | Current accepted track.                                                        |
-| `displayOptions`     | `readonly string[]`                                                                                                | Required | Part of the settings contract; unused by this section.                         |
-| `updateTrack`        | `(update: TrackUpdate<Config, Item>) => TrackMutationResult`                                                       | Required | Validates and commits an individual edit.                                      |
-| `updateTracksOfType` | `(createUpdate: (track: ReadonlyTrackInstance<Config, Item>) => TrackUpdate<Config, Item>) => TrackMutationResult` | Required | Atomically updates every track of this exact type, including the active track. |
+| Prop                 | Type                                                     | Default  | Description                                                                    |
+| -------------------- | -------------------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
+| `track`              | `ReadonlyTrackInstance<Config, Item>`                    | Required | Current accepted track.                                                        |
+| `displayOptions`     | `readonly string[]`                                      | Required | Part of the settings contract; unused by this section.                         |
+| `updateTrack`        | `TrackSettingsProps<Config, Item>["updateTrack"]`        | Required | Validates and commits an individual edit.                                      |
+| `updateTracksOfType` | `TrackSettingsProps<Config, Item>["updateTracksOfType"]` | Required | Atomically updates every track of this exact type, including the active track. |
 
 ## Accessibility
 

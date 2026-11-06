@@ -4,7 +4,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
-import type { TrackMutationResult, TrackSettingsProps } from "@weng-lab/genomebrowser";
+import type { TrackSettingsMutationResult, TrackSettingsProps } from "@weng-lab/genomebrowser";
 import type { BamRecord } from "@weng-lab/genomic-reader";
 import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
@@ -21,6 +21,13 @@ import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextFiel
 import type { BamConfig } from "./schema";
 import { parseFiniteNumber } from "../shared/settings/draftInput";
 
+type ConfigGroup = "strandColors" | "alignments" | "filters" | "coverage" | "junctions";
+type UpdateGroup<Group extends ConfigGroup> = (
+  patch:
+    | Partial<BamConfig[Group]>
+    | ((current: Readonly<BamConfig[Group]>) => Partial<BamConfig[Group]>),
+) => TrackSettingsMutationResult;
+
 const validateSectionHeight = (value: number) =>
   Number.isInteger(value) && value >= 10 && value <= 1000
     ? undefined
@@ -32,19 +39,20 @@ export function BamSettings({
   displayOptions,
 }: TrackSettingsProps<BamConfig, BamRecord>) {
   const config = track.config;
-  // Track patches are shallow, so nested groups are sent whole.
-  const updateStrandColors = (strandColors: Partial<BamConfig["strandColors"]>) =>
-    updateTrack({ config: { strandColors: { ...config.strandColors, ...strandColors } } });
-  const updateAlignments = (alignments: Partial<BamConfig["alignments"]>) =>
-    updateTrack({
-      config: { alignments: { ...config.alignments, ...alignments } },
-    });
-  const updateFilters = (filters: Partial<BamConfig["filters"]>) =>
-    updateTrack({ config: { filters: { ...config.filters, ...filters } } });
-  const updateCoverage = (coverage: Partial<BamConfig["coverage"]>) =>
-    updateTrack({ config: { coverage: { ...config.coverage, ...coverage } } });
-  const updateJunctions = (junctions: Partial<BamConfig["junctions"]>) =>
-    updateTrack({ config: { junctions: { ...config.junctions, ...junctions } } });
+  // Track patches are shallow, so nested groups are sent whole, merged into the latest stored group.
+  const updateGroup =
+    <Group extends ConfigGroup>(group: Group): UpdateGroup<Group> =>
+    (patch) =>
+      updateTrack((current) => {
+        const currentGroup = current.config[group];
+        const groupPatch = typeof patch === "function" ? patch(currentGroup) : patch;
+        return { config: { [group]: { ...currentGroup, ...groupPatch } } };
+      });
+  const updateStrandColors = updateGroup("strandColors");
+  const updateAlignments = updateGroup("alignments");
+  const updateFilters = updateGroup("filters");
+  const updateCoverage = updateGroup("coverage");
+  const updateJunctions = updateGroup("junctions");
   const shownSections = [
     config.coverage.show,
     config.junctions.show,
@@ -53,7 +61,7 @@ export function BamSettings({
   const sectionSwitch = (
     label: string,
     checked: boolean,
-    onChange: (show: boolean) => TrackMutationResult,
+    onChange: (show: boolean) => TrackSettingsMutationResult,
   ) => (
     <FormControlLabel
       label={label}
@@ -274,7 +282,7 @@ function CoverageSettings({
   updateCoverage,
 }: {
   coverage: BamConfig["coverage"];
-  updateCoverage: (patch: Partial<BamConfig["coverage"]>) => TrackMutationResult;
+  updateCoverage: UpdateGroup<"coverage">;
 }) {
   return (
     <TrackSettingsSection title="Coverage">
@@ -315,18 +323,20 @@ function CoverageSettings({
                 ? undefined
                 : "Enter a positive number, or leave blank for automatic scaling.";
             }}
-            onCommit={(value) => {
-              const limits = {
-                ...(coverage.scale.mode === "fixed" ? coverage.scale : {}),
-                [bound]: value.trim() === "" ? undefined : Number(value),
-              };
-              return updateCoverage({
-                scale:
-                  limits.forwardMax === undefined && limits.reverseMax === undefined
-                    ? { mode: "auto" }
-                    : { ...limits, mode: "fixed" },
-              });
-            }}
+            onCommit={(value) =>
+              updateCoverage(({ scale }) => {
+                const limits = {
+                  ...(scale.mode === "fixed" ? scale : {}),
+                  [bound]: value.trim() === "" ? undefined : Number(value),
+                };
+                return {
+                  scale:
+                    limits.forwardMax === undefined && limits.reverseMax === undefined
+                      ? { mode: "auto" }
+                      : { ...limits, mode: "fixed" },
+                };
+              })
+            }
           />
         ))}
       </TrackSettingsFieldRow>
@@ -362,7 +372,7 @@ function SelectField<Option extends string>({
   label: string;
   value: Option;
   options: readonly Option[];
-  onChange: (value: Option) => TrackMutationResult;
+  onChange: (value: Option) => TrackSettingsMutationResult;
 }) {
   return (
     <TextField

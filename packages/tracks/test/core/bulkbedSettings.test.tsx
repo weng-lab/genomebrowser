@@ -6,9 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createTrackStore,
   type TrackInstance,
-  type TrackMutationResult,
   type TrackStoreInstance,
-  type TrackUpdate,
 } from "@weng-lab/genomebrowser";
 import { bulkBedModule } from "../../src/bulkbed";
 import { BulkBedSettings } from "../../src/bulkbed/settings";
@@ -113,42 +111,6 @@ describe("BulkBed settings", () => {
     expect(updatedTrack?.base.color).toBe("#112233");
     expect(renderCount).toBeGreaterThan(initialRenderCount);
     expect(datasetNames()).toEqual(["Dataset A", "Dataset B", "Dataset C"]);
-  });
-
-  it("does not replay accepted edits after restoring an earlier datasets reference", async () => {
-    const baselineTrack = createTrack("bulk-peaks");
-    const advancedTrack = {
-      ...baselineTrack,
-      config: {
-        ...baselineTrack.config,
-        datasets: baselineTrack.config.datasets.map((item) => ({
-          ...item,
-          name: `${item.name} externally updated`,
-        })),
-      },
-    };
-    const updateTrack = vi.fn<
-      (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
-    >(() => ({ ok: true }));
-
-    await renderControlledSettings(baselineTrack, updateTrack);
-    await updateTextInput(textInputs()[0], "Accepted Dataset A");
-    await renderControlledSettings(advancedTrack, updateTrack);
-    await renderControlledSettings(baselineTrack, updateTrack);
-    await updateTextInput(textInputs()[1], "RESTORED_C0_URL");
-    await act(async () =>
-      container?.querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click(),
-    );
-
-    expect(updateTrack).toHaveBeenLastCalledWith({
-      config: {
-        datasets: [
-          { name: "Dataset A", url: "RESTORED_C0_URL" },
-          dataset("Dataset B"),
-          dataset("Dataset C"),
-        ],
-      },
-    });
   });
 
   it("preserves unaffected rows through a middle removal and subsequent addition", async () => {
@@ -268,8 +230,10 @@ async function renderHarness(props: HarnessProps = {}) {
     const updateTrack = useTrackStore.getState().updateTrack;
     useTrackStore.setState({
       updateTrack: (id, update) => {
-        const partial = (update.config ?? {}) as Partial<BulkBedConfig>;
-        const current = useTrackStore?.getState().getTrack(id)?.config as BulkBedConfig;
+        const currentTrack = useTrackStore?.getState().getTrack(id);
+        const patch = typeof update === "function" ? update(currentTrack as never) : update;
+        const partial = (patch.config ?? {}) as Partial<BulkBedConfig>;
+        const current = currentTrack?.config as BulkBedConfig;
         const nextLength = partial.datasets?.length ?? current.datasets.length;
         if (
           (rejectAddUpdate && nextLength > current.datasets.length) ||
@@ -277,7 +241,7 @@ async function renderHarness(props: HarnessProps = {}) {
         ) {
           return { ok: false, code: "INVALID_TRACK", error: "Rejected for test" };
         }
-        return updateTrack(id, update);
+        return updateTrack(id, patch);
       },
     });
   } else if (!useTrackStore.getState().getTrack(trackId)) {
@@ -289,27 +253,6 @@ async function renderHarness(props: HarnessProps = {}) {
     root = createRoot(container);
   }
   await act(async () => root?.render(<Harness {...props} />));
-}
-
-async function renderControlledSettings(
-  track: TrackInstance<BulkBedConfig, BulkBedRect>,
-  updateTrack: (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult,
-) {
-  if (!container) {
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    root = createRoot(container);
-  }
-  await act(async () =>
-    root?.render(
-      <BulkBedSettings
-        displayOptions={["full"]}
-        updateTracksOfType={() => ({ ok: true })}
-        track={track}
-        updateTrack={updateTrack}
-      />,
-    ),
-  );
 }
 
 function createTrack(id: string) {
@@ -334,22 +277,6 @@ function datasetRow(name: string) {
   const row = datasetRows().find((candidate) => rowInput(candidate, "Name").value === name);
   if (!row) throw new Error(`Dataset row not found: ${name}`);
   return row;
-}
-
-function textInputs() {
-  return datasetRows().flatMap((row) => [rowInput(row, "Name"), rowInput(row, "URL")]);
-}
-
-async function updateTextInput(input: HTMLInputElement | undefined, value: string) {
-  if (!input) throw new Error("Text input not found");
-  const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-  if (!valueSetter) throw new Error("Could not set input value");
-
-  await act(async () => {
-    valueSetter.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
-  });
 }
 
 function datasetRows() {

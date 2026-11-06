@@ -3,10 +3,9 @@
 import {
   createTrackStore,
   type TrackInstance,
-  type TrackMutationResult,
+  type TrackSettingsProps,
   type TrackSource,
   type TrackStoreInstance,
-  type TrackUpdate,
 } from "@weng-lab/genomebrowser";
 import {
   methylCModule,
@@ -107,7 +106,7 @@ describe("methylC settings", () => {
   });
 
   it("disables every host source while keeping visual settings editable", () => {
-    const { updateTrack } = renderSettings(config, "host");
+    const { trackStore } = renderSettings(config, "host");
     const urlLabels = [
       "Plus-strand CpG URL",
       "Plus-strand CHG URL",
@@ -129,12 +128,12 @@ describe("methylC settings", () => {
         container!.querySelectorAll<HTMLButtonElement>('button[aria-label^="Set "]'),
       ).every((button) => button.disabled),
     ).toBe(true);
-    expect(updateTrack).toHaveBeenCalledWith({ config: { maskCpgByCoverage: false } });
+    expect(storedConfig(trackStore).maskCpgByCoverage).toBe(false);
   });
 
   it("updates nested values while preserving their siblings", () => {
     vi.useFakeTimers();
-    const { updateTrack } = renderSettings();
+    const { trackStore } = renderSettings();
 
     updateInput("Plus-strand CpG URL", "UPDATED_PLUS_CPG_URL");
     updateInput("Plus-strand CHG URL", "UPDATED_PLUS_CHG_URL");
@@ -143,100 +142,47 @@ describe("methylC settings", () => {
     updateInput("CHH color", "#112233");
     blurInput("CHH color");
     clickInput("Mask CpG by coverage");
-    act(() =>
-      container
-        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CpG URL"]')
-        ?.click(),
-    );
-    act(() =>
-      container
-        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CHG URL"]')
-        ?.click(),
-    );
+    act(() => {
+      // Both commits land in one React batch, before the form sees the first one.
+      getSetButton("Plus-strand CpG URL").click();
+      getSetButton("Plus-strand CHG URL").click();
+    });
     act(() => vi.advanceTimersByTime(300));
 
-    expect(updateTrack.mock.calls).toEqual([
-      [{ config: { colors: { ...config.colors, depth: "#663399" } } }],
-      [{ config: { colors: { ...config.colors, chh: "#112233", depth: "#663399" } } }],
-      [{ config: { maskCpgByCoverage: false } }],
-      [
-        {
-          config: {
-            urls: {
-              ...config.urls,
-              plusStrand: {
-                ...config.urls.plusStrand,
-                cpg: { url: "UPDATED_PLUS_CPG_URL" },
-              },
-            },
-          },
+    expect(storedConfig(trackStore)).toEqual({
+      ...config,
+      urls: {
+        ...config.urls,
+        plusStrand: {
+          ...config.urls.plusStrand,
+          cpg: { url: "UPDATED_PLUS_CPG_URL" },
+          chg: { url: "UPDATED_PLUS_CHG_URL" },
         },
-      ],
-      [
-        {
-          config: {
-            urls: {
-              ...config.urls,
-              plusStrand: {
-                ...config.urls.plusStrand,
-                cpg: { url: "UPDATED_PLUS_CPG_URL" },
-                chg: { url: "UPDATED_PLUS_CHG_URL" },
-              },
-            },
-          },
-        },
-      ],
-    ]);
+      },
+      colors: { ...config.colors, chh: "#112233", depth: "#663399" },
+      maskCpgByCoverage: false,
+    });
   });
 
-  it("does not replay accepted edits after restoring an earlier config reference", () => {
+  it("merges edits into config changed outside the form", () => {
     vi.useFakeTimers();
-    const baselineTrack = createMethylCTrack(config);
-    const advancedTrack = {
-      ...baselineTrack,
-      config: {
-        ...baselineTrack.config,
-        colors: { ...baselineTrack.config.colors, cpg: "#000000" },
-      },
-    };
-    const updateTrack = vi.fn<
-      (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult
-    >(() => ({ ok: true }));
+    const { trackStore } = renderSettings();
 
-    renderControlledSettings(baselineTrack, updateTrack);
-    updateInput("Plus-strand CpG URL", "ACCEPTED_PLUS_CPG_URL");
-    act(() =>
-      container
-        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CpG URL"]')
-        ?.click(),
-    );
-    act(() => vi.advanceTimersByTime(300));
-    renderControlledSettings(advancedTrack, updateTrack);
-    renderControlledSettings(baselineTrack, updateTrack);
-    updateInput("Plus-strand CHG URL", "RESTORED_C0_CHG_URL");
-    act(() =>
-      container
-        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CHG URL"]')
-        ?.click(),
-    );
-    act(() => vi.advanceTimersByTime(300));
-
-    expect(updateTrack).toHaveBeenLastCalledWith({
-      config: {
-        urls: {
-          ...baselineTrack.config.urls,
-          plusStrand: {
-            ...baselineTrack.config.urls.plusStrand,
-            chg: { url: "RESTORED_C0_CHG_URL" },
-          },
-        },
-      },
+    updateInput("Plus-strand CHG URL", "UPDATED_PLUS_CHG_URL");
+    act(() => {
+      trackStore.getState().updateTrack<MethylCConfig>("methylc", {
+        config: { colors: { ...config.colors, cpg: "#000000" } },
+      });
     });
+    act(() => getSetButton("Plus-strand CHG URL").click());
+
+    expect(storedConfig(trackStore).colors.cpg).toBe("#000000");
+    expect(storedConfig(trackStore).urls.plusStrand.chg.url).toBe("UPDATED_PLUS_CHG_URL");
   });
 
   it("retains the first bound through a focus transition and commits the pair on Enter", () => {
     vi.useFakeTimers();
-    const { updateTrack } = renderSettings({ ...config, range: undefined });
+    const { trackStore, updateTrack } = renderSettings({ ...config, range: undefined });
 
     focusInput("Minimum");
     updateInput("Minimum", "0");
@@ -250,12 +196,12 @@ describe("methylC settings", () => {
     updateInput("Maximum", "10");
     keyDownInput("Maximum", "Enter");
 
-    expect(updateTrack).toHaveBeenLastCalledWith({ config: { range: { min: 0, max: 10 } } });
+    expect(storedConfig(trackStore).range).toEqual({ min: 0, max: 10 });
   });
 
   it("requires both manually entered bounds and clears the pair with the automatic action", () => {
     vi.useFakeTimers();
-    const { updateTrack } = renderSettings();
+    const { trackStore, updateTrack } = renderSettings();
 
     updateInput("Minimum", "");
     act(() => vi.advanceTimersByTime(300));
@@ -266,42 +212,26 @@ describe("methylC settings", () => {
 
     act(() => getAutomaticRangeButton().click());
 
-    expect(updateTrack).toHaveBeenLastCalledWith({ config: { range: undefined } });
+    expect(storedConfig(trackStore).range).toBeUndefined();
   });
 });
 
 function renderSettings(initialConfig = config, source: TrackSource = "user") {
-  const updateTrack = vi.fn<
-    (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult
-  >(() => ({ ok: true }));
   const trackStore = createTrackStore({
     modules: [methylCModule],
     tracks: [createMethylCTrack(initialConfig, "methylc", source)],
   });
-  const applyUpdate = trackStore.getState().updateTrack;
+  const updateTrack = vi.fn<TrackSettingsProps<MethylCConfig, MethylCTooltipItem>["updateTrack"]>(
+    (update) => trackStore.getState().updateTrack("methylc", update),
+  );
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
 
-  const rerender = (nextConfig: MethylCConfig) => {
-    act(() => {
-      trackStore.getState().updateTrack<MethylCConfig>("methylc", { config: nextConfig });
-    });
-  };
-
   act(() => {
-    root?.render(
-      <MethylCSettingsHarness
-        trackStore={trackStore}
-        updateTrack={(update) => {
-          const result = updateTrack(update);
-          if (result.ok) applyUpdate("methylc", update);
-          return result;
-        }}
-      />,
-    );
+    root?.render(<MethylCSettingsHarness trackStore={trackStore} updateTrack={updateTrack} />);
   });
-  return { rerender, trackStore, updateTrack };
+  return { trackStore, updateTrack };
 }
 
 function createMethylCTrack(
@@ -321,25 +251,8 @@ function createMethylCTrack(
   });
 }
 
-function renderControlledSettings(
-  track: TrackInstance<MethylCConfig, MethylCTooltipItem>,
-  updateTrack: (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult,
-) {
-  if (!container) {
-    container = document.createElement("div");
-    document.body.append(container);
-    root = createRoot(container);
-  }
-  act(() =>
-    root?.render(
-      <MethylCSettings
-        displayOptions={["full"]}
-        updateTracksOfType={() => ({ ok: true })}
-        track={track}
-        updateTrack={updateTrack}
-      />,
-    ),
-  );
+function storedConfig(trackStore: TrackStoreInstance) {
+  return trackStore.getState().getTrack("methylc")?.config as MethylCConfig;
 }
 
 function MethylCSettingsHarness({
@@ -347,7 +260,7 @@ function MethylCSettingsHarness({
   updateTrack,
 }: {
   trackStore: TrackStoreInstance;
-  updateTrack: (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult;
+  updateTrack: TrackSettingsProps<MethylCConfig, MethylCTooltipItem>["updateTrack"];
 }) {
   const track = trackStore((state) => state.getTrack("methylc")) as
     | TrackInstance<MethylCConfig, MethylCTooltipItem>
@@ -361,6 +274,12 @@ function MethylCSettingsHarness({
       updateTrack={updateTrack}
     />
   );
+}
+
+function getSetButton(label: string) {
+  const button = container?.querySelector<HTMLButtonElement>(`button[aria-label="Set ${label}"]`);
+  if (!button) throw new Error(`Could not find the Set button for ${label}`);
+  return button;
 }
 
 function getInput(label: string) {

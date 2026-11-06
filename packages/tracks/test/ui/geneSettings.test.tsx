@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act } from "react";
-import { createTrackStore, type TrackUpdate } from "@weng-lab/genomebrowser";
+import { createTrackStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import {
   geneModule,
   getGeneDatasetsForAssembly,
@@ -209,8 +209,9 @@ describe("Gene settings", () => {
         },
       });
       const useTrackStore = createTrackStore({ modules: [geneModule], tracks: [track] });
-      const updateTrack = (update: TrackUpdate<GeneConfig, GeneInteractionTarget>) =>
-        useTrackStore.getState().updateTrack(track.base.id, update);
+      const updateTrack: TrackSettingsProps<GeneConfig, GeneInteractionTarget>["updateTrack"] = (
+        update,
+      ) => useTrackStore.getState().updateTrack(track.base.id, update);
       container = document.createElement("div");
       document.body.appendChild(container);
       root = createRoot(container);

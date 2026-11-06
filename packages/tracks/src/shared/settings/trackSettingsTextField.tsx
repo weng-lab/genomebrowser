@@ -1,5 +1,5 @@
 import TextField from "@mui/material/TextField";
-import type { TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { TrackSettingsMutationResult } from "@weng-lab/genomebrowser";
 import { useDraftController, type DraftValidation } from "./draftInput";
 
 export type TrackSettingsTextFieldProps = {
@@ -8,7 +8,7 @@ export type TrackSettingsTextFieldProps = {
   inputMode?: "email" | "search" | "tel" | "text" | "url";
   label: string;
   normalize?: (value: string) => string;
-  onCommit: (value: string) => TrackMutationResult;
+  onCommit: (value: string) => TrackSettingsMutationResult;
   placeholder?: string;
   required?: boolean;
   type?: "text" | "url";

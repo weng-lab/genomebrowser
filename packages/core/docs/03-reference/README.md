@@ -34,6 +34,7 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `ModuleRegistry`                                                                    | [Module registry](01-browserSetup/trackStore.md#moduleregistry)                                                      |
 | `MutationFailure`, `TrackMutationErrorCode`, `TrackMutationResult`                  | [Mutation results](01-browserSetup/trackStore.md#mutation-results)                                                   |
 | `TrackUpdate`, `TrackBaseUpdate`                                                    | [Update patches](01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate)                                      |
+| `TrackUpdater`                                                                      | [Updating a track](01-browserSetup/trackStore.md#updating-a-track)                                                   |
 
 ### Assemblies and regions
 
@@ -57,7 +58,7 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `TrackInstance`, `TrackBase`, `ReadonlyTrackInstance`                                                             | [TrackInstance and TrackBase](03-trackDefinition/trackInstances.md#trackinstance-and-trackbase)                 |
 | `TrackFetch`, `TrackFetchContext`, `TrackFetchTrack`, `TrackFetchDemand`                                          | [Fetching data](03-trackDefinition/fetchingData.md#fetching-data)                                               |
 | `TrackResources`                                                                                                  | [TrackResources](03-trackDefinition/fetchingData.md#trackresources)                                             |
-| `TrackSettingsComponent`, `TrackSettingsProps`                                                                    | [Settings](03-trackDefinition/trackSettings.md#settings)                                                        |
+| `TrackSettingsComponent`, `TrackSettingsProps`, `TrackSettingsMutationResult`                                     | [Settings](03-trackDefinition/trackSettings.md#settings)                                                        |
 | `fetchOnChange`                                                                                                   | [fetchOnChange](03-trackDefinition/fetchOnChange.md#fetchonchange)                                              |
 
 ### Renderer integration

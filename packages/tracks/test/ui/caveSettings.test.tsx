@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
+import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import {
   caveModule,
   type CaveConfig,
@@ -77,9 +77,9 @@ describe("CAVE settings", () => {
 });
 
 function renderSettings(initialConfig = config) {
-  const updateTrack = vi.fn<
-    (update: TrackUpdate<CaveConfig, CaveTooltipItem>) => TrackMutationResult
-  >(() => ({ ok: true }));
+  const updateTrack = vi.fn<TrackSettingsProps<CaveConfig, CaveTooltipItem>["updateTrack"]>(() => ({
+    ok: true,
+  }));
   const track = caveModule.create({
     base: {
       id: "cave",

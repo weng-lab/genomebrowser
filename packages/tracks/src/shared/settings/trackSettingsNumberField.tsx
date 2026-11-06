@@ -1,5 +1,5 @@
 import TextField from "@mui/material/TextField";
-import type { TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { TrackSettingsMutationResult } from "@weng-lab/genomebrowser";
 import { parseFiniteNumber, useDraftController, type DraftValidation } from "./draftInput";
 
 export type TrackSettingsNumberFieldProps = {
@@ -7,7 +7,7 @@ export type TrackSettingsNumberFieldProps = {
   inputMode?: "decimal" | "numeric";
   label: string;
   min?: number;
-  onCommit: (value: number) => TrackMutationResult;
+  onCommit: (value: number) => TrackSettingsMutationResult;
   required?: boolean;
   step?: "any" | number;
   validate: (value: number) => string | undefined;

@@ -78,7 +78,9 @@ export type {
   TrackSettingsComponent,
   TrackSource,
   TrackSettingsProps,
+  TrackSettingsMutationResult,
   TrackUpdate,
+  TrackUpdater,
 } from "./modules/types";
 
 // Renderer integration

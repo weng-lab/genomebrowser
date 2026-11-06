@@ -9,7 +9,6 @@ import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsRangeFields } from "../shared/settings/trackSettingsRangeFields";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
-import { useRef, useState } from "react";
 import type { MethylCTooltipItem } from "./types";
 import type { MethylCConfig } from "./schema";
 
@@ -40,49 +39,10 @@ type MethylCSettingsProps = TrackSettingsProps<MethylCConfig, MethylCTooltipItem
 type UpdateConfig = (
   createUpdate: (config: Readonly<MethylCConfig>) => Partial<MethylCConfig>,
 ) => ReturnType<MethylCSettingsProps["updateTrack"]>;
-type ConfigEditorState = {
-  // This version prevents stale accepted edits replaying after controlled config changes A -> B -> A.
-  baselineVersion: number;
-  acceptedUpdates: Partial<MethylCConfig>[];
-  baseConfig: Readonly<MethylCConfig>;
-};
 
 export function MethylCSettings({ track, updateTrack, ...settings }: MethylCSettingsProps) {
-  const [configEditor, setConfigEditor] = useState(() => createConfigEditorState(track.config));
-  const latestConfigEditor = useRef(configEditor);
-  const renderedConfigEditor = reconcileConfigEditorState(configEditor, track.config);
-  if (renderedConfigEditor !== configEditor) {
-    setConfigEditor(renderedConfigEditor);
-  }
-
-  const currentConfig = applyConfigUpdates(
-    renderedConfigEditor.baseConfig,
-    renderedConfigEditor.acceptedUpdates,
-  );
-
-  const updateConfig: UpdateConfig = (createUpdate) => {
-    const currentConfigEditor = getCommittableConfigEditorState(
-      latestConfigEditor.current,
-      renderedConfigEditor,
-    );
-    const currentConfig = applyConfigUpdates(
-      currentConfigEditor.baseConfig,
-      currentConfigEditor.acceptedUpdates,
-    );
-    const configUpdate = createUpdate(currentConfig);
-    const result = updateTrack({ config: configUpdate });
-    if (result.ok) {
-      const nextConfigEditor = {
-        baselineVersion: currentConfigEditor.baselineVersion,
-        baseConfig: currentConfigEditor.baseConfig,
-        acceptedUpdates: [...currentConfigEditor.acceptedUpdates, configUpdate],
-      } satisfies ConfigEditorState;
-      // Compose accepted edits even when React batches multiple input commits.
-      latestConfigEditor.current = nextConfigEditor;
-      setConfigEditor(nextConfigEditor);
-    }
-    return result;
-  };
+  const updateConfig: UpdateConfig = (createUpdate) =>
+    updateTrack((current) => ({ config: createUpdate(current.config) }));
 
   return (
     <TrackSettingsLayout>
@@ -94,49 +54,14 @@ export function MethylCSettings({ track, updateTrack, ...settings }: MethylCSett
         <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
       </TrackBaseSettings>
       <SourceSettings
-        config={currentConfig}
+        config={track.config}
         disabled={track.source === "host"}
         updateConfig={updateConfig}
       />
-      <ColorSettings config={currentConfig} updateConfig={updateConfig} />
-      <RenderingSettings config={currentConfig} updateConfig={updateConfig} />
+      <ColorSettings config={track.config} updateConfig={updateConfig} />
+      <RenderingSettings config={track.config} updateConfig={updateConfig} />
     </TrackSettingsLayout>
   );
-}
-
-function createConfigEditorState(config: Readonly<MethylCConfig>): ConfigEditorState {
-  return { baselineVersion: 0, acceptedUpdates: [], baseConfig: config };
-}
-
-function reconcileConfigEditorState(
-  state: ConfigEditorState,
-  config: Readonly<MethylCConfig>,
-): ConfigEditorState {
-  if (state.baseConfig === config) return state;
-
-  return {
-    baselineVersion: state.baselineVersion + 1,
-    acceptedUpdates: [],
-    baseConfig: config,
-  };
-}
-
-function getCommittableConfigEditorState(
-  latestState: ConfigEditorState,
-  renderedState: ConfigEditorState,
-) {
-  return latestState.baselineVersion === renderedState.baselineVersion
-    ? latestState
-    : renderedState;
-}
-
-function applyConfigUpdates(
-  config: Readonly<MethylCConfig>,
-  updates: Partial<MethylCConfig>[],
-): MethylCConfig {
-  const currentConfig: MethylCConfig = { ...config };
-  for (const update of updates) Object.assign(currentConfig, update);
-  return currentConfig;
 }
 
 function SourceSettings({

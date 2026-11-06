@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import FormHelperText from "@mui/material/FormHelperText";
 import TextField from "@mui/material/TextField";
-import type { TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { TrackSettingsMutationResult } from "@weng-lab/genomebrowser";
 import { useId } from "react";
 import { parseFiniteNumber, useDraftController, type DraftValidation } from "./draftInput";
 import { TrackSettingsFieldRow } from "./trackSettingsFieldGrid";
@@ -20,12 +20,12 @@ export type TrackSettingsRangeFieldsProps = RangeLabels &
     | {
         mode: "independent";
         range: RangeOverride | undefined;
-        onCommit: (range: RangeOverride | undefined) => TrackMutationResult;
+        onCommit: (range: RangeOverride | undefined) => TrackSettingsMutationResult;
       }
     | {
         mode?: "complete";
         range: CompleteRange | undefined;
-        onCommit: (range: CompleteRange | undefined) => TrackMutationResult;
+        onCommit: (range: CompleteRange | undefined) => TrackSettingsMutationResult;
       }
   );
 

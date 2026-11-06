@@ -10,7 +10,7 @@ import {
   createTrackStore,
   defineTrackModule,
   type AnyTrackInstance,
-  type TrackMutationResult,
+  type TrackSettingsMutationResult,
   type TrackSettingsProps,
 } from "../../src/lib";
 
@@ -112,7 +112,7 @@ describe("browser settings workflows", () => {
     });
 
     const nextOnClick = () => undefined;
-    let updateResult: TrackMutationResult | undefined;
+    let updateResult: TrackSettingsMutationResult | undefined;
     await act(async () => {
       updateResult = requireValue(receivedProps, "Module settings props not received").updateTrack({
         base: { title: "Updated active" },
@@ -133,7 +133,7 @@ describe("browser settings workflows", () => {
     );
 
     await blockInteractions();
-    let blockedResult: TrackMutationResult | undefined;
+    let blockedResult: TrackSettingsMutationResult | undefined;
     await act(async () => {
       blockedResult = requireValue(receivedProps, "Module settings props not received").updateTrack(
         { base: { title: "Blocked update" } },
@@ -184,7 +184,7 @@ describe("browser settings workflows", () => {
     await openSettings("First");
     expect(props?.displayOptions).toEqual(["full"]);
     const before = useTrackStore.getState().tracks;
-    let result: TrackMutationResult | undefined;
+    let result: TrackSettingsMutationResult | undefined;
     await act(async () => {
       result = props?.updateTracksOfType((track) => ({
         config: { url: track.base.id === "second" ? "" : "YOUR_OTHER_URL_HERE" },

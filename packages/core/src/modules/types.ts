@@ -112,10 +112,14 @@ export type TrackMutationErrorCode =
   | "UNKNOWN_TRACK_MODULE"
   | "DUPLICATE_TRACK_ID"
   | "TRACK_NOT_FOUND"
-  | "INVALID_TRACK_ORDER"
-  | "INTERACTION_BLOCKED";
+  | "INVALID_TRACK_ORDER";
 
 export type TrackMutationResult = { ok: true } | MutationFailure<TrackMutationErrorCode>;
+
+/** A track mutation made through hosted browser controls, rejected while interaction is blocked. */
+export type TrackSettingsMutationResult =
+  | TrackMutationResult
+  | MutationFailure<"INTERACTION_BLOCKED">;
 
 export type TrackBaseUpdate = Partial<Omit<TrackBase, "id">>;
 
@@ -124,6 +128,11 @@ export type TrackUpdate<Config, InteractionItem = unknown> = {
   config?: Partial<Config>;
   interaction?: Partial<TrackInteraction<InteractionItem, Config>>;
 };
+
+/** Computes a patch from the latest stored track, so several updates in one event compose. */
+export type TrackUpdater<Config, InteractionItem = unknown> = (
+  track: ReadonlyTrackInstance<Config, InteractionItem>,
+) => TrackUpdate<Config, InteractionItem>;
 
 export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<{
   type: string;
@@ -137,11 +146,11 @@ export type TrackSettingsProps<Config, InteractionItem = unknown> = {
   track: ReadonlyTrackInstance<Config, InteractionItem>;
   displayOptions: readonly string[];
   updateTracksOfType: (
-    createUpdate: (
-      track: ReadonlyTrackInstance<Config, InteractionItem>,
-    ) => TrackUpdate<Config, InteractionItem>,
-  ) => TrackMutationResult;
-  updateTrack: (update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult;
+    createUpdate: TrackUpdater<Config, InteractionItem>,
+  ) => TrackSettingsMutationResult;
+  updateTrack: (
+    update: TrackUpdate<Config, InteractionItem> | TrackUpdater<Config, InteractionItem>,
+  ) => TrackSettingsMutationResult;
 };
 
 export type TrackSettingsComponent<Config, InteractionItem = unknown> = ComponentType<

@@ -105,14 +105,15 @@ Unexpected exceptions from custom validation code propagate. Express expected va
 
 `TrackMutationErrorCode` contains:
 
-| Code                   | Meaning                                                       |
-| ---------------------- | ------------------------------------------------------------- |
-| `INVALID_TRACK`        | Instance or settings input fails validation.                  |
-| `UNKNOWN_TRACK_MODULE` | No module is registered for the instance type.                |
-| `DUPLICATE_TRACK_ID`   | The resulting track list would contain a repeated ID.         |
-| `TRACK_NOT_FOUND`      | An update or removal names an absent track.                   |
-| `INVALID_TRACK_ORDER`  | Order does not contain every current ID exactly once.         |
-| `INTERACTION_BLOCKED`  | A hosted settings mutation is disabled during an interaction. |
+| Code                   | Meaning                                               |
+| ---------------------- | ----------------------------------------------------- |
+| `INVALID_TRACK`        | Instance or settings input fails validation.          |
+| `UNKNOWN_TRACK_MODULE` | No module is registered for the instance type.        |
+| `DUPLICATE_TRACK_ID`   | The resulting track list would contain a repeated ID. |
+| `TRACK_NOT_FOUND`      | An update or removal names an absent track.           |
+| `INVALID_TRACK_ORDER`  | Order does not contain every current ID exactly once. |
+
+Hosted settings forms receive callbacks that can also reject an edit while the browser is loading. Those callbacks return [`TrackSettingsMutationResult`](../03-trackDefinition/trackSettings.md#mutation-behavior), which adds `INTERACTION_BLOCKED` to these codes. Store actions never return it.
 
 These contracts assume arguments with the documented shapes. The actions are not general parsers for arbitrary JavaScript values. Use module or collection schemas to validate external input.
 
@@ -140,7 +141,15 @@ if (!added.ok) console.error(added.error);
 
 ## Updating a track
 
-`updateTrack<Config, InteractionItem = unknown>(id: string, update: TrackUpdate<Config, InteractionItem>): TrackMutationResult` edits an existing track. It merges the supplied patches, validates the resulting instance once, and commits all supplied changes or none. A missing ID produces a failure result.
+`updateTrack<Config, InteractionItem = unknown>(id: string, update: TrackUpdate<Config, InteractionItem> | TrackUpdater<Config, InteractionItem>): TrackMutationResult` edits an existing track. It merges the supplied patches, validates the resulting instance once, and commits all supplied changes or none. A missing ID produces a failure result.
+
+Pass a `TrackUpdater`, a function `(track: ReadonlyTrackInstance<Config, InteractionItem>) => TrackUpdate<Config, InteractionItem>`, when a patch depends on the current value. The store calls it with the latest stored track, so several updates made before React re-renders still build on each other. A patch computed from a rendered `track` prop can overwrite an edit committed earlier in the same event.
+
+```ts
+useTrackStore.getState().updateTrack<BigWigConfig>("signal", (track) => ({
+  config: { yRange: { ...track.config.yRange, max: 20 } },
+}));
+```
 
 ### TrackUpdate and TrackBaseUpdate
 
@@ -159,6 +168,20 @@ const updated = useTrackStore.getState().updateTrack("signal", {
   interaction: { onLeave: () => undefined },
 });
 if (!updated.ok) console.error(updated.error);
+```
+
+### updateTracks
+
+`updateTracks(select: (track: AnyTrackInstance) => boolean, createUpdate: (track: AnyTrackInstance) => TrackUpdate): TrackMutationResult` edits every track for which `select` returns `true`. It calls `createUpdate` with each selected stored track, merges each patch with the same rules as `updateTrack`, and validates every result before committing. One invalid result rejects the whole change and leaves every track unchanged. Unselected tracks keep their current instances, and selecting no tracks succeeds without a state update.
+
+```ts
+const taller = useTrackStore.getState().updateTracks(
+  (track) => track.type === "bigwig",
+  (track) => ({
+    base: { height: track.base.height + 20 },
+  }),
+);
+if (!taller.ok) console.error(taller.error);
 ```
 
 A config change requests new data when a field marked by the module with `fetchOnChange` changes. Display changes also request data. Other base fields, callbacks, and unmarked config changes reuse current data. See [request behavior](../03-trackDefinition/fetchingData.md#requests-and-result-lifetime) for the mounted browser's coordination rules.

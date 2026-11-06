@@ -17,14 +17,14 @@ export function FieldExample({ value, onCommit }: TrackSettingsUrlFieldProps) {
 
 ## API
 
-| Prop          | Type                                   | Default  | Description                                          |
-| ------------- | -------------------------------------- | -------- | ---------------------------------------------------- |
-| `disabled`    | `boolean`                              | `false`  | Disables editing and commit interactions.            |
-| `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.         |
-| `onCommit`    | `(url: string) => TrackMutationResult` | Required | Submits the draft URL string when Set is activated.  |
-| `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.       |
-| `required`    | `boolean`                              | `false`  | Rejects a blank or whitespace-only URL when enabled. |
-| `value`       | `string`                               | Required | Current accepted URL string.                         |
+| Prop          | Type                                           | Default  | Description                                          |
+| ------------- | ---------------------------------------------- | -------- | ---------------------------------------------------- |
+| `disabled`    | `boolean`                                      | `false`  | Disables editing and commit interactions.            |
+| `label`       | `string`                                       | `"URL"`  | Visible MUI field label and accessible name.         |
+| `onCommit`    | `(url: string) => TrackSettingsMutationResult` | Required | Submits the draft URL string when Set is activated.  |
+| `placeholder` | `string`                                       | None     | Example or hint shown when the draft is empty.       |
+| `required`    | `boolean`                                      | `false`  | Rejects a blank or whitespace-only URL when enabled. |
+| `value`       | `string`                                       | Required | Current accepted URL string.                         |
 
 Activate **Set** to apply a changed URL. Typing, blur, and Enter in the input do not commit. Escape cancels the draft.
 
@@ -32,7 +32,7 @@ The component supplies URL input, autocomplete, and virtual-keyboard hints. It d
 
 ## Commit behavior
 
-The field stores the draft locally. Pass the accepted value through `value` and return `TrackMutationResult` from `onCommit`. In a module form, return core's `updateTrack` result. A successful result accepts the draft. A failed result keeps the draft and displays its error. The field does not read browser stores.
+The field stores the draft locally. Pass the accepted value through `value` and return `TrackSettingsMutationResult` from `onCommit`. In a module form, return core's `updateTrack` result. A successful result accepts the draft. A failed result keeps the draft and displays its error. The field does not read browser stores.
 
 ## Accessibility
 
