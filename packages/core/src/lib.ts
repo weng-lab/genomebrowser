@@ -4,6 +4,7 @@ export type { MutationFailure } from "./mutation";
 export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 export { createBrowserStore } from "./browser/state/browserStore";
+export { canPan, canZoom } from "./browser/state/navigation";
 export type {
   BasePairDetailSettings,
   BasePairDetailMutationResult,

@@ -11,6 +11,7 @@ import {
   selectionModeSchema,
 } from "../../schemas";
 import { formatZodError, parsePublicInput } from "../../validation";
+import { getPannedRegion } from "./navigation";
 
 export type Highlight = z.output<typeof highlightSchema>;
 
@@ -40,6 +41,7 @@ export type BrowserStoreInput = {
 
 export type BrowserRegionMutationErrorCode =
   | RegionErrorCode
+  | "INVALID_PAN_FRACTION"
   | "INVALID_ZOOM_FACTOR"
   | "INVALID_ZOOM_CENTER";
 
@@ -82,6 +84,8 @@ export type BrowserStore = {
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   /** Set the configured logical width for fixed views; responsive views measure themselves. */
   setTrackWidth: (trackWidth: number) => BrowserViewportMutationResult;
+  /** Moves the view by `fraction` of its width, negative toward the chromosome start, keeping its width. */
+  pan: (fraction: number) => BrowserRegionMutationResult;
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
   addHighlight: (highlight: Highlight) => BrowserHighlightMutationResult;
   /** Replaces the highlight with ID `id`, which may be renamed to an unused ID. */
@@ -177,6 +181,19 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         }
         set({ trackWidth });
         return { ok: true, trackWidth };
+      },
+      pan: (fraction) => {
+        if (!Number.isFinite(fraction) || fraction === 0) {
+          return {
+            ok: false,
+            code: "INVALID_PAN_FRACTION",
+            error: "Pan fraction must be a finite, nonzero number.",
+          };
+        }
+        const region = get().region;
+        return commitRegion(
+          getPannedRegion(region, assembly.chromosomes[region.chromosome], fraction),
+        );
       },
       zoom: (factor, centerBase) => {
         if (!Number.isFinite(factor) || factor <= 0) {

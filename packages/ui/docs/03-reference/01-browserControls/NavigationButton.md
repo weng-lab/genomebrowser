@@ -63,7 +63,7 @@ The UI package does not provide a standard toolbar. The application arranges and
 
 ## Navigation behavior
 
-A pan `fraction` is signed and relative to the current viewport span. Negative values pan left and positive values pan right. For example, `-0.5` moves left by half a viewport. The button rounds the shift to the nearest whole base, with a minimum one-base movement, preserves the viewport span, clamps at chromosome boundaries, and applies the result through the browser store's `setRegion` action.
+A pan `fraction` is signed and relative to the current viewport span. Negative values pan left and positive values pan right. For example, `-0.5` moves left by half a viewport. Panning delegates to the store's `pan(fraction)` action, which rounds the shift to the nearest whole base, with a minimum one-base movement, preserves the viewport span, and clamps at chromosome boundaries.
 
 A zoom `factor` uses the core browser store convention: values between zero and one zoom in, while values greater than one zoom out. For example, `0.5` zooms in 2× and `2` zooms out 2×. Zooming delegates to the store's center-based `zoom(factor)` action.
 
@@ -71,7 +71,7 @@ Activation always reads the latest state from the supplied store. If you render 
 
 ## Disabled behavior
 
-The button uses coarse boundary checks. It is disabled when:
+The button uses the boundary checks of core's `canPan` and `canZoom`. It is disabled when:
 
 - its action or current browser region is invalid;
 - a pan points past the current chromosome edge;

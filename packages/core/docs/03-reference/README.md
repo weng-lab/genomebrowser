@@ -22,6 +22,7 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `GenomeBrowser`, `GenomeBrowserProps`                                                  | [GenomeBrowser](01-browserSetup/GenomeBrowser.md)                                                                    |
 | `createBrowserStore`, `BrowserStoreInput`                                              | [Store creation](01-browserSetup/browserStore.md#createbrowserstore-and-browserstoreinput)                           |
+| `canPan`, `canZoom`                                                                    | [Navigation availability](01-browserSetup/browserStore.md#canpan-and-canzoom)                                        |
 | `BrowserStore`, `BrowserStoreInstance`                                                 | [State and store instance](01-browserSetup/browserStore.md#browserstore-and-browserstoreinstance)                    |
 | `BrowserRegionMutationResult`, `BrowserRegionMutationErrorCode`                        | [Navigation results](01-browserSetup/browserStore.md#browserregionmutationresult-and-browserregionmutationerrorcode) |
 | `BasePairDetailSettings`, `BasePairDetailMutationResult`                               | [Base-pair detail settings](01-browserSetup/browserStore.md#base-pair-detail)                                        |

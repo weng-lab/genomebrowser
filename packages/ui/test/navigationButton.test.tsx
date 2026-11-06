@@ -37,21 +37,16 @@ describe("NavigationButton", () => {
     expectTypeOf<HasOnClick>().toEqualTypeOf<false>();
   });
 
-  it("pans from the latest store region through setRegion with signed rounded shifts", () => {
+  it("pans from the latest store region with signed rounded shifts", () => {
     const browserStore = createTestStore({ chromosome: "chr1", start: 10, end: 13 });
-    const originalSetRegion = browserStore.getState().setRegion;
-    const setRegion = vi.fn(originalSetRegion);
-    browserStore.setState({ setRegion });
 
     mountButton(browserStore, { type: "pan", fraction: 0.5 }, "Move");
     clickButton();
-    expect(setRegion).toHaveBeenLastCalledWith({ chromosome: "chr1", start: 12, end: 15 });
     expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 12, end: 15 });
 
-    act(() => originalSetRegion({ chromosome: "chr1", start: 40, end: 43 }));
+    act(() => browserStore.getState().setRegion({ chromosome: "chr1", start: 40, end: 43 }));
     renderButton(browserStore, { type: "pan", fraction: -0.1 }, "Move");
     clickButton();
-    expect(setRegion).toHaveBeenLastCalledWith({ chromosome: "chr1", start: 39, end: 42 });
     expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 39, end: 42 });
   });
 

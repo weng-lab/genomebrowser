@@ -115,6 +115,15 @@ function goToRegion(input: string) {
 goToRegion("chr12:53,372,922-53,423,700");
 ```
 
+### pan
+
+`pan(fraction: number): BrowserRegionMutationResult` moves the current region by `fraction` of its width. Negative values move toward the chromosome start, and positive values move toward its end. The shift is rounded to the nearest whole base, with a minimum of one base, and the region keeps its width while staying inside the chromosome. A fraction that is not finite, or is zero, returns `INVALID_PAN_FRACTION`.
+
+```ts
+const panned = useBrowserStore.getState().pan(-0.5);
+if (!panned.ok) console.error(panned.error);
+```
+
 ### zoom
 
 `zoom(factor: number, centerBase?: number): BrowserRegionMutationResult` multiplies the current region width by a positive finite factor. Values below one zoom in; values above one zoom out. The target width is rounded to the nearest integer with a minimum of one base, and its start is rounded around the chosen center before normalization.
@@ -133,7 +142,7 @@ Boundary clamping can shorten the requested region. A successful store mutation 
 
 ### BrowserRegionMutationResult and BrowserRegionMutationErrorCode
 
-Both navigation actions return:
+`pan`, `zoom`, and `setRegion` return:
 
 ```ts
 import type { BrowserRegionMutationErrorCode, GenomicRegion } from "@weng-lab/genomebrowser";
@@ -143,7 +152,17 @@ type Result =
   | { ok: false; code: BrowserRegionMutationErrorCode; error: string };
 ```
 
-`BrowserRegionMutationErrorCode` includes every [RegionErrorCode](../02-assembliesAndRegions/regions.md#regionresult-and-regionerrorcode), plus `INVALID_ZOOM_FACTOR` and `INVALID_ZOOM_CENTER`. Even a finite zoom factor can produce an invalid coordinate if the calculated region overflows. Expected navigation failures return a result and leave state unchanged.
+`BrowserRegionMutationErrorCode` includes every [RegionErrorCode](../02-assembliesAndRegions/regions.md#regionresult-and-regionerrorcode), plus `INVALID_PAN_FRACTION`, `INVALID_ZOOM_FACTOR`, and `INVALID_ZOOM_CENTER`. Even a finite zoom factor can produce an invalid coordinate if the calculated region overflows. Expected navigation failures return a result and leave state unchanged.
+
+### canPan and canZoom
+
+`canPan(state: { region; assembly }, fraction: number): boolean` and `canZoom(state: { region; assembly }, factor: number): boolean` report whether a navigation control should be enabled. Pass browser store state, usually from a selector, so the result updates with the region:
+
+```tsx
+const canPanLeft = useBrowserStore((state) => canPan(state, -0.5));
+```
+
+Both return `false` for an argument the action rejects, or for a region outside its chromosome. Otherwise `canPan` is `false` when the region already touches the chromosome edge it would move toward. `canZoom` is `false` for a factor of one, when zooming in from a one-base region, or when zooming out from a region that spans the whole chromosome. These are boundary checks, not a preview: a factor close to one can be available even though the rounded result does not change the region.
 
 ## Base-pair detail
 

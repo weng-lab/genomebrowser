@@ -303,6 +303,32 @@ describe("createBrowserStore", () => {
     expect(store.getState()).toBe(before);
   });
 
+  it("pans by a fraction of the view width without leaving the chromosome", () => {
+    const store = createBrowserStore({
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 10, end: 30 },
+    });
+
+    expect(store.getState().pan(0.25)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 15, end: 35 },
+      clamped: false,
+    });
+    expect(store.getState().pan(-0.01)).toMatchObject({
+      region: { chromosome: "chr1", start: 14, end: 34 },
+    });
+    expect(store.getState().pan(-10)).toMatchObject({
+      region: { chromosome: "chr1", start: 0, end: 20 },
+    });
+    for (const fraction of [0, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(store.getState().pan(fraction)).toMatchObject({
+        ok: false,
+        code: "INVALID_PAN_FRACTION",
+      });
+    }
+    expect(store.getState().region).toEqual({ chromosome: "chr1", start: 0, end: 20 });
+  });
+
   it("validates runtime track widths and returns the committed dimension", () => {
     const store = createTestStore();
 
