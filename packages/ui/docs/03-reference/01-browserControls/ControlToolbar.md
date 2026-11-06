@@ -110,6 +110,20 @@ Displays the current coordinates and span, opens region search, and copies coord
 
 Use `<RegionControls browserStore={useBrowserStore} search={search} />` with the search configuration from the usage example. Its Region fieldset grows up to 440px in a flex layout.
 
+### getSearchResultRegion
+
+`getSearchResultRegion(result: Result): GenomicRegion | undefined` converts a `GenomeSearch` result into a browser region, the way `RegionControls` does. A `Coordinate` result holds the one-based, inclusive positions a person typed, so its start moves back one base. Other results already hold zero-based domains and pass through unchanged. A result without a `domain` returns `undefined`. Use it when you render your own `GenomeSearch`:
+
+```tsx
+import { getSearchResultRegion } from "@weng-lab/genomebrowser-ui";
+import { GenomeSearch, type Result } from "@weng-lab/ui-components";
+
+function handleSearchSubmit(result: Result) {
+  const region = getSearchResultRegion(result);
+  if (region) useBrowserStore.getState().setRegion(region);
+}
+```
+
 ### NavigationControls
 
 Renders the Navigate fieldset with pan and zoom buttons and magnitude selectors. `NavigationControlsProps` is exported from the package root. Magnitude defaults and choices are documented above.

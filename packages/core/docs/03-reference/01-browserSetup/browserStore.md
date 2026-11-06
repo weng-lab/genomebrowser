@@ -189,6 +189,8 @@ Renderers use [useBasePairDetail](../04-rendererIntegration/useBasePairDetail.md
 
 `BrowserSelectionMode` is `"pan" | "zoom" | "highlight"`. `setSelectionMode(mode: BrowserSelectionMode): BrowserSelectionMutationResult` replaces the active mode. Zoom and highlight modes remain active after a drag.
 
+A drag in highlight mode adds a chromosome-scoped highlight with the selection style. Its ID is the region written as [`formatDisplayRegion`](../02-assembliesAndRegions/regions.md#display-regions) writes it, such as `chr1:126-175` for the region `[125, 175)`. When that ID is taken, the browser appends ` (2)`, ` (3)`, and so on.
+
 `SelectionHighlightStyle` is `Pick<Highlight, "color" | "opacity" | "type">`. It requires `color`; omitted `opacity` and `type` use the highlight rendering defaults.
 
 `setSelectionHighlight(style: SelectionHighlightStyle): BrowserSelectionMutationResult` replaces the complete style. It does not merge omitted fields or restyle existing highlights.

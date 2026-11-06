@@ -8,6 +8,7 @@ export {
   SelectionControls,
   DownloadImageDialog,
   NavigationButton,
+  getSearchResultRegion,
 } from "./BrowserControls";
 export type {
   ControlToolbarProps,

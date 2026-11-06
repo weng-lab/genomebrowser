@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Box, Typography } from "@mui/material";
+import { getSearchResultRegion } from "@weng-lab/genomebrowser-ui";
 import { GenomeSearch, type Result } from "@weng-lab/ui-components";
 import { useBrowserStore } from "../../stores";
 
@@ -14,8 +15,9 @@ export default function RegionSearch() {
         : null;
 
   function handleSearchSubmit(result: Result) {
-    if (!result.domain) return;
-    const update = useBrowserStore.getState().setRegion(result.domain);
+    const region = getSearchResultRegion(result);
+    if (!region) return;
+    const update = useBrowserStore.getState().setRegion(region);
     setError(update.ok ? null : update.error);
   }
 
