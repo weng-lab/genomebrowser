@@ -215,6 +215,57 @@ it("lists the open session and the three most recently saved others", async () =
   expect(menuItem("Open session…")?.getAttribute("aria-disabled")).toBe("true");
 });
 
+it("lists every saved session to search, and creates one into the browser", async () => {
+  const day = (n: number) => new Date(Date.UTC(2026, 0, n));
+  const ids = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"].map((name) =>
+    server.add(name, defaults()),
+  );
+  ids.forEach((id, index) => (server.stored.get(id)!.updatedAt = day(index + 1)));
+  await visit("/sessions");
+  const names = () =>
+    [...document.querySelectorAll("main section nav .MuiListItemText-primary")].map(
+      (name) => name.textContent,
+    );
+  await vi.waitFor(() => expect(names()).toEqual(["Epsilon", "Delta", "Gamma", "Beta", "Alpha"]));
+  // Saved long before now, they share one group.
+  const groups = () =>
+    [...document.querySelectorAll("main section")].map((section) => [
+      section.querySelector("h2")?.textContent,
+      section.querySelectorAll("li").length,
+    ]);
+  expect(groups()).toEqual([["More than a month ago", 5]]);
+  // The heading says when each was saved; rows show the assembly and track count.
+  expect(document.querySelector("main section .MuiListItemText-secondary")?.textContent).toBe(
+    "hg38 • 3 tracks",
+  );
+
+  const search = document.querySelector<HTMLInputElement>('input[aria-label="Search sessions"]')!;
+  await type(search, "ta");
+  expect(names()).toEqual(["Delta", "Beta"]);
+  await type(search, "zeta");
+  expect(names()).toEqual([]);
+  expect(text()).toContain("No sessions match “zeta”.");
+
+  await click(withText("button", "New session"));
+  const name = () =>
+    document.querySelector<HTMLInputElement>('[role="dialog"] input:not([aria-hidden])');
+  await vi.waitFor(() => expect(name()).toBeTruthy());
+  await type(name()!, "Promoter scan");
+  await click(withText('[role="dialog"] button', "Create"));
+  await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
+  const created = [...server.stored.keys()].find((id) => !ids.includes(id));
+  expect(route.pathname()).toBe(`/browser/${created}`);
+
+  // Saved today, it heads the list.
+  await click(document.querySelector('nav a[aria-label="Sessions"]'));
+  await vi.waitFor(() =>
+    expect(groups()).toEqual([
+      ["Today", 1],
+      ["More than a month ago", 5],
+    ]),
+  );
+});
+
 it("returns to the open session when another cannot be opened", async () => {
   const a = server.add("Alpha", defaults());
   await visit(`/browser/${a}`);

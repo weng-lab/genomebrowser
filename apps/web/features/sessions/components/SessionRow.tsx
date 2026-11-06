@@ -19,15 +19,18 @@ import { useSession } from "../SessionProvider";
 
 type SessionRowProps = {
   id: string;
-  /** When the menu opened, which save times are relative to. */
-  now: Date;
-  /** Called when the row's link is followed, to close the menu. */
-  onOpen: () => void;
+  /**
+   * When the list opened, which save times are relative to. Without it the row leaves out
+   * when it was saved, such as in a list grouped by that.
+   */
+  now?: Date;
+  /** Called when the row's link is followed, such as to close the menu. */
+  onOpen?: () => void;
 };
 
 /**
- * A recent session's link: its name, then its assembly, when it was last saved, and how
- * many tracks it has. The open session is highlighted and checked. Its actions menu copies or deletes it.
+ * A saved session's link: its name, then its assembly, when it was last saved when `now`
+ * is given, and how many tracks it has. The open session is highlighted and checked. Its actions menu copies or deletes it.
  */
 export function SessionRow({ id, now, onOpen }: SessionRowProps) {
   const find = ({ sessions }: SessionState) => sessions.find((saved) => saved.id === id);
@@ -41,7 +44,9 @@ export function SessionRow({ id, now, onOpen }: SessionRowProps) {
     assembly !== undefined &&
     savedAt !== undefined &&
     trackCount !== undefined &&
-    `${assembly} • ${formatSavedAt(new Date(savedAt), now)} • ${formatTrackCount(trackCount)}`;
+    [assembly, now && formatSavedAt(new Date(savedAt), now), formatTrackCount(trackCount)]
+      .filter(Boolean)
+      .join(" • ");
 
   return (
     <ListItem disablePadding secondaryAction={<SessionActions id={id} name={name} />}>
