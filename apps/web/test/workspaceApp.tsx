@@ -7,6 +7,7 @@ import { BrowserView } from "../features/browser/components/BrowserView";
 import BrowserIndexPage from "../app/(workspace)/browser/page";
 import CollectionsPage from "../app/(workspace)/collections/page";
 import { navigation } from "../composition/navigation";
+import SessionsPage from "../app/(workspace)/sessions/page";
 import SettingsPage from "../app/(workspace)/settings/page";
 import { Workspace } from "../shared/workspace/Workspace";
 
@@ -130,6 +131,7 @@ function Page() {
         <BrowserIndexPage />
       </BrowserPage>
     );
+  if (pathname === "/sessions") return <SessionsPage />;
   if (pathname === "/settings") return <SettingsPage />;
   return <CollectionsPage />;
 }
