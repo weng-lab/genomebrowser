@@ -271,45 +271,6 @@ describe("createBigBedFile", () => {
     expect(requestedRanges(fetchMock)).toEqual(cancellationRetryRanges.slice(1));
   });
 
-  it("keeps concurrent primary R-tree header cache misses cancellation-independent", async () => {
-    const fetchMock = installFixtureFetch();
-    const implementation = fetchMock.getMockImplementation()!;
-    const indexOffset = parseBbiHeader(fixture).unzoomedIndexOffset;
-    const prefixRange = "bytes=0-2047";
-    const indexRange = `bytes=${indexOffset}-${indexOffset + 2047n}`;
-    const region = { chromosome: "chr1", start: 10, end: 20 };
-    const file = createBigBedFile({ url, schema: bed3Schema });
-    fetchMock.mockImplementation((input, init) => {
-      const range = new Headers(init?.headers).get("Range");
-      if (range === prefixRange) {
-        return Promise.resolve(
-          new Response(fixture.slice(0, Number(indexOffset)), {
-            status: 206,
-            headers: { "Content-Range": `bytes 0-${indexOffset - 1n}/${fixture.byteLength}` },
-          }),
-        );
-      }
-      if (range === indexRange) {
-        return Promise.reject(new Error("prime metadata before the primary index"));
-      }
-      return implementation(input, init);
-    });
-    await expect(file.read(region)).rejects.toThrow("prime metadata before the primary index");
-
-    fetchMock.mockClear();
-    fetchMock.mockImplementation(implementation);
-    const controller = new AbortController();
-    const reason = new DOMException("cancelled concurrent primary-index read", "AbortError");
-    const cancelledRead = file.read(region, { signal: controller.signal });
-    const activeRead = file.read(region);
-    controller.abort(reason);
-    const [cancelledResult, activeResult] = await Promise.allSettled([cancelledRead, activeRead]);
-
-    expect(cancelledResult).toEqual({ status: "rejected", reason });
-    expect(activeResult).toMatchObject({ status: "fulfilled" });
-    expect(requestedRanges(fetchMock).filter((range) => range === indexRange)).toHaveLength(2);
-  });
-
   it("retries metadata loads after failures and mid-load cancellation", async () => {
     const fetchMock = installFixtureFetch();
     const implementation = fetchMock.getMockImplementation()!;
@@ -382,22 +343,84 @@ describe("createBigBedFile", () => {
     expect(requestedRanges(fetchMock)[0]).toBe("bytes=0-2047");
   });
 
-  it("keeps cancellation independent across concurrent metadata cache misses", async () => {
-    const fetchMock = installFixtureFetch();
-    const file = createBigBedFile({ url, schema: bed3Schema });
-    const controller = new AbortController();
-    const reason = new DOMException("cancelled concurrent read", "AbortError");
-    const region = { chromosome: "chr1", start: 10, end: 20 };
+  // Each row is a moment in a browsing session. A file object sends fewer requests as it
+  // caches more, so between them the rows cancel the stale read while it loads the header,
+  // looks up its chromosome, and reads data, beside a read of the same or another chromosome.
+  it.each([
+    { moment: "on a new file", earlierChromosome: undefined, currentChromosome: "chr1" },
+    {
+      moment: "before its chromosome is looked up, beside another chromosome",
+      earlierChromosome: "chr2",
+      currentChromosome: "chr2",
+    },
+    {
+      moment: "before its chromosome is looked up, beside the same chromosome",
+      earlierChromosome: "chr2",
+      currentChromosome: "chr1",
+    },
+    {
+      moment: "after its chromosome is looked up",
+      earlierChromosome: "chr1",
+      currentChromosome: "chr1",
+    },
+  ])(
+    "cancels one read without breaking other or later reads of the file, $moment",
+    async ({ earlierChromosome, currentChromosome }) => {
+      // A track cancels its read of a region the user has moved away from while its read of
+      // the new region continues on the same file object. The cancel can arrive during any
+      // request either read sends, so cancel during each one in turn until both reads finish
+      // first.
+      const fetchMock = installFixtureFetch();
+      const serveFixture = fetchMock.getMockImplementation()!;
+      // Spans every fixture record on the chromosome.
+      const wholeChromosome = (chromosome: string) => ({ chromosome, start: 0, end: 100 });
+      const staleRegion = { chromosome: "chr1", start: 20, end: 25 };
+      const staleRecords = [
+        { chromosome: "chr1", start: 20, end: 30, fields: ["boundary", "200", "-"] },
+      ];
+      const currentRegion = wholeChromosome(currentChromosome);
+      const currentRecords = sourceRecords.filter(
+        (record) => record.chromosome === currentChromosome,
+      );
+      let cancelledReads = 0;
 
-    const cancelledRead = file.read(region, { signal: controller.signal });
-    const activeRead = file.read(region);
-    controller.abort(reason);
-    const [cancelledResult, activeResult] = await Promise.allSettled([cancelledRead, activeRead]);
+      for (let cancelAt = 1; ; cancelAt++) {
+        fetchMock.mockImplementation(serveFixture);
+        const file = createBigBedFile({ url, schema: bed3Schema });
+        if (earlierChromosome !== undefined) await file.read(wholeChromosome(earlierChromosome));
 
-    expect(cancelledResult).toEqual({ status: "rejected", reason });
-    expect(activeResult).toMatchObject({ status: "fulfilled" });
-    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-2047")).toHaveLength(2);
-  });
+        const controller = new AbortController();
+        const reason = new DOMException(`cancelled during request ${cancelAt}`, "AbortError");
+        let requests = 0;
+        fetchMock.mockImplementation((input, init) => {
+          if (++requests === cancelAt) controller.abort(reason);
+          // Like fetch, a request whose signal is aborted rejects with the signal's reason.
+          if (init?.signal?.aborted) return Promise.reject(init.signal.reason);
+          return serveFixture(input, init);
+        });
+
+        const [stale, current] = await Promise.allSettled([
+          file.read(staleRegion, { signal: controller.signal }),
+          file.read(currentRegion),
+        ]);
+        const requestsSent = requests;
+
+        expect(current).toEqual({ status: "fulfilled", value: currentRecords });
+        // The stale read rejects with the cancel's reason, unless it had already finished.
+        expect(stale).toEqual(
+          stale.status === "rejected"
+            ? { status: "rejected", reason }
+            : { status: "fulfilled", value: staleRecords },
+        );
+        if (stale.status === "rejected") cancelledReads++;
+        // Nothing the cancelled read left in the file's caches is wrong.
+        await expect(file.read(staleRegion)).resolves.toEqual(staleRecords);
+        // Both reads finished before request `cancelAt`, so every request has been covered.
+        if (requestsSent < cancelAt) break;
+      }
+      expect(cancelledReads).toBeGreaterThan(0);
+    },
+  );
 
   it("checks cancellation before query work when metadata is cached", async () => {
     const fetchMock = installFixtureFetch();

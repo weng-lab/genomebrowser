@@ -110,17 +110,14 @@ function validateSchema(schema: unknown): asserts schema is z.ZodObject {
   }
 }
 
-/**
- * Read and check the file's header, then cache it for the file object. Callers use a
- * cached header without awaiting this, so cached reads stay synchronous up to their
- * first request.
- */
+/** Read and check the file's header once, then reuse it for the file object. */
 async function loadHeader(
   url: string,
   metadataCache: BigBedMetadataCache,
   rangeOptions: ExactRangeOptions,
   requestReader?: RequestRangeReader,
 ): Promise<BbiHeader> {
+  if (metadataCache.header !== undefined) return metadataCache.header;
   const header = await readBbiHeader(url, rangeOptions, requestReader);
   throwIfAborted(rangeOptions.signal);
   if (header.format !== "bigBed") {
@@ -149,8 +146,7 @@ async function readBigBed<Schema extends z.ZodObject>(
       ? await RequestRangeReader.withPrefix(url, 64n, 2n * 1024n, rangeOptions)
       : new RequestRangeReader(url, rangeOptions);
   throwIfAborted(signal);
-  const header =
-    metadataCache.header ?? (await loadHeader(url, metadataCache, rangeOptions, requestReader));
+  const header = await loadHeader(url, metadataCache, rangeOptions, requestReader);
   throwIfAborted(signal);
 
   let chromosome: Chromosome | undefined;
@@ -253,9 +249,10 @@ export function createBigBedFile<Schema extends z.ZodObject>(
       const signal = readOptions?.signal;
       throwIfAborted(signal);
       // Reads only the fixed-size header, so checking a file costs one small request.
-      const header =
-        metadataCache.header ??
-        (await loadHeader(url, metadataCache, { signal, metadata: metadataCache.rangeMetadata }));
+      const header = await loadHeader(url, metadataCache, {
+        signal,
+        metadata: metadataCache.rangeMetadata,
+      });
       throwIfAborted(signal);
       return { fieldCount: header.fieldCount, definedFieldCount: header.definedFieldCount };
     },
