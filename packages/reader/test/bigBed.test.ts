@@ -105,6 +105,28 @@ describe("createBigBedFile", () => {
     await expect(file.read({ chromosome: "chr1", start: 40, end: 90 })).resolves.toEqual([]);
   });
 
+  it("reports the column counts the header declares", async () => {
+    installFixtureFetch();
+    await expect(createBigBedFile({ url, schema: bed3Schema }).getHeader()).resolves.toEqual({
+      fieldCount: 6,
+      definedFieldCount: 6,
+    });
+
+    // The same records declared as bed3+3. definedFieldCount is the 16-bit value at
+    // byte 34 of the BBI header (UCSC bbiFile.h).
+    const bed3Plus3 = fixture.slice();
+    new DataView(bed3Plus3.buffer, bed3Plus3.byteOffset, bed3Plus3.byteLength).setUint16(
+      34,
+      3,
+      true,
+    );
+    installFixtureFetch(bed3Plus3);
+    await expect(createBigBedFile({ url, schema: bed3Schema }).getHeader()).resolves.toEqual({
+      fieldCount: 6,
+      definedFieldCount: 3,
+    });
+  });
+
   it("does not bootstrap an index for an unknown chromosome", async () => {
     const fetchMock = installFixtureFetch();
     const file = createBigBedFile({ url, schema: bed3Schema });
@@ -638,6 +660,9 @@ describe("createBigBedFile", () => {
     installFixtureFetch(bigWig);
     const file = createBigBedFile({ url, schema: bed3Schema });
     await expect(file.read({ chromosome: "chr1", start: 0, end: 1 })).rejects.toThrow(
+      "Expected a BigBed file",
+    );
+    await expect(createBigBedFile({ url, schema: bed3Schema }).getHeader()).rejects.toThrow(
       "Expected a BigBed file",
     );
   });
