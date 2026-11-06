@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { trackBaseSchema, parsePublicInput } from "./schemas";
+import { trackBaseDefaults, trackBaseSchema, trackSourceSchema } from "../schemas";
+import { parsePublicInput } from "../validation";
 import type {
   TrackFetch,
   TrackBase,
@@ -10,6 +11,7 @@ import type {
   TrackModule,
   TrackRenderer,
   TrackSettingsComponent,
+  TrackSource,
   TrackTooltipComponent,
 } from "./types";
 
@@ -18,7 +20,7 @@ type FetchData<Fetch> = Fetch extends TrackFetch<infer _Config, infer Data> ? Da
 type DisplayKey<Renderers> = Extract<keyof Renderers, string>;
 type ParsedCreateInput<ConfigSchema extends TrackConfigSchema, Display extends string> = {
   base: TrackBase & { display: Display };
-  source: "host" | "user";
+  source: TrackSource;
   config: z.output<ConfigSchema>;
 };
 
@@ -114,6 +116,10 @@ function createTrackModule<
     );
   }
 
+  const baseDefaults = {
+    height: definition.defaults?.height ?? trackBaseDefaults.height,
+    color: definition.defaults?.color ?? trackBaseDefaults.color,
+  };
   const displaySchema = z.enum(
     displays as [DisplayKey<Renderers>, ...Array<DisplayKey<Renderers>>],
   );
@@ -121,10 +127,10 @@ function createTrackModule<
   const createInputSchema = z.strictObject({
     base: fullBaseSchema.extend({
       display: displaySchema.default(defaultDisplay),
-      height: trackBaseSchema.shape.height.default(definition.defaults?.height ?? 80),
-      color: trackBaseSchema.shape.color.default(definition.defaults?.color ?? "#000000"),
+      height: trackBaseSchema.shape.height.default(baseDefaults.height),
+      color: trackBaseSchema.shape.color.default(baseDefaults.color),
     }),
-    source: z.enum(["host", "user"]).default("user"),
+    source: trackSourceSchema.default("user"),
     config: configSchema,
   }) as TrackCreateInputSchema<ConfigSchema, DisplayKey<Renderers>>;
 
@@ -132,10 +138,10 @@ function createTrackModule<
     type: z.literal(definition.type),
     base: fullBaseSchema,
     config: configSchema,
-    source: z.enum(["host", "user"]),
+    source: trackSourceSchema,
     interaction: interactionSchema.optional(),
   });
-  validateModuleDefaults(definition.type, definition.defaults, defaultDisplay, fullBaseSchema);
+  validateModuleDefaults(definition.type, baseDefaults, defaultDisplay, fullBaseSchema);
 
   return {
     type: definition.type,
@@ -176,7 +182,7 @@ function createTrackModule<
 
 function validateModuleDefaults(
   type: string,
-  defaults: ModuleDefaults<string> | undefined,
+  defaults: { height: number; color: string },
   defaultDisplay: string,
   baseSchema: z.ZodObject,
 ) {
@@ -186,8 +192,8 @@ function validateModuleDefaults(
       id: "__default_validation__",
       title: "Default validation",
       display: defaultDisplay,
-      height: defaults?.height ?? 80,
-      color: defaults?.color ?? "#000000",
+      height: defaults.height,
+      color: defaults.color,
     },
     `${type} defaults`,
   );

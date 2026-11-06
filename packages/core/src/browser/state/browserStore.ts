@@ -3,27 +3,22 @@ import { z } from "zod";
 import { createAssemblyDefinition, type AssemblyDefinition } from "../../genome/assembly";
 import { normalizeRegion, type GenomicRegion, type RegionErrorCode } from "../../genome/region";
 import type { MutationFailure } from "../../mutation";
-import { formatZodError, parsePublicInput } from "../../modules/schemas";
+import {
+  basePairDetailSchema,
+  browserSettingsSchema,
+  highlightSchema,
+  selectionHighlightSchema,
+  selectionModeSchema,
+} from "../../schemas";
+import { formatZodError, parsePublicInput } from "../../validation";
 
-export type Highlight = {
-  id: string;
-  region: {
-    chromosome?: string;
-    start: number;
-    end: number;
-  };
-  color: string;
-  opacity?: number;
-  type?: "filled" | "outlined";
-};
+export type Highlight = z.output<typeof highlightSchema>;
 
-export type BrowserSelectionMode = "pan" | "zoom" | "highlight";
-export type SelectionHighlightStyle = Pick<Highlight, "color" | "opacity" | "type">;
+export type BrowserSelectionMode = z.output<typeof selectionModeSchema>;
+export type SelectionHighlightStyle = z.output<typeof selectionHighlightSchema>;
 
-export type BasePairDetailSettings = {
-  /** Largest visible span eligible for base-pair data. Defaults to 100 bp. */
-  maxVisibleBases: number;
-};
+/** `maxVisibleBases` is the largest visible span eligible for base-pair data. Defaults to 100 bp. */
+export type BasePairDetailSettings = z.output<typeof basePairDetailSchema>;
 
 export type BasePairDetailMutationResult =
   | { ok: true }
@@ -93,41 +88,9 @@ export type BrowserStore = {
 
 export type BrowserStoreInstance = UseBoundStore<StoreApi<BrowserStore>>;
 
-const highlightSchema = z.object({
-  id: z.string().min(1),
-  region: z
-    .object({
-      chromosome: z.string().min(1).optional(),
-      start: z.number().int(),
-      end: z.number().int(),
-    })
-    .refine((region) => region.start < region.end, {
-      message: "start must be less than end",
-      path: ["start"],
-    }),
-  color: z.string().min(1),
-  opacity: z.number().min(0).max(1).optional(),
-  type: z.enum(["filled", "outlined"]).optional(),
-});
-
-const selectionModeSchema = z.enum(["pan", "zoom", "highlight"]);
-const selectionHighlightSchema = highlightSchema.pick({ color: true, opacity: true, type: true });
-
-const basePairDetailSchema = z.strictObject({
-  maxVisibleBases: z.number().int().positive(),
-});
-
-const browserStoreInputSchema = z.object({
-  basePairDetail: basePairDetailSchema.optional(),
+const browserStoreInputSchema = browserSettingsSchema.partial().extend({
   assembly: z.unknown().optional(),
   region: z.unknown().optional(),
-  marginWidth: z.number().positive().optional(),
-  trackWidth: z.number().positive().optional(),
-  fontSize: z.number().positive().optional(),
-  titleSize: z.number().positive().optional(),
-  highlights: z.array(highlightSchema).optional(),
-  selectionMode: selectionModeSchema.optional(),
-  selectionHighlight: selectionHighlightSchema.optional(),
 });
 
 export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstance {

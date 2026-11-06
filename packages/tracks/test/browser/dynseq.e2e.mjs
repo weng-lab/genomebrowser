@@ -59,6 +59,9 @@ const server = await createServer({
   resolve: {
     dedupe: ["react", "react-dom", "@emotion/react", "@emotion/styled"],
     alias: {
+      "@weng-lab/genomebrowser/schemas": fileURLToPath(
+        new URL("../../../core/src/schemas.ts", import.meta.url),
+      ),
       "@weng-lab/genomebrowser": fileURLToPath(
         new URL("../../../core/src/lib.ts", import.meta.url),
       ),

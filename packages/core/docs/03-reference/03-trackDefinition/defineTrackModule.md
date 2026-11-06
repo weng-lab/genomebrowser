@@ -80,7 +80,7 @@ The optional `isRuler: boolean` definition option defaults to `false`. Set it to
 
 `Config` is the schema's parsed output type. `Data` is inferred from the fetch promise.
 
-The default display is the first renderer key. If supplied, `defaults.display` must match a key. Default height is `80` logical SVG units and default color is `"#000000"`. Put module-specific config defaults in the Zod schema. Invalid displays or base defaults throw during module definition.
+The default display is the first renderer key. If supplied, `defaults.display` must match a key. Default height is `80` logical SVG units and default color is `"#000000"`, exported as [`trackBaseDefaults`](../05-collectionsAndSchemas/stateSchemas.md#api). Put module-specific config defaults in the Zod schema. Invalid displays or base defaults throw during module definition.
 
 ## TrackModule and inferred types
 

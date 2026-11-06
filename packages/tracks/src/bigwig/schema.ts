@@ -1,6 +1,6 @@
 import { fetchOnChange } from "@weng-lab/genomebrowser";
+import { hexColorSchema } from "@weng-lab/genomebrowser/schemas";
 import { z } from "zod";
-import { hexColorSchema } from "../shared/schemas";
 
 const yRangeSchema = z
   .object({ min: z.number().optional(), max: z.number().optional() })

@@ -1,7 +1,7 @@
 import type { MutationFailure } from "../mutation";
 import type { ComponentType } from "react";
 import type { z } from "zod";
-import type { trackBaseSchema } from "./schemas";
+import type { trackBaseSchema, trackSourceSchema } from "../schemas";
 import type { AssemblyDefinition } from "../genome/assembly";
 import type { GenomicRegion } from "../genome/region";
 
@@ -10,7 +10,7 @@ export type TrackBaseInput<Display extends string = string> = z.input<
   TrackCreateInputSchema<z.ZodObject, Display>
 >["base"];
 
-export type TrackSource = "host" | "user";
+export type TrackSource = z.output<typeof trackSourceSchema>;
 
 export type TrackRuntimeContext<Config = unknown> = Readonly<{
   type: string;
@@ -155,22 +155,22 @@ export type TrackTooltipComponent<Item, Config> = ComponentType<{
 
 export type AnyTrackTooltipComponent = TrackTooltipComponent<never, never>;
 
+type TrackBaseShape = (typeof trackBaseSchema)["shape"];
+
 export type TrackCreateInputSchema<
   ConfigSchema extends z.ZodObject,
   Display extends string = string,
 > = z.ZodObject<
   {
     base: z.ZodObject<
-      {
-        id: z.ZodString;
-        title: z.ZodString;
+      Omit<TrackBaseShape, "display" | "height" | "color"> & {
         display: z.ZodDefault<z.ZodType<Display, Display>>;
-        height: z.ZodDefault<z.ZodNumber>;
-        color: z.ZodDefault<z.ZodString>;
+        height: z.ZodDefault<TrackBaseShape["height"]>;
+        color: z.ZodDefault<TrackBaseShape["color"]>;
       },
       z.core.$strict
     >;
-    source: z.ZodDefault<z.ZodType<TrackSource, TrackSource>>;
+    source: z.ZodDefault<typeof trackSourceSchema>;
     config: ConfigSchema;
   },
   z.core.$strict

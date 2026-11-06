@@ -1,6 +1,6 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import type { MutationFailure } from "../../mutation";
-import { PublicInputValidationError } from "../../modules/schemas";
+import { PublicInputValidationError } from "../../validation";
 import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
 import type {
   AnyTrackInstance,

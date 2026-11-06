@@ -1,6 +1,6 @@
 # Core API reference
 
-Import all runtime APIs and types below from `@weng-lab/genomebrowser`. The package has one public JavaScript entry point and also installs the `genomebrowser` CLI. Each API page includes its related types.
+Import runtime APIs and types from `@weng-lab/genomebrowser`. Import the Zod state schemas from `@weng-lab/genomebrowser/schemas`, which loads without React so server code can validate saved state. The package also installs the `genomebrowser` CLI. Each API page includes its related types.
 
 ## Browse by area
 
@@ -8,7 +8,7 @@ Import all runtime APIs and types below from `@weng-lab/genomebrowser`. The pack
 - [Assemblies and regions](02-assembliesAndRegions/README.md): Choose sequence definitions and parse or validate genomic regions.
 - [Track definition](03-trackDefinition/README.md): Define modules, create instances, fetch data, and supply settings forms.
 - [Renderer integration](04-rendererIntegration/README.md): Draw track data and connect SVG content to interactions, tooltips, and automatic sizing.
-- [Collections and schemas](05-collectionsAndSchemas/README.md): Define track collections, validate their input, and generate JSON schemas for editors.
+- [Collections and schemas](05-collectionsAndSchemas/README.md): Define track collections, validate their input, generate JSON schemas for editors, and validate saved browser state.
 
 ## Public export index
 
@@ -86,6 +86,13 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `validateTrackCollection`           | [validateTrackCollection](05-collectionsAndSchemas/validateTrackCollection.md#validatetrackcollection)                               |
 | `generateTrackCollectionJsonSchema` | [generateTrackCollectionJsonSchema](05-collectionsAndSchemas/generateTrackCollectionJsonSchema.md#generatetrackcollectionjsonschema) |
 
-The [schema CLI](05-collectionsAndSchemas/schemaCli.md) documents `genomebrowser schema`, including file output and `--check`. Generated schemas depend on the supplied modules; no fixed collection schema or additional JavaScript subpath is exported.
+From `@weng-lab/genomebrowser/schemas`:
+
+| Exports                                                                                                               | Reference                                                     |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `hexColorSchema`, `trackSourceSchema`, `trackBaseSchema`, `trackBaseDefaults`                                         | [State schemas](05-collectionsAndSchemas/stateSchemas.md#api) |
+| `highlightSchema`, `selectionHighlightSchema`, `selectionModeSchema`, `basePairDetailSchema`, `browserSettingsSchema` | [State schemas](05-collectionsAndSchemas/stateSchemas.md#api) |
+
+The [schema CLI](05-collectionsAndSchemas/schemaCli.md) documents `genomebrowser schema`, including file output and `--check`. Generated collection schemas depend on the supplied modules, so no fixed collection schema is exported.
 
 Return to [Parent documentation](../README.md).

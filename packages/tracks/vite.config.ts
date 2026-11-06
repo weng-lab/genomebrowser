@@ -35,6 +35,7 @@ export default defineConfig({
       "@emotion/react": path.join(packageNodeModules, "@emotion/react"),
       "@emotion/styled": path.join(packageNodeModules, "@emotion/styled"),
       "@mui/material": path.join(packageNodeModules, "@mui/material"),
+      "@weng-lab/genomebrowser/schemas": path.resolve(__dirname, "../core/src/schemas.ts"),
       "@weng-lab/genomebrowser": path.resolve(__dirname, "../core/src/lib.ts"),
       ...trackAliases,
       "@weng-lab/genomebrowser-tracks": trackEntries["genomebrowser-tracks"],
@@ -70,6 +71,7 @@ export default defineConfig({
         id === "react/jsx-runtime" ||
         id === "zod" ||
         id === "@weng-lab/genomebrowser" ||
+        id.startsWith("@weng-lab/genomebrowser/") ||
         id === "@weng-lab/genomic-reader" ||
         id.startsWith("@mui/") ||
         id.startsWith("@emotion/"),
