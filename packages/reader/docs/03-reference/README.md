@@ -39,6 +39,7 @@ Every public export has a canonical destination below. File methods are document
 | `createBigBedFile`   | [BigBed annotations](bigBed/bigBed.md#createbigbedfile)   |
 | `BigBedFileOptions`  | [BigBed annotations](bigBed/bigBed.md#bigbedfileoptions)  |
 | `BigBedFile`         | [BigBed annotations](bigBed/bigBed.md#bigbedfile)         |
+| `BigBedHeader`       | [BigBed annotations](bigBed/bigBed.md#bigbedheader)       |
 | `BigBedRecord`       | [BigBed annotations](bigBed/bigBed.md#bigbedrecord)       |
 | `bed3Schema`         | [BigBed annotations](bigBed/bigBed.md#bed3schema)         |
 | `BigBedParseError`   | [BigBed annotations](bigBed/bigBed.md#bigbedparseerror)   |

@@ -13,7 +13,7 @@ export type {
 
 // BigBed annotations
 export { bed3Schema, createBigBedFile } from "./bigBed";
-export type { BigBedFile, BigBedFileOptions, BigBedRecord } from "./bigBed";
+export type { BigBedFile, BigBedFileOptions, BigBedHeader, BigBedRecord } from "./bigBed";
 export { BigBedParseError } from "./bigBedParseError";
 export type { BigBedParseContext } from "./bigBedParseError";
 

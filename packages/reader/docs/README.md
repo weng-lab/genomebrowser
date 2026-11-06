@@ -4,7 +4,7 @@ Start with the [installation and regional-read example](../README.md). Choose a 
 
 - [Regional reading](03-reference/regionalReading/genomicFile.md): shared file and coordinate types, and cancellation options.
 - [BigWig signal](03-reference/bigWig/bigWig.md): source values and stored zoom summaries.
-- [BigBed annotations](03-reference/bigBed/bigBed.md): positional Zod schemas and parsing diagnostics.
+- [BigBed annotations](03-reference/bigBed/bigBed.md): positional Zod schemas, header column counts, and parsing diagnostics.
 - [BAM alignments](03-reference/bam/bam.md): indexed alignments, CIGAR, sequence, and mate data.
 - [TwoBit sequence](03-reference/twoBit/twoBit.md): reference DNA and masking.
 - [Chromosome sizes](03-reference/chromSizes/chromSizes.md): text parsing and URL reads.
