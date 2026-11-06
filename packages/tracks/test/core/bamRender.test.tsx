@@ -1,11 +1,10 @@
 // @vitest-environment jsdom
-import { act } from "react";
-import { createRoot } from "react-dom/client";
+import { act, Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { bamModule, type BamRecord, type BamData } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamTooltip } from "../../src/bam/tooltip";
-import { TestBrowser } from "../testBrowser";
+import { renderInTestBrowser } from "../testBrowser";
 
 const hooks = vi.hoisted(() => ({
   click: vi.fn(),
@@ -55,6 +54,17 @@ const props = {
   region: { chromosome: "chr1", start: 0, end: 100 },
   visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
 };
+type BrowserView = Awaited<ReturnType<typeof renderInTestBrowser>>;
+// Browsers inside and outside the base-pair detail cutoff, mounted once per test.
+let detailView: BrowserView;
+let overviewView: BrowserView;
+let markupKey = 0;
+beforeEach(async () => {
+  detailView = await renderInTestBrowser(null, { basePairDetail: true });
+  overviewView = await renderInTestBrowser(null);
+  vi.clearAllMocks();
+});
+/** Draws one display in a fresh renderer and returns a static copy of its markup. */
 function markup(
   display: string,
   data: BamData,
@@ -62,20 +72,19 @@ function markup(
   basePairDetail = true,
 ) {
   const Renderer = bamModule.render[display];
-  const element = document.createElement("div");
-  element.innerHTML = renderToStaticMarkup(
-    <TestBrowser basePairDetail={basePairDetail}>
-      <svg>
+  const view = basePairDetail ? detailView : overviewView;
+  act(() =>
+    view.render(
+      <Fragment key={markupKey++}>
         <Renderer {...props} {...overrides} data={data} />
-      </svg>
-    </TestBrowser>,
+      </Fragment>,
+    ),
   );
-  return element;
+  return view.host.cloneNode(true) as Element;
 }
-beforeEach(() => vi.clearAllMocks());
-const letters = (element: HTMLElement, op = "M") =>
+const letters = (element: Element, op = "M") =>
   [...element.querySelectorAll(`[data-bases="${op}"]`)].map((node) => node.textContent).join("");
-const rowCount = (element: HTMLElement) =>
+const rowCount = (element: Element) =>
   new Set(
     [...element.querySelectorAll("[data-bam-row]")].map((node) =>
       node.getAttribute("data-bam-row"),
@@ -260,34 +269,23 @@ describe("BAM displays", () => {
     );
   });
   it("passes the complete alignment to click, hover, leave, and tooltip handlers", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
+    const element = detailView.host;
     const record = read();
     const Renderer = bamModule.render.pack;
-    try {
-      act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer {...props} data={{ records: [record], reference: [] }} />
-            </svg>
-          </TestBrowser>,
-        ),
-      );
-      const glyph = element.querySelector("[data-bam-read]")!;
-      act(() => {
-        glyph.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-        glyph.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-        glyph.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-      });
-      expect(hooks.click).toHaveBeenCalledWith(record);
-      expect(hooks.hover).toHaveBeenCalledWith(record);
-      expect(hooks.leave).toHaveBeenCalledWith(record);
-      expect(hooks.show.mock.calls[0][0]).toBe(record);
-      expect(hooks.hide).toHaveBeenCalled();
-    } finally {
-      act(() => root.unmount());
-    }
+    act(() =>
+      detailView.render(<Renderer {...props} data={{ records: [record], reference: [] }} />),
+    );
+    const glyph = element.querySelector("[data-bam-read]")!;
+    act(() => {
+      glyph.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+      glyph.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      glyph.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    });
+    expect(hooks.click).toHaveBeenCalledWith(record);
+    expect(hooks.hover).toHaveBeenCalledWith(record);
+    expect(hooks.leave).toHaveBeenCalledWith(record);
+    expect(hooks.show.mock.calls[0][0]).toBe(record);
+    expect(hooks.hide).toHaveBeenCalled();
   });
   it("wraps long tooltip values into aligned continuation rows", () => {
     const sequence = "ACGT".repeat(20);
@@ -368,7 +366,7 @@ describe("BAM sections", () => {
     junctions: { ...defaults.junctions, show: sections.junctions ?? false },
     alignments: { ...defaults.alignments, show: sections.alignments ?? false },
   });
-  const sectionTops = (element: HTMLElement) =>
+  const sectionTops = (element: Element) =>
     [...element.querySelectorAll("[data-bam-section]")].map((section) => [
       section.getAttribute("data-bam-section"),
       section.getAttribute("transform") ??
@@ -451,7 +449,7 @@ describe("BAM sections", () => {
         records: [read(), read({ readName: "b" }), read({ readName: "reverse", strand: "-" })],
         reference: [],
       };
-      const depthYs = (element: HTMLElement, strand: "+" | "-") => {
+      const depthYs = (element: Element, strand: "+" | "-") => {
         const path = element
           .querySelector(`[data-bam-section="coverage"] path[data-strand="${strand}"]`)!
           .getAttribute("d")!;
@@ -675,137 +673,118 @@ describe("BAM sections", () => {
       ...data,
       records: [...data.records, { ...spliced, readName: "reverse", strand: "-" as const }],
     };
-    const element = document.createElement("div");
-    const root = createRoot(element);
+    const element = detailView.host;
     const Renderer = bamModule.render.pack;
     const draw = (minimumSupport: number) =>
       act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                config={{ ...config, junctions: { ...config.junctions, minimumSupport } }}
-                data={mixed}
-              />
-            </svg>
-          </TestBrowser>,
+        detailView.render(
+          <Renderer
+            {...props}
+            config={{ ...config, junctions: { ...config.junctions, minimumSupport } }}
+            data={mixed}
+          />,
         ),
       );
-    try {
-      draw(1);
-      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-      stubJunctionCoordinates(group);
-      const reverse = group.querySelector('[data-strand="-"]')!;
-      const reverseColor = reverse.querySelector("path")!.getAttribute("stroke");
-      act(() =>
-        reverse
-          .querySelector('path[pointer-events="stroke"]')!
-          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(reverse) })),
-      );
-      expect(hooks.show).toHaveBeenLastCalledWith(
-        expect.objectContaining({ kind: "junction", strand: "-", support: 1 }),
-        expect.anything(),
-      );
-      expect(reverse.querySelector("path")!.getAttribute("stroke")).not.toBe(reverseColor);
-      hooks.show.mockClear();
-      hooks.hide.mockClear();
+    draw(1);
+    const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+    stubJunctionCoordinates(group);
+    const reverse = group.querySelector('[data-strand="-"]')!;
+    const reverseColor = reverse.querySelector("path")!.getAttribute("stroke");
+    act(() =>
+      reverse
+        .querySelector('path[pointer-events="stroke"]')!
+        .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(reverse) })),
+    );
+    expect(hooks.show).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: "junction", strand: "-", support: 1 }),
+      expect.anything(),
+    );
+    expect(reverse.querySelector("path")!.getAttribute("stroke")).not.toBe(reverseColor);
+    hooks.show.mockClear();
+    hooks.hide.mockClear();
 
-      // The forward arc keeps the same group mounted while the pointer stays still.
-      draw(2);
-      expect(element.querySelector("[data-junction-group]")).toBe(group);
-      expect(group.querySelector('[data-strand="-"]')).toBeNull();
-      expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
-      expect(hooks.hide).toHaveBeenCalledTimes(1);
-      expect(hooks.show).not.toHaveBeenCalled();
+    // The forward arc keeps the same group mounted while the pointer stays still.
+    draw(2);
+    expect(element.querySelector("[data-junction-group]")).toBe(group);
+    expect(group.querySelector('[data-strand="-"]')).toBeNull();
+    expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
+    expect(hooks.hide).toHaveBeenCalledTimes(1);
+    expect(hooks.show).not.toHaveBeenCalled();
 
-      // Restoring the strand must not restore its old hover selection.
-      draw(1);
-      expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
-        reverseColor,
-      );
-      expect(hooks.show).not.toHaveBeenCalled();
+    // Restoring the strand must not restore its old hover selection.
+    draw(1);
+    expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
+      reverseColor,
+    );
+    expect(hooks.show).not.toHaveBeenCalled();
 
-      draw(2);
-      const forward = group.querySelector('[data-strand="+"]')!;
-      act(() =>
-        forward
-          .querySelector('path[pointer-events="stroke"]')!
-          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(forward) })),
-      );
-      expect(hooks.show).toHaveBeenLastCalledWith(
-        expect.objectContaining({ kind: "junction", strand: "+", support: 2 }),
-        expect.anything(),
-      );
-    } finally {
-      act(() => root.unmount());
-    }
+    draw(2);
+    const forward = group.querySelector('[data-strand="+"]')!;
+    act(() =>
+      forward
+        .querySelector('path[pointer-events="stroke"]')!
+        .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(forward) })),
+    );
+    expect(hooks.show).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: "junction", strand: "+", support: 2 }),
+      expect.anything(),
+    );
   });
   it.each([10, 23, 100])(
     "selects the nearer coincident junction at height %i regardless of the hit target",
     (height) => {
       const config = withSections({ junctions: true });
       config.junctions.height = height;
-      const element = document.createElement("div");
-      const root = createRoot(element);
+      const element = detailView.host;
       const Renderer = bamModule.render.pack;
       const draw = (currentConfig = config) =>
         act(() =>
-          root.render(
-            <TestBrowser basePairDetail>
-              <svg>
-                <Renderer
-                  {...props}
-                  config={currentConfig}
-                  data={{
-                    ...data,
-                    records: [...data.records, { ...spliced, readName: "reverse", strand: "-" }],
-                  }}
-                />
-              </svg>
-            </TestBrowser>,
+          detailView.render(
+            <Renderer
+              {...props}
+              config={currentConfig}
+              data={{
+                ...data,
+                records: [...data.records, { ...spliced, readName: "reverse", strand: "-" }],
+              }}
+            />,
           ),
         );
-      try {
-        draw();
-        const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-        stubJunctionCoordinates(group);
-        for (const strand of ["+", "-"]) {
-          const arc = group.querySelector(`[data-strand="${strand}"]`)!;
-          // Either overlapping hit path can receive the event. Its strand must
-          // not override the curve nearest the actual pointer coordinates.
-          const other = group.querySelector(
-            `[data-strand="${strand === "+" ? "-" : "+"}"] path[pointer-events="stroke"]`,
-          )!;
-          act(() =>
-            other.dispatchEvent(
-              new MouseEvent("mousemove", {
-                bubbles: true,
-                ...junctionPoint(arc),
-              }),
-            ),
-          );
-          expect(hooks.show).toHaveBeenLastCalledWith(
-            expect.objectContaining({ kind: "junction", strand, support: strand === "+" ? 2 : 1 }),
-            expect.anything(),
-          );
-        }
-        // Rebuilding the arc geometry on a palette update must retain the
-        // stationary pointer's chosen strand highlight.
-        const palette = { ...config, strandColors: { ...config.strandColors, reverse: "#3366cc" } };
-        draw(palette);
-        const reversePath = group.querySelector('[data-strand="-"] path')!;
-        expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
-        act(() => group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-        expect(hooks.hide).toHaveBeenCalled();
-      } finally {
-        act(() => root.unmount());
+      draw();
+      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+      stubJunctionCoordinates(group);
+      for (const strand of ["+", "-"]) {
+        const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+        // Either overlapping hit path can receive the event. Its strand must
+        // not override the curve nearest the actual pointer coordinates.
+        const other = group.querySelector(
+          `[data-strand="${strand === "+" ? "-" : "+"}"] path[pointer-events="stroke"]`,
+        )!;
+        act(() =>
+          other.dispatchEvent(
+            new MouseEvent("mousemove", {
+              bubbles: true,
+              ...junctionPoint(arc),
+            }),
+          ),
+        );
+        expect(hooks.show).toHaveBeenLastCalledWith(
+          expect.objectContaining({ kind: "junction", strand, support: strand === "+" ? 2 : 1 }),
+          expect.anything(),
+        );
       }
+      // Rebuilding the arc geometry on a palette update must retain the
+      // stationary pointer's chosen strand highlight.
+      const palette = { ...config, strandColors: { ...config.strandColors, reverse: "#3366cc" } };
+      draw(palette);
+      const reversePath = group.querySelector('[data-strand="-"] path')!;
+      expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
+      act(() => group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+      expect(hooks.hide).toHaveBeenCalled();
     },
   );
   it("selects visible curves whose peaks are offscreen and prefers forward at the shared endpoint", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
+    const element = detailView.host;
     const Renderer = bamModule.render.pack;
     const long = read({
       start: 0,
@@ -817,62 +796,49 @@ describe("BAM sections", () => {
       ],
     });
     const region = { chromosome: "chr1", start: 5, end: 105 };
-    try {
+    act(() =>
+      detailView.render(
+        <Renderer
+          {...props}
+          region={region}
+          visibleRegion={region}
+          width={1000}
+          config={withSections({ junctions: true })}
+          data={{
+            records: [long, { ...long, readName: "reverse", strand: "-" }],
+            reference: [],
+          }}
+        />,
+      ),
+    );
+    const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+    stubJunctionCoordinates(group);
+    const forward = group.querySelector('[data-strand="+"]')!;
+    const reverse = group.querySelector('[data-strand="-"]')!;
+    const forwardPoint = junctionPoint(forward, 500);
+    const reversePoint = junctionPoint(reverse, 500);
+    // Their peaks are far outside the viewport; at the visible midpoint
+    // these curves are less than one pixel apart and their hit areas overlap.
+    expect(Math.abs(forwardPoint.clientY - reversePoint.clientY)).toBeLessThan(1);
+    for (const [arc, point, strand] of [
+      [reverse, forwardPoint, "+"],
+      [forward, reversePoint, "-"],
+      [reverse, { clientX: 500, clientY: (forwardPoint.clientY + reversePoint.clientY) / 2 }, "+"],
+      [reverse, { clientX: 0, clientY: 99 }, "+"],
+    ] as const) {
       act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                region={region}
-                visibleRegion={region}
-                width={1000}
-                config={withSections({ junctions: true })}
-                data={{
-                  records: [long, { ...long, readName: "reverse", strand: "-" }],
-                  reference: [],
-                }}
-              />
-            </svg>
-          </TestBrowser>,
-        ),
+        arc
+          .querySelector('path[pointer-events="stroke"]')!
+          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point })),
       );
-      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-      stubJunctionCoordinates(group);
-      const forward = group.querySelector('[data-strand="+"]')!;
-      const reverse = group.querySelector('[data-strand="-"]')!;
-      const forwardPoint = junctionPoint(forward, 500);
-      const reversePoint = junctionPoint(reverse, 500);
-      // Their peaks are far outside the viewport; at the visible midpoint
-      // these curves are less than one pixel apart and their hit areas overlap.
-      expect(Math.abs(forwardPoint.clientY - reversePoint.clientY)).toBeLessThan(1);
-      for (const [arc, point, strand] of [
-        [reverse, forwardPoint, "+"],
-        [forward, reversePoint, "-"],
-        [
-          reverse,
-          { clientX: 500, clientY: (forwardPoint.clientY + reversePoint.clientY) / 2 },
-          "+",
-        ],
-        [reverse, { clientX: 0, clientY: 99 }, "+"],
-      ] as const) {
-        act(() =>
-          arc
-            .querySelector('path[pointer-events="stroke"]')!
-            .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point })),
-        );
-        expect(hooks.show).toHaveBeenLastCalledWith(
-          expect.objectContaining({ kind: "junction", strand, support: 1 }),
-          expect.anything(),
-        );
-      }
-    } finally {
-      act(() => root.unmount());
+      expect(hooks.show).toHaveBeenLastCalledWith(
+        expect.objectContaining({ kind: "junction", strand, support: 1 }),
+        expect.anything(),
+      );
     }
   });
   it("keeps packed reads on their rows while panning and when new data loads", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
+    const element = detailView.host;
     const Renderer = bamModule.render.pack;
     const rowOf = () =>
       Object.fromEntries(
@@ -884,49 +850,41 @@ describe("BAM sections", () => {
     const config = withSections({ alignments: true });
     const draw = (data: BamData, visibleStart: number) =>
       act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                config={config}
-                region={{ chromosome: "chr1", start: 0, end: 300 }}
-                visibleRegion={{ chromosome: "chr1", start: visibleStart, end: visibleStart + 100 }}
-                data={data}
-              />
-            </svg>
-          </TestBrowser>,
+        detailView.render(
+          <Renderer
+            {...props}
+            config={config}
+            region={{ chromosome: "chr1", start: 0, end: 300 }}
+            visibleRegion={{ chromosome: "chr1", start: visibleStart, end: visibleStart + 100 }}
+            data={data}
+          />,
         ),
       );
-    try {
-      const first = {
+    const first = {
+      records: [
+        read({ readName: "left", start: 10, end: 60 }),
+        read({ readName: "long", start: 20, end: 280 }),
+        read({ readName: "right", start: 200, end: 250 }),
+      ],
+      reference: [],
+    };
+    draw(first, 0);
+    const before = rowOf();
+    draw(first, 180);
+    expect(rowOf()).toEqual(before);
+    // New data drops "left" and adds a read that would otherwise take its row.
+    draw(
+      {
         records: [
-          read({ readName: "left", start: 10, end: 60 }),
           read({ readName: "long", start: 20, end: 280 }),
           read({ readName: "right", start: 200, end: 250 }),
+          read({ readName: "new", start: 5, end: 15 }),
         ],
         reference: [],
-      };
-      draw(first, 0);
-      const before = rowOf();
-      draw(first, 180);
-      expect(rowOf()).toEqual(before);
-      // New data drops "left" and adds a read that would otherwise take its row.
-      draw(
-        {
-          records: [
-            read({ readName: "long", start: 20, end: 280 }),
-            read({ readName: "right", start: 200, end: 250 }),
-            read({ readName: "new", start: 5, end: 15 }),
-          ],
-          reference: [],
-        },
-        180,
-      );
-      expect(rowOf()).toMatchObject({ long: before.long, right: before.right });
-    } finally {
-      act(() => root.unmount());
-    }
+      },
+      180,
+    );
+    expect(rowOf()).toMatchObject({ long: before.long, right: before.right });
   });
   it.each(["mean", "max"] as const)(
     "excludes partial off-screen bins from %s autoscaling",
@@ -975,8 +933,7 @@ describe("BAM sections", () => {
     },
   );
   it("repacks colliding labels after resize and respects a reduced row limit", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
+    const element = detailView.host;
     const Renderer = bamModule.render.pack;
     const config = withSections({ alignments: true });
     const data = {
@@ -988,27 +945,17 @@ describe("BAM sections", () => {
     };
     const draw = (width: number, currentConfig = config) =>
       act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer {...props} config={currentConfig} width={width} data={data} />
-            </svg>
-          </TestBrowser>,
-        ),
+        detailView.render(<Renderer {...props} config={currentConfig} width={width} data={data} />),
       );
-    try {
-      draw(1500);
-      expect(rowCount(element)).toBe(1);
-      // Keep data and config identities stable while labels outgrow the gap.
-      draw(200);
-      expect(rowCount(element)).toBe(2);
-      expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(2);
-      draw(200, { ...config, alignments: { ...config.alignments, maxRows: 1 } });
-      expect(rowCount(element)).toBe(1);
-      expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(1);
-    } finally {
-      act(() => root.unmount());
-    }
+    draw(1500);
+    expect(rowCount(element)).toBe(1);
+    // Keep data and config identities stable while labels outgrow the gap.
+    draw(200);
+    expect(rowCount(element)).toBe(2);
+    expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(2);
+    draw(200, { ...config, alignments: { ...config.alignments, maxRows: 1 } });
+    expect(rowCount(element)).toBe(1);
+    expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(1);
   });
   it("draws at most maxRows alignment rows and discloses the rest while counting them", () => {
     const stacked = Array.from({ length: 5 }, (_, index) => read({ readName: `r${index}` }));
@@ -1028,77 +975,68 @@ describe("BAM sections", () => {
     }
   });
   it("sends coverage bins and junctions to the tooltip without calling read interactions", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
+    const element = detailView.host;
     const Renderer = bamModule.render.pack;
-    try {
+    act(() =>
+      detailView.render(
+        <Renderer
+          {...props}
+          config={withSections({ coverage: true, junctions: true })}
+          data={{
+            ...data,
+            records: [...data.records, { ...spliced, strand: "-", readName: "reverse" }],
+          }}
+        />,
+      ),
+    );
+    const overlays = [
+      ...element.querySelectorAll<SVGRectElement>(
+        '[data-bam-section="coverage"] rect[pointer-events="all"]',
+      ),
+    ];
+    for (const overlay of overlays)
+      overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
+    act(() => {
+      for (const overlay of overlays)
+        overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
+    });
+    const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+    // The junction section starts below the coverage section. The inverse
+    // screen transform converts pointer coordinates into its local space.
+    group.getScreenCTM = () =>
+      ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: -64 }) }) as DOMMatrix;
+    for (const strand of ["+", "-"]) {
+      const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+      const point = junctionPoint(arc);
       act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                config={withSections({ coverage: true, junctions: true })}
-                data={{
-                  ...data,
-                  records: [...data.records, { ...spliced, strand: "-", readName: "reverse" }],
-                }}
-              />
-            </svg>
-          </TestBrowser>,
+        arc.querySelector('path[pointer-events="stroke"]')!.dispatchEvent(
+          new MouseEvent("mousemove", {
+            bubbles: true,
+            clientX: point.clientX,
+            clientY: point.clientY + 64,
+          }),
         ),
       );
-      const overlays = [
-        ...element.querySelectorAll<SVGRectElement>(
-          '[data-bam-section="coverage"] rect[pointer-events="all"]',
-        ),
-      ];
-      for (const overlay of overlays)
-        overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
-      act(() => {
-        for (const overlay of overlays)
-          overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
-      });
-      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-      // The junction section starts below the coverage section. The inverse
-      // screen transform converts pointer coordinates into its local space.
-      group.getScreenCTM = () =>
-        ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: -64 }) }) as DOMMatrix;
-      for (const strand of ["+", "-"]) {
-        const arc = group.querySelector(`[data-strand="${strand}"]`)!;
-        const point = junctionPoint(arc);
-        act(() =>
-          arc.querySelector('path[pointer-events="stroke"]')!.dispatchEvent(
-            new MouseEvent("mousemove", {
-              bubbles: true,
-              clientX: point.clientX,
-              clientY: point.clientY + 64,
-            }),
-          ),
-        );
-      }
-      expect(hooks.show.mock.calls[0][0]).toMatchObject({
-        kind: "coverage",
-        strand: "+",
-        start: 10,
-        end: 11,
-        max: 2,
-      });
-      expect(hooks.show.mock.calls[1][0]).toMatchObject({ kind: "coverage", strand: "-", max: 1 });
-      expect(hooks.show.mock.calls[2][0]).toMatchObject({
-        kind: "junction",
-        strand: "+",
-        support: 2,
-      });
-      expect(hooks.show.mock.calls[3][0]).toMatchObject({
-        kind: "junction",
-        strand: "-",
-        support: 1,
-      });
-      expect(hooks.hover).not.toHaveBeenCalled();
-    } finally {
-      act(() => root.unmount());
     }
+    expect(hooks.show.mock.calls[0][0]).toMatchObject({
+      kind: "coverage",
+      strand: "+",
+      start: 10,
+      end: 11,
+      max: 2,
+    });
+    expect(hooks.show.mock.calls[1][0]).toMatchObject({ kind: "coverage", strand: "-", max: 1 });
+    expect(hooks.show.mock.calls[2][0]).toMatchObject({
+      kind: "junction",
+      strand: "+",
+      support: 2,
+    });
+    expect(hooks.show.mock.calls[3][0]).toMatchObject({
+      kind: "junction",
+      strand: "-",
+      support: 1,
+    });
+    expect(hooks.hover).not.toHaveBeenCalled();
   });
   it("labels per-base depth separately from summarized coverage in tooltips", () => {
     const tooltip = (item: Parameters<typeof BamTooltip>[0]["item"]) =>
