@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { authenticate, sessionToken, signIn } from "./clerkServer";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { readCommandStream, testRedisUrl } from "./redis";
+import { commands as agentCommands } from "../features/agent/commands";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 // The proxy, Clerk verification, route handlers, authorization, PostgreSQL, and
@@ -121,11 +122,9 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
   it("publishes every command as a tool that names its session", async () => {
     const client = await agent("user_alice");
     const { tools } = await client.listTools();
-    expect(tools.map(({ name }) => name).sort()).toEqual([
-      "export_image",
-      "set_region",
-      "sort_tracks",
-    ]);
+    expect(tools.map(({ name }) => name).sort()).toEqual(
+      agentCommands.map(({ name }) => name).sort(),
+    );
     for (const tool of tools) expect(tool.inputSchema.required).toContain("sessionId");
     await client.close();
   });
