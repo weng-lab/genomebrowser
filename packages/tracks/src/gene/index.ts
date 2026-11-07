@@ -19,6 +19,7 @@ export const geneModule = defineTrackModule<GeneInteractionTarget>()({
 });
 
 export type GeneCreateInput = ModuleCreateInput<typeof geneModule>;
+export { checkGeneFiles } from "./check";
 export type { GeneData, GeneTranscript, GroupedGene } from "./types";
 export type { GeneInteraction, GeneInteractionTarget } from "./interactions";
 
