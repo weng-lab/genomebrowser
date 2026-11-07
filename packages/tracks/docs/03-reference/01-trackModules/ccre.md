@@ -43,7 +43,7 @@ Dense has one row. Squish calculates its row count from features in the visible 
 
 ## Source requirements
 
-Use an HTTP(S) BigBed source that supports exact byte-range responses and browser CORS access. The module caches a reader per source URL in the track's fetch resources for the track lifetime. A new URL creates a reader on the next fetch. Network and column-validation failures reject the fetch. See [Data source troubleshooting](../../04-troubleshooting.md).
+Use an HTTP(S) BigBed source that supports exact byte-range responses and browser CORS access. The module caches a reader per source URL in the track's fetch resources for the track lifetime. A new URL creates a reader on the next fetch. Network and column-validation failures reject the fetch. See [Data source troubleshooting](../../04-troubleshooting.md). To check a URL before creating a track, call `checkCcreBigBedFiles({ url })`; see [Check source files](trackCreation.md#check-source-files).
 
 ## Settings and interactions
 

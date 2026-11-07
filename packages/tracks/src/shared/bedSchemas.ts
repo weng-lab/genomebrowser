@@ -30,3 +30,13 @@ export const bedSchemas = {
 export const bedSchemaKeySchema = z.enum(["bed3", "bed4", "bed5", "bed6", "bed9", "ccre"]);
 export type BedSchemaKey = keyof typeof bedSchemas;
 export const bedSchemaKeys = bedSchemaKeySchema.options;
+
+/** Leading standard BED columns each preset parses. cCRE's class column after BED9 is custom. */
+export const bedSchemaStandardColumns: Record<BedSchemaKey, number> = {
+  bed3: 3,
+  bed4: 4,
+  bed5: 5,
+  bed6: 6,
+  bed9: 9,
+  ccre: 9,
+};

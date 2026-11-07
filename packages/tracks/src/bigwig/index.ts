@@ -18,6 +18,7 @@ export const bigWigModule = defineTrackModule<SignalPoint>()({
 });
 
 export type BigWigCreateInput = ModuleCreateInput<typeof bigWigModule>;
+export { checkBigWigFiles } from "./check";
 export type { BigWigData, BigWigInteraction, YRange } from "./types";
 
 export type BigWigDisplay = (typeof bigWigModule)["displays"][number];

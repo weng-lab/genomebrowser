@@ -46,6 +46,9 @@ export type { TrackTooltipProps, TrackTooltipRow } from "./tooltips";
 export { bedSchemas, bedSchemaKeys, bedSchemaKeySchema } from "./bedSchemas";
 export type { BedSchemaKey } from "./bedSchemas";
 
+export { TrackFileError } from "./fileChecks";
+export type { TrackFileCheckOptions, TrackFileErrorCode } from "./fileChecks";
+
 export type { TrackBaseSettingsProps } from "./settings/trackBaseSettings";
 export { TrackHeightSettings } from "./settings/trackHeightSettings";
 export { TrackRowLayoutSettings } from "./settings/trackRowLayoutSettings";

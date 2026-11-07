@@ -28,5 +28,6 @@ export const ccreBigBedModule = defineTrackModule<CcreBigBedRow>()({
 });
 
 export type CcreBigBedCreateInput = ModuleCreateInput<typeof ccreBigBedModule>;
+export { checkCcreBigBedFiles } from "./check";
 export type { CcreBigBedRow } from "./types";
 export type { CcreBigBedConfig } from "./schema";
