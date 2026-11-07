@@ -3,6 +3,8 @@
 // Import first: it mocks the Next.js router before the app's modules load.
 import { clerk, route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { act, useLayoutEffect } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
@@ -308,6 +310,149 @@ it("sorts tracks for the agent, replies with the new order, and saves it", async
   expect(before).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);
   await vi.waitFor(() =>
     expect(savedTitles()).toEqual(["Human cCREs", "GENCODE 50 basic", "Coordinates"]),
+  );
+});
+
+function fixture(path: string) {
+  return new Uint8Array(
+    readFileSync(join(import.meta.dirname, "../../../packages/reader/test/fixtures", path)),
+  );
+}
+const files = {
+  bigWig: fixture("bigwig/basic.bw"),
+  bed6: fixture("bigbed/basic.bb"),
+  bam: fixture("bam/bamExample.bam"),
+  bai: fixture("bam/bamExample.bam.bai"),
+};
+const dataHost = "https://data.example.test";
+const addTrack = (params: object, expiresAt = Date.now() + 5000) =>
+  act(async () =>
+    latest().send({
+      commandId: crypto.randomUUID(),
+      name: "add_track_from_url",
+      expiresAt,
+      params,
+    }),
+  );
+const savedTracks = () => server.stored.get(alpha)!.snapshot.tracks;
+const startingTitles = ["Coordinates", "GENCODE 50 basic", "Human cCREs"];
+
+// Each row is a file URL an agent might add, and the track the session saves for it.
+it.each([
+  {
+    file: "a BigWig URL",
+    url: `${dataHost}/tracks/ENCFF001ABC.bigWig`,
+    hosted: { [`${dataHost}/tracks/ENCFF001ABC.bigWig`]: files.bigWig },
+    params: {},
+    saved: { type: "bigwig", title: "ENCFF001ABC", config: {} },
+  },
+  {
+    file: "a BigBed URL, reading the columns it declares",
+    url: `${dataHost}/peaks.bb`,
+    hosted: { [`${dataHost}/peaks.bb`]: files.bed6 },
+    params: {},
+    saved: { type: "bigbed", title: "peaks", config: { bedSchema: "bed6" } },
+  },
+  {
+    file: "a BAM URL with a query string",
+    url: `${dataHost}/reads.bam?download=1`,
+    hosted: {
+      [`${dataHost}/reads.bam?download=1`]: files.bam,
+      [`${dataHost}/reads.bam.bai?download=1`]: files.bai,
+    },
+    params: {},
+    saved: {
+      type: "bam",
+      title: "reads",
+      config: { indexUrl: `${dataHost}/reads.bam.bai?download=1` },
+    },
+  },
+  {
+    file: "a URL without an extension, given a type",
+    url: `${dataHost}/download?id=7`,
+    hosted: { [`${dataHost}/download?id=7`]: files.bigWig },
+    params: { type: "bigwig", title: "Signal" },
+    saved: { type: "bigwig", title: "Signal", config: {} },
+  },
+])("adds a track for the agent from $file, and saves it", async (row) => {
+  for (const [url, file] of Object.entries(row.hosted)) server.files.set(url, file);
+  await enableRemoteControl();
+
+  await addTrack({ url: row.url, ...row.params });
+
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  const { result } = reply();
+  expect(result).toEqual({
+    ok: true,
+    value: { id: expect.any(String), title: row.saved.title, type: row.saved.type },
+  });
+  await vi.waitFor(() => expect(savedTracks()).toHaveLength(startingTitles.length + 1));
+  expect(savedTracks().at(-1)).toMatchObject({
+    type: row.saved.type,
+    base: { id: result.value.id, title: row.saved.title },
+    source: "user",
+    config: { url: row.url, ...row.saved.config },
+  });
+});
+
+it("tells the agent why a URL cannot be added, and adds nothing for it", async () => {
+  server.files.set(`${dataHost}/missing.bw`, 404);
+  server.files.set(`${dataHost}/peaks.bb`, files.bed6);
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
+  await enableRemoteControl();
+  const attempts = [
+    {
+      params: { url: `${dataHost}/download?id=7` },
+      code: "UNKNOWN_TYPE",
+      error:
+        "The track type cannot be inferred from the URL. Choose one of: bigwig, bigbed, gene, ccre-bigbed, bam.",
+    },
+    {
+      params: { url: "signal.bw" },
+      code: "INVALID_URL",
+      error: "The URL is not an absolute HTTP or HTTPS URL.",
+    },
+    {
+      params: { url: `${dataHost}/missing.bw` },
+      code: "UNREACHABLE",
+      error: "The BigWig file request returned HTTP 404.",
+    },
+    {
+      params: { url: `${dataHost}/peaks.bb`, type: "bigwig" },
+      code: "UNREADABLE",
+      error: "The BigWig file could not be read: Expected a BigWig file",
+    },
+  ];
+
+  for (const [index, { params, code, error }] of attempts.entries()) {
+    await addTrack(params);
+    await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(index + 1));
+    expect(reply(index).result).toEqual({ ok: false, code, error });
+  }
+
+  // The session saves the whole track list, so a later add shows nothing else was added.
+  await addTrack({ url: `${dataHost}/signal.bw` });
+  await vi.waitFor(() =>
+    expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
+  );
+});
+
+it("adds nothing when checking a URL outlasts its command", async () => {
+  server.files.set(`${dataHost}/slow.bw`, "silent");
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
+  await enableRemoteControl();
+
+  await addTrack({ url: `${dataHost}/slow.bw` }, Date.now() + 100);
+
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  expect(reply().result).toEqual({
+    ok: false,
+    code: "CANCELLED",
+    error: "Adding the track was cancelled.",
+  });
+  await addTrack({ url: `${dataHost}/signal.bw` });
+  await vi.waitFor(() =>
+    expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
   );
 });
 

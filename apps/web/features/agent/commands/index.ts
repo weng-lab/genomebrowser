@@ -1,3 +1,4 @@
+import { addTrackFromUrl } from "./addTrackFromUrl";
 import type { CommandApp } from "./define";
 import { exportImage } from "./exportImage";
 import type { CommandMessage, CommandResult } from "./protocol";
@@ -8,7 +9,7 @@ import { sortTracks } from "./sortTracks";
  * Every agent command. Define a command once in its own file and list it here:
  * MCP publishes it as a tool, and the browser tab runs the same definition.
  */
-export const commands = [setRegion, exportImage, sortTracks] as const;
+export const commands = [setRegion, exportImage, sortTracks, addTrackFromUrl] as const;
 
 export type { Command, CommandApp, CommandOutcome } from "./define";
 

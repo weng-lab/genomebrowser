@@ -72,6 +72,11 @@ export function installSessionServer() {
         respond: (response: Response) => open(response),
       };
     },
+    /**
+     * Genomic files that other hosts serve, by URL, honoring byte ranges. A number answers
+     * with that status instead, and `"silent"` never answers until the request is aborted.
+     */
+    files: new Map<string, Uint8Array | number | "silent">(),
     /** Answers command results that tabs post for remote control. */
     replies: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
       Response.json({ ok: true }),
@@ -152,7 +157,27 @@ export function installSessionServer() {
     return json(metadata(id, session));
   }
 
+  async function serveFile(file: Uint8Array | number | "silent", init: RequestInit) {
+    const signal = init.signal ?? undefined;
+    signal?.throwIfAborted();
+    if (file === "silent")
+      return new Promise<never>((_, reject) =>
+        signal?.addEventListener("abort", () => reject(signal.reason)),
+      );
+    if (typeof file === "number") return new Response(null, { status: file });
+    const range = /^bytes=(\d+)-(\d+)$/.exec(new Headers(init.headers).get("Range") ?? "");
+    if (!range) return new Response(file.slice(), { status: 200 });
+    const start = Number(range[1]);
+    const end = Math.min(Number(range[2]), file.length - 1);
+    return new Response(file.slice(start, end + 1), {
+      status: 206,
+      headers: { "Content-Range": `bytes ${start}-${end}/${file.length}` },
+    });
+  }
+
   async function fetch(input: string, init: RequestInit = {}) {
+    const file = server.files.get(input);
+    if (file !== undefined) return serveFile(file, init);
     const url = new URL(input, "http://localhost");
     if (/^\/api\/sessions\/[^/]+\/commands$/.test(url.pathname)) return server.replies(input, init);
     const settings = url.pathname === "/api/account/settings";
