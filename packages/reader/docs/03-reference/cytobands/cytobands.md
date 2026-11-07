@@ -65,7 +65,7 @@ await promise;
 ```
 
 `readCytobands` rejects for invalid or non-HTTP(S) URLs, cancelled requests, network failures,
-non-successful HTTP responses, invalid gzip data, and invalid file contents. `parseCytobands`
+non-successful HTTP responses ([`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror)), invalid gzip data, and invalid file contents. `parseCytobands`
 throws for non-text input, malformed rows, and invalid coordinates. For cross-origin URLs, the
 server must allow the browser to fetch the file through CORS.
 

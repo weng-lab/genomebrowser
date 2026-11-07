@@ -4,9 +4,22 @@ import { BinaryReader } from "./binaryReader";
 export type BamChunk = { start: bigint; end: bigint };
 export type BamIndex = { bins: Map<number, BamChunk[]>; linear: bigint[] }[];
 
+const BAI_MAGIC = 0x01494142;
+
+/** The index's first 8 bytes: its magic number and reference count. */
+export const BAI_PREFIX_LENGTH = 8;
+
+/** Reads the reference count from the start of a BAI index, checking its magic number. */
+export function readBamIndexReferenceCount(prefix: Uint8Array): number {
+  if (prefix.length < BAI_PREFIX_LENGTH) throw new Error("Expected a BAI index");
+  const reader = new BinaryReader(prefix, "little-endian");
+  if (reader.readUint32() !== BAI_MAGIC) throw new Error("Expected a BAI index");
+  return reader.readUint32();
+}
+
 export function parseBamIndex(bytes: Uint8Array): BamIndex {
   const reader = new BinaryReader(bytes, "little-endian");
-  if (reader.readUint32() !== 0x01494142) throw new Error("Expected a BAI index");
+  if (reader.readUint32() !== BAI_MAGIC) throw new Error("Expected a BAI index");
   const count = reader.readUint32();
   if (count > reader.remaining / 8) throw new Error("Invalid BAI reference count");
   const references: BamIndex = [];
