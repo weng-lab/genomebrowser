@@ -207,7 +207,8 @@ at a URL changes.
 Ordinary no-data cases return `[]`. Once a file exists, `getHeader()` asynchronously rejects for
 network and HTTP contract failures, aborts, and files that are not BigBed files. `read()` rejects
 for those same failures and also for invalid regions, binary decode errors, decompression errors,
-and Zod parsing failures. These failures never become empty or partial results.
+and Zod parsing failures. These failures never become empty or partial results. Responses with an
+unusable HTTP status reject with [`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror).
 
 Column validation failures reject with `BigBedParseError`, a subclass of `z.ZodError`.
 Its `message` identifies the record, one-based BED column number, schema field, and raw value.

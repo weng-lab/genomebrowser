@@ -18,12 +18,13 @@ Every public export has a canonical destination below. File methods are document
 
 ### Regional reading
 
-| Exports         | Reference                                                        |
-| --------------- | ---------------------------------------------------------------- |
-| `GenomicFile`   | [Regional reading](regionalReading/genomicFile.md#genomicfile)   |
-| `GenomicRegion` | [Regional reading](regionalReading/genomicFile.md#genomicregion) |
-| `GenomicRecord` | [Regional reading](regionalReading/genomicFile.md#genomicrecord) |
-| `ReadOptions`   | [Regional reading](regionalReading/genomicFile.md#readoptions)   |
+| Exports           | Reference                                                          |
+| ----------------- | ------------------------------------------------------------------ |
+| `GenomicFile`     | [Regional reading](regionalReading/genomicFile.md#genomicfile)     |
+| `GenomicRegion`   | [Regional reading](regionalReading/genomicFile.md#genomicregion)   |
+| `GenomicRecord`   | [Regional reading](regionalReading/genomicFile.md#genomicrecord)   |
+| `ReadOptions`     | [Regional reading](regionalReading/genomicFile.md#readoptions)     |
+| `HttpStatusError` | [Regional reading](regionalReading/genomicFile.md#httpstatuserror) |
 
 ### BigWig signal
 

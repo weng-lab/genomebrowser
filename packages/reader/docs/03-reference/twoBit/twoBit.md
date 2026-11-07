@@ -56,7 +56,7 @@ function createTwoBitFile(options: TwoBitFileOptions): TwoBitFile;
 
 `read()` returns either an empty array or one record with the requested start and an end clipped to the sequence length. `sequence` contains the forward-reference bases for that interval. Coordinates must be finite nonnegative integers with `start < end`; invalid regions reject asynchronously. The optional `ReadOptions.signal` has no default signal.
 
-Successful index and sequence metadata are cached on the file object. Failed metadata loads can be retried; create a new file instance when the URL's contents change. HTTP, decoding, and abort failures reject rather than returning partial sequence.
+Successful index and sequence metadata are cached on the file object. Failed metadata loads can be retried; create a new file instance when the URL's contents change. HTTP, decoding, and abort failures reject rather than returning partial sequence. Responses with an unusable HTTP status reject with [`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror).
 
 ## Related reference
 
