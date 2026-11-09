@@ -25,7 +25,7 @@ type WorkspacePageProps = {
 };
 ```
 
-`title` names the center panel; `subtitle` adds optional title content. `heading` replaces the title row's breadcrumbs and must render the page's own `h1`; the browser uses it for the session switcher. `left` and `right` supply side-panel titles and elements. The right panel's title and `icon` label its button at the right end of the center title row; the browser's is **Agent** with a sparkle. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
+`title` names the center panel; `subtitle` adds optional title content. `heading` replaces the title row's breadcrumbs and must render the page's own `h1`; the browser uses it for the session switcher. With a left panel, the heading sits in that panel's title row while it is open and in the center title row while it is collapsed. It moves without remounting, so open menus and dialogs stay open; the left panel's title then only names the panel for assistive technology. `left` and `right` supply side-panel titles and elements. The right panel's title and `icon` label its button at the right end of the center title row; the browser's is **Agent** with a sparkle. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
 
 ## Side panel behavior
 

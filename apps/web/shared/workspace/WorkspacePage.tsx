@@ -9,6 +9,7 @@ import { PageTitleRow } from "./frame/PageTitleRow";
 import { PanelButton } from "./panels/PanelButton";
 import { PanelToggleButton } from "./panels/PanelToggleButton";
 import { SidePanel } from "./panels/SidePanel";
+import { MovableSlot, useMovable } from "./movable";
 import { useTransitionEnabled } from "./useTransitionEnabled";
 import { usePanelState } from "./panels/panelState";
 import type { WorkspacePanel } from "./types";
@@ -16,7 +17,11 @@ import type { WorkspacePanel } from "./types";
 export type WorkspacePageProps = {
   title: string;
   subtitle?: ReactNode;
-  /** Replaces the title row's breadcrumbs. It renders the page's own `h1`. */
+  /**
+   * Replaces the title row's breadcrumbs. It renders the page's own `h1`. With a left
+   * panel, it sits in that panel's title row while the panel is open, so it stays at the
+   * top left. It moves without remounting, so it keeps its state.
+   */
   heading?: ReactNode;
   /** Shown at the title row's right end, before the right panel's button. */
   actions?: ReactNode;
@@ -39,6 +44,8 @@ export function WorkspacePage({
   const toggleLeft = () => toggle("left");
   const toggleRight = () => toggle("right");
   const transitionEnabled = useTransitionEnabled(usePathname());
+  const [movableHeading, headingPortal] = useMovable(heading);
+  const headingInLeftPanel = left !== undefined && leftOpen;
   useHotkey({ key: "B", ctrl: true }, toggleLeft, {
     enabled: left !== undefined,
     ignoreInputs: true,
@@ -70,12 +77,27 @@ export function WorkspacePage({
           )
         }
       />
-      <SidePanel side="left" panel={left} open={leftOpen} animate={transitionEnabled} />
+      {headingPortal}
+      <SidePanel
+        side="left"
+        panel={left}
+        open={leftOpen}
+        animate={transitionEnabled}
+        heading={
+          heading === undefined ? undefined : (
+            <MovableSlot movable={movableHeading} active={headingInLeftPanel} />
+          )
+        }
+      />
       <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
         <PageTitleRow
           label={title}
           title={subtitle}
-          heading={heading}
+          heading={
+            heading === undefined ? undefined : (
+              <MovableSlot movable={movableHeading} active={!headingInLeftPanel} />
+            )
+          }
           actions={
             (actions || right) && (
               <>

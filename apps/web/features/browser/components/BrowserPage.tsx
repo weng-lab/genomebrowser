@@ -16,6 +16,7 @@ export function BrowserPage({ children }: { children: ReactNode }) {
       title="Browser"
       heading={<SessionSwitcher />}
       actions={<SaveStatus />}
+      left={{ title: "Session", children: null }}
       right={{ title: "Agent", icon: <AutoAwesomeOutlined />, children: <AgentPanel /> }}
     >
       {children}
