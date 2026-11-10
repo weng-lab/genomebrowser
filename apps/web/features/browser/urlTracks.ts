@@ -20,12 +20,12 @@ export type UrlTrackInput = {
 
 export type AddedUrlTrack = { id: string; title: string; type: UrlTrackType };
 
-/** The most tracks a session holds. Adding a track to a full session is refused. */
+/** The most tracks a session holds. A batch that does not fit is refused whole. */
 export const maxSessionTracks = 50;
 
-type UrlTrackOutcome =
-  | { ok: true; track: AddedUrlTrack }
-  | { ok: false; code: string; error: string };
+type Failure = { ok: false; code: string; error: string };
+type UrlTracksOutcome = { ok: true; tracks: AddedUrlTrack[] } | Failure;
+type ResolvedTrack = { ok: true; track: AnyTrackInstance; added: AddedUrlTrack };
 
 // File extensions that name a track type, matched case-insensitively at the end of the path.
 const extensionTypes: [extension: string, type: UrlTrackType][] = [
@@ -66,15 +66,50 @@ const createTrack: Record<
 };
 
 /**
- * Check that the browser can read a URL's files as a track, then add the track below the
- * others, where the session saves it. Adds nothing when the URL is not a readable file of a
- * supported type, the session already has `maxSessionTracks` tracks, or `signal` aborts first.
+ * Check that the browser can read each URL's files as a track, then add the tracks below the
+ * others, in order, where the session saves them. Adds every track or none: nothing is added
+ * when any URL is not a readable file of a supported type, the session lacks room for every
+ * track, or `signal` aborts first.
  */
-export async function addTrackFromUrl(
+export async function addTracksFromUrls(
   trackStore: TrackStoreInstance,
+  inputs: readonly UrlTrackInput[],
+  signal: AbortSignal,
+): Promise<UrlTracksOutcome> {
+  const refused = limitFailure(trackStore, inputs.length);
+  if (refused) return refused;
+  let results: (ResolvedTrack | Failure)[];
+  try {
+    results = await Promise.all(inputs.map((input) => resolveTrack(input, signal)));
+  } catch (error) {
+    if (signal.aborted) return cancelled();
+    throw error;
+  }
+  // A check can finish just after its command is cancelled or expires.
+  if (signal.aborted) return cancelled();
+  const resolved: ResolvedTrack[] = [];
+  const failures: string[] = [];
+  for (const [index, result] of results.entries()) {
+    if (result.ok) resolved.push(result);
+    else failures.push(`${inputs[index].url}: ${result.code}: ${result.error}`);
+  }
+  if (failures.length > 0)
+    return failure("TRACKS_NOT_ADDED", `No tracks were added. ${failures.join(" ")}`);
+  // Commands run concurrently, so another add may have filled the session during the checks.
+  const filled = limitFailure(trackStore, inputs.length);
+  if (filled) return filled;
+  const applied = trackStore
+    .getState()
+    .applyTrackChanges({ add: resolved.map(({ track }) => track) });
+  if (!applied.ok) return applied;
+  return { ok: true, tracks: resolved.map(({ added }) => added) };
+}
+
+/** Infers a URL's track type and title, then checks its files. An abort rejects. */
+async function resolveTrack(
   input: UrlTrackInput,
   signal: AbortSignal,
-): Promise<UrlTrackOutcome> {
+): Promise<ResolvedTrack | Failure> {
   const url = parseUrl(input.url);
   if (!url) return failure("INVALID_URL", "The URL is not an absolute HTTP or HTTPS URL.");
   const path = url.pathname.toLowerCase();
@@ -96,40 +131,36 @@ export async function addTrackFromUrl(
       `The track type cannot be inferred from the URL. Choose one of: ${types}.`,
     );
   }
-  const title = input.title?.trim() || fileTitle(url, extension?.[0]);
-  if (isFull(trackStore)) return full();
+  const base = {
+    id: crypto.randomUUID(),
+    title: input.title?.trim() || fileTitle(url, extension?.[0]),
+  };
   try {
-    const track = await createTrack[type](input, url, { id: crypto.randomUUID(), title }, signal);
-    // A check can finish just after its command is cancelled or expires.
-    if (signal.aborted) return cancelled();
-    // Commands run concurrently, so another add may have filled the session during the check.
-    if (isFull(trackStore)) return full();
-    const added = trackStore.getState().addTrack(track);
-    if (!added.ok) return added;
-    return { ok: true, track: { id: track.base.id, title, type } };
+    const track = await createTrack[type](input, url, base, signal);
+    return { ok: true, track, added: { ...base, type } };
   } catch (error) {
-    if (signal.aborted) return cancelled();
-    if (error instanceof TrackFileError) return failure(error.code, error.message);
+    if (!signal.aborted && error instanceof TrackFileError)
+      return failure(error.code, error.message);
     throw error;
   }
 }
 
-function failure(code: string, error: string) {
-  return { ok: false as const, code, error };
+function failure(code: string, error: string): Failure {
+  return { ok: false, code, error };
 }
 
 function cancelled() {
-  return failure("CANCELLED", "Adding the track was cancelled.");
+  return failure("CANCELLED", "Adding the tracks was cancelled.");
 }
 
-function isFull(trackStore: TrackStoreInstance) {
-  return trackStore.getState().tracks.length >= maxSessionTracks;
-}
-
-function full() {
+/** Refuses a batch the session has no room for. */
+function limitFailure(trackStore: TrackStoreInstance, adding: number) {
+  const count = trackStore.getState().tracks.length;
+  if (count + adding <= maxSessionTracks) return undefined;
+  const room = Math.max(0, maxSessionTracks - count);
   return failure(
     "TRACK_LIMIT",
-    `The session already has ${maxSessionTracks} tracks, the most it can hold. Remove a track before adding another.`,
+    `A session holds at most ${maxSessionTracks} tracks. This one has ${count}, which leaves room for ${room}, not ${adding}. No tracks were added.`,
   );
 }
 

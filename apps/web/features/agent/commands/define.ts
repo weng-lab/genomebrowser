@@ -23,11 +23,11 @@ export type CommandApp = {
   ): Promise<BrowserImage>;
   /** Show an exported image to the user, who decides whether to download it. */
   showImage(image: BrowserImage): void;
-  /** Check that the browser can read a file URL as a track, then add the track below the others. */
-  addTrackFromUrl(
-    input: UrlTrackInput,
+  /** Check that the browser can read each file URL as a track, then add every track below the others, or none. */
+  addTracksFromUrls(
+    inputs: readonly UrlTrackInput[],
     signal: AbortSignal,
-  ): Promise<{ ok: true; track: AddedUrlTrack } | CommandFailure>;
+  ): Promise<{ ok: true; tracks: AddedUrlTrack[] } | CommandFailure>;
 };
 
 /**
