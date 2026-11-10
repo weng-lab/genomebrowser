@@ -27,7 +27,7 @@ type BamFileOptions = { url: string; indexUrl: string };
 function createBamFile(options: BamFileOptions): BamFile;
 ```
 
-Both URLs are required HTTP(S) URLs and are validated synchronously. Creating the file performs no network access. BAM requests require HTTP 206 byte-range responses without a `Content-Encoding` header. BGZF is the file's compression format; HTTP decompression would invalidate its indexed byte offsets. The index is fetched in full with an HTTP 200 response. Both resources must allow browser access through CORS.
+Both URLs are required HTTP(S) URLs and are validated synchronously. Creating the file performs no network access. BAM requests require HTTP 206 byte-range responses without a `Content-Encoding` header. BGZF is the file's compression format; HTTP decompression would invalidate its indexed byte offsets. `read()` fetches the index in full with an HTTP 200 response. Both resources must allow browser access through CORS. Responses with an unusable HTTP status reject with [`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror).
 
 Reuse the file object to retain the parsed reference dictionary and BAI index. Alignment records and compressed data are not retained between reads. Cancellation and failed requests do not prevent retrying.
 
@@ -36,6 +36,7 @@ Reuse the file object to retain the parsed reference dictionary and BAI index. A
 ```ts
 interface BamFile extends GenomicFile<BamRecord> {
   getHeader(options?: ReadOptions): Promise<BamHeader>;
+  checkIndex(options?: ReadOptions): Promise<void>;
 }
 ```
 
@@ -58,6 +59,16 @@ console.log(header.text, header.references);
 ```
 
 The header is validated and cached after a successful load, shared with `read()`. Header access does not fetch the BAI. Each call returns a defensive copy of the reference list. Pre-aborted and in-flight calls reject, including requests served from the cache. Aborting one caller does not cancel other callers or prevent retrying. Malformed headers reject without caching partial results.
+
+## Checking the index
+
+`checkIndex({ signal }?)` confirms that `indexUrl` serves a BAI index for this BAM without downloading the whole index, which can be many megabytes. It requests the index as `read()` does, reads its first 8 bytes, and stops the download. It also loads the BAM header if it is not cached yet, and caches it as `getHeader()` does.
+
+```ts
+await file.checkIndex({ signal: controller.signal });
+```
+
+The check resolves when the index starts with the BAI magic number and lists as many references as the BAM header. It rejects with `HttpStatusError` when the index response has an unusable status, and with an `Error` when the URL serves a file that is not a BAI index or the index lists a different number of references. A passing index can still be out of date for this BAM; see [Supported files](#supported-files). Each call sends its own index request and caches nothing from it. Aborting the signal rejects the call with the signal's reason and stops the download.
 
 ## BamRecord
 
