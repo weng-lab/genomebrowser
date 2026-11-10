@@ -4,6 +4,7 @@ import { authenticate, sessionToken, signIn } from "./clerkServer";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { readCommandStream, testRedisUrl } from "./redis";
 import { commands as agentCommands } from "../features/agent/commands";
+import { addTracksFromUrls } from "../features/agent/commands/addTracksFromUrls";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 // The proxy, Clerk verification, route handlers, authorization, PostgreSQL, and
@@ -150,6 +151,31 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect(
       await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } }),
     ).toMatchObject({ status: 409 });
+
+    tab.close();
+    await client.close();
+  });
+
+  it("gives a tool call its command's time limit, which the MCP route outlasts", async () => {
+    const id = await createSession("user_alice");
+    const tab = await openTab("user_alice", id);
+    if (!("command" in tab)) throw new Error(`Tab was refused: ${tab.status}`);
+    const client = await agent("user_alice");
+    const limit = addTracksFromUrls.timeoutMs!;
+    const started = Date.now();
+
+    const call = client.callTool({
+      name: "add_tracks_from_urls",
+      arguments: { sessionId: id, tracks: [{ url: "https://data.example.test/signal.bw" }] },
+    });
+    const command = await tab.command();
+    expect(command.expiresAt).toBeGreaterThanOrEqual(started + limit);
+    expect(command.expiresAt).toBeLessThanOrEqual(Date.now() + limit);
+    const value = { tracks: [] };
+    await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } });
+    expect(await call).toMatchObject({ structuredContent: value });
+    for (const { timeoutMs = 5_000 } of agentCommands)
+      expect(timeoutMs / 1_000).toBeLessThan(mcp.maxDuration);
 
     tab.close();
     await client.close();
