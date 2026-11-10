@@ -28,6 +28,8 @@ export type { LabeledGroupProps } from "./LabeledGroup/labeledGroup";
 // Highlight Dialog
 export { HighlightDialog } from "./HighlightDialog/HighlightDialog";
 export type { HighlightDialogProps } from "./HighlightDialog/HighlightDialog";
+export { HighlightForm } from "./HighlightDialog/highlightForm";
+export type { HighlightFormProps } from "./HighlightDialog/highlightForm";
 
 // Track Sort
 export { TrackSortDialog } from "./TrackSort/TrackSortDialog";

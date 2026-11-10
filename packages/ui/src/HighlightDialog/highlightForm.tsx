@@ -62,13 +62,20 @@ function formReducer(state: FormState, action: FormAction): FormState {
   }
 }
 
-type HighlightFormProps = {
+export type HighlightFormProps = {
   browserStore: BrowserStoreInstance;
+  /** The highlight to edit. Without it, the form adds highlights. */
   initialHighlight?: Highlight;
+  /** Called after an edited highlight is saved. */
   onSaved?: () => void;
+  /** Adds a Cancel button, which calls it. */
   onCancel?: () => void;
 };
 
+/**
+ * Adds a highlight, or edits `initialHighlight` in place: its ID, region, type, color,
+ * and opacity. `HighlightDialog` uses it for both.
+ */
 export function HighlightForm({
   browserStore,
   initialHighlight,
