@@ -1,6 +1,6 @@
 import type { BrowserImage, GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
-import type { AddedUrlTrack, UrlTrackInput } from "../../browser/urlTracks";
+import type { UrlTrackInput, UrlTracksOutcome } from "../../browser/urlTracks";
 
 export type CommandFailure = { ok: false; code: string; error: string };
 export type CommandOutcome<Value> = { ok: true; value: Value } | CommandFailure;
@@ -27,7 +27,7 @@ export type CommandApp = {
   addTracksFromUrls(
     inputs: readonly UrlTrackInput[],
     signal: AbortSignal,
-  ): Promise<{ ok: true; tracks: AddedUrlTrack[] } | CommandFailure>;
+  ): Promise<UrlTracksOutcome>;
 };
 
 /**

@@ -24,7 +24,8 @@ export type AddedUrlTrack = { id: string; title: string; type: UrlTrackType };
 export const maxSessionTracks = 50;
 
 type Failure = { ok: false; code: string; error: string };
-type UrlTracksOutcome = { ok: true; tracks: AddedUrlTrack[] } | Failure;
+/** The tracks a batch added, in order, or why it added none. */
+export type UrlTracksOutcome = { ok: true; tracks: AddedUrlTrack[] } | Failure;
 type ResolvedTrack = { ok: true; track: AnyTrackInstance; added: AddedUrlTrack };
 
 // File extensions that name a track type, matched case-insensitively at the end of the path.
