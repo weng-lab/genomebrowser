@@ -18,6 +18,7 @@ export const bigBedModule = defineTrackModule<BigBedRow>()({
 });
 
 export type BigBedCreateInput = ModuleCreateInput<typeof bigBedModule>;
+export { checkBigBedFiles } from "./check";
 export { fetchBigBedRows } from "./fetch";
 export type { BigBedData, BigBedInteraction, BigBedRow } from "./types";
 
