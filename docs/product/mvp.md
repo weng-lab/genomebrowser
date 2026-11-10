@@ -22,7 +22,7 @@ That is the first complete workflow we want to make good. It doesn't require the
 - Browse and search predefined collections, select some or all of their tracks, and see which are already loaded.
 - Create, rename, delete, and reopen personal collections on an account. Add entries from URLs or tracks in the current session, and remove entries.
 - Tie each collection to one assembly. Loading an entry creates an independent track instance; edits to the collection and session do not silently update each other.
-- Reject an addition that would exceed the session's track limit. Don't silently add only part of a selection. The limit is still TBD.
+- Reject an addition that would exceed the session's track limit. Don't silently add only part of a selection. The limit is 50 tracks per session for now.
 - Sort tracks once by a selected metadata field and save the resulting order. Adding or changing tracks afterward does not trigger another sort.
 
 We'll supply and host the curated data. Other team members will prepare UCSC-derived track sets; development work is converting those lists to collection JSON and mapping the relevant UCSC settings to ours. A live UCSC integration is outside this scope.
@@ -94,7 +94,7 @@ There is no guaranteed undo in the MVP. Stopping the agent leaves completed chan
 
 Keep these open for implementation and stakeholder conversations:
 
-- Track limits, guest request allowances, and any signed-in agent limits.
+- The final track limit, guest request allowances, and any signed-in agent limits.
 - Supported URL formats and launch assemblies.
 - Initial collection contents and the UCSC settings we map.
 - Gene, SNP, and cCRE query/tool contracts and the fields they return.

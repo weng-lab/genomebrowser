@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { act, useLayoutEffect } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
+import { maxSessionTracks } from "../features/browser/urlTracks";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { useSession } from "../features/sessions/SessionProvider";
 import { installSessionServer, type SessionServer } from "./sessionServer";
@@ -325,15 +326,14 @@ const files = {
   bai: fixture("bam/bamExample.bam.bai"),
 };
 const dataHost = "https://data.example.test";
-const addTrack = (params: object, expiresAt = Date.now() + 5000) =>
-  act(async () =>
-    latest().send({
-      commandId: crypto.randomUUID(),
-      name: "add_track_from_url",
-      expiresAt,
-      params,
-    }),
-  );
+const addTrackCommand = (params: object, expiresAt = Date.now() + 5000) => ({
+  commandId: crypto.randomUUID(),
+  name: "add_track_from_url",
+  expiresAt,
+  params,
+});
+const addTrack = (params: object, expiresAt?: number) =>
+  act(async () => latest().send(addTrackCommand(params, expiresAt)));
 const savedTracks = () => server.stored.get(alpha)!.snapshot.tracks;
 const startingTitles = ["Coordinates", "GENCODE 50 basic", "Human cCREs"];
 
@@ -425,6 +425,11 @@ it("tells the agent why a URL cannot be added, and adds nothing for it", async (
       error: "The URL is not an absolute HTTP or HTTPS URL.",
     },
     {
+      params: { url: "ftp://data.example.test/notes.txt" },
+      code: "INVALID_URL",
+      error: "The URL is not an absolute HTTP or HTTPS URL.",
+    },
+    {
       params: { url: `${dataHost}/missing.bw` },
       code: "UNREACHABLE",
       error: "The BigWig file request returned HTTP 404.",
@@ -466,6 +471,42 @@ it("adds nothing when checking a URL outlasts its command", async () => {
   await vi.waitFor(() =>
     expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
   );
+});
+
+it("refuses tracks beyond the session's limit, including adds that finish checking together", async () => {
+  server.files.set(`${dataHost}/first.bw`, files.bigWig);
+  server.files.set(`${dataHost}/second.bw`, files.bigWig);
+  const { tracks } = server.stored.get(alpha)!.snapshot;
+  const [ruler] = tracks;
+  const room = maxSessionTracks - tracks.length - 1;
+  tracks.push(
+    ...Array.from({ length: room }, (_, index) => ({
+      ...ruler,
+      base: { ...ruler.base, id: `ruler-${index}` },
+    })),
+  );
+  await reload();
+  await enableRemoteControl();
+  const limit = {
+    ok: false,
+    code: "TRACK_LIMIT",
+    error: `The session already has ${maxSessionTracks} tracks, the most it can hold. Remove a track before adding another.`,
+  };
+
+  // Both start while the session has room for one.
+  await act(async () => {
+    latest().send(addTrackCommand({ url: `${dataHost}/first.bw` }));
+    latest().send(addTrackCommand({ url: `${dataHost}/second.bw` }));
+  });
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(2));
+  expect([reply(0).result, reply(1).result]).toEqual(
+    expect.arrayContaining([expect.objectContaining({ ok: true }), limit]),
+  );
+  // An unhosted URL would fail its check, so this shows a full session refuses before checking.
+  await addTrack({ url: `${dataHost}/unhosted.bw` });
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(3));
+  expect(reply(2).result).toEqual(limit);
+  await vi.waitFor(() => expect(savedTracks()).toHaveLength(maxSessionTracks));
 });
 
 it("keeps saving while the command stream is unavailable, then reconnects", async () => {

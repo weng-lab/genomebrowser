@@ -20,6 +20,9 @@ export type UrlTrackInput = {
 
 export type AddedUrlTrack = { id: string; title: string; type: UrlTrackType };
 
+/** The most tracks a session holds. Adding a track to a full session is refused. */
+export const maxSessionTracks = 50;
+
 type UrlTrackOutcome =
   | { ok: true; track: AddedUrlTrack }
   | { ok: false; code: string; error: string };
@@ -65,7 +68,7 @@ const createTrack: Record<
 /**
  * Check that the browser can read a URL's files as a track, then add the track below the
  * others, where the session saves it. Adds nothing when the URL is not a readable file of a
- * supported type or `signal` aborts first.
+ * supported type, the session already has `maxSessionTracks` tracks, or `signal` aborts first.
  */
 export async function addTrackFromUrl(
   trackStore: TrackStoreInstance,
@@ -94,10 +97,13 @@ export async function addTrackFromUrl(
     );
   }
   const title = input.title?.trim() || fileTitle(url, extension?.[0]);
+  if (isFull(trackStore)) return full();
   try {
     const track = await createTrack[type](input, url, { id: crypto.randomUUID(), title }, signal);
     // A check can finish just after its command is cancelled or expires.
     if (signal.aborted) return cancelled();
+    // Commands run concurrently, so another add may have filled the session during the check.
+    if (isFull(trackStore)) return full();
     const added = trackStore.getState().addTrack(track);
     if (!added.ok) return added;
     return { ok: true, track: { id: track.base.id, title, type } };
@@ -116,9 +122,22 @@ function cancelled() {
   return failure("CANCELLED", "Adding the track was cancelled.");
 }
 
+function isFull(trackStore: TrackStoreInstance) {
+  return trackStore.getState().tracks.length >= maxSessionTracks;
+}
+
+function full() {
+  return failure(
+    "TRACK_LIMIT",
+    `The session already has ${maxSessionTracks} tracks, the most it can hold. Remove a track before adding another.`,
+  );
+}
+
+/** The URL, when it is an absolute HTTP or HTTPS URL. */
 function parseUrl(url: string) {
   try {
-    return new URL(url);
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed : undefined;
   } catch {
     return undefined;
   }
