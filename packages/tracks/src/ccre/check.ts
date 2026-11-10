@@ -4,8 +4,8 @@ import type { TrackFileCheckOptions } from "../shared/fileChecks";
 const bigBedFile = { field: "url", name: "BigBed file" };
 
 /**
- * Checks that a URL serves a BigBed file with the cCRE columns, by reading its header. Returns
- * the config fields to create the track with, or rejects with a `TrackFileError`.
+ * Checks that a URL serves a BigBed file with enough columns for cCRE records, by reading its
+ * header. Returns the config fields to create the track with, or rejects with a `TrackFileError`.
  */
 export async function checkCcreBigBedFiles(
   source: { url: string },

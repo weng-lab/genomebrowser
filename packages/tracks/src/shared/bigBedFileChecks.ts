@@ -1,5 +1,5 @@
 import { bed3Schema, createBigBedFile, type BigBedHeader } from "@weng-lab/genomic-reader";
-import { bedSchemaStandardColumns, bedSchemas, type BedSchemaKey } from "./bedSchemas";
+import { bedSchemas, type BedSchemaKey } from "./bedSchemas";
 import { TrackFileError, openTrackFile, readTrackFile, type TrackFile } from "./fileChecks";
 
 /** Reads a BigBed file's header, which holds its column counts. */
@@ -18,8 +18,8 @@ function bedSchemaColumns(key: BedSchemaKey): number {
 }
 
 /**
- * Rejects a BigBed file whose header declares too few columns for a preset. Preset columns past
- * its standard BED columns, such as cCRE's class, may be custom.
+ * Rejects a BigBed file whose header declares too few columns for a preset. Only the total
+ * counts: tracks read columns by position, whether the file declares them standard or custom.
  */
 export function checkBedSchemaColumns(
   file: TrackFile,
@@ -27,17 +27,10 @@ export function checkBedSchemaColumns(
   key: BedSchemaKey,
 ): void {
   const columns = bedSchemaColumns(key);
-  const standardColumns = bedSchemaStandardColumns[key];
   if (header.fieldCount < columns)
     throw new TrackFileError(
       "UNREADABLE",
       file.field,
       `The ${file.name} has ${header.fieldCount} columns; ${key} needs ${columns}.`,
-    );
-  if (header.definedFieldCount < standardColumns)
-    throw new TrackFileError(
-      "UNREADABLE",
-      file.field,
-      `The ${file.name} has ${header.definedFieldCount} standard BED columns; ${key} needs ${standardColumns}.`,
     );
 }

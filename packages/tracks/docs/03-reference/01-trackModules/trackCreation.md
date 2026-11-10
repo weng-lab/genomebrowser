@@ -72,13 +72,13 @@ try {
 }
 ```
 
-| Check                                   | Subpath   | Reads                                                                                                                                                                                                          |
-| --------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `checkBigWigFiles({ url })`             | `/bigwig` | The BigWig header.                                                                                                                                                                                             |
-| `checkBigBedFiles({ url, bedSchema? })` | `/bigbed` | The BigBed header. Without `bedSchema`, chooses the widest standard preset (`bed3` to `bed9`) the header's standard BED columns cover; with one, checks the header has its columns. Resolves with `bedSchema`. |
-| `checkGeneFiles({ url })`               | `/gene`   | The BigBed header, which must have at least the 20 BigGenePred columns.                                                                                                                                        |
-| `checkCcreBigBedFiles({ url })`         | `/ccre`   | The BigBed header, which must have BED9 standard columns and the cCRE class column.                                                                                                                            |
-| `checkBamFiles({ url, indexUrl })`      | `/bam`    | The BAM header, and the start of the BAI index, which must list as many references as the BAM.                                                                                                                 |
+| Check                                   | Subpath   | Reads                                                                                                                                                                                                                                                                             |
+| --------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkBigWigFiles({ url })`             | `/bigwig` | The BigWig header.                                                                                                                                                                                                                                                                |
+| `checkBigBedFiles({ url, bedSchema? })` | `/bigbed` | The BigBed header. Without `bedSchema`, chooses the widest standard preset (`bed3` to `bed9`) the header's standard BED columns cover; with one, checks only that the file has enough columns, because files often declare standard columns as custom. Resolves with `bedSchema`. |
+| `checkGeneFiles({ url })`               | `/gene`   | The BigBed header, which must have at least the 20 BigGenePred columns.                                                                                                                                                                                                           |
+| `checkCcreBigBedFiles({ url })`         | `/ccre`   | The BigBed header, which must have at least the 10 cCRE columns: BED9 and the class.                                                                                                                                                                                              |
+| `checkBamFiles({ url, indexUrl })`      | `/bam`    | The BAM header, and the start of the BAI index, which must list as many references as the BAM.                                                                                                                                                                                    |
 
 Each check takes an optional `{ signal }`. Aborting it rejects the check with the signal's reason. Otherwise a failing check rejects with a `TrackFileError`, exported from `/shared`:
 
@@ -90,14 +90,14 @@ Each check takes an optional `{ signal }`. Aborting it rejects the check with th
 | `message` | `string`             | A sentence describing the failure, naming the file.                           |
 | `cause`   | `unknown`            | The reader error the check failed on, when there was one.                     |
 
-| `code`             | Meaning                                                                                                                     |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| `INVALID_URL`      | The URL is not an absolute HTTP or HTTPS URL.                                                                               |
-| `UNREACHABLE`      | The request failed. `status` is set when the host answered, such as 404; it is absent for network failures and CORS blocks. |
-| `NO_RANGE_SUPPORT` | The host answered a byte-range request with the whole file (`status` 200).                                                  |
-| `UNREADABLE`       | The host answered, but the file is not one this track type reads, or lacks the columns or index it needs.                   |
+| `code`             | Meaning                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `INVALID_URL`      | The URL is not an absolute HTTP or HTTPS URL.                                                                                                                                  |
+| `UNREACHABLE`      | The request failed. `status` is set when the host answered, such as 404; it is absent for network failures and CORS blocks.                                                    |
+| `NO_RANGE_SUPPORT` | The host answered a byte-range request with the whole file (`status` 200).                                                                                                     |
+| `UNREADABLE`       | The host answered, but the file is not one this track type reads, or lacks the columns or index it needs. `status` is 416 when the file ends before data its header points to. |
 
-A check confirms the file's format and declared layout, not every record. A file whose header declares more standard BED columns than its records hold, or an index that is out of date for its BAM, still passes and fails when the track draws.
+A check confirms the file's format and column count, not its records. A file whose columns hold other data than the preset reads, such as a narrowPeak file read as `bed9`, or an index that is out of date for its BAM, still passes, and the track shows the read error when it draws. For BigBed, that error names the column, its value, and the preset.
 
 ## Module members
 

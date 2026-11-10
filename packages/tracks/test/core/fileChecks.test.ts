@@ -35,8 +35,9 @@ function bigBedWithColumns(fieldCount: number, definedFieldCount: number) {
 
 type HostedFiles = Record<string, Uint8Array | number>;
 
-// Serves each file as a host that supports byte-range requests would. A number answers with that
-// status instead; an unlisted URL fails as fetch does when a host is unreachable or CORS blocks it.
+// Serves each file as a host that supports byte-range requests would, answering 416 to a range that
+// starts past its end. A number answers with that status instead; an unlisted URL fails as fetch
+// does when a host is unreachable or CORS blocks it.
 function host(files: HostedFiles) {
   vi.stubGlobal(
     "fetch",
@@ -48,6 +49,7 @@ function host(files: HostedFiles) {
       const range = /^bytes=(\d+)-(\d+)$/.exec(new Headers(init?.headers).get("Range") ?? "");
       if (!range) return new Response(file.slice(), { status: 200 });
       const start = Number(range[1]);
+      if (start >= file.length) return new Response(null, { status: 416 });
       const end = Math.min(Number(range[2]), file.length - 1);
       return new Response(file.slice(start, end + 1), {
         status: 206,
@@ -73,6 +75,12 @@ it.each<{ added: string; files: HostedFiles; check: () => Promise<unknown>; outc
     outcome: { url },
   },
   {
+    added: "a BigWig file cut off after its header",
+    files: { [url]: bigWig.slice(0, 64) },
+    check: () => checkBigWigFiles({ url }),
+    outcome: failure("UNREADABLE", "url", 416),
+  },
+  {
     added: "a BigBed file as BigWig",
     files: { [url]: bed6 },
     check: () => checkBigWigFiles({ url }),
@@ -91,6 +99,12 @@ it.each<{ added: string; files: HostedFiles; check: () => Promise<unknown>; outc
     outcome: { url, bedSchema: "bed3" },
   },
   {
+    added: "a BigBed file that declares no standard columns as BigBed",
+    files: { [url]: bigBedWithColumns(6, 0) },
+    check: () => checkBigBedFiles({ url }),
+    outcome: { url, bedSchema: "bed3" },
+  },
+  {
     added: "a BED12 file as BigBed",
     files: { [url]: bigBedWithColumns(12, 12) },
     check: () => checkBigBedFiles({ url }),
@@ -103,8 +117,14 @@ it.each<{ added: string; files: HostedFiles; check: () => Promise<unknown>; outc
     outcome: { url, bedSchema: "bed4" },
   },
   {
-    added: "a narrowPeak (bed6+4) file as BigBed read as BED9",
-    files: { [url]: bigBedWithColumns(10, 6) },
+    added: "a bed3+3 file as BigBed read as BED6",
+    files: { [url]: bigBedWithColumns(6, 3) },
+    check: () => checkBigBedFiles({ url, bedSchema: "bed6" }),
+    outcome: { url, bedSchema: "bed6" },
+  },
+  {
+    added: "a BED6 file as BigBed read as BED9",
+    files: { [url]: bed6 },
     check: () => checkBigBedFiles({ url, bedSchema: "bed9" }),
     outcome: failure("UNREADABLE", "url"),
   },
@@ -127,8 +147,14 @@ it.each<{ added: string; files: HostedFiles; check: () => Promise<unknown>; outc
     outcome: { url },
   },
   {
-    added: "a narrowPeak (bed6+4) file as cCRE",
-    files: { [url]: bigBedWithColumns(10, 6) },
+    added: "a cCRE file that declares its BED9 columns custom (bed3+7) as cCRE",
+    files: { [url]: bigBedWithColumns(10, 3) },
+    check: () => checkCcreBigBedFiles({ url }),
+    outcome: { url },
+  },
+  {
+    added: "a BED9 file as cCRE",
+    files: { [url]: bigBedWithColumns(9, 9) },
     check: () => checkCcreBigBedFiles({ url }),
     outcome: failure("UNREADABLE", "url"),
   },

@@ -5,7 +5,8 @@ import { HttpStatusError } from "@weng-lab/genomic-reader";
  * - `INVALID_URL`: the URL is not an absolute HTTP(S) URL.
  * - `UNREACHABLE`: the request failed, with `status` when the host answered with one.
  * - `NO_RANGE_SUPPORT`: the host sent the whole file instead of the requested byte range.
- * - `UNREADABLE`: the host answered, but the file cannot be read by this track type.
+ * - `UNREADABLE`: the host answered, but the file cannot be read by this track type, with
+ *   `status` 416 when the file ends before data its header points to.
  */
 export type TrackFileErrorCode = "INVALID_URL" | "UNREACHABLE" | "NO_RANGE_SUPPORT" | "UNREADABLE";
 
@@ -74,6 +75,14 @@ function describeReadFailure(file: TrackFile, error: unknown): TrackFileError {
         `The ${file.name} host does not support byte-range requests.`,
         { status: error.status, cause: error },
       );
+    // Range Not Satisfiable: the range starts past the end of the file.
+    if (error.status === 416)
+      return new TrackFileError(
+        "UNREADABLE",
+        file.field,
+        `The ${file.name} ends before data its header points to, so it may be incomplete.`,
+        { status: error.status, cause: error },
+      );
     return new TrackFileError(
       "UNREACHABLE",
       file.field,
@@ -81,7 +90,8 @@ function describeReadFailure(file: TrackFile, error: unknown): TrackFileError {
       { status: error.status, cause: error },
     );
   }
-  // fetch rejects with a TypeError for network failures, including requests CORS blocks.
+  // The reader passes on fetch's TypeError for network failures, including requests CORS blocks.
+  // It reports problems inside a file with other errors.
   if (error instanceof TypeError)
     return new TrackFileError(
       "UNREACHABLE",
