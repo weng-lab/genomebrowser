@@ -408,6 +408,18 @@ it("tells the agent why a URL cannot be added, and adds nothing for it", async (
         "The track type cannot be inferred from the URL. Choose one of: bigwig, bigbed, gene, ccre-bigbed, bam.",
     },
     {
+      params: { url: `${dataHost}/Registry-V4/GRCh38-cCREs.PLS.bed` },
+      code: "UNSUPPORTED_FORMAT",
+      error:
+        "The URL names a plain-text BED file, which the browser cannot read. Convert it to BigBed with UCSC's bedToBigBed, then add the BigBed file's URL.",
+    },
+    {
+      params: { url: `${dataHost}/coverage.bedGraph.gz` },
+      code: "UNSUPPORTED_FORMAT",
+      error:
+        "The URL names a plain-text bedGraph file, which the browser cannot read. Convert it to BigWig with UCSC's bedGraphToBigWig, then add the BigWig file's URL.",
+    },
+    {
       params: { url: "signal.bw" },
       code: "INVALID_URL",
       error: "The URL is not an absolute HTTP or HTTPS URL.",

@@ -33,6 +33,14 @@ const extensionTypes: [extension: string, type: UrlTrackType][] = [
   [".bam", "bam"],
 ];
 
+// Plain-text formats the browser cannot read, matched the same way after any `.gz`, with the
+// indexed format each converts to and the UCSC tool that converts it.
+const textFormats: [extension: string, format: string, target: string, tool: string][] = [
+  [".bed", "BED", "BigBed", "bedToBigBed"],
+  [".bedgraph", "bedGraph", "BigWig", "bedGraphToBigWig"],
+  [".wig", "WIG", "BigWig", "wigToBigWig"],
+];
+
 type Base = { id: string; title: string };
 
 // Checks the files each type reads, then creates the track from the config the check returns.
@@ -66,11 +74,19 @@ export async function addTrackFromUrl(
 ): Promise<UrlTrackOutcome> {
   const url = parseUrl(input.url);
   if (!url) return failure("INVALID_URL", "The URL is not an absolute HTTP or HTTPS URL.");
-  const extension = extensionTypes.find(([extension]) =>
-    url.pathname.toLowerCase().endsWith(extension),
-  );
+  const path = url.pathname.toLowerCase();
+  const extension = extensionTypes.find(([extension]) => path.endsWith(extension));
   const type = input.type ?? extension?.[1];
   if (!type) {
+    const unzipped = path.replace(/\.gz$/, "");
+    const text = textFormats.find(([extension]) => unzipped.endsWith(extension));
+    if (text) {
+      const [, format, target, tool] = text;
+      return failure(
+        "UNSUPPORTED_FORMAT",
+        `The URL names a plain-text ${format} file, which the browser cannot read. Convert it to ${target} with UCSC's ${tool}, then add the ${target} file's URL.`,
+      );
+    }
     const types = urlTrackTypeSchema.options.join(", ");
     return failure(
       "UNKNOWN_TYPE",
