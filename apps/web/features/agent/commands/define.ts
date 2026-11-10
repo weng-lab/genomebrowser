@@ -1,5 +1,6 @@
 import type { BrowserImage, GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
+import type { UrlTrackInput, UrlTracksOutcome } from "../../browser/urlTracks";
 
 export type CommandFailure = { ok: false; code: string; error: string };
 export type CommandOutcome<Value> = { ok: true; value: Value } | CommandFailure;
@@ -22,6 +23,11 @@ export type CommandApp = {
   ): Promise<BrowserImage>;
   /** Show an exported image to the user, who decides whether to download it. */
   showImage(image: BrowserImage): void;
+  /** Check that the browser can read each file URL as a track, then add every track below the others, or none. */
+  addTracksFromUrls(
+    inputs: readonly UrlTrackInput[],
+    signal: AbortSignal,
+  ): Promise<UrlTracksOutcome>;
 };
 
 /**

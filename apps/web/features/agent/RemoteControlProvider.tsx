@@ -9,6 +9,7 @@ import {
 import { useSession } from "../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { sortTracks } from "../browser/trackSort";
+import { addTracksFromUrls } from "../browser/urlTracks";
 import type { CommandApp } from "./commands";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
@@ -58,6 +59,8 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
           signal,
         ),
       showImage: (image) => setPreview({ image, open: true }),
+      addTracksFromUrls: (inputs, signal) =>
+        addTracksFromUrls(stores.useTrackStore, inputs, signal),
     };
     return connectRemoteControl(`/api/sessions/${id}/commands`, app, signal, setState);
   }, [enabled, id, stores, signal, svgRef]);

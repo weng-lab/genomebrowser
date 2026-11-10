@@ -1,6 +1,6 @@
 # Agent access and control
 
-This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and three tools: `set_region`, `export_image`, which shows the user an image preview with a Download button, and `sort_tracks`. MCP requires the session owner's Clerk identity. Integrated chat, OAuth onboarding for external clients, and exclusive human/agent control are not implemented yet.
+This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and four tools: `set_region`, `export_image`, which shows the user an image preview with a Download button, `sort_tracks`, and `add_tracks_from_urls`, which checks hosted files before adding them as tracks, all or none. MCP requires the session owner's Clerk identity. Integrated chat, OAuth onboarding for external clients, and exclusive human/agent control are not implemented yet.
 
 ## A control surface for the active session
 
