@@ -27,6 +27,9 @@ export const addTracksFromUrls = defineCommand({
   params: z.strictObject({
     tracks: z.array(track).min(1).describe("The tracks to add, in order."),
   }),
+  // Checks of a large batch or a slow host can take more than five seconds. MCP clients built
+  // on the official SDKs stop waiting for a request after 60 seconds by default.
+  timeoutMs: 45_000,
   result: z.strictObject({
     tracks: z.array(
       z.strictObject({ id: z.string(), title: z.string(), type: urlTrackTypeSchema }),

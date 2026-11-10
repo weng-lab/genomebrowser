@@ -47,6 +47,11 @@ export type Command<
   description: string;
   params: Params;
   result: Result;
+  /**
+   * How long the tab may take to reply, in milliseconds, when five seconds is not enough. The
+   * MCP route's `maxDuration` must outlast it.
+   */
+  timeoutMs?: number;
   run(
     app: CommandApp,
     params: z.output<Params>,

@@ -237,6 +237,22 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     expect(await tab.next()).toEqual({ event: "cancel", commandId });
   });
 
+  it("gives a command its own time limit in place of the relay's", async () => {
+    const commands = relay({ commandTimeoutMs: 300 });
+    const id = session();
+    const tab = await attachTab(commands, id);
+    if (tab === "taken") throw new Error("Tab was refused");
+    const started = Date.now();
+    const result = commands.dispatch(id, setRegion, never(), { timeoutMs: 2_000 });
+    const { commandId, expiresAt } = await tab.command();
+    expect(expiresAt).toBeGreaterThan(started + 300);
+    expect(expiresAt).toBeLessThanOrEqual(Date.now() + 2_000);
+    // The tab replies after the relay's own timeout has passed.
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(await commands.reply(id, { commandId, result: { ok: true, value: 1 } })).toBe(true);
+    expect(await result).toEqual({ ok: true, value: 1 });
+  });
+
   it("ends a tab stream when its lifetime ends, freeing the session for its reconnect", async () => {
     const commands = relay({ streamLifetimeMs: 200 });
     const id = session();
