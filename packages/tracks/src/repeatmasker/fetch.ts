@@ -1,3 +1,4 @@
+import { validateRepeatMaskerLayout } from "./layout";
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
 import { fetchStandardRepeatMasker } from "./standard/fetch";
 import { fetchBigRmsk } from "./joined/fetch";
@@ -28,10 +29,7 @@ export async function fetchRepeatMasker(
   const url = track.config.sources.joined;
   const file = getCachedBigBedFile(resources, url, bigRmskSchema);
   const metadata = await file.getMetadata({ signal });
-  if (metadata.fieldCount !== 14 || metadata.definedFieldCount !== 9)
-    throw new Error(
-      "Joined RepeatMasker requires the bigRmsk BED9+5 layout (14 fields, 9 standard BED fields).",
-    );
+  validateRepeatMaskerLayout(metadata, "joined");
   if (region.end - region.start > track.config.maxDetailBases) {
     if (!metadata.zoomLevels.length)
       return { view: "joined-summary", url, data: { kind: "detail-required" } };

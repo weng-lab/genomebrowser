@@ -1,3 +1,4 @@
+import { BigRmskSummary } from "./joined/summary";
 import type { TrackRendererProps } from "@weng-lab/genomebrowser";
 import {
   FullStandardRepeatMasker,
@@ -41,6 +42,8 @@ function RepeatMaskerRows({ mode, ...props }: Props & { mode: Mode }) {
       `}</style>
       {data.view === "joined" ? (
         <Joined {...props} config={joinedConfig(config)} data={data.data} />
+      ) : data.view === "joined-summary" ? (
+        <BigRmskSummary {...props} config={joinedConfig(config)} data={data.data} />
       ) : (
         <Standard
           {...props}

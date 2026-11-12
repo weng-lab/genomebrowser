@@ -178,6 +178,26 @@ describe("RepeatMasker public module", () => {
     });
   });
 
+  it("validates Joined AutoSQL column names before decoding and keeps the no-AutoSQL fallback", async () => {
+    const wrong = exampleBigRmsk.slice();
+    const name = new TextEncoder().encode("blockStarts");
+    const offset = wrong.findIndex((_, index) =>
+      name.every((byte, n) => wrong[index + n] === byte),
+    );
+    expect(offset).toBeGreaterThan(0);
+    wrong.set(new TextEncoder().encode("otherStarts"), offset);
+    serveRepeatMasker(standardRepeatFile, wrong);
+    await expect(module.fetch(context({ view: "joined" }))).rejects.toThrow("AutoSQL");
+    const header = new DataView(wrong.buffer);
+    // An explicitly present but empty schema must not take the missing-schema fallback.
+    wrong[Number(header.getBigUint64(36, true))] = 0;
+    serveRepeatMasker(standardRepeatFile, wrong);
+    await expect(module.fetch(context({ view: "joined" }))).rejects.toThrow("AutoSQL");
+    header.setBigUint64(36, 0n, true);
+    serveRepeatMasker(standardRepeatFile, wrong);
+    expect(await module.fetch(context({ view: "joined" }))).toMatchObject({ view: "joined" });
+  });
+
   it("uses bounded summaries for either source and avoids raw reads when joined zooms are absent", async () => {
     const wide = { chromosome: "chr1", start: 0, end: 248956422 };
     serveRepeatMasker();

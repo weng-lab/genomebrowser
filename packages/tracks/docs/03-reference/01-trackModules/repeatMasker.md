@@ -44,7 +44,7 @@ Detail grayscale becomes lighter as `milliDiv + milliDel + milliIns` increases, 
 
 ### Joined repeats
 
-The source must declare the bigRmsk BED9+5 layout: 14 fields, with 9 standard BED fields. Fields after BED3 are `name`, `score`, `strand`, `thickStart`, `thickEnd`, `reserved`, `blockCount`, `blockSizes`, `blockStarts`, `id`, and `description`. The ninth column is a numeric reserved value rather than an RGB color. These records are not ordinary BED12.
+The source must declare the bigRmsk BED9+5 layout: 14 fields, with 9 standard BED fields. If embedded AutoSQL exists, its ordered column names must match the known bigRmsk schema. Files without AutoSQL use the validated 14/9 header and known positional mapping. Fields after BED3 are `name`, `score`, `strand`, `thickStart`, `thickEnd`, `reserved`, `blockCount`, `blockSizes`, `blockStarts`, `id`, and `description`. The ninth column is a numeric reserved value rather than an RGB color. These records are not ordinary BED12.
 
 Block arrays accept a trailing comma and contain signed integers. A block start of `-1` identifies unaligned consensus sequence; signed sizes on these blocks can describe consensus overlap. Validation checks array lengths, aligned block sizes, ordering, and bounds against `thickStart` and `thickEnd`. Records without aligned blocks draw no coverage.
 
@@ -53,6 +53,8 @@ Decoded records retain all named source fields and add `repeatName`, `repeatClas
 Full display caps each terminal consensus extension at 120 logical pixels and labels the unaligned length when space allows. Dashed context is not genomic repeat coverage. Fragment joins show missing consensus sequence with dashed connections and consensus overlap with angled connections. Pack and Dense use repeat-class colors; the arbitrary base color does not override annotation shading or the class palette. Row height follows the visible rows while retaining overscan annotations for panning.
 
 Joined tooltips show repeat name, class, family, aligned region, strand, divergence (`score / 10` percent), aligned fragment count, and repeat ID. The optional bigRmskAlign companion file and pairwise alignment detail view are not loaded.
+
+Joined zoom coverage has its own `kind: "joined-summary"` interaction item, with genomic coordinates, `validCount`, and `mean`. Its tooltip identifies coverage of indexed visualization bounds, which is not exact aligned-fragment coverage. It does not report Standard repeat attributes. Tooltip dispatch follows the item itself, including a hover retained across a view change.
 
 ## Configuration and settings
 
@@ -78,7 +80,7 @@ Files without zoom levels show the prompt without reading raw records at wide sc
 
 ## Tooltips, interactions, and types
 
-Callbacks receive a `RepeatMaskerItem`, the original typed standard repeat, joined repeat, or summary item. Joined records have `alignedBlocks`; standard detail records have `kind: "repeat"`; summaries have `kind: "summary"`. The callback context retains type `repeatmasker`, both URLs, the active view, and all current settings. Tooltip dispatch follows the hovered item shape, including during a view change.
+Callbacks receive a `RepeatMaskerItem`, the original typed standard repeat, joined repeat, or source-specific summary item. Joined records have `alignedBlocks`; standard detail records have `kind: "repeat"`; Standard summaries have `kind: "summary"`; Joined summaries have `kind: "joined-summary"`. The callback context retains type `repeatmasker`, both URLs, the active view, and all current settings. Tooltip dispatch follows the hovered item shape, including during a view change.
 
 Public types from this subpath:
 
@@ -86,7 +88,7 @@ Public types from this subpath:
 - `RepeatMaskerDisplay`: `"full" | "pack" | "dense"`.
 - `RepeatMaskerConfig`: the resolved configuration above.
 - `RepeatMaskerItem`: union of the standard repeat, joined repeat, and coverage summary shapes described above.
-- `RepeatMaskerData`: source-tagged result. Standard data has `{ view: "standard", url, data }`; joined detail has `{ view: "joined", url, data }`; joined coverage or zoom prompts have `{ view: "joined-summary", url, data }`. The URL identifies the fetched source so stale results cannot be rendered under a replacement URL. Standard and summary `data` use `{ kind: "repeats", repeats }`, `{ kind: "summary", summaries }`, or `{ kind: "detail-required" }`; joined detail `data` is an array of joined repeats.
+- `RepeatMaskerData`: source-tagged result. Standard data has `{ view: "standard", url, data }`; joined detail has `{ view: "joined", url, data }`; joined coverage or zoom prompts have `{ view: "joined-summary", url, data }`. The URL identifies the fetched source so stale results cannot be rendered under a replacement URL. Standard `data` uses `{ kind: "repeats", repeats }`, `{ kind: "summary", summaries }`, or `{ kind: "detail-required" }`; Joined detail `data` is an array of joined repeats. Joined summary `data` allows only `{ kind: "summary", summaries }` or `{ kind: "detail-required" }`, and its renderer produces the distinct `joined-summary` interaction items described above.
 
 Save the track's type, base, config, and source with other track configuration. Multiple RepeatMasker track instances keep independent settings and source resources.
 

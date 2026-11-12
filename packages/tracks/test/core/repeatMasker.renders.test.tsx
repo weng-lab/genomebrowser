@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import { standardRepeatFile } from "../fixtures/repeatMaskerStandard";
+import { exampleBigRmsk } from "../fixtures/bigRmsk";
 import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/genomebrowser";
 import { repeatMaskerModule as module } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
@@ -185,4 +188,74 @@ it("cancels a pending source switch and ignores its late response", async () => 
   await probe.measure(() => release.resolve());
   expect(document.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
   expect(document.querySelector("[data-bigrmsk-block]")).toBeNull();
+});
+
+it("keeps Joined summary interactions and tooltips distinct across view changes", async () => {
+  serveRepeatMasker(standardRepeatFile, exampleBigRmsk);
+  const onClick = vi.fn();
+  const onHover = vi.fn();
+  const browserStore = createBrowserStore({
+    assembly: { id: "hg38", chromosomes: { chr1: 248956422 } },
+    region: { chromosome: "chr1", start: 0, end: 60000 },
+    trackWidth: 1000,
+  });
+  const track = module.create(
+    {
+      base: { id: "repeats", title: "RepeatMasker", display: "dense" },
+      config: { sources, maxDetailBases: 100 },
+    },
+    { onClick, onHover },
+  );
+  const trackStore = createTrackStore({ modules: [module], tracks: [track] });
+  probe = await renderWithProbe(
+    <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+  );
+  const switched = await probe.measure(() =>
+    trackStore.getState().updateTrack("repeats", { config: { view: "joined" } }),
+  );
+  // jsdom lacks SVG coordinate transforms used by the real tooltip positioner.
+  const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+  const svgPoint = { x: 0, y: 0, matrixTransform: () => ({ x: svgPoint.x, y: svgPoint.y }) };
+  const matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => matrix };
+  Object.assign(svg, { createSVGPoint: () => svgPoint, getScreenCTM: () => matrix });
+  const cells = document.querySelectorAll("[data-repeatmasker-summary]");
+  expect(cells.length).toBeGreaterThan(0);
+  expect(cells.length).toBeLessThanOrEqual(2000);
+  const hover = await probe.measure(() => {
+    cells[0]!.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    cells[0]!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  expect(hover.pick("DenseRepeatMasker", "RepeatMaskerRows", "BigRmskSummary"))
+    .toMatchInlineSnapshot(`
+    {
+      "BigRmskSummary": 0,
+      "DenseRepeatMasker": 0,
+      "RepeatMaskerRows": 0,
+    }
+  `);
+  for (const callback of [onHover, onClick]) {
+    expect(callback).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: "joined-summary" }),
+      expect.objectContaining({ config: expect.objectContaining({ view: "joined" }) }),
+    );
+  }
+  const Tooltip = module.tooltipComponent!;
+  const tip = renderToStaticMarkup(
+    <Tooltip
+      item={onClick.mock.lastCall![0]}
+      context={{ ...track, config: { ...track.config, view: "standard" } }}
+    />,
+  );
+  expect(tip).toContain("Joined repeat coverage summary");
+  expect(tip).toContain("visualization bounds");
+  expect(tip).toContain("not exact aligned-fragment coverage");
+  // Source changes display a new result; unchanged one-row height needs no layout commit.
+  expect(switched.pick("DenseRepeatMasker", "RepeatMaskerRows", "BigRmskSummary"))
+    .toMatchInlineSnapshot(`
+    {
+      "BigRmskSummary": 1,
+      "DenseRepeatMasker": 1,
+      "RepeatMaskerRows": 1,
+    }
+  `);
 });
