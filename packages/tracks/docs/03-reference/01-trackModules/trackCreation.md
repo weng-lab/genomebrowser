@@ -51,9 +51,53 @@ if (result.success) {
 }
 ```
 
-Creation input, base, and the top-level config reject unknown keys. Nested objects follow their module-specific schemas. Validation does not contact a data server or check file contents.
+Creation input, base, and the top-level config reject unknown keys. Nested objects follow their module-specific schemas. Validation does not contact a data server or check file contents; to check the files, see [Check source files](#check-source-files).
 
 `module.validate(instance)` parses a complete instance, including its type, resolved base, and source. Both `create` and `validate` throw an `Error` containing validation details on failure. Store construction and updates also validate instances. Source ownership controls built-in forms; it does not prevent application code from updating the source through the store.
+
+## Check source files
+
+Before creating a track from URLs someone supplied, check that the track can read the files they name. Each file-backed module below exports a check from its subpath. It reads only each file's header, or for a BAM index its first 8 bytes, and resolves with the config fields to create the track with:
+
+```ts
+import { bigBedModule, checkBigBedFiles } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { TrackFileError } from "@weng-lab/genomebrowser-tracks/shared";
+
+try {
+  const config = await checkBigBedFiles({ url: "YOUR_URL_HERE" }, { signal });
+  const track = bigBedModule.create({ base: { id: "peaks", title: "Peaks" }, config });
+} catch (error) {
+  if (error instanceof TrackFileError) console.error(error.code, error.field, error.message);
+  else throw error;
+}
+```
+
+| Check                                   | Subpath   | Reads                                                                                                                                                                                                                                                                             |
+| --------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkBigWigFiles({ url })`             | `/bigwig` | The BigWig header.                                                                                                                                                                                                                                                                |
+| `checkBigBedFiles({ url, bedSchema? })` | `/bigbed` | The BigBed header. Without `bedSchema`, chooses the widest standard preset (`bed3` to `bed9`) the header's standard BED columns cover; with one, checks only that the file has enough columns, because files often declare standard columns as custom. Resolves with `bedSchema`. |
+| `checkGeneFiles({ url })`               | `/gene`   | The BigBed header, which must have at least the 20 BigGenePred columns.                                                                                                                                                                                                           |
+| `checkCcreBigBedFiles({ url })`         | `/ccre`   | The BigBed header, which must have at least the 10 cCRE columns: BED9 and the class.                                                                                                                                                                                              |
+| `checkBamFiles({ url, indexUrl })`      | `/bam`    | The BAM header, and the start of the BAI index, which must list as many references as the BAM.                                                                                                                                                                                    |
+
+Each check takes an optional `{ signal }`. Aborting it rejects the check with the signal's reason. Otherwise a failing check rejects with a `TrackFileError`, exported from `/shared`:
+
+| Field     | Type                 | Meaning                                                                       |
+| --------- | -------------------- | ----------------------------------------------------------------------------- |
+| `code`    | `TrackFileErrorCode` | Why the file failed; see below.                                               |
+| `field`   | `string`             | The config field holding the failing file's URL, such as `url` or `indexUrl`. |
+| `status`  | `number`, optional   | The HTTP status the host answered with, when the failure was one.             |
+| `message` | `string`             | A sentence describing the failure, naming the file.                           |
+| `cause`   | `unknown`            | The reader error the check failed on, when there was one.                     |
+
+| `code`             | Meaning                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `INVALID_URL`      | The URL is not an absolute HTTP or HTTPS URL.                                                                                                                                  |
+| `UNREACHABLE`      | The request failed. `status` is set when the host answered, such as 404; it is absent for network failures and CORS blocks.                                                    |
+| `NO_RANGE_SUPPORT` | The host answered a byte-range request with the whole file (`status` 200).                                                                                                     |
+| `UNREADABLE`       | The host answered, but the file is not one this track type reads, or lacks the columns or index it needs. `status` is 416 when the file ends before data its header points to. |
+
+A check confirms the file's format and column count, not its records. A file whose columns hold other data than the preset reads, such as a narrowPeak file read as `bed9`, or an index that is out of date for its BAM, still passes, and the track shows the read error when it draws. For BigBed, that error names the column, its value, and the preset.
 
 ## Module members
 

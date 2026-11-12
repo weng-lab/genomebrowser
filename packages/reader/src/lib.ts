@@ -1,5 +1,6 @@
 // Regional reading
 export type { GenomicFile, GenomicRecord, GenomicRegion, ReadOptions } from "./genomicFile";
+export { HttpStatusError } from "./httpStatusError";
 
 // BigWig signal
 export { createBigWigFile } from "./bigWig";

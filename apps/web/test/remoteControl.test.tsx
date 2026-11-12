@@ -3,9 +3,12 @@
 // Import first: it mocks the Next.js router before the app's modules load.
 import { clerk, route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { act, useLayoutEffect } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
+import { maxSessionTracks } from "../features/browser/urlTracks";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { useSession } from "../features/sessions/SessionProvider";
 import { installSessionServer, type SessionServer } from "./sessionServer";
@@ -309,6 +312,222 @@ it("sorts tracks for the agent, replies with the new order, and saves it", async
   await vi.waitFor(() =>
     expect(savedTitles()).toEqual(["Human cCREs", "GENCODE 50 basic", "Coordinates"]),
   );
+});
+
+function fixture(path: string) {
+  return new Uint8Array(
+    readFileSync(join(import.meta.dirname, "../../../packages/reader/test/fixtures", path)),
+  );
+}
+const files = {
+  bigWig: fixture("bigwig/basic.bw"),
+  bed6: fixture("bigbed/basic.bb"),
+  bam: fixture("bam/bamExample.bam"),
+  bai: fixture("bam/bamExample.bam.bai"),
+};
+const dataHost = "https://data.example.test";
+const addTracksCommand = (tracks: object[], expiresAt = Date.now() + 5000) => ({
+  commandId: crypto.randomUUID(),
+  name: "add_tracks_from_urls",
+  expiresAt,
+  params: { tracks },
+});
+const addTracks = (tracks: object[], expiresAt?: number) =>
+  act(async () => latest().send(addTracksCommand(tracks, expiresAt)));
+const savedTracks = () => server.stored.get(alpha)!.snapshot.tracks;
+const startingTitles = ["Coordinates", "GENCODE 50 basic", "Human cCREs"];
+
+// Each row is a file URL an agent might add, and the track the session saves for it.
+const additions = [
+  {
+    url: `${dataHost}/tracks/ENCFF001ABC.bigWig`,
+    hosted: { [`${dataHost}/tracks/ENCFF001ABC.bigWig`]: files.bigWig },
+    params: {},
+    saved: { type: "bigwig", title: "ENCFF001ABC", config: {} },
+  },
+  {
+    // A BigBed track reads the columns its header declares.
+    url: `${dataHost}/peaks.bb`,
+    hosted: { [`${dataHost}/peaks.bb`]: files.bed6 },
+    params: {},
+    saved: { type: "bigbed", title: "peaks", config: { bedSchema: "bed6" } },
+  },
+  {
+    url: `${dataHost}/reads.bam?download=1`,
+    hosted: {
+      [`${dataHost}/reads.bam?download=1`]: files.bam,
+      [`${dataHost}/reads.bam.bai?download=1`]: files.bai,
+    },
+    params: {},
+    saved: {
+      type: "bam",
+      title: "reads",
+      config: { indexUrl: `${dataHost}/reads.bam.bai?download=1` },
+    },
+  },
+  {
+    url: `${dataHost}/download?id=7`,
+    hosted: { [`${dataHost}/download?id=7`]: files.bigWig },
+    params: { type: "bigwig", title: "Signal" },
+    saved: { type: "bigwig", title: "Signal", config: {} },
+  },
+];
+
+it("adds a batch of tracks for the agent in order, and saves them", async () => {
+  for (const { hosted } of additions)
+    for (const [url, file] of Object.entries(hosted)) server.files.set(url, file);
+  await enableRemoteControl();
+
+  await addTracks(additions.map(({ url, params }) => ({ url, ...params })));
+
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  const { result } = reply();
+  expect(result).toEqual({
+    ok: true,
+    value: {
+      tracks: additions.map(({ saved }) => ({
+        id: expect.any(String),
+        title: saved.title,
+        type: saved.type,
+      })),
+    },
+  });
+  await vi.waitFor(() =>
+    expect(savedTracks()).toHaveLength(startingTitles.length + additions.length),
+  );
+  expect(savedTracks().slice(startingTitles.length)).toMatchObject(
+    additions.map(({ url, saved }, index) => ({
+      type: saved.type,
+      base: { id: result.value.tracks[index].id, title: saved.title },
+      source: "user",
+      config: { url, ...saved.config },
+    })),
+  );
+});
+
+it("tells the agent why each URL in a batch cannot be added, and adds none of the batch", async () => {
+  server.files.set(`${dataHost}/missing.bw`, 404);
+  server.files.set(`${dataHost}/peaks.bb`, files.bed6);
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
+  await enableRemoteControl();
+  const failures = [
+    {
+      params: { url: `${dataHost}/download?id=7` },
+      code: "UNKNOWN_TYPE",
+      error:
+        "The track type cannot be inferred from the URL. Choose one of: bigwig, bigbed, gene, ccre-bigbed, bam.",
+    },
+    {
+      params: { url: `${dataHost}/Registry-V4/GRCh38-cCREs.PLS.bed` },
+      code: "UNSUPPORTED_FORMAT",
+      error:
+        "The URL names a plain-text BED file, which the browser cannot read. Convert it to BigBed with UCSC's bedToBigBed, then add the BigBed file's URL.",
+    },
+    {
+      params: { url: `${dataHost}/coverage.bedGraph.gz` },
+      code: "UNSUPPORTED_FORMAT",
+      error:
+        "The URL names a plain-text bedGraph file, which the browser cannot read. Convert it to BigWig with UCSC's bedGraphToBigWig, then add the BigWig file's URL.",
+    },
+    {
+      params: { url: "signal.bw" },
+      code: "INVALID_URL",
+      error: "The URL is not an absolute HTTP or HTTPS URL.",
+    },
+    {
+      params: { url: "ftp://data.example.test/notes.txt" },
+      code: "INVALID_URL",
+      error: "The URL is not an absolute HTTP or HTTPS URL.",
+    },
+    {
+      params: { url: `${dataHost}/missing.bw` },
+      code: "UNREACHABLE",
+      error: "The BigWig file request returned HTTP 404.",
+    },
+    {
+      params: { url: `${dataHost}/peaks.bb`, type: "bigwig" },
+      code: "UNREADABLE",
+      error: "The BigWig file could not be read: Expected a BigWig file",
+    },
+  ];
+
+  await addTracks([{ url: `${dataHost}/signal.bw` }, ...failures.map(({ params }) => params)]);
+
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  const reasons = failures.map(({ params, code, error }) => `${params.url}: ${code}: ${error}`);
+  expect(reply().result).toEqual({
+    ok: false,
+    code: "TRACKS_NOT_ADDED",
+    error: `No tracks were added. ${reasons.join(" ")}`,
+  });
+  // The session saves the whole track list, so a later add shows the batch added nothing.
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
+  await vi.waitFor(() =>
+    expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
+  );
+});
+
+it("adds nothing from a batch whose checks outlast its command", async () => {
+  server.files.set(`${dataHost}/slow.bw`, "silent");
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
+  await enableRemoteControl();
+
+  await addTracks(
+    [{ url: `${dataHost}/signal.bw` }, { url: `${dataHost}/slow.bw` }],
+    Date.now() + 100,
+  );
+
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  expect(reply().result).toEqual({
+    ok: false,
+    code: "CANCELLED",
+    error: "Adding the tracks was cancelled.",
+  });
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
+  await vi.waitFor(() =>
+    expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
+  );
+});
+
+it("refuses a batch the session has no room for, including batches that finish checking together", async () => {
+  for (const name of ["a", "b", "c", "d"]) server.files.set(`${dataHost}/${name}.bw`, files.bigWig);
+  const { tracks } = server.stored.get(alpha)!.snapshot;
+  const [ruler] = tracks;
+  // Leave room for two more tracks.
+  tracks.push(
+    ...Array.from({ length: maxSessionTracks - tracks.length - 2 }, (_, index) => ({
+      ...ruler,
+      base: { ...ruler.base, id: `ruler-${index}` },
+    })),
+  );
+  await reload();
+  await enableRemoteControl();
+  const bigWigs = (...names: string[]) => names.map((name) => ({ url: `${dataHost}/${name}.bw` }));
+  const refused = (count: number, adding: number) => ({
+    ok: false,
+    code: "TRACK_LIMIT",
+    error: `A session holds at most ${maxSessionTracks} tracks. This one has ${count}, which leaves room for ${maxSessionTracks - count}, not ${adding}. No tracks were added.`,
+  });
+
+  await addTracks(bigWigs("a", "b", "c"));
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  expect(reply(0).result).toEqual(refused(maxSessionTracks - 2, 3));
+
+  // Both start while the session has room for either batch, but not both.
+  await act(async () => {
+    latest().send(addTracksCommand(bigWigs("a", "b")));
+    latest().send(addTracksCommand(bigWigs("c", "d")));
+  });
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(3));
+  expect([reply(1).result, reply(2).result]).toEqual(
+    expect.arrayContaining([expect.objectContaining({ ok: true }), refused(maxSessionTracks, 2)]),
+  );
+
+  // An unhosted URL would fail its check, so this shows a full session refuses before checking.
+  await addTracks(bigWigs("unhosted"));
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(4));
+  expect(reply(3).result).toEqual(refused(maxSessionTracks, 1));
+  await vi.waitFor(() => expect(savedTracks()).toHaveLength(maxSessionTracks));
 });
 
 it("keeps saving while the command stream is unavailable, then reconnects", async () => {

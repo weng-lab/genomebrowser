@@ -546,6 +546,87 @@ describe("BAM chunk requests", () => {
   });
 });
 
+describe("BAM index check", () => {
+  const exampleBam = new Uint8Array(
+    readFileSync(new URL("./fixtures/bam/bamExample.bam", import.meta.url)),
+  );
+  const exampleBai = new Uint8Array(
+    readFileSync(new URL("./fixtures/bam/bamExample.bam.bai", import.meta.url)),
+  );
+
+  // Serves the index the way a host streams a whole file, in 1 KiB chunks, erroring the body
+  // with the request signal's reason as fetch does when a download is aborted. A slow host
+  // sends the response but stalls the body, calling `stall` while the check waits for it.
+  function serveIndex(index: Uint8Array | number, stall?: () => void) {
+    const fetchMock = mockFiles(exampleBam, exampleBai);
+    const serveBam = fetchMock.getMockImplementation()!;
+    const sent = { bytes: 0 };
+    fetchMock.mockImplementation(async (input, init) => {
+      if (String(input) !== indexUrl) return serveBam(input, init);
+      const signal = init?.signal ?? undefined;
+      signal?.throwIfAborted();
+      if (typeof index === "number") return new Response(null, { status: index });
+      let offset = 0;
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          signal?.addEventListener("abort", () => controller.error(signal.reason));
+        },
+        pull(controller) {
+          if (stall) return stall();
+          if (offset >= index.length) return controller.close();
+          const chunk = index.slice(offset, offset + 1024);
+          offset += chunk.length;
+          sent.bytes += chunk.length;
+          controller.enqueue(chunk);
+        },
+      });
+      return new Response(body, { status: 200 });
+    });
+    return sent;
+  }
+
+  // Each row is an index URL someone might supply beside the UCSC example BAM.
+  it.each([
+    { supplied: "its own index", index: exampleBai, outcome: "valid" },
+    {
+      supplied: "the BAM file itself",
+      index: exampleBam,
+      outcome: expect.objectContaining({ message: "Expected a BAI index" }),
+    },
+    {
+      supplied: "the index of another BAM",
+      index: fixture().bai,
+      outcome: expect.objectContaining({ message: "BAM and BAI reference counts differ" }),
+    },
+    {
+      supplied: "a URL that is not found",
+      index: 404,
+      outcome: expect.objectContaining({ name: "HttpStatusError", status: 404 }),
+    },
+  ])("checks $supplied from the start of the index", async ({ index, outcome }) => {
+    const sent = serveIndex(index);
+    const file = createBamFile({ url, indexUrl });
+
+    const result = await file.checkIndex().then(
+      () => "valid",
+      (error: unknown) => error,
+    );
+
+    expect(result).toEqual(outcome);
+    // A check downloads a few KiB, not a whole index that can be many megabytes.
+    expect(sent.bytes).toBeLessThanOrEqual(4 * 1024);
+  });
+
+  it("stops waiting on a slow host when its signal aborts", async () => {
+    const controller = new AbortController();
+    const reason = new DOMException("Check timed out", "AbortError");
+    serveIndex(exampleBai, () => controller.abort(reason));
+    const file = createBamFile({ url, indexUrl });
+
+    await expect(file.checkIndex({ signal: controller.signal })).rejects.toBe(reason);
+  });
+});
+
 describe("BAM header access", () => {
   it("returns SAM text and references across blocks without fetching an index and protects the cache", async () => {
     const { bam, bai } = fixture({ text: "@HD\tVN:1.6\n", splitHeader: true });

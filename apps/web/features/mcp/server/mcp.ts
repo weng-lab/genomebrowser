@@ -46,6 +46,7 @@ function createServer({ account, relay }: Omit<Dependencies, "authenticate">, re
           sessionId as string,
           { name: command.name, params },
           AbortSignal.any(signals),
+          { timeoutMs: command.timeoutMs },
         );
         if (!result.ok) return failed(`${result.code}: ${result.error}`);
         const value = command.result.safeParse(result.value);

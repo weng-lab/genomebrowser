@@ -1,9 +1,16 @@
 // Adapted from weng-lab/bigwig-reader src/bam (MIT, Copyright 2018 weng-lab).
 import type { GenomicFile, GenomicRecord, ReadOptions } from "./genomicFile";
+import { HttpStatusError } from "./httpStatusError";
 import { throwIfAborted } from "./internal/abort";
 import { BamBgzfReader, BamHeaderReader } from "./internal/bamBgzf";
 import { readBamChunks } from "./internal/bamChunkReader";
-import { bamChunks, parseBamIndex, type BamIndex } from "./internal/bamIndex";
+import {
+  BAI_PREFIX_LENGTH,
+  bamChunks,
+  parseBamIndex,
+  readBamIndexReferenceCount,
+  type BamIndex,
+} from "./internal/bamIndex";
 import { decodeBamRecords } from "./internal/bamDecoder";
 import type { ExactRangeMetadata } from "./internal/httpRange";
 import { validateHttpUrl, validateRegion } from "./internal/inputValidation";
@@ -30,6 +37,7 @@ export type BamRecord = GenomicRecord & {
 };
 export interface BamFile extends GenomicFile<BamRecord> {
   getHeader(options?: ReadOptions): Promise<BamHeader>;
+  checkIndex(options?: ReadOptions): Promise<void>;
 }
 export type BamReference = { name: string; length: number };
 export type BamHeader = { text: string; references: BamReference[] };
@@ -61,6 +69,19 @@ export function createBamFile(options: BamFileOptions): BamFile {
         references: loaded.references.map((reference) => ({ ...reference })),
       };
     },
+    async checkIndex(options) {
+      const signal = options?.signal;
+      const { references } = await loadHeader(signal);
+      throwIfAborted(signal);
+      const prefix = await readResponsePrefix(
+        await fetchIndex(indexUrl, signal),
+        BAI_PREFIX_LENGTH,
+        signal,
+      );
+      throwIfAborted(signal);
+      if (readBamIndexReferenceCount(prefix) !== references.length)
+        throw new Error("BAM and BAI reference counts differ");
+    },
     async read(region, options) {
       validateRegion(region);
       if (region.end > 2 ** 29) throw new RangeError("BAI regions must end at or before 2^29");
@@ -77,10 +98,7 @@ export function createBamFile(options: BamFileOptions): BamFile {
       }
       if (refId < 0 || region.start >= references[refId].length) return [];
       if (!index) {
-        const response = await fetch(indexUrl, { signal });
-        throwIfAborted(signal);
-        if (response.status !== 200)
-          throw new Error(`Expected a complete BAI response, received ${response.status}`);
+        const response = await fetchIndex(indexUrl, signal);
         const bytes = new Uint8Array(await response.arrayBuffer());
         throwIfAborted(signal);
         const loadedIndex = parseBamIndex(bytes);
@@ -110,6 +128,42 @@ export function createBamFile(options: BamFileOptions): BamFile {
       return records.sort((a, b) => a.start - b.start || a.end - b.end);
     },
   };
+}
+
+/** Requests the whole index; servers need not support range requests for it. */
+async function fetchIndex(indexUrl: string, signal?: AbortSignal): Promise<Response> {
+  const response = await fetch(indexUrl, { signal });
+  throwIfAborted(signal);
+  if (response.status !== 200)
+    throw new HttpStatusError(
+      `Expected a complete BAI response, received ${response.status}`,
+      response.status,
+    );
+  return response;
+}
+
+/** Reads the start of a response body, then stops the download. */
+async function readResponsePrefix(
+  response: Response,
+  length: number,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  const prefix = new Uint8Array(length);
+  let received = 0;
+  const reader = response.body?.getReader();
+  try {
+    while (reader !== undefined && received < length) {
+      const { done, value } = await reader.read();
+      throwIfAborted(signal);
+      if (done) break;
+      const bytes = value.subarray(0, length - received);
+      prefix.set(bytes, received);
+      received += bytes.length;
+    }
+  } finally {
+    void reader?.cancel().catch(() => undefined);
+  }
+  return prefix.subarray(0, received);
 }
 
 async function readHeader(bgzf: BamBgzfReader): Promise<BamHeader> {

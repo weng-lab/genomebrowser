@@ -1,5 +1,6 @@
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { expect, it } from "vitest";
+import { commands } from "../features/agent/commands";
 import type { AgentAccount } from "../features/agent/server/access";
 import { createMcpEndpoint } from "../features/mcp/server/mcp";
 
@@ -36,7 +37,9 @@ it("lists tools and reports an unavailable relay or account store per call", asy
       throw new Error("REDIS_URL must be set for agent commands");
     },
   });
-  expect((await withoutRelay.listTools()).tools).toHaveLength(3);
+  expect((await withoutRelay.listTools()).tools.map(({ name }) => name)).toEqual(
+    commands.map(({ name }) => name),
+  );
   expect(await withoutRelay.callTool(call)).toMatchObject({
     isError: true,
     content: [{ text: "UNAVAILABLE: Remote control is unavailable" }],

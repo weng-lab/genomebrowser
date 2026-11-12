@@ -67,6 +67,7 @@ assertJsonEqual(
   declarationExports.valueNames,
   [
     "BigBedParseError",
+    "HttpStatusError",
     "bed3Schema",
     "createBamFile",
     "createBigBedFile",
@@ -125,6 +126,7 @@ assertJsonEqual(
     "./chromSizes",
     "./cytobands",
     "./genomicFile",
+    "./httpStatusError",
     "./twoBit",
   ],
   "declaration root module boundaries",
@@ -202,6 +204,7 @@ assertJsonEqual(
   Object.keys(runtimeModule).sort(),
   [
     "BigBedParseError",
+    "HttpStatusError",
     "bed3Schema",
     "createBamFile",
     "createBigBedFile",

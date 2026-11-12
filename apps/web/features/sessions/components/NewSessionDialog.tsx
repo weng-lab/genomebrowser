@@ -14,21 +14,30 @@ import { useSession } from "../SessionProvider";
 /** The name a new session gets when none is entered. */
 const DEFAULT_NAME = "New session";
 
+/** Whether sessions cannot be created now: they are not ready, or another operation runs. */
+export const useCreateDisabled = () =>
+  useSession((session) => session.status !== "ready" || session.pending !== undefined);
+
+type NewSessionDialogProps = {
+  open: boolean;
+  onClose: () => void;
+  /** Called after the dialog closes, once creating the session has started. */
+  onCreate?: () => void;
+};
+
 /** Asks for a new session's name and assembly, then creates and opens it. */
-export function NewSessionDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       {/* The dialog unmounts its content once closed, so each opening starts empty. */}
-      <NewSessionForm onClose={onClose} />
+      <NewSessionForm onClose={onClose} onCreate={onCreate} />
     </Dialog>
   );
 }
 
-function NewSessionForm({ onClose }: { onClose: () => void }) {
+function NewSessionForm({ onClose, onCreate }: Omit<NewSessionDialogProps, "open">) {
   const create = useSession((session) => session.create);
-  const disabled = useSession(
-    (session) => session.status !== "ready" || session.pending !== undefined,
-  );
+  const disabled = useCreateDisabled();
   const [name, setName] = useState("");
   const [assembly, setAssembly] = useState(supportedAssemblies[0].id);
 
@@ -37,6 +46,7 @@ function NewSessionForm({ onClose }: { onClose: () => void }) {
     onClose();
     // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
     void create({ name: name.trim() || DEFAULT_NAME, assembly });
+    onCreate?.();
   }
 
   return (

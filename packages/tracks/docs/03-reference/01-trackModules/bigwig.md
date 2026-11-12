@@ -83,7 +83,7 @@ Full display labels the resolved minimum and maximum, plus zero when the range c
 
 Use an absolute HTTP(S) URL serving a BigWig file accessible from the browser. The server must support byte-range requests with `206 Partial Content` responses, correct byte lengths, and no HTTP content encoding. A different origin must permit browser requests through CORS. The file's assembly and chromosome names must match the browser's region. See [Data source troubleshooting](../../04-troubleshooting.md) for request diagnostics.
 
-The config schema checks that `url` is a non-empty string. It does not contact the server or validate the file. Invalid URL syntax, network failures, and malformed file data can therefore fail during fetching even after track creation succeeds.
+The config schema checks that `url` is a non-empty string. It does not contact the server or validate the file. Invalid URL syntax, network failures, and malformed file data can therefore fail during fetching even after track creation succeeds. To check a URL before creating a track, call `checkBigWigFiles({ url })`; see [Check source files](trackCreation.md#check-source-files).
 
 The fetcher chooses the coarsest BigWig zoom level whose reduction is no greater than half the requested bases per pixel, aiming for at least two summaries per pixel. If no suitable level exists, it reads unzoomed values. Both record forms are condensed into per-pixel minima and maxima by [condenseSignalRecords](../03-dataPrimitives/condenseSignalRecords.md).
 

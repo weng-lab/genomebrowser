@@ -64,4 +64,30 @@ type ReadOptions = { signal?: AbortSignal };
 
 The optional `signal` defaults to no caller-provided cancellation. Built-in regional readers scope cancellation to the operation receiving that signal. Aborting one operation does not cancel another operation on the same file instance. Failed reads reject their promise rather than returning partial data. BigWig also accepts these options for zoom-level discovery and zoom reads.
 
+## HttpStatusError
+
+```ts
+class HttpStatusError extends Error {
+  readonly status: number;
+  constructor(message: string, status: number);
+}
+```
+
+Every reader, including `readChromSizes` and `readCytobands`, rejects with `HttpStatusError` when a response has a status it cannot use. Check `status` to report the cause without parsing messages: for example 404 for a missing file, 403 for a private one, or 200 when a host answers a range request with the whole file because it does not support ranges.
+
+```ts
+import { HttpStatusError } from "@weng-lab/genomic-reader";
+
+function describeFailure(error: unknown): string {
+  if (error instanceof HttpStatusError) {
+    if (error.status === 200) return "The host does not support range requests.";
+    if (error.status === 404) return "The file was not found.";
+    return `The host returned HTTP ${error.status}.`;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+```
+
+Network failures, including requests that CORS blocks, reject with the `TypeError` from `fetch`, because the browser does not reveal a status. A response with a usable status that holds the wrong kind of file rejects with the errors described on each format's page. Aborts reject with the signal's reason.
+
 [Regional reading index](README.md) · [All reader APIs](../README.md)

@@ -232,7 +232,8 @@ asynchronously reject for network and HTTP contract failures, aborts, and files 
 files; `getMetadata()` also rejects for malformed AutoSQL. `read()` and `readZoomLevel()` reject for
 those same failures and also for invalid regions, binary decode errors, and decompression errors.
 `read()` also rejects for Zod parsing failures, and `readZoomLevel()` for unavailable reduction
-levels. These failures never become empty or partial results.
+levels. These failures never become empty or partial results. Responses with an
+unusable HTTP status reject with [`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror).
 
 Column validation failures reject with `BigBedParseError`, a subclass of `z.ZodError`.
 Its `message` identifies the record, one-based BED column number, schema field, and raw value.

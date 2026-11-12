@@ -1,5 +1,6 @@
 import { gunzipSync } from "fflate";
 
+import { HttpStatusError } from "./httpStatusError";
 import { throwIfAborted } from "./internal/abort";
 import { validateHttpUrl } from "./internal/inputValidation";
 
@@ -79,7 +80,10 @@ export async function readCytobands(options: ReadCytobandsOptions): Promise<read
   throwIfAborted(options.signal);
 
   if (!response.ok) {
-    throw new Error(`Failed to read cytoband file: received HTTP ${response.status}`);
+    throw new HttpStatusError(
+      `Failed to read cytoband file: received HTTP ${response.status}`,
+      response.status,
+    );
   }
 
   const responseBytes = new Uint8Array(await response.arrayBuffer());

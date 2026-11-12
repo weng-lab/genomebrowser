@@ -1,3 +1,4 @@
+import { HttpStatusError } from "../httpStatusError";
 import { throwIfAborted } from "./abort";
 import { unsignedBigIntToNumber } from "./bigint";
 
@@ -93,7 +94,10 @@ export async function readExactRange(
   throwIfAborted(signal);
 
   if (response.status !== 206) {
-    throw new Error(`Expected a 206 Partial Content response, received ${response.status}`);
+    throw new HttpStatusError(
+      `Expected a 206 Partial Content response, received ${response.status}`,
+      response.status,
+    );
   }
   if (response.headers.has("Content-Encoding")) {
     throw new Error("Partial response must not use Content-Encoding");
@@ -143,7 +147,10 @@ export async function readBoundedRange(
   throwIfAborted(signal);
 
   if (response.status !== 206) {
-    throw new Error(`Expected a 206 Partial Content response, received ${response.status}`);
+    throw new HttpStatusError(
+      `Expected a 206 Partial Content response, received ${response.status}`,
+      response.status,
+    );
   }
   if (response.headers.has("Content-Encoding")) {
     throw new Error("Partial response must not use Content-Encoding");
