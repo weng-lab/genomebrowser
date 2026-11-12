@@ -1,4 +1,5 @@
 import {
+  createHighlightId,
   type BrowserStoreInstance,
   type GenomicRegion,
   type Highlight,
@@ -12,25 +13,15 @@ import {
 /** Colors new regions take in turn. */
 const regionColors = ["#1976d2", "#f59e0b", "#2e7d32", "#9c27b0", "#d32f2f", "#00838f"];
 
-/** Saves `region` as a new region named "Region N", with the next color in turn. */
+/** Saves `region` as a new region named by its coordinates, with the next color in turn. */
 export function saveRegion(browserStore: BrowserStoreInstance, region: GenomicRegion) {
   const { highlights, addHighlight } = browserStore.getState();
-  const names = new Set(highlights.map((highlight) => highlight.id));
-  let number = highlights.length + 1;
-  while (names.has(`Region ${number}`)) number++;
   addHighlight({
-    id: `Region ${number}`,
+    id: createHighlightId(region, highlights),
     region,
     color: regionColors[highlights.length % regionColors.length],
     type: "filled",
   });
-}
-
-/** Replaces the region named `id`, keeping its place in the list. */
-export function updateRegion(browserStore: BrowserStoreInstance, id: string, next: Highlight) {
-  browserStore.setState((state) => ({
-    highlights: state.highlights.map((highlight) => (highlight.id === id ? next : highlight)),
-  }));
 }
 
 export const isHidden = (highlight: Highlight) => highlight.opacity === 0;
@@ -41,7 +32,9 @@ export function setHidden(
   highlight: Highlight,
   hidden: boolean,
 ) {
-  updateRegion(browserStore, highlight.id, { ...highlight, opacity: hidden ? 0 : undefined });
+  browserStore
+    .getState()
+    .updateHighlight(highlight.id, { ...highlight, opacity: hidden ? 0 : undefined });
 }
 
 /** A highlight without a chromosome is drawn on whichever chromosome is shown. */

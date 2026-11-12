@@ -71,15 +71,17 @@ it("saves, edits, hides, visits, and deletes regions, saving them with the sessi
   });
 
   await click(save);
-  expect(cards().map((card) => card.textContent)).toEqual(["Region 1chr11:5,225,001-5,305,000"]);
+  expect(cards().map((card) => card.textContent)).toEqual([
+    "chr11:5,225,001-5,305,000chr11:5,225,001-5,305,000",
+  ]);
   expect(cards()[0].querySelector('[aria-current="location"]')).not.toBeNull();
   await vi.waitFor(() =>
     expect(saved().highlights).toEqual([
-      expect.objectContaining({ id: "Region 1", region: start, type: "filled" }),
+      expect.objectContaining({ id: "chr11:5,225,001-5,305,000", region: start, type: "filled" }),
     ]),
   );
 
-  await chooseAction("Region 1", "Edit region");
+  await chooseAction("chr11:5,225,001-5,305,000", "Edit region");
   const field = (label: string) =>
     document.getElementById(
       [...document.querySelectorAll('[role="dialog"] label')]

@@ -6,6 +6,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import {
+  createHighlightId,
   formatDisplayRegion,
   type BrowserStoreInstance,
   type Highlight,
@@ -87,6 +88,7 @@ export function HighlightForm({
   const currentRegion = useBrowserStore((state) => state.region);
   const highlights = useBrowserStore((state) => state.highlights);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
+  const updateHighlight = useBrowserStore((state) => state.updateHighlight);
   const [
     { name, region: regionInput, color, opacity: opacityInput, highlightType, errors },
     dispatch,
@@ -117,9 +119,8 @@ export function HighlightForm({
 
     const trimmedName = name.trim();
     const nextErrors: FormErrors = {};
-    if (!trimmedName) {
-      nextErrors.name = "ID is required.";
-    } else if (
+    if (
+      trimmedName &&
       highlights.some(
         (highlight) => highlight.id === trimmedName && highlight.id !== initialHighlight?.id,
       )
@@ -135,33 +136,29 @@ export function HighlightForm({
       nextErrors.opacity = "Enter a number from 0 to 100.";
     }
 
-    if (!trimmedName || !regionResult.ok || Object.keys(nextErrors).length > 0) {
+    if (!regionResult.ok || Object.keys(nextErrors).length > 0) {
       dispatch({ type: "validationFailed", errors: nextErrors });
       return;
     }
 
+    // A blank ID names the highlight by its coordinates, as drawn highlights are named.
+    const otherHighlights = highlights.filter(({ id }) => id !== initialHighlight?.id);
     const nextHighlight: Highlight = {
-      id: trimmedName,
+      id: trimmedName || createHighlightId(regionResult.region, otherHighlights),
       region: regionResult.region,
       color,
       opacity: opacity / 100,
       type: highlightType,
     };
-    if (initialHighlight) {
-      browserStore.setState((state) => ({
-        highlights: state.highlights.map((highlight) =>
-          highlight.id === initialHighlight.id ? nextHighlight : highlight,
-        ),
-      }));
-      onSaved?.();
-    } else {
-      const result = addHighlight(nextHighlight);
-      if (!result.ok) {
-        dispatch({ type: "validationFailed", errors: { submit: result.error } });
-        return;
-      }
-      dispatch({ type: "reset" });
+    const result = initialHighlight
+      ? updateHighlight(initialHighlight.id, nextHighlight)
+      : addHighlight(nextHighlight);
+    if (!result.ok) {
+      dispatch({ type: "validationFailed", errors: { submit: result.error } });
+      return;
     }
+    if (initialHighlight) onSaved?.();
+    else dispatch({ type: "reset" });
   }
 
   return (
@@ -202,8 +199,7 @@ export function HighlightForm({
           onChange={(event) =>
             dispatch({ type: "fieldChanged", field: "name", value: event.target.value })
           }
-          placeholder="Create an ID for the highlight"
-          required
+          placeholder="Defaults to the region's coordinates"
           size="small"
           value={name}
         />

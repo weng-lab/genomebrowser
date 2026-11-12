@@ -398,6 +398,31 @@ describe("createBrowserStore", () => {
     expect(store.getState().highlights).toEqual([highlight]);
   });
 
+  it("updates a highlight in place and rejects missing, taken, or invalid replacements", () => {
+    const store = createTestStore();
+    const first = { id: "first", region: { start: 1, end: 2 }, color: "red" };
+    const second = { id: "second", region: { start: 3, end: 4 }, color: "blue" };
+    store.getState().addHighlight(first);
+    store.getState().addHighlight(second);
+    const renamed = { ...first, id: "renamed", opacity: 0 };
+    expect(store.getState().updateHighlight("first", renamed)).toEqual({ ok: true });
+    expect(store.getState().highlights).toEqual([renamed, second]);
+    const before = store.getState();
+    expect(store.getState().updateHighlight("missing", first)).toMatchObject({
+      ok: false,
+      code: "HIGHLIGHT_NOT_FOUND",
+    });
+    expect(store.getState().updateHighlight("renamed", { ...first, id: "second" })).toMatchObject({
+      ok: false,
+      code: "DUPLICATE_HIGHLIGHT_ID",
+    });
+    expect(store.getState().updateHighlight("renamed", { ...first, color: "" })).toMatchObject({
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+    });
+    expect(store.getState()).toBe(before);
+  });
+
   it("still rejects invalid highlight regions", () => {
     expect(() =>
       createBrowserStore({

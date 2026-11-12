@@ -208,9 +208,11 @@ Highlights mark genomic regions across the track area. Add them programmatically
 
 Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type` and `opacity` stay optional in stored entries; rendering applies their defaults.
 
-### addHighlight, removeHighlight, and clearHighlights
+### addHighlight, updateHighlight, removeHighlight, and clearHighlights
 
-`addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+`addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`, `HIGHLIGHT_NOT_FOUND`, or `DUPLICATE_HIGHLIGHT_ID`; `addHighlight` returns only `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+
+`updateHighlight(id: string, highlight: Highlight): BrowserHighlightMutationResult` validates `highlight` and replaces the entry with ID `id` in place, keeping its position. The replacement may change the ID. It returns `HIGHLIGHT_NOT_FOUND` when no entry has ID `id`, `DUPLICATE_HIGHLIGHT_ID` when another entry already has the new ID, and `INVALID_HIGHLIGHT` for invalid input; every failure leaves state unchanged.
 
 `removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
 
@@ -224,11 +226,28 @@ useBrowserStore.getState().addHighlight({
   type: "outlined",
 });
 
+useBrowserStore.getState().updateHighlight("candidate", {
+  id: "candidate",
+  region: { chromosome: "chr2", start: 2_020_000, end: 2_030_000 },
+  color: "#3366cc",
+  opacity: 0,
+});
+
 useBrowserStore.getState().removeHighlight("candidate");
 
 useBrowserStore.getState().clearHighlights();
 ```
 
-To add a filled highlight, omit `type` or use `"filled"`. Selection-created highlights use the active selection style, whose initial opacity is `0.25`, rather than the generic filled-highlight rendering default.
+To add a filled highlight, omit `type` or use `"filled"`. Selection-created highlights use the active selection style, whose initial opacity is `0.25`, rather than the generic filled-highlight rendering default, and are named with `createHighlightId`.
+
+### createHighlightId
+
+`createHighlightId(region: GenomicRegion, highlights: readonly Highlight[]): string` names a highlight by its region in the one-based display form of [`formatDisplayRegion`](../02-assembliesAndRegions/regions.md#display-regions), such as `chr1:126-175`. When `highlights` already has that ID, it appends ` (2)`, ` (3)`, and so on. Pass the store's highlights to get an ID that `addHighlight` will accept as new.
+
+```ts
+const { highlights, addHighlight } = useBrowserStore.getState();
+const region = { chromosome: "chr2", start: 2_020_000, end: 2_030_000 };
+addHighlight({ id: createHighlightId(region, highlights), region, color: "#3366cc" });
+```
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

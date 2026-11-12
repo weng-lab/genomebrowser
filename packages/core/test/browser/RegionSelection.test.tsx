@@ -363,7 +363,7 @@ describe("RegionSelection", () => {
     expect(store.getState().region).toEqual(initialRegion);
     expect(store.getState().highlights).toEqual([
       {
-        id: "chr1:125-175",
+        id: "chr1:126-175",
         region: { chromosome: "chr1", start: 125, end: 175 },
         color: "#ff0000",
         opacity: 0.7,
@@ -375,14 +375,14 @@ describe("RegionSelection", () => {
   it("keeps repeated selections distinct from existing region IDs", async () => {
     await mount({
       selectionMode: "highlight",
-      highlights: ["chr1:125-175", "chr1:125-175 (2)"].map((id) => ({
+      highlights: ["chr1:126-175", "chr1:126-175 (2)"].map((id) => ({
         id,
         region: initialRegion,
         color: "#ff0000",
       })),
     });
     await dragSelection(45, 95);
-    expect(store.getState().highlights[2]?.id).toBe("chr1:125-175 (3)");
+    expect(store.getState().highlights[2]?.id).toBe("chr1:126-175 (3)");
   });
 
   it.each(["pointercancel", "blur"])("cancels on %s", async (action) => {

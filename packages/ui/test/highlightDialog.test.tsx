@@ -155,6 +155,26 @@ describe("HighlightDialog", () => {
     expect(getInput("Opacity (%)").value).toBe("20");
   });
 
+  it("names a highlight by its coordinates when the ID is blank", () => {
+    const browserStore = createTestStore();
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    clickButton("Add New Highlight");
+    setTextInput("Region", "chr2:1,201-1,500");
+    clickButton("Add Highlight");
+    setTextInput("Region", "chr2:1,201-1,500");
+    clickButton("Add Highlight");
+    expect(browserStore.getState().highlights.map(({ id }) => id)).toEqual([
+      "chr2:1,201-1,500",
+      "chr2:1,201-1,500 (2)",
+    ]);
+
+    clickButton("Edit chr2:1,201-1,500 (2)");
+    setTextInput("ID", "");
+    setTextInput("Region", "chr2:1,301-1,400");
+    clickButton("Save changes");
+    expect(browserStore.getState().highlights[1]?.id).toBe("chr2:1,301-1,400");
+  });
+
   it("adds an outlined highlight with a visible border opacity and resets the type", () => {
     const browserStore = createTestStore();
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
