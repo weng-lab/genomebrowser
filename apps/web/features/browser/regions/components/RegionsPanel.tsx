@@ -1,24 +1,23 @@
 "use client";
 
 import Add from "@mui/icons-material/Add";
+import CreateNewFolderOutlined from "@mui/icons-material/CreateNewFolderOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import MoreVert from "@mui/icons-material/MoreVert";
+import RemoveCircleOutline from "@mui/icons-material/RemoveCircleOutline";
 import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
 import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import ListSubheader from "@mui/material/ListSubheader";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
@@ -30,13 +29,18 @@ import {
 } from "@weng-lab/genomebrowser";
 import { useId, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useSession } from "../../sessions/SessionProvider";
+import { useSession } from "../../../sessions/SessionProvider";
+import type { RegionGroup } from "../regionGroupSchema";
+import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
 import { isHidden, regionOf, sameRegion, saveRegion, setHidden } from "../regions";
+import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { GroupDialog } from "./GroupDialog";
+import { listSx, RegionGroupSection } from "./RegionGroup";
 import { RegionDialog } from "./RegionDialog";
 
 /**
- * The open session's saved regions: save the current view, go to, edit, hide, or delete
- * one, and delete them all.
+ * The open session's saved regions: save the current view, go to, edit, hide, group, or
+ * delete one, and delete them all. Groups collapse and expand.
  */
 export function RegionsPanel() {
   const id = useSession((session) => session.active?.id);
@@ -47,12 +51,47 @@ export function RegionsPanel() {
         Open a session to save regions.
       </Typography>
     );
-  return <Regions key={id} browserStore={stores.useBrowserStore} />;
+  return (
+    <Regions
+      key={id}
+      browserStore={stores.useBrowserStore}
+      regionGroupStore={stores.useRegionGroupStore}
+    />
+  );
 }
 
-function Regions({ browserStore }: { browserStore: BrowserStoreInstance }) {
+type StoresProps = {
+  browserStore: BrowserStoreInstance;
+  regionGroupStore: RegionGroupStoreInstance;
+};
+
+type Row = { group: RegionGroup; memberIds: string[] } | { id: string };
+
+/**
+ * The list's rows in highlight order. A group takes its first member's place, with all of
+ * its members, in highlight order, under it.
+ */
+function rowsOf(ids: readonly string[], groups: readonly RegionGroup[]): Row[] {
+  const groupOf = new Map(groups.flatMap((group) => group.regionIds.map((id) => [id, group])));
+  const rows: Row[] = [];
+  const placed = new Set<RegionGroup>();
+  for (const id of ids) {
+    const group = groupOf.get(id);
+    if (!group) rows.push({ id });
+    else if (!placed.has(group)) {
+      placed.add(group);
+      rows.push({ group, memberIds: ids.filter((member) => groupOf.get(member) === group) });
+    }
+  }
+  return rows;
+}
+
+function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const useBrowserStore = browserStore;
+  const useRegionGroupStore = regionGroupStore;
   const ids = useBrowserStore(useShallow((state) => state.highlights.map(({ id }) => id)));
+  const groups = useRegionGroupStore((state) => state.groups);
+  const stores = { browserStore, regionGroupStore };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
@@ -75,9 +114,17 @@ function Regions({ browserStore }: { browserStore: BrowserStoreInstance }) {
           </Typography>
         ) : (
           <List aria-label="Saved regions" disablePadding sx={listSx}>
-            {ids.map((id) => (
-              <RegionCard key={id} id={id} browserStore={browserStore} />
-            ))}
+            {rowsOf(ids, groups).map((row) =>
+              "group" in row ? (
+                <RegionGroupSection key={row.group.id} group={row.group} {...stores}>
+                  {row.memberIds.map((id) => (
+                    <RegionCard key={id} id={id} {...stores} />
+                  ))}
+                </RegionGroupSection>
+              ) : (
+                <RegionCard key={row.id} id={row.id} {...stores} />
+              ),
+            )}
           </List>
         )}
       </Box>
@@ -114,35 +161,23 @@ function DeleteAllButton({
       >
         Delete all regions
       </Button>
-      <Dialog open={confirming} onClose={close} maxWidth="xs">
-        <DialogTitle>Delete all regions?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Every saved region and its highlight will be removed from this session.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={close}>Cancel</Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              close();
-              browserStore.getState().clearHighlights();
-            }}
-          >
-            Delete all
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={confirming}
+        title="Delete all regions?"
+        text="Every saved region, its highlight, and every group will be removed from this session."
+        confirmLabel="Delete all"
+        // Groups follow the highlights, so clearing them deletes every group.
+        onConfirm={() => browserStore.getState().clearHighlights()}
+        onClose={close}
+      />
     </>
   );
 }
 
-type RegionCardProps = { id: string; browserStore: BrowserStoreInstance };
+type RegionCardProps = StoresProps & { id: string };
 
 /** A saved region: its color, name, and coordinates. Clicking it goes there. */
-function RegionCard({ id, browserStore }: RegionCardProps) {
+function RegionCard({ id, browserStore, regionGroupStore }: RegionCardProps) {
   const useBrowserStore = browserStore;
   const highlight = useBrowserStore((state) => state.highlights.find((item) => item.id === id));
   const shownChromosome = useBrowserStore((state) => state.region.chromosome);
@@ -160,7 +195,13 @@ function RegionCard({ id, browserStore }: RegionCardProps) {
   return (
     <ListItem
       disablePadding
-      secondaryAction={<RegionActions highlight={highlight} browserStore={browserStore} />}
+      secondaryAction={
+        <RegionActions
+          highlight={highlight}
+          browserStore={browserStore}
+          regionGroupStore={regionGroupStore}
+        />
+      }
       sx={{ "& .MuiListItemSecondaryAction-root": { right: 4 } }}
     >
       <ListItemButton
@@ -208,16 +249,18 @@ function Swatch({ highlight }: { highlight: Highlight }) {
   );
 }
 
-/** A region's more-actions button and menu: edit, hide or show its highlight, and delete. */
+/**
+ * A region's more-actions button and menu: edit, hide or show its highlight, add it to a
+ * new or existing group or take it out of its group, and delete.
+ */
 function RegionActions({
   highlight,
   browserStore,
-}: {
-  highlight: Highlight;
-  browserStore: BrowserStoreInstance;
-}) {
+  regionGroupStore,
+}: StoresProps & { highlight: Highlight }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [editing, setEditing] = useState(false);
+  const [grouping, setGrouping] = useState(false);
   const menuId = useId();
   const label = `Actions for region ${highlight.id}`;
   const close = () => setAnchor(null);
@@ -271,6 +314,27 @@ function RegionActions({
           </ListItemIcon>
           <ListItemText primary={hidden ? "Show highlight" : "Hide highlight"} />
         </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            close();
+            setGrouping(true);
+          }}
+        >
+          <ListItemIcon>
+            <CreateNewFolderOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Add to new group" />
+        </MenuItem>
+        {/* Only while the menu is open, so cards do not follow every group change. */}
+        {anchor ? (
+          <GroupMenuItems
+            regionId={highlight.id}
+            regionGroupStore={regionGroupStore}
+            onChosen={close}
+          />
+        ) : null}
+        <Divider />
         <MenuItem
           onClick={() => {
             close();
@@ -290,12 +354,74 @@ function RegionActions({
         open={editing}
         onClose={() => setEditing(false)}
       />
+      <GroupDialog
+        open={grouping}
+        title="New group"
+        submitLabel="Create group"
+        initial={newGroupDefaults(regionGroupStore.getState().groups)}
+        onSubmit={(group) => regionGroupStore.getState().addToNewGroup(highlight.id, group)}
+        onClose={() => setGrouping(false)}
+      />
     </>
   );
 }
 
-/** One column that can shrink below the cards' text, so long names and coordinates truncate. */
-const listSx = { display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 1 } as const;
+/**
+ * The region menu's group items: the groups it can move to, each with its color, and
+ * Remove from group while it is in one.
+ */
+function GroupMenuItems({
+  regionId,
+  regionGroupStore,
+  onChosen,
+}: {
+  regionId: string;
+  regionGroupStore: RegionGroupStoreInstance;
+  onChosen: () => void;
+}) {
+  const useRegionGroupStore = regionGroupStore;
+  const groups = useRegionGroupStore((state) => state.groups);
+  const current = groups.find((group) => group.regionIds.includes(regionId));
+  const others = groups.filter((group) => group !== current);
+  const { addToGroup, removeFromGroup } = regionGroupStore.getState();
+  return (
+    <>
+      {others.length > 0 ? (
+        <ListSubheader sx={{ lineHeight: 2.5 }}>Add to group</ListSubheader>
+      ) : null}
+      {others.map((group) => (
+        <MenuItem
+          key={group.id}
+          onClick={() => {
+            onChosen();
+            addToGroup(regionId, group.id);
+          }}
+        >
+          <ListItemIcon>
+            <Box
+              aria-hidden
+              sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: group.color, ml: 0.5 }}
+            />
+          </ListItemIcon>
+          <ListItemText primary={group.name} slotProps={{ primary: { noWrap: true } }} />
+        </MenuItem>
+      ))}
+      {current ? (
+        <MenuItem
+          onClick={() => {
+            onChosen();
+            removeFromGroup(regionId);
+          }}
+        >
+          <ListItemIcon>
+            <RemoveCircleOutline fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={`Remove from ${current.name}`} />
+        </MenuItem>
+      ) : null}
+    </>
+  );
+}
 
 /** The panel's full-width buttons: quiet borders and sentence-case labels. */
 const panelButtonSx = {

@@ -76,6 +76,15 @@ function savedSnapshot(): SessionSnapshot {
       .map((track) => ({ ...track, base: { ...track.base, title: `Saved ${track.base.title}` } })),
     // Pinned tracks lead the display order.
     pinnedTrackIds: ["ccres"],
+    regionGroups: [
+      {
+        id: "elements",
+        name: "Elements",
+        color: "#1a73e8",
+        collapsed: true,
+        regionIds: ["promoter", "enhancer"],
+      },
+    ],
   };
 }
 
@@ -106,6 +115,7 @@ it("restores every saved setting before saving, then saves whole snapshots of la
   stores().useBrowserStore.getState().removeHighlight("enhancer");
   stores().useTrackStore.getState().setPinnedTrackIds([]);
   stores().useTrackStore.getState().reorderTracks(["ruler", "genes", "ccres"]);
+  stores().useRegionGroupStore.getState().setCollapsed("elements", false);
   state().rename("Enhancer scan");
   expect(state().saveStatus).toBe("saving");
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
@@ -120,6 +130,8 @@ it("restores every saved setting before saving, then saves whole snapshots of la
     browser: { region: { start: 5000 }, highlights: [{ id: "promoter" }] },
     tracks: [{ base: { id: "ruler" } }, { base: { id: "genes" } }, { base: { id: "ccres" } }],
     pinnedTrackIds: [],
+    // The removed highlight left its group.
+    regionGroups: [{ id: "elements", collapsed: false, regionIds: ["promoter"] }],
   });
   expect(state().sessions.map(({ name }) => name)).toEqual(["Enhancer scan"]);
 });

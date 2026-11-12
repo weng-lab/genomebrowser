@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { AgentPanel } from "../../agent/components/AgentPanel";
 import { SaveStatus } from "../../sessions/components/SaveStatus";
 import { SessionSwitcher } from "../../sessions/components/SessionSwitcher";
-import { RegionsPanel } from "./RegionsPanel";
+import { RegionsPanel } from "../regions/components/RegionsPanel";
 
 /**
  * The browser's frame around `children`, the browser route's page. The browser layout

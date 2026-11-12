@@ -1,4 +1,5 @@
 import { regionSchema } from "../browser/region";
+import { regionGroupSchema } from "../browser/regions/regionGroupSchema";
 import { z } from "zod";
 
 const highlightStyleSchema = z.strictObject({
@@ -8,9 +9,9 @@ const highlightStyleSchema = z.strictObject({
 });
 
 /**
- * Serializable browser and track configuration of one session. `browser.assembly`
- * is the session's only assembly value. Runtime store state, actions, and
- * registered modules are not part of a snapshot.
+ * Serializable browser and track configuration of one session, and the groups of its
+ * saved regions. `browser.assembly` is the session's only assembly value. Runtime store
+ * state, actions, and registered modules are not part of a snapshot.
  */
 export const sessionSnapshotSchema = z.strictObject({
   version: z.literal(1),
@@ -52,6 +53,8 @@ export const sessionSnapshotSchema = z.strictObject({
     }),
   ),
   pinnedTrackIds: z.array(z.string().min(1)),
+  // Sessions saved before region groups have none.
+  regionGroups: z.array(regionGroupSchema).default([]),
 });
 
 export type SessionSnapshot = z.infer<typeof sessionSnapshotSchema>;

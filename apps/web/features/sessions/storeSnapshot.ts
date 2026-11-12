@@ -1,14 +1,12 @@
-import {
-  createBrowserStore,
-  createTrackStore,
-  type GenomeBrowserStores,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
+import type { SessionStores } from "../browser/regions/regionGroups";
 import { sessionSnapshotSchema, type SessionSnapshot } from "./snapshot.ts";
 
-/** Serializable browser and track state, as saved and as returned to agents. */
-export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
+/** Serializable browser, track, and region-group state, as saved and as returned to agents. */
+export function snapshot(session: SessionStores): SessionSnapshot {
   const browser = session.useBrowserStore.getState();
   const tracks = session.useTrackStore.getState();
+  const { groups } = session.useRegionGroupStore.getState();
   const values = {
     version: 1,
     browser: {
@@ -25,13 +23,14 @@ export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
     },
     tracks: tracks.tracks.map(({ type, base, config, source }) => ({ type, base, config, source })),
     pinnedTrackIds: tracks.pinnedTrackIds,
+    regionGroups: groups,
   };
   // Optional settings can be explicitly cleared to undefined. JSON omits those
   // keys, matching the payload sent to storage and the module defaults on restore.
   return sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(values)));
 }
 
-export function restore(session: GenomeBrowserStores, saved: SessionSnapshot) {
+export function restore(session: SessionStores, saved: SessionSnapshot) {
   // Validate both stores before changing either live store. Runtime actions and
   // registered modules stay local; only serializable session values are restored.
   const { assembly } = session.useBrowserStore.getState();
@@ -45,6 +44,8 @@ export function restore(session: GenomeBrowserStores, saved: SessionSnapshot) {
   }).getState();
   const { assembly: _assembly, ...values } = saved.browser;
   session.useBrowserStore.setState({ ...values, region: browser.region });
+  // After the highlights, which the groups follow, so restoring them does not change the groups.
+  session.useRegionGroupStore.setState({ groups: saved.regionGroups });
   session.useTrackStore.setState({
     tracks: tracks.tracks,
     order: tracks.order,

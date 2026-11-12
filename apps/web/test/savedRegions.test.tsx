@@ -130,3 +130,82 @@ it("saves, edits, hides, visits, and deletes regions, saving them with the sessi
 function button(within: ParentNode, label: string) {
   return [...within.querySelectorAll("button")].find((button) => button.textContent === label);
 }
+
+it("groups regions, collapses and edits a group, and saves groups with the session", async () => {
+  await act(async () => root!.render(<WorkspaceApp />));
+  const save = await vi.waitFor(() => {
+    const found = button(container!, "Save current region");
+    expect(found).toBeDefined();
+    return found;
+  });
+  await click(save);
+  await click(save);
+  const first = "chr11:5,225,001-5,305,000";
+  const second = `${first} (2)`;
+  const groups = () => server.stored.get(id)!.snapshot.regionGroups;
+  const header = () => container!.querySelector('[aria-label="Saved regions"] [aria-expanded]');
+  const members = (name: string) =>
+    [...container!.querySelectorAll(`[aria-label="${name}"] li`)].map(
+      (card) => card.querySelector(".MuiListItemText-primary")?.textContent,
+    );
+  const dialog = () => document.querySelector('[role="dialog"]')!;
+  const nameField = () => dialog().querySelector("input") as HTMLInputElement;
+
+  await chooseAction(first, "Add to new group");
+  expect(nameField().value).toBe("Group 1");
+  await type(nameField(), "Locus control");
+  await click(button(dialog(), "Create group"));
+  expect(header()?.getAttribute("aria-expanded")).toBe("true");
+  expect(members("Locus control")).toEqual([first]);
+  await vi.waitFor(() =>
+    expect(groups()).toEqual([
+      expect.objectContaining({
+        name: "Locus control",
+        color: "#1a73e8",
+        collapsed: false,
+        regionIds: [first],
+      }),
+    ]),
+  );
+
+  await chooseAction(second, "Locus control");
+  expect(members("Locus control")).toEqual([first, second]);
+
+  await click(header());
+  expect(header()?.getAttribute("aria-expanded")).toBe("false");
+  expect(header()?.textContent).toContain("· 2");
+  expect(container!.querySelector('[aria-label="Locus control"]')).toBeNull();
+  await vi.waitFor(() =>
+    expect(groups()).toEqual([
+      expect.objectContaining({ collapsed: true, regionIds: [first, second] }),
+    ]),
+  );
+  await click(header());
+  expect(members("Locus control")).toEqual([first, second]);
+
+  await click(container!.querySelector('[aria-label="Actions for group Locus control"]'));
+  await click(
+    [...document.querySelectorAll('[role="menuitem"]')].find(
+      (item) => item.textContent === "Edit group",
+    ),
+  );
+  await type(nameField(), "Enhancers");
+  await click(dialog().querySelector('[role="radio"][aria-label="#188038"]'));
+  await click(button(dialog(), "Save"));
+  expect(members("Enhancers")).toEqual([first, second]);
+  await vi.waitFor(() =>
+    expect(groups()).toEqual([expect.objectContaining({ name: "Enhancers", color: "#188038" })]),
+  );
+
+  await chooseAction(second, "Remove from Enhancers");
+  expect(members("Enhancers")).toEqual([first]);
+  await click(container!.querySelector('[aria-label="Actions for group Enhancers"]'));
+  await click(
+    [...document.querySelectorAll('[role="menuitem"]')].find(
+      (item) => item.textContent === "Ungroup",
+    ),
+  );
+  expect(header()).toBeNull();
+  expect(cards()).toHaveLength(2);
+  await vi.waitFor(() => expect(groups()).toEqual([]));
+});
