@@ -8,6 +8,7 @@ assertEqual(manifest.sideEffects, false, "package sideEffects declaration");
 const trackNames = [
   "bam",
   "bigbed",
+  "repeatmasker",
   "bigwig",
   "bulkbed",
   "cave",
@@ -21,6 +22,7 @@ const expectedRuntimeExports = new Map([
   ["./bam", ["bamModule", "checkBamFiles"]],
   ["./ruler", ["rulerModule"]],
   ["./bigbed", ["bigBedModule", "checkBigBedFiles", "fetchBigBedRows"]],
+  ["./repeatmasker", ["repeatMaskerModule"]],
   ["./bigwig", ["bigWigModule", "checkBigWigFiles"]],
   ["./bulkbed", ["bulkBedModule"]],
   ["./cave", ["caveModule"]],

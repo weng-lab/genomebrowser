@@ -87,6 +87,8 @@ export async function readExactRange(
 
   const response = await fetch(url, {
     headers: { Range: `bytes=${offset}-${end}` },
+    // Cached 206 responses can contain corrupt bytes even when status and length match.
+    cache: "no-store",
     signal,
   });
   throwIfAborted(signal);
@@ -138,6 +140,8 @@ export async function readBoundedRange(
   throwIfAborted(signal);
   const response = await fetch(url, {
     headers: { Range: `bytes=${offset}-${end}` },
+    // Cached 206 responses can contain corrupt bytes even when status and length match.
+    cache: "no-store",
     signal,
   });
   throwIfAborted(signal);

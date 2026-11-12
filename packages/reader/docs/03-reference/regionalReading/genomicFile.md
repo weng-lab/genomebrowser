@@ -26,6 +26,12 @@ This structural interface describes a regional read and its result type. There i
 
 The interface does not enforce coordinate conventions, clipping, sorting, caching, or validation on custom implementations. Consult each format's contract for those behaviors: [BigWig](../bigWig/bigWig.md), [BigBed](../bigBed/bigBed.md), [BAM](../bam/bam.md), and [TwoBit](../twoBit/twoBit.md).
 
+## HTTP byte ranges and caching
+
+Built-in BigBed, BigWig, BAM, and TwoBit readers fetch byte ranges with `cache: "no-store"`. This bypasses browser HTTP caches that can return corrupted partial responses even with a valid `206` status and matching body length. Responses still undergo range and length validation.
+
+File instances retain their format-specific metadata caches. Reusing an instance avoids repeated metadata requests, while requested data ranges are fetched from the source.
+
 ## GenomicRegion
 
 ```ts

@@ -71,6 +71,10 @@
     "./bam": {
       "types": "./dist/src/bam/index.d.ts",
       "import": "./dist/bam.js"
+    },
+    "./repeatmasker": {
+      "types": "./dist/src/repeatmasker/index.d.ts",
+      "import": "./dist/repeatmasker.js"
     }
   },
   "publishConfig": {

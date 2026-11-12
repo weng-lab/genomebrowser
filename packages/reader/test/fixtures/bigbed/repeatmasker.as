@@ -1,0 +1,21 @@
+table rmsk
+"UCSC RepeatMasker annotations"
+(
+string chrom; "chrom"
+uint chromStart; "chromStart"
+uint chromEnd; "chromEnd"
+string name; "name"
+uint score; "score"
+char[1] strand; "strand"
+uint swScore; "swScore"
+uint milliDiv; "milliDiv"
+uint milliDel; "milliDel"
+uint milliIns; "milliIns"
+int genoLeft; "genoLeft"
+string repClass; "repClass"
+string repFamily; "repFamily"
+int repStart; "repStart"
+int repEnd; "repEnd"
+int repLeft; "repLeft"
+uint repeatId; "repeatId"
+)
