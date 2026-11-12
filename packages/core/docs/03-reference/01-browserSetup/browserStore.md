@@ -205,8 +205,9 @@ Highlights mark genomic regions across the track area. Add them programmatically
 | `color`   | `string`                                              | Required                           | Non-empty color string. Validation does not check CSS color syntax.                                                                    |
 | `opacity` | `number`                                              | `0.2` for filled; `1` for outlined | Value from zero to one, applied to fill or border at rendering time.                                                                   |
 | `type`    | `"filled"` or `"outlined"`                            | `"filled"`                         | Fill behind track data or transparent interior with a two-unit SVG border above track data.                                            |
+| `hidden`  | `boolean`                                             | `false`                            | When true, the highlight stays in the store but is not drawn or exported. Its `opacity` and `type` are kept for showing it again.      |
 
-Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type` and `opacity` stay optional in stored entries; rendering applies their defaults.
+Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type`, `opacity`, and `hidden` stay optional in stored entries; rendering applies their defaults. To hide a highlight without losing its style, set `hidden: true` with `updateHighlight` rather than setting its opacity to zero.
 
 ### addHighlight, updateHighlight, removeHighlight, and clearHighlights
 

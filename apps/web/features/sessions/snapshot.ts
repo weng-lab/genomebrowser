@@ -26,6 +26,7 @@ export const sessionSnapshotSchema = z.strictObject({
     highlights: z.array(
       highlightStyleSchema.extend({
         id: z.string().min(1),
+        hidden: z.boolean().optional(),
         region: z
           .strictObject({
             chromosome: z.string().min(1).optional(),

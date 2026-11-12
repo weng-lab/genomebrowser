@@ -70,7 +70,7 @@ The form reads `initialHighlight` once, when it mounts. MUI's `Dialog` unmounts 
 
 The fields are ID, Region, Type, Color, and Opacity (%). They follow the same rules as in [`HighlightDialog`](HighlightDialog.md): IDs must be unique in the store, though an edited highlight may keep its own, and a blank ID names the highlight by its coordinates with the core package's `createHighlightId`; the region must fit within the store's assembly; and opacity is a number from 0 to 100. Invalid input stays in the form with a message on its field. **Use Current Region** fills the region with the browser's current view.
 
-When adding, the form starts with a blue Filled highlight at 20% opacity. **Add Highlight** adds it with the store's `addHighlight` and resets the form; **Clear** resets the form without adding. When editing, the Region field takes focus and **Save changes** replaces the highlight with the store's `updateHighlight`, keeping its position. A rejected add or edit stays in the form with the store's message above the fields.
+When adding, the form starts with a blue Filled highlight at 20% opacity. **Add Highlight** adds it with the store's `addHighlight` and resets the form; **Clear** resets the form without adding. When editing, the Region field takes focus and **Save changes** replaces the highlight with the store's `updateHighlight`, keeping its position and any fields the form does not show, such as `hidden`. A rejected add or edit stays in the form with the store's message above the fields.
 
 ## Accessibility
 

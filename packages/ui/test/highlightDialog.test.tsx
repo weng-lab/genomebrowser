@@ -106,6 +106,23 @@ describe("HighlightDialog", () => {
     expect(browserStore.getState().region).toEqual({ chromosome: "chr2", start: 300, end: 450 });
   });
 
+  it("keeps a hidden highlight hidden when editing it", () => {
+    const browserStore = createTestStore();
+    browserStore.getState().addHighlight({
+      id: "Hidden",
+      region: { start: 100, end: 200 },
+      color: "#3366cc",
+      opacity: 0.5,
+      hidden: true,
+    });
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    clickButton("Edit Hidden");
+    expect(getInput("Opacity (%)").value).toBe("50");
+    setTextInput("Opacity (%)", "40");
+    clickButton("Save changes");
+    expect(browserStore.getState().highlights[0]).toMatchObject({ opacity: 0.4, hidden: true });
+  });
+
   it("retains invalid edits and cancels without modifying the highlight", () => {
     const browserStore = createTestStore();
     for (const id of ["Original", "Other"])

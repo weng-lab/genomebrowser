@@ -31,6 +31,16 @@ describe("highlight overlay", () => {
     ]);
   });
 
+  it("draws nothing for hidden highlights", () => {
+    const highlights = [
+      { id: "hidden", region: { start: 120, end: 140 }, color: "red", opacity: 0.5, hidden: true },
+      { id: "shown", region: { start: 150, end: 160 }, color: "blue", hidden: false },
+    ];
+    expect(getHighlightRects({ region, width: 1000, highlights }).map(({ id }) => id)).toEqual([
+      "shown",
+    ]);
+  });
+
   it("preserves outline coordinates beyond the viewport and resolves opacity", () => {
     const highlights = [
       { id: "outline", region: { start: 90, end: 150 }, color: "blue", type: "outlined" as const },

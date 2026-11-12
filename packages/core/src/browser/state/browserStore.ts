@@ -15,6 +15,8 @@ export type Highlight = {
   color: string;
   opacity?: number;
   type?: "filled" | "outlined";
+  /** Keeps the highlight in the store without drawing it. Its style is kept for showing it again. */
+  hidden?: boolean;
 };
 
 export type BrowserSelectionMode = "pan" | "zoom" | "highlight";
@@ -112,6 +114,7 @@ const highlightSchema = z.object({
   color: z.string().min(1),
   opacity: z.number().min(0).max(1).optional(),
   type: z.enum(["filled", "outlined"]).optional(),
+  hidden: z.boolean().optional(),
 });
 
 const selectionModeSchema = z.enum(["pan", "zoom", "highlight"]);

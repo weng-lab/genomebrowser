@@ -144,6 +144,8 @@ export function HighlightForm({
     // A blank ID names the highlight by its coordinates, as drawn highlights are named.
     const otherHighlights = highlights.filter(({ id }) => id !== initialHighlight?.id);
     const nextHighlight: Highlight = {
+      // An edit keeps what the form does not show, such as whether the highlight is hidden.
+      ...initialHighlight,
       id: trimmedName || createHighlightId(regionResult.region, otherHighlights),
       region: regionResult.region,
       color,

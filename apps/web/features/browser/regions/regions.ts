@@ -7,7 +7,7 @@ import {
 
 /**
  * Saved regions are the browser's highlights: a highlight's ID is its region's name, and
- * zero opacity hides the highlight without losing the region. They save with the session.
+ * hiding the highlight keeps the region and its style. They save with the session.
  */
 
 /** Colors new regions take in turn. */
@@ -24,17 +24,28 @@ export function saveRegion(browserStore: BrowserStoreInstance, region: GenomicRe
   });
 }
 
-export const isHidden = (highlight: Highlight) => highlight.opacity === 0;
+/** Hidden, or invisible at zero opacity, as regions were hidden before highlights had `hidden`. */
+export const isHidden = (highlight: Highlight) =>
+  highlight.hidden === true || highlight.opacity === 0;
 
-/** Hides or shows a region's highlight. Showing it restores the default opacity for its style. */
+/**
+ * Hides or shows a region's highlight, keeping its opacity and style. A region at zero
+ * opacity has no opacity to return to, so showing it gives it its style's default.
+ */
 export function setHidden(
   browserStore: BrowserStoreInstance,
   highlight: Highlight,
   hidden: boolean,
 ) {
+  const { hidden: _hidden, ...shown } = highlight;
   browserStore
     .getState()
-    .updateHighlight(highlight.id, { ...highlight, opacity: hidden ? 0 : undefined });
+    .updateHighlight(
+      highlight.id,
+      hidden
+        ? { ...highlight, hidden: true }
+        : { ...shown, opacity: highlight.opacity === 0 ? undefined : highlight.opacity },
+    );
 }
 
 /** A highlight without a chromosome is drawn on whichever chromosome is shown. */

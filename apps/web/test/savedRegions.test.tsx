@@ -102,13 +102,22 @@ it("saves, edits, hides, visits, and deletes regions, saving them with the sessi
     ]),
   );
 
+  // Hiding keeps the region's own opacity, and showing it again restores it.
   await chooseAction("HS2", "Hide highlight");
   expect(cards()[0].textContent).toContain("Hidden");
   await vi.waitFor(() =>
     expect(saved().highlights).toEqual([
-      { id: "HS2", region: hs2, color: "#ff0000", opacity: 0, type: "filled" },
+      { id: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled", hidden: true },
     ]),
   );
+  await chooseAction("HS2", "Show highlight");
+  expect(cards()[0].textContent).not.toContain("Hidden");
+  await vi.waitFor(() =>
+    expect(saved().highlights).toEqual([
+      { id: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled" },
+    ]),
+  );
+  await chooseAction("HS2", "Hide highlight");
 
   await click(cards()[0].querySelector("[role='button']"));
   expect(cards()[0].querySelector('[aria-current="location"]')).not.toBeNull();
