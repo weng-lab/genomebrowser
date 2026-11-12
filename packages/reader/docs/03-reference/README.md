@@ -35,16 +35,17 @@ Every public export has a canonical destination below. File methods are document
 
 ### BigBed annotations
 
-| Exports              | Reference                                                 |
-| -------------------- | --------------------------------------------------------- |
-| `createBigBedFile`   | [BigBed annotations](bigBed/bigBed.md#createbigbedfile)   |
-| `BigBedFileOptions`  | [BigBed annotations](bigBed/bigBed.md#bigbedfileoptions)  |
-| `BigBedFile`         | [BigBed annotations](bigBed/bigBed.md#bigbedfile)         |
-| `BigBedHeader`       | [BigBed annotations](bigBed/bigBed.md#bigbedheader)       |
-| `BigBedRecord`       | [BigBed annotations](bigBed/bigBed.md#bigbedrecord)       |
-| `bed3Schema`         | [BigBed annotations](bigBed/bigBed.md#bed3schema)         |
-| `BigBedParseError`   | [BigBed annotations](bigBed/bigBed.md#bigbedparseerror)   |
-| `BigBedParseContext` | [BigBed annotations](bigBed/bigBed.md#bigbedparsecontext) |
+| Exports                                 | Reference                                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `createBigBedFile`                      | [BigBed annotations](bigBed/bigBed.md#createbigbedfile)                                     |
+| `BigBedFileOptions`                     | [BigBed annotations](bigBed/bigBed.md#bigbedfileoptions)                                    |
+| `BigBedFile`                            | [BigBed annotations](bigBed/bigBed.md#bigbedfile)                                           |
+| `BigBedHeader`                          | [BigBed annotations](bigBed/bigBed.md#bigbedheader)                                         |
+| `BigBedRecord`                          | [BigBed annotations](bigBed/bigBed.md#bigbedrecord)                                         |
+| `BigBedMetadata`, `BigBedSummaryRecord` | [Metadata and coverage](bigBed/bigBed.md#inspect-file-metadata-and-read-coverage-summaries) |
+| `bed3Schema`                            | [BigBed annotations](bigBed/bigBed.md#bed3schema)                                           |
+| `BigBedParseError`                      | [BigBed annotations](bigBed/bigBed.md#bigbedparseerror)                                     |
+| `BigBedParseContext`                    | [BigBed annotations](bigBed/bigBed.md#bigbedparsecontext)                                   |
 
 ### BAM alignments
 

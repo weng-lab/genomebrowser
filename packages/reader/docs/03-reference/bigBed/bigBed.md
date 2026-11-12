@@ -136,6 +136,29 @@ the leading columns that are standard BED fields, the N in `bedN+M`. A file buil
 column for each of them. The counts come from the header as written; `getHeader()` does not decode
 records to confirm them.
 
+## Inspect file metadata and read coverage summaries
+
+For the embedded AutoSQL and zoom levels as well, `BigBedFile<Schema>` also provides:
+
+- `getMetadata(options?: ReadOptions): Promise<BigBedMetadata>` returns the header's `fieldCount`, `definedFieldCount`, embedded `autoSql` string (or `undefined`), and sorted `zoomLevels` reduction sizes. The returned object and zoom array are frozen and cached per file object. AutoSQL must terminate within 64 KiB.
+- `readZoomLevel(region, reductionLevel, options?): Promise<BigBedSummaryRecord[]>` reads only overlapping blocks from that zoom level's regional index. Pick an existing positive integer reduction from `zoomLevels`; unavailable levels reject. Unknown chromosomes return `[]`.
+
+```ts
+const metadata = await file.getMetadata();
+console.log(metadata.fieldCount, metadata.definedFieldCount, metadata.autoSql);
+const reduction = metadata.zoomLevels.at(-1);
+if (reduction !== undefined) {
+  const coverage = await file.readZoomLevel(
+    { chromosome: "chr1", start: 0, end: 100_000_000 },
+    reduction,
+  );
+}
+```
+
+`BigBedSummaryRecord` has `kind: "summary"`, the original genomic interval, `validCount`, `min`, `max`, `sum`, `sumSquares`, and `mean` (`sum / validCount`). It shares the BBI summary structure with `BigWigSummaryRecord`. For BigBed these describe interval coverage and overlapping feature counts, rather than biological signal values. Summaries do not contain individual feature attributes, classes, or strand; use `read` at closer zoom for those. Stored summary bins can extend beyond the queried region and are not clipped by the reader.
+
+Metadata inspection does not automatically choose or replace the caller's positional Zod schema. A specialized track can validate the metadata against its known format before decoding rows. Neither metadata inspection nor zoom reading fetches the full source file. Cancellation uses the same per-call `AbortSignal` contract as `read`.
+
 ## Regions, results, and cancellation
 
 Coordinates are zero-based and half-open. A result overlaps a query when its start is before the
@@ -194,20 +217,22 @@ complete size remains supported; the reader falls back to smaller exact index re
 ## Lifecycle and failures
 
 Creating a file is synchronous and performs no request. Invalid factory options, URLs, and schemas
-throw synchronously before a file is returned. The file's contents are not checked until
-`getHeader()` or `read()`, and record compatibility not until `read()`.
+throw synchronously before a file is returned. The file's contents are not checked until a file
+method is called, and record compatibility not until `read()`.
 
-Each file object lazily caches its successfully loaded file header, primary regional-index header,
-and chromosome lookups, including unknown chromosome names. `getHeader()` and `read()` share the
-cached header, and repeated calls on that object reuse this immutable metadata, while index nodes,
-data blocks, decoded records, and regional results are loaded or computed for every read. Failed or
-aborted metadata loads can be retried. Create a new file object to refresh metadata if the content
-at a URL changes.
+Each file object lazily caches its successfully loaded file header, primary and zoom regional-index
+headers and roots, embedded schema, zoom levels, and chromosome lookups, including unknown
+chromosome names. Every method shares the cached header, and repeated calls on that object reuse
+this metadata, while deeper index nodes, data blocks, decoded records, and regional results are
+loaded or computed for every read. Failed or aborted metadata loads can be retried. Create a new
+file object to refresh metadata if the content at a URL changes.
 
-Ordinary no-data cases return `[]`. Once a file exists, `getHeader()` asynchronously rejects for
-network and HTTP contract failures, aborts, and files that are not BigBed files. `read()` rejects
-for those same failures and also for invalid regions, binary decode errors, decompression errors,
-and Zod parsing failures. These failures never become empty or partial results. Responses with an
+Ordinary no-data cases return `[]`. Once a file exists, `getHeader()` and `getMetadata()`
+asynchronously reject for network and HTTP contract failures, aborts, and files that are not BigBed
+files; `getMetadata()` also rejects for malformed AutoSQL. `read()` and `readZoomLevel()` reject for
+those same failures and also for invalid regions, binary decode errors, and decompression errors.
+`read()` also rejects for Zod parsing failures, and `readZoomLevel()` for unavailable reduction
+levels. These failures never become empty or partial results. Responses with an
 unusable HTTP status reject with [`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror).
 
 Column validation failures reject with `BigBedParseError`, a subclass of `z.ZodError`.
@@ -247,6 +272,12 @@ The option type excludes protected property names, symbol keys, and incompatible
 ```ts
 interface BigBedFile<Schema extends z.ZodObject> extends GenomicFile<BigBedRecord<Schema>> {
   getHeader(options?: ReadOptions): Promise<BigBedHeader>;
+  getMetadata(options?: ReadOptions): Promise<BigBedMetadata>;
+  readZoomLevel(
+    region: GenomicRegion,
+    reductionLevel: number,
+    options?: ReadOptions,
+  ): Promise<BigBedSummaryRecord[]>;
 }
 ```
 
