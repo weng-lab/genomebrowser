@@ -191,7 +191,8 @@ to refresh a URL whose content has changed.
 Ordinary no-data cases return `[]`. Operations asynchronously reject for invalid regions or
 reduction levels, unavailable reduction levels, wrong file formats, network or HTTP contract failures,
 aborts, binary decode errors, and decompression errors. Failures do not become empty or partial
-results, and the package does not wrap them in a package-specific error hierarchy.
+results. Responses with an unusable HTTP status reject with [`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror); other failures are not wrapped
+in a package-specific error hierarchy.
 
 ## API reference
 

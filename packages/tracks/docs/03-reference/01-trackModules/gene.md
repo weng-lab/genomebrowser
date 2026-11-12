@@ -109,7 +109,7 @@ The catalog lists sources for known assemblies. For a custom URL, the applicatio
 
 ## Source requirements
 
-The source must be an absolute public HTTP or HTTPS BigBed URL. Standard BigGenePred has these columns in order:
+The source must be an absolute public HTTP or HTTPS BigBed URL. To check a URL before creating a track, call `checkGeneFiles({ url })`; see [Check source files](trackCreation.md#check-source-files). Standard BigGenePred has these columns in order:
 
 `chrom`, `chromStart`, `chromEnd`, `name`, `score`, `strand`, `thickStart`, `thickEnd`, `reserved`, `blockCount`, `blockSizes`, `chromStarts`, `name2`, `cdsStartStat`, `cdsEndStat`, `exonFrames`, `type`, `geneName`, `geneName2`, `geneType`.
 

@@ -63,7 +63,7 @@ await promise;
 ```
 
 `readChromSizes` rejects for invalid or non-HTTP(S) URLs, cancelled requests, network failures,
-non-successful HTTP responses, and invalid file contents. `parseChromSizes` throws for invalid text,
+non-successful HTTP responses ([`HttpStatusError`](../regionalReading/genomicFile.md#httpstatuserror)), and invalid file contents. `parseChromSizes` throws for invalid text,
 malformed rows, duplicate names, invalid lengths, and files with no entries.
 
 For cross-origin URLs, the server must allow the browser to fetch the file through CORS.

@@ -1,3 +1,4 @@
+import { HttpStatusError } from "./httpStatusError";
 import { throwIfAborted } from "./internal/abort";
 import { validateHttpUrl } from "./internal/inputValidation";
 
@@ -62,7 +63,10 @@ export async function readChromSizes(options: ReadChromSizesOptions): Promise<Ch
   throwIfAborted(options.signal);
 
   if (!response.ok) {
-    throw new Error(`Failed to read chrom.sizes file: received HTTP ${response.status}`);
+    throw new HttpStatusError(
+      `Failed to read chrom.sizes file: received HTTP ${response.status}`,
+      response.status,
+    );
   }
 
   const text = await response.text();

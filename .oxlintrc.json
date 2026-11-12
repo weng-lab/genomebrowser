@@ -241,7 +241,14 @@
                 "message": "Redis connections belong in feature server modules and server composition."
               },
               {
-                "group": ["*", "!zod", "!zod/**", "!./**", "!../../browser/region"],
+                "group": [
+                  "*",
+                  "!zod",
+                  "!zod/**",
+                  "!./**",
+                  "!../../browser/region",
+                  "!../../browser/urlTrackTypes"
+                ],
                 "allowTypeImports": true,
                 "message": "Command definitions load in the browser and the MCP server. Import schemas, types, and other command files; reach browser code through CommandApp."
               }

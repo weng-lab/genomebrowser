@@ -2,7 +2,7 @@
 
 Start with the [installation and regional-read example](../README.md). Choose a data source below for its usage, options, results, and failure behavior.
 
-- [Regional reading](03-reference/regionalReading/genomicFile.md): shared file and coordinate types, and cancellation options.
+- [Regional reading](03-reference/regionalReading/genomicFile.md): shared file and coordinate types, cancellation options, and HTTP status errors.
 - [BigWig signal](03-reference/bigWig/bigWig.md): source values and stored zoom summaries.
 - [BigBed annotations](03-reference/bigBed/bigBed.md): positional Zod schemas, header column counts, and parsing diagnostics.
 - [BAM alignments](03-reference/bam/bam.md): indexed alignments, CIGAR, sequence, and mate data.

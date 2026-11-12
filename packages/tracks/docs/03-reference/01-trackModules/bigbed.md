@@ -46,7 +46,7 @@ In both displays, feature rectangles and their vertical margins fit inside each 
 
 ## Source requirements
 
-The source must be an absolute public HTTP(S) BigBed URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../../04-troubleshooting.md) if the file does not load.
+The source must be an absolute public HTTP(S) BigBed URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../../04-troubleshooting.md) if the file does not load. To check a URL and choose `bedSchema` from the file's header before creating a track, call `checkBigBedFiles({ url })`; see [Check source files](trackCreation.md#check-source-files).
 
 The fetcher uses `config.bedSchema` to parse columns after BED3. Omitting it uses BED9, including names, scores, strand, thick coordinates, and RGB colors. Set `bedSchema: "bed3"` to read only coordinates. Columns beyond the selected schema remain in `BigBedRow.fields`. See [BED schemas and colored tracks](../03-dataPrimitives/bedSchemas.md) for available keys and ChromHMM/cCRE examples.
 

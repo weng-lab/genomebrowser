@@ -14,7 +14,7 @@ export type CommandRelayOptions = {
   url: string;
   /** Prefix for every Redis key and channel. Deployments that must not reach each other's tabs use different ones. */
   namespace: string;
-  /** Bounds a whole dispatch, from reaching Redis to the tab's reply, and every other Redis wait. */
+  /** Bounds a whole dispatch that gives no limit of its own, from reaching Redis to the tab's reply, and every other Redis wait. */
   commandTimeoutMs?: number;
   /** Commands that may be in flight for one session across every instance; more fail with `BUSY`. */
   maxPendingPerSession?: number;
@@ -35,7 +35,9 @@ export type CommandRelay = {
   /**
    * Run a command in the session's tab and wait for its result. Never rejects;
    * fails with `NOT_CONNECTED`, `TIMEOUT`, `CANCELLED`, `BUSY`,
-   * `RELAY_UNAVAILABLE`, or the tab's own failure. The command timeout bounds the whole call. When
+   * `RELAY_UNAVAILABLE`, or the tab's own failure. The command timeout, or
+   * `options.timeoutMs` when given, bounds the whole call and is the command's
+   * deadline in the tab. When
    * `signal` aborts or time runs out after delivery, the tab is asked to stop
    * the command without waiting for Redis; a change already applied stays.
    */
@@ -43,6 +45,7 @@ export type CommandRelay = {
     sessionId: string,
     command: Pick<CommandMessage, "name" | "params">,
     signal: AbortSignal,
+    options?: { timeoutMs?: number },
   ): Promise<CommandResult>;
   /**
    * An SSE stream of commands, and cancellations of them, for one connection of
@@ -203,10 +206,11 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     sessionId: string,
     command: Pick<CommandMessage, "name" | "params">,
     signal: AbortSignal,
+    { timeoutMs: commandTimeoutMs = timeoutMs }: { timeoutMs?: number } = {},
   ): Promise<CommandResult> {
     if (closed) return Promise.resolve(failure("RELAY_UNAVAILABLE", "The command relay is closed"));
     const commandId = randomUUID();
-    const expiresAt = Date.now() + timeoutMs;
+    const expiresAt = Date.now() + commandTimeoutMs;
     let delivered = false;
 
     const run = Effect.gen(function* () {
@@ -289,7 +293,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     const stop = new AbortController();
     const bounded = Effect.scoped(run).pipe(
       Effect.timeoutOrElse({
-        duration: timeoutMs,
+        duration: commandTimeoutMs,
         orElse: () =>
           Effect.succeed(
             delivered

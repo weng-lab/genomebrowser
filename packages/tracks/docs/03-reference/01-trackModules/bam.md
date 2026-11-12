@@ -200,7 +200,7 @@ Each reference record contains `chromosome`, `start`, `end`, and `sequence`. The
 
 ## Source requirements and failures
 
-BAM must be coordinate-sorted, BGZF-compressed, and paired with its matching BAI index. BAM and optional 2bit requests require HTTP 206 byte ranges without transport `Content-Encoding`; the BAI is fetched in full. All sources need browser CORS access.
+BAM must be coordinate-sorted, BGZF-compressed, and paired with its matching BAI index. BAM and optional 2bit requests require HTTP 206 byte ranges without transport `Content-Encoding`; the BAI is fetched in full. All sources need browser CORS access. To check the BAM and BAI URLs before creating a track, call `checkBamFiles({ url, indexUrl })`; see [Check source files](trackCreation.md#check-source-files).
 
 The reader supports BAI, not CSI or CRAM. It decodes long CIGARs from the `CG` tag; when that tag is missing or inconsistent, the read keeps its span with no CIGAR operations. Regional coordinates must end at or before `2 ** 29`. Unmapped reads are omitted; secondary, supplementary, and quality-failed records remain visible and counted unless filtered by MAPQ or duplicate settings.
 

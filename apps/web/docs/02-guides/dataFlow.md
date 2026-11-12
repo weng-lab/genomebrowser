@@ -69,7 +69,7 @@ sequenceDiagram
   MCP-->>Agent: Command result or failure
 ```
 
-The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. Five seconds bound the whole dispatch, including every wait on Redis. When the caller cancels or time runs out, the relay sends an SSE `cancel` event and the tab aborts the command's signal; commands are never replayed.
+The reply means the store accepted the command. It does not mean track data has loaded or the session has been saved; the tab's autosave stores the change separately. The command's time limit, five seconds unless its definition sets `timeoutMs`, bounds the whole dispatch, including every wait on Redis. When the caller cancels or time runs out, the relay sends an SSE `cancel` event and the tab aborts the command's signal; commands are never replayed.
 
 Only one connection receives a session's commands: the one its lease names. The first tab to attach takes the lease. Other tabs get 409 and retry every second until it is free. A tab keeps one tab ID while it reconnects, so its reconnect replaces its own earlier connection, which ends and fails the commands sent to it. Cleanup releases only the connection's own lease, so it cannot release a replacement. Turning off remote control in Settings saves the account's preference and closes the stream. So does the session's `signal` from `features/sessions/session.ts`, which aborts when the session is replaced or closed, or can no longer save edits.
 
