@@ -31,6 +31,7 @@ Every current public export has one canonical destination below.
 | Browser controls    | `SelectionControls`, `SelectionControlsProps`             | [Selection controls](01-browserControls/SelectionControls.md#selectioncontrolsprops)                                  |
 | Browser controls    | `DownloadImageDialog`, `DownloadImageDialogProps`         | [Download image dialog](01-browserControls/DownloadImageDialog.md#downloadimagedialogprops)                           |
 | Highlights          | `HighlightDialog`, `HighlightDialogProps`                 | [Highlight dialog](02-highlights/HighlightDialog.md#highlightdialogprops)                                             |
+| Highlights          | `HighlightForm`, `HighlightFormProps`                     | [Highlight form](02-highlights/HighlightForm.md#highlightformprops)                                                   |
 | Chromosome overview | `Cytobands`, `CytobandsProps`                             | [Cytobands](04-chromosomeOverview/Cytobands.md#cytobandsprops)                                                        |
 | Track sorting       | `TrackSortDialog`, `TrackSortDialogProps`                 | [TrackSortDialog](06-trackSorting/TrackSortDialog.md#tracksortdialogprops)                                            |
 | Track sorting       | `TrackSortOption`                                         | [Sort options](06-trackSorting/TrackSortDialog.md#tracksortoption)                                                    |

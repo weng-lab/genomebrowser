@@ -75,7 +75,7 @@ Only one connection receives a session's commands: the one its lease names. The 
 
 ## Save and restore
 
-Opening a session loads `GET /api/sessions/:id`, creates stores for its assembly, and restores the snapshot. Only then does autosave subscribe to the stores. A failed or missing load never writes.
+Opening a session loads `GET /api/sessions/:id`, creates stores for its assembly, and restores the snapshot. Besides the browser and track stores, a session has a store of region groups, which follows the browser's highlights. Only then does autosave subscribe to the stores. A failed or missing load never writes.
 
 Each edit to the stores or the name produces a snapshot. About 200 ms later, the worker sends `PUT /api/sessions/:id` with the whole snapshot and name, the revision it was based on, and a new save ID. It sends one write at a time and keeps the newest edits for the next one. A write acknowledges only the snapshot it sent, and its response gives the revision for the next write. A transient failure may hide a write that was applied, so the same write is retried, under the same save ID, before any newer edits. Refused input is not sent again until a further edit. `CONFLICT` keeps the edits unsaved until the user saves over the other version or discards them. `NOT_FOUND` ends saving rather than recreating the session; its edits stay unsaved and keep the tab from opening another session until they are discarded.
 

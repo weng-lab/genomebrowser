@@ -398,6 +398,102 @@ describe("createBrowserStore", () => {
     expect(store.getState().highlights).toEqual([highlight]);
   });
 
+  it("updates a highlight in place and rejects missing, taken, or invalid replacements", () => {
+    const store = createTestStore();
+    const first = { id: "first", region: { start: 1, end: 2 }, color: "red" };
+    const second = { id: "second", region: { start: 3, end: 4 }, color: "blue" };
+    store.getState().addHighlight(first);
+    store.getState().addHighlight(second);
+    const renamed = { ...first, id: "renamed", opacity: 0 };
+    expect(store.getState().updateHighlight("first", renamed)).toEqual({ ok: true });
+    expect(store.getState().highlights).toEqual([renamed, second]);
+    const before = store.getState();
+    expect(store.getState().updateHighlight("missing", first)).toMatchObject({
+      ok: false,
+      code: "HIGHLIGHT_NOT_FOUND",
+    });
+    expect(store.getState().updateHighlight("renamed", { ...first, id: "second" })).toMatchObject({
+      ok: false,
+      code: "DUPLICATE_HIGHLIGHT_ID",
+    });
+    expect(store.getState().updateHighlight("renamed", { ...first, color: "" })).toMatchObject({
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+    });
+    expect(store.getState()).toBe(before);
+  });
+
+  it("updates only the first of duplicate initial highlight IDs", () => {
+    const twin = { id: "twin", region: { start: 1, end: 2 }, color: "red" };
+    const store = createBrowserStore({
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 20, end: 40 },
+      highlights: [twin, twin],
+    });
+    const named = { ...twin, name: "Promoter" };
+    expect(store.getState().updateHighlight("twin", named)).toEqual({ ok: true });
+    expect(store.getState().highlights).toEqual([named, twin]);
+    expect(store.getState().updateHighlights([{ ...twin, color: "blue" }])).toEqual({ ok: true });
+    expect(store.getState().highlights).toEqual([{ ...twin, color: "blue" }, twin]);
+  });
+
+  it("updates several highlights in one update and rejects missing, repeated, or invalid ones", () => {
+    const store = createTestStore();
+    const first = { id: "first", region: { start: 1, end: 2 }, color: "red" };
+    const second = { id: "second", region: { start: 3, end: 4 }, color: "blue" };
+    const third = { id: "third", region: { start: 5, end: 6 }, color: "green" };
+    for (const highlight of [first, second, third]) store.getState().addHighlight(highlight);
+    const notify = vi.fn<() => void>();
+    store.subscribe(notify);
+
+    const recolored = [
+      { ...third, color: "black" },
+      { ...first, color: "black", hidden: true },
+    ];
+    expect(store.getState().updateHighlights(recolored)).toEqual({ ok: true });
+    expect(store.getState().highlights).toEqual([recolored[1], second, recolored[0]]);
+    expect(notify).toHaveBeenCalledTimes(1);
+
+    const before = store.getState();
+    expect(store.getState().updateHighlights([second, { ...first, id: "missing" }])).toMatchObject({
+      ok: false,
+      code: "HIGHLIGHT_NOT_FOUND",
+    });
+    expect(store.getState().updateHighlights([second, second])).toMatchObject({
+      ok: false,
+      code: "DUPLICATE_HIGHLIGHT_ID",
+    });
+    expect(store.getState().updateHighlights([second, { ...first, color: "" }])).toMatchObject({
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+    });
+    expect(store.getState().updateHighlights([])).toEqual({ ok: true });
+    expect(store.getState()).toBe(before);
+    expect(notify).toHaveBeenCalledTimes(1);
+  });
+
+  it("removes several highlights in one update and leaves state unchanged when none match", () => {
+    const twin = { id: "twin", region: { start: 1, end: 2 }, color: "red" };
+    const kept = { id: "kept", region: { start: 3, end: 4 }, color: "blue" };
+    const store = createBrowserStore({
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 20, end: 40 },
+      highlights: [twin, kept, twin, { ...kept, id: "gone" }],
+    });
+    const notify = vi.fn<() => void>();
+    store.subscribe(notify);
+
+    store.getState().removeHighlights(["twin", "gone", "missing"]);
+    expect(store.getState().highlights).toEqual([kept]);
+    expect(notify).toHaveBeenCalledTimes(1);
+
+    const before = store.getState();
+    store.getState().removeHighlights(["missing"]);
+    store.getState().removeHighlights([]);
+    expect(store.getState()).toBe(before);
+    expect(notify).toHaveBeenCalledTimes(1);
+  });
+
   it("still rejects invalid highlight regions", () => {
     expect(() =>
       createBrowserStore({

@@ -69,11 +69,11 @@ A completed selection leaves the chosen mode active, allowing repeated zooms or 
 
 ## Keep regions marked with highlights
 
-Highlights mark genomic regions across the track area and follow their coordinates during navigation. A highlight created by dragging retains its chromosome and remains in the store when the view moves elsewhere. Returning to that region makes it visible again.
+Highlights mark genomic regions across the track area and follow their coordinates during navigation. A highlight created by dragging retains its chromosome, is named by its coordinates, and remains in the store when the view moves elsewhere. Returning to that region makes it visible again.
 
 The initial selection style is filled amber at opacity `0.25`. Configure `selectionHighlight` in the browser-store input, or use `setSelectionHighlight` to change the style for subsequent selections. The style accepts a color, opacity, and either `filled` or `outlined` type. Changing it does not restyle highlights already created.
 
-For known regions, `addHighlight` adds a highlight with an application-chosen ID, region, and style. `removeHighlight` removes it by ID, and `clearHighlights` removes every highlight. Include the chromosome in the region to keep the highlight specific to that chromosome. An existing ID makes `addHighlight` a no-op rather than replacing that entry. The [highlight reference](../03-reference/01-browserSetup/browserStore.md#highlights) describes the stored shape and validation behavior.
+For known regions, `addHighlight` adds a highlight with an application-chosen ID, region, and style. `updateHighlight` replaces it in place, `removeHighlight` removes it by ID, and `clearHighlights` removes every highlight. Include the chromosome in the region to keep the highlight specific to that chromosome. An existing ID makes `addHighlight` a no-op rather than replacing that entry. To name a highlight by its coordinates, as dragging does, use `createHighlightId`. The [highlight reference](../03-reference/01-browserSetup/browserStore.md#highlights) describes the stored shape and validation behavior.
 
 ## Use the provided controls
 

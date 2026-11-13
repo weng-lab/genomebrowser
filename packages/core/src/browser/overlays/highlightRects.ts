@@ -24,7 +24,7 @@ export function getHighlightRects({
 
   return highlights.flatMap((highlight) => {
     const chromosome = highlight.region.chromosome ?? region.chromosome;
-    if (chromosome !== region.chromosome) return [];
+    if (highlight.hidden || chromosome !== region.chromosome) return [];
 
     const start = xScale(highlight.region.start);
     const end = xScale(highlight.region.end);

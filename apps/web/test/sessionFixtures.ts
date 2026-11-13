@@ -76,5 +76,14 @@ export function snapshot(overrides: Partial<SessionSnapshot["browser"]> = {}): S
       },
     ],
     pinnedTrackIds: ["ruler"],
+    regionGroups: [
+      {
+        id: "elements",
+        name: "Elements",
+        color: "#1a73e8",
+        collapsed: true,
+        regionIds: ["promoter", "enhancer"],
+      },
+    ],
   };
 }

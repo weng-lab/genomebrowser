@@ -27,7 +27,7 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `BasePairDetailSettings`, `BasePairDetailMutationResult`                            | [Base-pair detail settings](01-browserSetup/browserStore.md#base-pair-detail)                                        |
 | `BrowserViewportMutationResult`                                                     | [Fixed width](01-browserSetup/browserStore.md#fixed-width)                                                           |
 | `BrowserSelectionMode`, `SelectionHighlightStyle`, `BrowserSelectionMutationResult` | [Selection](01-browserSetup/browserStore.md#selection)                                                               |
-| `BrowserHighlightMutationResult`, `Highlight`                                       | [Highlights](01-browserSetup/browserStore.md#highlights)                                                             |
+| `BrowserHighlightMutationResult`, `Highlight`, `createHighlightId`                  | [Highlights](01-browserSetup/browserStore.md#highlights)                                                             |
 | `useGenomeBrowser`, `GenomeBrowserStores`                                           | [Hosting browser stores](01-browserSetup/useGenomeBrowser.md#usegenomebrowser)                                       |
 | `createTrackStore`, `TrackStoreOptions`                                             | [Store creation](01-browserSetup/trackStore.md#createtrackstore-and-trackstoreoptions)                               |
 | `TrackStore`, `TrackStoreInstance`                                                  | [State and store instance](01-browserSetup/trackStore.md#trackstore-and-trackstoreinstance)                          |
