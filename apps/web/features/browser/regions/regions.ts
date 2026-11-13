@@ -1,5 +1,6 @@
 import {
   createHighlightId,
+  type BrowserHighlightMutationResult,
   type BrowserStoreInstance,
   type GenomicRegion,
   type Highlight,
@@ -30,18 +31,21 @@ export function saveRegion(browserStore: BrowserStoreInstance, region: GenomicRe
 /** The name a region shows. */
 export const regionName = (highlight: Highlight) => highlight.name ?? highlight.id;
 
-/** Changes the highlights with IDs in `ids` in one update, keeping their order. */
+/**
+ * Changes the regions with IDs in `ids` in one validated update, keeping their order. IDs
+ * without a region are skipped.
+ */
 function updateRegions(
   browserStore: BrowserStoreInstance,
   ids: readonly string[],
   change: (highlight: Highlight) => Highlight,
-) {
-  const members = new Set(ids);
-  browserStore.setState(({ highlights }) => ({
-    highlights: highlights.map((highlight) =>
-      members.has(highlight.id) ? change(highlight) : highlight,
-    ),
-  }));
+): BrowserHighlightMutationResult {
+  const { highlights, updateHighlights } = browserStore.getState();
+  const changed = [...new Set(ids)].flatMap((id) => {
+    const highlight = highlights.find((existing) => existing.id === id);
+    return highlight ? [change(highlight)] : [];
+  });
+  return updateHighlights(changed);
 }
 
 /** Hides or shows the regions' highlights, keeping their style. */
@@ -50,12 +54,14 @@ export function setRegionsHidden(
   ids: readonly string[],
   hidden: boolean,
 ) {
-  updateRegions(browserStore, ids, ({ hidden: _hidden, ...shown }) =>
+  return updateRegions(browserStore, ids, ({ hidden: _hidden, ...shown }) =>
     hidden ? { ...shown, hidden: true } : shown,
   );
 }
 
-export type SetRegionsColorResult = { ok: true } | MutationFailure<"INVALID_COLOR">;
+export type SetRegionsColorResult =
+  | BrowserHighlightMutationResult
+  | MutationFailure<"INVALID_COLOR">;
 
 /** Colors the regions' highlights, keeping everything else about them. */
 export function setRegionsColor(
@@ -69,16 +75,7 @@ export function setRegionsColor(
       code: "INVALID_COLOR",
       error: `Expected a hex color like #1a73e8: ${color}`,
     };
-  updateRegions(browserStore, ids, (highlight) => ({ ...highlight, color }));
-  return { ok: true };
-}
-
-/** Deletes the regions' highlights in one update. */
-export function deleteRegions(browserStore: BrowserStoreInstance, ids: readonly string[]) {
-  const members = new Set(ids);
-  browserStore.setState(({ highlights }) => ({
-    highlights: highlights.filter((highlight) => !members.has(highlight.id)),
-  }));
+  return updateRegions(browserStore, ids, (highlight) => ({ ...highlight, color }));
 }
 
 /** A highlight without a chromosome is drawn on whichever chromosome is shown. */

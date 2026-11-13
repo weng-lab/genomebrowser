@@ -210,13 +210,17 @@ Highlights mark genomic regions across the track area. Add them programmatically
 
 Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `name`, `type`, `opacity`, and `hidden` stay optional in stored entries; rendering applies their defaults. To hide a highlight without losing its style, set `hidden: true` with `updateHighlight` rather than setting its opacity to zero.
 
-### addHighlight, updateHighlight, removeHighlight, and clearHighlights
+### Highlight actions
 
 `addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`, `HIGHLIGHT_NOT_FOUND`, or `DUPLICATE_HIGHLIGHT_ID`; `addHighlight` returns only `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
 
 `updateHighlight(id: string, highlight: Highlight): BrowserHighlightMutationResult` validates `highlight` and replaces the first entry with ID `id` in place, keeping its position. The replacement may change the ID; to rename a highlight while keeping its ID, change only `name`. It returns `HIGHLIGHT_NOT_FOUND` when no entry has ID `id`, `DUPLICATE_HIGHLIGHT_ID` when another entry already has the new ID, and `INVALID_HIGHLIGHT` for invalid input; every failure leaves state unchanged.
 
+`updateHighlights(highlights: readonly Highlight[]): BrowserHighlightMutationResult` validates every entry, then replaces the first existing entry with each entry's ID in one update, keeping positions. It cannot change IDs; use `updateHighlight` for that. It returns `INVALID_HIGHLIGHT` for invalid input, `DUPLICATE_HIGHLIGHT_ID` when `highlights` repeats an ID, and `HIGHLIGHT_NOT_FOUND` when an ID is not in the store; every failure leaves state unchanged. An empty list succeeds without changing state.
+
 `removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
+
+`removeHighlights(ids: readonly string[]): void` removes all entries matching any of `ids` in one update; when none match, it leaves state unchanged and does not notify subscribers.
 
 `clearHighlights(): void` removes every highlight in one update; when there are none, it leaves state unchanged and does not notify subscribers.
 
@@ -237,7 +241,17 @@ useBrowserStore.getState().updateHighlight("candidate", {
   hidden: true,
 });
 
+// Recolor several highlights in one update.
+const { highlights, updateHighlights } = useBrowserStore.getState();
+updateHighlights(
+  highlights
+    .filter((highlight) => highlight.type === "outlined")
+    .map((highlight) => ({ ...highlight, color: "#d93025" })),
+);
+
 useBrowserStore.getState().removeHighlight("candidate");
+
+useBrowserStore.getState().removeHighlights(["enhancer", "promoter"]);
 
 useBrowserStore.getState().clearHighlights();
 ```

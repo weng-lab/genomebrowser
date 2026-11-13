@@ -6,7 +6,6 @@ import type {
 import { z } from "zod";
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { regionGroupSchema, type RegionGroup } from "./regionGroupSchema";
-import { deleteRegions } from "./regions";
 
 export type RegionGroupErrorCode = "GROUP_NOT_FOUND" | "REGION_NOT_FOUND" | "INVALID_GROUP";
 
@@ -182,7 +181,7 @@ export function createRegionGroupStore(browserStore: BrowserStoreInstance) {
         const group = findGroup(groupId);
         if (!group) return groupNotFound(groupId);
         // Removing its members' highlights deletes the group, which is left empty.
-        deleteRegions(browserStore, group.regionIds);
+        browserStore.getState().removeHighlights(group.regionIds);
         return { ok: true };
       },
     };

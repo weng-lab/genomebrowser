@@ -255,7 +255,7 @@ it("recolors every highlight in a group, keeping each one's other settings", asy
   await vi.waitFor(() => expect(saved().highlights[1]).toMatchObject({ hidden: true }));
   const before = server.stored.get(id)!.snapshot;
 
-  await chooseGroupAction("Group 1", "Apply group highlight…");
+  await chooseGroupAction("Group 1", "Change highlight color");
   const input = document.querySelector<HTMLInputElement>('[role="dialog"] input')!;
   // It starts at the group's color. The field writes hex colors in capitals.
   expect(input.value).toBe("#1A73E8");

@@ -192,7 +192,7 @@ function GroupActions({
           <ListItemIcon>
             <PaletteOutlined fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Apply group highlight…" />
+          <ListItemText primary="Change highlight color" />
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -277,7 +277,7 @@ function HighlightColorForm({
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
-      <DialogTitle>Apply group highlight</DialogTitle>
+      <DialogTitle>Change highlight color</DialogTitle>
       <DialogContent sx={{ "&&": { pt: 1 } }}>
         <TrackSettingsColorField
           label="Highlight color"
