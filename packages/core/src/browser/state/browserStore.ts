@@ -6,7 +6,10 @@ import type { MutationFailure } from "../../mutation";
 import { formatZodError, parsePublicInput } from "../../modules/schemas";
 
 export type Highlight = {
+  /** Identifies the highlight in store actions. */
   id: string;
+  /** The name shown for the highlight. Without it, applications show the ID. */
+  name?: string;
   region: {
     chromosome?: string;
     start: number;
@@ -101,6 +104,7 @@ export type BrowserStoreInstance = UseBoundStore<StoreApi<BrowserStore>>;
 
 const highlightSchema = z.object({
   id: z.string().min(1),
+  name: z.string().min(1).optional(),
   region: z
     .object({
       chromosome: z.string().min(1).optional(),
@@ -273,7 +277,9 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
           };
         const parsedHighlight = result.data;
         const { highlights } = get();
-        if (!highlights.some((existing) => existing.id === id))
+        // Initial highlights are not deduplicated, so replace only the first with this ID.
+        const index = highlights.findIndex((existing) => existing.id === id);
+        if (index === -1)
           return {
             ok: false,
             code: "HIGHLIGHT_NOT_FOUND",
@@ -288,11 +294,7 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
             code: "DUPLICATE_HIGHLIGHT_ID",
             error: `Duplicate highlight id: ${parsedHighlight.id}`,
           };
-        set({
-          highlights: highlights.map((existing) =>
-            existing.id === id ? parsedHighlight : existing,
-          ),
-        });
+        set({ highlights: highlights.with(index, parsedHighlight) });
         return { ok: true };
       },
       removeHighlight: (id) => {

@@ -1,5 +1,5 @@
 import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import type { SessionStores } from "../browser/regions/regionGroups";
+import { normalizeGroups, type SessionStores } from "../browser/regions/regionGroups";
 import { sessionSnapshotSchema, type SessionSnapshot } from "./snapshot.ts";
 
 /** Serializable browser, track, and region-group state, as saved and as returned to agents. */
@@ -44,8 +44,14 @@ export function restore(session: SessionStores, saved: SessionSnapshot) {
   }).getState();
   const { assembly: _assembly, ...values } = saved.browser;
   session.useBrowserStore.setState({ ...values, region: browser.region });
-  // After the highlights, which the groups follow, so restoring them does not change the groups.
-  session.useRegionGroupStore.setState({ groups: saved.regionGroups });
+  // After the highlights, which the groups follow. Saved groups may hold stale or repeated
+  // members, or none, from older sessions or the sessions API.
+  session.useRegionGroupStore.setState({
+    groups: normalizeGroups(
+      saved.regionGroups,
+      saved.browser.highlights.map((highlight) => highlight.id),
+    ),
+  });
   session.useTrackStore.setState({
     tracks: tracks.tracks,
     order: tracks.order,

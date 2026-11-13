@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 
 type Movable = {
   content: ReactNode;
-  /** Holds the rendered content. Null on the server and while hydrating. */
+  /** Holds the rendered content. Null on the server, while hydrating, and without content. */
   node: HTMLElement | null;
 };
 
@@ -30,7 +30,7 @@ export function useMovable(content: ReactNode): [Movable, ReactNode] {
     () => true,
     () => false,
   );
-  const movable = { content, node: hydrated ? node : null };
+  const movable = { content, node: hydrated && content !== null ? node : null };
   return [movable, movable.node && createPortal(content, movable.node)];
 }
 
@@ -45,7 +45,15 @@ export function MovableSlot({ movable, active }: { movable: Movable; active: boo
     if (!active || !node || !target) return;
     target.append(node);
     return () => {
-      if (node.parentNode === target) node.remove();
+      if (node.parentNode !== target) return;
+      const focused = node.contains(document.activeElement) ? document.activeElement : null;
+      node.remove();
+      // Removing the content drops its focus. The slot taking it attaches it in this same
+      // commit, before the microtask runs, so focus returns once the content is shown again.
+      if (focused instanceof HTMLElement)
+        queueMicrotask(() => {
+          if (focused.isConnected) focused.focus({ preventScroll: true });
+        });
     };
   }, [active, node]);
 

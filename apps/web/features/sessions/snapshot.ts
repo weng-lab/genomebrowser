@@ -26,6 +26,8 @@ export const sessionSnapshotSchema = z.strictObject({
     highlights: z.array(
       highlightStyleSchema.extend({
         id: z.string().min(1),
+        // Highlights saved before names, and drawn ones, show their ID instead.
+        name: z.string().min(1).optional(),
         hidden: z.boolean().optional(),
         region: z
           .strictObject({

@@ -28,11 +28,10 @@ import {
   type Highlight,
 } from "@weng-lab/genomebrowser";
 import { useId, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
 import { useSession } from "../../../sessions/SessionProvider";
 import type { RegionGroup } from "../regionGroupSchema";
 import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
-import { isHidden, regionOf, sameRegion, saveRegion, setHidden } from "../regions";
+import { regionName, regionOf, sameRegion, saveRegion, setRegionsHidden } from "../regions";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { GroupDialog } from "./GroupDialog";
 import { listSx, RegionGroupSection } from "./RegionGroup";
@@ -65,22 +64,25 @@ type StoresProps = {
   regionGroupStore: RegionGroupStoreInstance;
 };
 
-type Row = { group: RegionGroup; memberIds: string[] } | { id: string };
+type Row = { group: RegionGroup; members: Highlight[] } | { highlight: Highlight };
 
 /**
  * The list's rows in highlight order. A group takes its first member's place, with all of
  * its members, in highlight order, under it.
  */
-function rowsOf(ids: readonly string[], groups: readonly RegionGroup[]): Row[] {
+function rowsOf(highlights: readonly Highlight[], groups: readonly RegionGroup[]): Row[] {
   const groupOf = new Map(groups.flatMap((group) => group.regionIds.map((id) => [id, group])));
   const rows: Row[] = [];
   const placed = new Set<RegionGroup>();
-  for (const id of ids) {
-    const group = groupOf.get(id);
-    if (!group) rows.push({ id });
+  for (const highlight of highlights) {
+    const group = groupOf.get(highlight.id);
+    if (!group) rows.push({ highlight });
     else if (!placed.has(group)) {
       placed.add(group);
-      rows.push({ group, memberIds: ids.filter((member) => groupOf.get(member) === group) });
+      rows.push({
+        group,
+        members: highlights.filter((member) => groupOf.get(member.id) === group),
+      });
     }
   }
   return rows;
@@ -89,7 +91,7 @@ function rowsOf(ids: readonly string[], groups: readonly RegionGroup[]): Row[] {
 function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const useBrowserStore = browserStore;
   const useRegionGroupStore = regionGroupStore;
-  const ids = useBrowserStore(useShallow((state) => state.highlights.map(({ id }) => id)));
+  const highlights = useBrowserStore((state) => state.highlights);
   const groups = useRegionGroupStore((state) => state.groups);
   const stores = { browserStore, regionGroupStore };
 
@@ -108,28 +110,28 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
         </Button>
       </Box>
       <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", px: 1 }}>
-        {ids.length === 0 ? (
+        {highlights.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ px: 0.5, py: 1 }}>
             No saved regions yet.
           </Typography>
         ) : (
           <List aria-label="Saved regions" disablePadding sx={listSx}>
-            {rowsOf(ids, groups).map((row) =>
+            {rowsOf(highlights, groups).map((row) =>
               "group" in row ? (
                 <RegionGroupSection key={row.group.id} group={row.group} {...stores}>
-                  {row.memberIds.map((id) => (
-                    <RegionCard key={id} id={id} {...stores} />
+                  {row.members.map((highlight) => (
+                    <RegionCard key={highlight.id} highlight={highlight} {...stores} />
                   ))}
                 </RegionGroupSection>
               ) : (
-                <RegionCard key={row.id} id={row.id} {...stores} />
+                <RegionCard key={row.highlight.id} highlight={row.highlight} {...stores} />
               ),
             )}
           </List>
         )}
       </Box>
       <Box sx={{ px: 1, pt: 1 }}>
-        <DeleteAllButton browserStore={browserStore} disabled={ids.length === 0} />
+        <DeleteAllButton browserStore={browserStore} disabled={highlights.length === 0} />
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{ px: 1.5, py: 1.25 }}>
         Regions save with this session.
@@ -174,22 +176,17 @@ function DeleteAllButton({
   );
 }
 
-type RegionCardProps = StoresProps & { id: string };
+type RegionCardProps = StoresProps & { highlight: Highlight };
 
 /** A saved region: its color, name, and coordinates. Clicking it goes there. */
-function RegionCard({ id, browserStore, regionGroupStore }: RegionCardProps) {
+function RegionCard({ highlight, browserStore, regionGroupStore }: RegionCardProps) {
   const useBrowserStore = browserStore;
-  const highlight = useBrowserStore((state) => state.highlights.find((item) => item.id === id));
   const shownChromosome = useBrowserStore((state) => state.region.chromosome);
   // A boolean, so panning re-renders only the cards it moves onto or off of.
-  const current = useBrowserStore((state) => {
-    const saved = state.highlights.find((item) => item.id === id);
-    return (
-      saved !== undefined && sameRegion(regionOf(saved, state.region.chromosome), state.region)
-    );
-  });
-  if (!highlight) return null;
-  const hidden = isHidden(highlight);
+  const current = useBrowserStore((state) =>
+    sameRegion(regionOf(highlight, state.region.chromosome), state.region),
+  );
+  const hidden = highlight.hidden === true;
   const region = regionOf(highlight, shownChromosome);
 
   return (
@@ -212,7 +209,7 @@ function RegionCard({ id, browserStore, regionGroupStore }: RegionCardProps) {
       >
         <Swatch highlight={highlight} />
         <ListItemText
-          primary={highlight.id}
+          primary={regionName(highlight)}
           secondary={`${formatDisplayRegion(region)}${hidden ? " · Hidden" : ""}`}
           slotProps={{
             primary: {
@@ -243,7 +240,7 @@ function Swatch({ highlight }: { highlight: Highlight }) {
         border: 2,
         borderColor: highlight.color,
         bgcolor: outlined ? "transparent" : highlight.color,
-        opacity: isHidden(highlight) ? 0.35 : 1,
+        opacity: highlight.hidden ? 0.35 : 1,
       }}
     />
   );
@@ -261,10 +258,11 @@ function RegionActions({
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [editing, setEditing] = useState(false);
   const [grouping, setGrouping] = useState(false);
+  const [newGroup, setNewGroup] = useState(() => newGroupDefaults([]));
   const menuId = useId();
-  const label = `Actions for region ${highlight.id}`;
+  const label = `Actions for region ${regionName(highlight)}`;
   const close = () => setAnchor(null);
-  const hidden = isHidden(highlight);
+  const hidden = highlight.hidden === true;
 
   return (
     <>
@@ -302,7 +300,7 @@ function RegionActions({
         <MenuItem
           onClick={() => {
             close();
-            setHidden(browserStore, highlight, !hidden);
+            setRegionsHidden(browserStore, [highlight.id], !hidden);
           }}
         >
           <ListItemIcon>
@@ -318,6 +316,7 @@ function RegionActions({
         <MenuItem
           onClick={() => {
             close();
+            setNewGroup(newGroupDefaults(regionGroupStore.getState().groups));
             setGrouping(true);
           }}
         >
@@ -358,7 +357,7 @@ function RegionActions({
         open={grouping}
         title="New group"
         submitLabel="Create group"
-        initial={newGroupDefaults(regionGroupStore.getState().groups)}
+        initial={newGroup}
         onSubmit={(group) => regionGroupStore.getState().addToNewGroup(highlight.id, group)}
         onClose={() => setGrouping(false)}
       />

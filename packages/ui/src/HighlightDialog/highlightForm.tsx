@@ -2,6 +2,8 @@ import Alert from "@mui/material/Alert";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -16,7 +18,7 @@ import { parseHighlightRegion, resolveHighlightRegion } from "./highlightRegion"
 
 const defaultColor = "#3366cc";
 
-type FormErrors = Partial<Record<"name" | "region" | "opacity" | "submit", string>>;
+type FormErrors = Partial<Record<"region" | "opacity" | "submit", string>>;
 
 type FormValues = {
   name: string;
@@ -24,11 +26,17 @@ type FormValues = {
   color: string;
   opacity: string;
   highlightType: NonNullable<Highlight["type"]>;
+  hidden: boolean;
 };
 type FormState = FormValues & { errors: FormErrors };
 type FormAction =
-  | { type: "fieldChanged"; field: Exclude<keyof FormValues, "highlightType">; value: string }
+  | {
+      type: "fieldChanged";
+      field: Exclude<keyof FormValues, "highlightType" | "hidden">;
+      value: string;
+    }
   | { type: "typeChanged"; value: NonNullable<Highlight["type"]> }
+  | { type: "hiddenChanged"; value: boolean }
   | { type: "validationFailed"; errors: FormErrors }
   | { type: "reset" };
 
@@ -38,6 +46,7 @@ const initialFormState: FormState = {
   color: defaultColor,
   opacity: "20",
   highlightType: "filled",
+  hidden: false,
   errors: {},
 };
 
@@ -56,6 +65,8 @@ function formReducer(state: FormState, action: FormAction): FormState {
         highlightType: action.value,
         opacity: action.value === "outlined" ? "100" : "20",
       };
+    case "hiddenChanged":
+      return { ...state, hidden: action.value };
     case "validationFailed":
       return { ...state, errors: action.errors };
     case "reset":
@@ -74,8 +85,9 @@ export type HighlightFormProps = {
 };
 
 /**
- * Adds a highlight, or edits `initialHighlight` in place: its ID, region, type, color,
- * and opacity. `HighlightDialog` uses it for both.
+ * Adds a highlight, or edits `initialHighlight` in place: its name, region, type, color,
+ * opacity, and whether it is hidden. An edit keeps the highlight's ID. `HighlightDialog`
+ * uses it for both.
  */
 export function HighlightForm({
   browserStore,
@@ -90,13 +102,13 @@ export function HighlightForm({
   const addHighlight = useBrowserStore((state) => state.addHighlight);
   const updateHighlight = useBrowserStore((state) => state.updateHighlight);
   const [
-    { name, region: regionInput, color, opacity: opacityInput, highlightType, errors },
+    { name, region: regionInput, color, opacity: opacityInput, highlightType, hidden, errors },
     dispatch,
   ] = useReducer(
     formReducer,
     initialHighlight
       ? {
-          name: initialHighlight.id,
+          name: initialHighlight.name ?? initialHighlight.id,
           region: formatDisplayRegion(
             resolveHighlightRegion(initialHighlight, currentRegion.chromosome),
           ),
@@ -105,6 +117,7 @@ export function HighlightForm({
             (initialHighlight.opacity ?? (initialHighlight.type === "outlined" ? 1 : 0.2)) * 100,
           ),
           highlightType: initialHighlight.type ?? "filled",
+          hidden: initialHighlight.hidden === true,
           errors: {},
         }
       : initialFormState,
@@ -117,17 +130,7 @@ export function HighlightForm({
   function handleSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
     event.preventDefault();
 
-    const trimmedName = name.trim();
     const nextErrors: FormErrors = {};
-    if (
-      trimmedName &&
-      highlights.some(
-        (highlight) => highlight.id === trimmedName && highlight.id !== initialHighlight?.id,
-      )
-    ) {
-      nextErrors.name = "Highlight IDs must be unique.";
-    }
-
     const regionResult = parseHighlightRegion(regionInput, assembly);
     if (!regionResult.ok) nextErrors.region = regionResult.error;
 
@@ -141,16 +144,20 @@ export function HighlightForm({
       return;
     }
 
-    // A blank ID names the highlight by its coordinates, as drawn highlights are named.
+    // A new highlight's ID, and a blank name, are its coordinates, as drawn highlights are named.
     const otherHighlights = highlights.filter(({ id }) => id !== initialHighlight?.id);
+    const coordinatesName = createHighlightId(regionResult.region, otherHighlights);
+    const { hidden: _hidden, ...kept } = initialHighlight ?? {};
     const nextHighlight: Highlight = {
-      // An edit keeps what the form does not show, such as whether the highlight is hidden.
-      ...initialHighlight,
-      id: trimmedName || createHighlightId(regionResult.region, otherHighlights),
+      // An edit keeps its ID and any fields the form does not show.
+      ...kept,
+      id: initialHighlight?.id ?? coordinatesName,
+      name: name.trim() || coordinatesName,
       region: regionResult.region,
       color,
       opacity: opacity / 100,
       type: highlightType,
+      ...(hidden ? { hidden: true } : {}),
     };
     const result = initialHighlight
       ? updateHighlight(initialHighlight.id, nextHighlight)
@@ -194,10 +201,8 @@ export function HighlightForm({
         </Stack>
         <TextField
           autoComplete="off"
-          error={Boolean(errors.name)}
           fullWidth
-          helperText={errors.name}
-          label="ID"
+          label="Name"
           onChange={(event) =>
             dispatch({ type: "fieldChanged", field: "name", value: event.target.value })
           }
@@ -253,6 +258,17 @@ export function HighlightForm({
             value={opacityInput}
           />
         </Stack>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={hidden}
+              onChange={(event) => dispatch({ type: "hiddenChanged", value: event.target.checked })}
+              size="small"
+            />
+          }
+          label="Hidden"
+          sx={{ alignSelf: "flex-start" }}
+        />
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="center" spacing={0.75}>
           {onCancel ? <Button onClick={onCancel}>Cancel</Button> : null}
           {!initialHighlight ? (

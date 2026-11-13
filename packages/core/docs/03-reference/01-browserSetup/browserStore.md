@@ -201,19 +201,20 @@ Highlights mark genomic regions across the track area. Add them programmatically
 | Field     | Type                                                  | Default                            | Description                                                                                                                            |
 | --------- | ----------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`      | `string`                                              | Required                           | Non-empty identifier used for addition and removal.                                                                                    |
+| `name`    | `string`                                              | None                               | Non-empty name to show for the highlight. Names need not be unique. Without one, applications show the ID.                             |
 | `region`  | `{ chromosome?: string; start: number; end: number }` | Required                           | Integer bounds with `start < end`. Omit chromosome to show this coordinate range on any chromosome; a supplied name must be non-empty. |
 | `color`   | `string`                                              | Required                           | Non-empty color string. Validation does not check CSS color syntax.                                                                    |
 | `opacity` | `number`                                              | `0.2` for filled; `1` for outlined | Value from zero to one, applied to fill or border at rendering time.                                                                   |
 | `type`    | `"filled"` or `"outlined"`                            | `"filled"`                         | Fill behind track data or transparent interior with a two-unit SVG border above track data.                                            |
 | `hidden`  | `boolean`                                             | `false`                            | When true, the highlight stays in the store but is not drawn or exported. Its `opacity` and `type` are kept for showing it again.      |
 
-Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type`, `opacity`, and `hidden` stay optional in stored entries; rendering applies their defaults. To hide a highlight without losing its style, set `hidden: true` with `updateHighlight` rather than setting its opacity to zero.
+Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `name`, `type`, `opacity`, and `hidden` stay optional in stored entries; rendering applies their defaults. To hide a highlight without losing its style, set `hidden: true` with `updateHighlight` rather than setting its opacity to zero.
 
 ### addHighlight, updateHighlight, removeHighlight, and clearHighlights
 
 `addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`, `HIGHLIGHT_NOT_FOUND`, or `DUPLICATE_HIGHLIGHT_ID`; `addHighlight` returns only `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
 
-`updateHighlight(id: string, highlight: Highlight): BrowserHighlightMutationResult` validates `highlight` and replaces the entry with ID `id` in place, keeping its position. The replacement may change the ID. It returns `HIGHLIGHT_NOT_FOUND` when no entry has ID `id`, `DUPLICATE_HIGHLIGHT_ID` when another entry already has the new ID, and `INVALID_HIGHLIGHT` for invalid input; every failure leaves state unchanged.
+`updateHighlight(id: string, highlight: Highlight): BrowserHighlightMutationResult` validates `highlight` and replaces the first entry with ID `id` in place, keeping its position. The replacement may change the ID; to rename a highlight while keeping its ID, change only `name`. It returns `HIGHLIGHT_NOT_FOUND` when no entry has ID `id`, `DUPLICATE_HIGHLIGHT_ID` when another entry already has the new ID, and `INVALID_HIGHLIGHT` for invalid input; every failure leaves state unchanged.
 
 `removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
 
@@ -229,9 +230,11 @@ useBrowserStore.getState().addHighlight({
 
 useBrowserStore.getState().updateHighlight("candidate", {
   id: "candidate",
+  name: "Candidate enhancer",
   region: { chromosome: "chr2", start: 2_020_000, end: 2_030_000 },
   color: "#3366cc",
-  opacity: 0,
+  type: "outlined",
+  hidden: true,
 });
 
 useBrowserStore.getState().removeHighlight("candidate");
@@ -243,7 +246,7 @@ To add a filled highlight, omit `type` or use `"filled"`. Selection-created high
 
 ### createHighlightId
 
-`createHighlightId(region: GenomicRegion, highlights: readonly Highlight[]): string` names a highlight by its region in the one-based display form of [`formatDisplayRegion`](../02-assembliesAndRegions/regions.md#display-regions), such as `chr1:126-175`. When `highlights` already has that ID, it appends ` (2)`, ` (3)`, and so on. Pass the store's highlights to get an ID that `addHighlight` will accept as new.
+`createHighlightId(region: GenomicRegion, highlights: readonly Highlight[]): string` names a highlight by its region in the one-based display form of [`formatDisplayRegion`](../02-assembliesAndRegions/regions.md#display-regions), such as `chr1:126-175`. When a highlight in `highlights` already has that ID or name, it appends ` (2)`, ` (3)`, and so on. Pass the store's highlights to get an ID that `addHighlight` will accept as new, or a default name that no other highlight shows.
 
 ```ts
 const { highlights, addHighlight } = useBrowserStore.getState();

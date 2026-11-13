@@ -44,8 +44,10 @@ export function WorkspacePage({
   const toggleLeft = () => toggle("left");
   const toggleRight = () => toggle("right");
   const transitionEnabled = useTransitionEnabled(usePathname());
-  const [movableHeading, headingPortal] = useMovable(heading);
-  const headingInLeftPanel = left !== undefined && leftOpen;
+  // Only a page with a left panel moves its heading; others render it in place.
+  const movesHeading = left !== undefined && heading !== undefined;
+  const [movableHeading, headingPortal] = useMovable(movesHeading ? heading : null);
+  const headingInLeftPanel = movesHeading && leftOpen;
   useHotkey({ key: "B", ctrl: true }, toggleLeft, {
     enabled: left !== undefined,
     ignoreInputs: true,
@@ -84,9 +86,9 @@ export function WorkspacePage({
         open={leftOpen}
         animate={transitionEnabled}
         heading={
-          heading === undefined ? undefined : (
+          movesHeading ? (
             <MovableSlot movable={movableHeading} active={headingInLeftPanel} />
-          )
+          ) : undefined
         }
       />
       <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
@@ -94,8 +96,10 @@ export function WorkspacePage({
           label={title}
           title={subtitle}
           heading={
-            heading === undefined ? undefined : (
+            movesHeading ? (
               <MovableSlot movable={movableHeading} active={!headingInLeftPanel} />
+            ) : (
+              heading
             )
           }
           actions={

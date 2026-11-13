@@ -31,7 +31,7 @@ Personal collections initially store track configurations and source URLs. They 
 
 ### Regions and images
 
-Saved regions of interest and highlights are the same feature. Use the existing highlights data for named regions, with a list in the UI for creating, editing, deleting, and navigating to them. Save their coordinates, color, opacity, and filled or outlined style with the session. Hiding a highlight keeps the saved region and its style, so showing it again restores how it looked. Regions can be gathered into named, colored groups that collapse in the list and save with the session.
+Saved regions of interest and highlights are the same feature. Use the existing highlights data for named regions, with a list in the UI for creating, editing, deleting, and navigating to them. Save their name, coordinates, color, opacity, and filled or outlined style with the session. A region keeps its ID when renamed. Hiding a highlight keeps the saved region and its style, so showing it again restores how it looked. Regions can be gathered into named, colored groups that collapse in the list and save with the session.
 
 Image export is available manually and through the agent. The image is shown to the user; it is not sent to the model.
 

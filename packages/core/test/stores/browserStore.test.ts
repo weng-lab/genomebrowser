@@ -423,6 +423,18 @@ describe("createBrowserStore", () => {
     expect(store.getState()).toBe(before);
   });
 
+  it("updates only the first of duplicate initial highlight IDs", () => {
+    const twin = { id: "twin", region: { start: 1, end: 2 }, color: "red" };
+    const store = createBrowserStore({
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 20, end: 40 },
+      highlights: [twin, twin],
+    });
+    const named = { ...twin, name: "Promoter" };
+    expect(store.getState().updateHighlight("twin", named)).toEqual({ ok: true });
+    expect(store.getState().highlights).toEqual([named, twin]);
+  });
+
   it("still rejects invalid highlight regions", () => {
     expect(() =>
       createBrowserStore({

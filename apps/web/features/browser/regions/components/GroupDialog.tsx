@@ -10,7 +10,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { useId, useState, type SyntheticEvent } from "react";
+import { useId, useState, type KeyboardEvent, type SyntheticEvent } from "react";
 import type { RegionGroup } from "../regionGroupSchema";
 import { groupColors } from "../regionGroups";
 
@@ -46,6 +46,18 @@ function GroupForm({
   const [name, setName] = useState(initial.name);
   const [color, setColor] = useState(initial.color);
   const colorLabel = useId();
+  const checkedIndex = groupColors.findIndex((option) => option.color === color);
+
+  /** Arrow keys choose the previous or next color and focus it, as in a radio group. */
+  function handleColorKeyDown(event: KeyboardEvent<HTMLElement>, index: number) {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+    if (step === undefined) return;
+    event.preventDefault();
+    const next = (index + step + groupColors.length) % groupColors.length;
+    setColor(groupColors[next].color);
+    const swatches = event.currentTarget.parentElement?.querySelectorAll("[role='radio']");
+    (swatches?.[next] as HTMLElement | undefined)?.focus();
+  }
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,16 +82,30 @@ function GroupForm({
           Color
         </Typography>
         <Box role="radiogroup" aria-labelledby={colorLabel} sx={{ display: "flex", gap: 1 }}>
-          {groupColors.map((option) => (
+          {groupColors.map((option, index) => (
             <ButtonBase
-              key={option}
+              key={option.color}
               role="radio"
-              aria-checked={option === color}
-              aria-label={option}
-              onClick={() => setColor(option)}
-              sx={{ width: 28, height: 28, borderRadius: "50%", bgcolor: option, color: "#fff" }}
+              aria-checked={index === checkedIndex}
+              aria-label={option.name}
+              // One Tab stop: the checked color, or the first while none is.
+              tabIndex={index === Math.max(checkedIndex, 0) ? 0 : -1}
+              onClick={() => setColor(option.color)}
+              onKeyDown={(event) => handleColorKeyDown(event, index)}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                bgcolor: option.color,
+                color: "#fff",
+                "&.Mui-focusVisible": {
+                  outline: "2px solid",
+                  outlineColor: "primary.main",
+                  outlineOffset: 2,
+                },
+              }}
             >
-              {option === color ? <Check fontSize="small" /> : null}
+              {index === checkedIndex ? <Check fontSize="small" /> : null}
             </ButtonBase>
           ))}
         </Box>

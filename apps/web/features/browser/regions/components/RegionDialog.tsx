@@ -14,8 +14,8 @@ type RegionDialogProps = {
 };
 
 /**
- * Edits a saved region with the UI package's highlight form: its name (the highlight's ID),
- * coordinates, fill type, color, and opacity.
+ * Edits a saved region with the UI package's highlight form: its name, coordinates, fill
+ * type, color, opacity, and whether it is hidden. Its ID stays the same.
  */
 export function RegionDialog({ browserStore, highlight, open, onClose }: RegionDialogProps) {
   return (

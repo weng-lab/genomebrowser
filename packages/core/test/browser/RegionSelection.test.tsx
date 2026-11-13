@@ -372,14 +372,13 @@ describe("RegionSelection", () => {
     ]);
   });
 
-  it("keeps repeated selections distinct from existing region IDs", async () => {
+  it("keeps repeated selections distinct from existing region IDs and names", async () => {
     await mount({
       selectionMode: "highlight",
-      highlights: ["chr1:126-175", "chr1:126-175 (2)"].map((id) => ({
-        id,
-        region: initialRegion,
-        color: "#ff0000",
-      })),
+      highlights: [
+        { id: "chr1:126-175", region: initialRegion, color: "#ff0000" },
+        { id: "saved", name: "chr1:126-175 (2)", region: initialRegion, color: "#ff0000" },
+      ],
     });
     await dragSelection(45, 95);
     expect(store.getState().highlights[2]?.id).toBe("chr1:126-175 (3)");

@@ -77,9 +77,10 @@ it("saves, edits, hides, visits, and deletes regions, saving them with the sessi
   expect(cards()[0].querySelector('[aria-current="location"]')).not.toBeNull();
   await vi.waitFor(() =>
     expect(saved().highlights).toEqual([
-      expect.objectContaining({ id: "chr11:5,225,001-5,305,000", region: start, type: "filled" }),
+      expect.objectContaining({ name: "chr11:5,225,001-5,305,000", region: start, type: "filled" }),
     ]),
   );
+  const regionId = saved().highlights[0].id;
 
   await chooseAction("chr11:5,225,001-5,305,000", "Edit region");
   const field = (label: string) =>
@@ -88,17 +89,17 @@ it("saves, edits, hides, visits, and deletes regions, saving them with the sessi
         .find((element) => element.textContent?.startsWith(label))!
         .getAttribute("for")!,
     ) as HTMLInputElement;
-  await type(field("ID"), "HS2");
+  await type(field("Name"), "HS2");
   await type(field("Region"), "chr11:5,280,601-5,281,000");
   await type(field("Color"), "#ff0000");
   await type(field("Opacity"), "50");
-  await act(async () => field("ID").form!.requestSubmit());
+  await act(async () => field("Name").form!.requestSubmit());
   const hs2 = { chromosome: "chr11", start: 5_280_600, end: 5_281_000 };
   expect(cards().map((card) => card.textContent)).toEqual(["HS2chr11:5,280,601-5,281,000"]);
   expect(cards()[0].querySelector('[aria-current="location"]')).toBeNull();
   await vi.waitFor(() =>
     expect(saved().highlights).toEqual([
-      { id: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled" },
+      { id: regionId, name: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled" },
     ]),
   );
 
@@ -107,14 +108,22 @@ it("saves, edits, hides, visits, and deletes regions, saving them with the sessi
   expect(cards()[0].textContent).toContain("Hidden");
   await vi.waitFor(() =>
     expect(saved().highlights).toEqual([
-      { id: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled", hidden: true },
+      {
+        id: regionId,
+        name: "HS2",
+        region: hs2,
+        color: "#ff0000",
+        opacity: 0.5,
+        type: "filled",
+        hidden: true,
+      },
     ]),
   );
   await chooseAction("HS2", "Show highlight");
   expect(cards()[0].textContent).not.toContain("Hidden");
   await vi.waitFor(() =>
     expect(saved().highlights).toEqual([
-      { id: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled" },
+      { id: regionId, name: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled" },
     ]),
   );
   await chooseAction("HS2", "Hide highlight");
@@ -152,6 +161,8 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   const first = "chr11:5,225,001-5,305,000";
   const second = `${first} (2)`;
   const groups = () => server.stored.get(id)!.snapshot.regionGroups;
+  await vi.waitFor(() => expect(saved().highlights).toHaveLength(2));
+  const [firstId, secondId] = saved().highlights.map((highlight) => highlight.id);
   const header = () => container!.querySelector('[aria-label="Saved regions"] [aria-expanded]');
   const members = (name: string) =>
     [...container!.querySelectorAll(`[aria-label="${name}"] li`)].map(
@@ -172,7 +183,7 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
         name: "Locus control",
         color: "#1a73e8",
         collapsed: false,
-        regionIds: [first],
+        regionIds: [firstId],
       }),
     ]),
   );
@@ -186,7 +197,7 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   expect(container!.querySelector('[aria-label="Locus control"]')).toBeNull();
   await vi.waitFor(() =>
     expect(groups()).toEqual([
-      expect.objectContaining({ collapsed: true, regionIds: [first, second] }),
+      expect.objectContaining({ collapsed: true, regionIds: [firstId, secondId] }),
     ]),
   );
   await click(header());
@@ -199,7 +210,7 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
     ),
   );
   await type(nameField(), "Enhancers");
-  await click(dialog().querySelector('[role="radio"][aria-label="#188038"]'));
+  await click(dialog().querySelector('[role="radio"][aria-label="Green"]'));
   await click(button(dialog(), "Save"));
   expect(members("Enhancers")).toEqual([first, second]);
   await vi.waitFor(() =>
@@ -217,4 +228,67 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   expect(header()).toBeNull();
   expect(cards()).toHaveLength(2);
   await vi.waitFor(() => expect(groups()).toEqual([]));
+});
+
+async function chooseGroupAction(group: string, action: string) {
+  await click(document.querySelector(`[aria-label="Actions for group ${group}"]`));
+  await click(
+    [...document.querySelectorAll('[role="menuitem"]')].find((item) => item.textContent === action),
+  );
+}
+
+it("recolors every highlight in a group, keeping each one's other settings", async () => {
+  await act(async () => root!.render(<WorkspaceApp />));
+  const save = await vi.waitFor(() => {
+    const found = button(container!, "Save current region");
+    expect(found).toBeDefined();
+    return found;
+  });
+  await click(save);
+  await click(save);
+  const first = "chr11:5,225,001-5,305,000";
+  const second = `${first} (2)`;
+  await chooseAction(first, "Add to new group");
+  await click(button(document.querySelector('[role="dialog"]')!, "Create group"));
+  await chooseAction(second, "Group 1");
+  await chooseAction(second, "Hide highlight");
+  await vi.waitFor(() => expect(saved().highlights[1]).toMatchObject({ hidden: true }));
+  const before = server.stored.get(id)!.snapshot;
+
+  await chooseGroupAction("Group 1", "Apply group highlight…");
+  const input = document.querySelector<HTMLInputElement>('[role="dialog"] input')!;
+  // It starts at the group's color. The field writes hex colors in capitals.
+  expect(input.value).toBe("#1A73E8");
+  await type(input, "#00aa66");
+  await act(async () =>
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
+  );
+  await click(button(document.querySelector('[role="dialog"]')!, "Apply"));
+
+  const recolored = before.browser.highlights.map((highlight) => ({
+    ...highlight,
+    color: "#00AA66",
+  }));
+  expect(recolored[1]).toMatchObject({ hidden: true });
+  await vi.waitFor(() => expect(saved().highlights).toEqual(recolored));
+  expect(server.stored.get(id)!.snapshot.regionGroups).toEqual(before.regionGroups);
+  expect(cards()[2].textContent).toContain("Hidden");
+});
+
+it("shows regions saved before regions had names by their IDs", async () => {
+  const older = snapshot(createStores("hg38")!);
+  const region = { chromosome: "chr11", start: 5_280_600, end: 5_281_000 };
+  id = server.add("Older session", {
+    ...older,
+    browser: {
+      ...older.browser,
+      region: start,
+      highlights: [{ id: "HS2", region, color: "#ff0000", type: "filled" }],
+    },
+  });
+  route.reset(`/browser/${id}`);
+  await act(async () => root!.render(<WorkspaceApp />));
+  await vi.waitFor(() =>
+    expect(cards().map((card) => card.textContent)).toEqual(["HS2chr11:5,280,601-5,281,000"]),
+  );
 });

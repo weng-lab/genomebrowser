@@ -6,10 +6,16 @@ import EditOutlined from "@mui/icons-material/EditOutlined";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import LayersClearOutlined from "@mui/icons-material/LayersClearOutlined";
 import MoreVert from "@mui/icons-material/MoreVert";
+import PaletteOutlined from "@mui/icons-material/PaletteOutlined";
 import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
 import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -19,10 +25,11 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useTheme } from "@mui/material/styles";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import { useId, useState, type ReactNode } from "react";
+import { TrackSettingsColorField } from "@weng-lab/genomebrowser-tracks/shared";
+import { useId, useState, type ReactNode, type SyntheticEvent } from "react";
 import type { RegionGroup } from "../regionGroupSchema";
 import type { RegionGroupStoreInstance } from "../regionGroups";
-import { isHidden, setHidden } from "../regions";
+import { setRegionsColor, setRegionsHidden } from "../regions";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { GroupDialog } from "./GroupDialog";
 
@@ -107,7 +114,10 @@ export function RegionGroupSection({
   );
 }
 
-/** A group's more-actions button and menu: edit, hide or show its highlights, ungroup, delete. */
+/**
+ * A group's more-actions button and menu: edit, hide or show its highlights, change their
+ * color, ungroup, delete.
+ */
 function GroupActions({
   group,
   browserStore,
@@ -117,19 +127,15 @@ function GroupActions({
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [recoloring, setRecoloring] = useState(false);
   const menuId = useId();
   const label = `Actions for group ${group.name}`;
   const close = () => setAnchor(null);
   const members = new Set(group.regionIds);
   const hidden = useBrowserStore((state) =>
-    state.highlights.every((highlight) => !members.has(highlight.id) || isHidden(highlight)),
+    state.highlights.every((highlight) => !members.has(highlight.id) || highlight.hidden),
   );
   const { editGroup, ungroup, deleteGroup } = regionGroupStore.getState();
-
-  function setMembersHidden(nextHidden: boolean) {
-    for (const highlight of browserStore.getState().highlights)
-      if (members.has(highlight.id)) setHidden(browserStore, highlight, nextHidden);
-  }
 
   return (
     <>
@@ -165,7 +171,7 @@ function GroupActions({
         <MenuItem
           onClick={() => {
             close();
-            setMembersHidden(!hidden);
+            setRegionsHidden(browserStore, group.regionIds, !hidden);
           }}
         >
           <ListItemIcon>
@@ -176,6 +182,17 @@ function GroupActions({
             )}
           </ListItemIcon>
           <ListItemText primary={hidden ? "Show highlights" : "Hide highlights"} />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            close();
+            setRecoloring(true);
+          }}
+        >
+          <ListItemIcon>
+            <PaletteOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Apply group highlight…" />
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -209,6 +226,12 @@ function GroupActions({
         onSubmit={(edit) => editGroup(group.id, edit)}
         onClose={() => setEditing(false)}
       />
+      <HighlightColorDialog
+        open={recoloring}
+        initialColor={group.color}
+        onApply={(color) => setRegionsColor(browserStore, group.regionIds, color)}
+        onClose={() => setRecoloring(false)}
+      />
       <ConfirmDeleteDialog
         open={deleting}
         title={`Delete “${group.name}”?`}
@@ -218,5 +241,59 @@ function GroupActions({
         onClose={() => setDeleting(false)}
       />
     </>
+  );
+}
+
+type HighlightColorDialogProps = {
+  open: boolean;
+  /** The color the picker starts at: the group's, so matching it is a single Apply. */
+  initialColor: string;
+  onApply: (color: string) => void;
+  onClose: () => void;
+};
+
+/** Picks one color for every highlight in a group. */
+function HighlightColorDialog({ open, onClose, ...form }: HighlightColorDialogProps) {
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+      {/* The dialog unmounts its content once closed, so each opening starts from `initialColor`. */}
+      <HighlightColorForm {...form} onClose={onClose} />
+    </Dialog>
+  );
+}
+
+function HighlightColorForm({
+  initialColor,
+  onApply,
+  onClose,
+}: Omit<HighlightColorDialogProps, "open">) {
+  const [color, setColor] = useState(initialColor);
+
+  function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onApply(color);
+    onClose();
+  }
+
+  return (
+    <Box component="form" onSubmit={handleSubmit}>
+      <DialogTitle>Apply group highlight</DialogTitle>
+      <DialogContent sx={{ "&&": { pt: 1 } }}>
+        <TrackSettingsColorField
+          label="Highlight color"
+          value={color}
+          onCommit={(next) => {
+            setColor(next);
+            return { ok: true };
+          }}
+        />
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2.5 }}>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button type="submit" variant="contained">
+          Apply
+        </Button>
+      </DialogActions>
+    </Box>
   );
 }
