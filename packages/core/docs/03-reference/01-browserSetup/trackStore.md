@@ -1,6 +1,6 @@
 # Track store
 
-The track store holds the tracks displayed by a browser and their order. It also registers the modules that know how to validate and render those tracks. Use its actions to add, edit, remove, or pin tracks, then pass the store to [GenomeBrowser](GenomeBrowser.md).
+The track store holds configured tracks and their order, including hidden tracks and one-level track sets. It also registers the modules that know how to validate and render those tracks. Use its actions to add, edit, remove, or pin tracks, then pass the store to [GenomeBrowser](GenomeBrowser.md).
 
 ## Usage
 
@@ -42,6 +42,8 @@ For creating custom track types, see [custom track modules](../../02-guides/cust
 `TrackStoreOptions<Modules, Track>` preserves the supplied module-array and track types when describing factory input. `Modules` extends `readonly AnyTrackModule[]`; `Track` extends `AnyTrackInstance`. Both default to those broad types. The factory infers `Modules` from the supplied modules and returns `TrackStoreInstance<Modules>`. Its registry retains those module types; stored tracks remain heterogeneous `AnyTrackInstance` values.
 
 Construction throws for duplicate module types, duplicate track IDs, unknown track types, or module-invalid initial instances. Register every module the store will need at creation; its registry has no action for adding modules later. Registering a module makes its type available but does not add a track.
+
+Initial `trackSets?: readonly TrackSetInput[]` and `hiddenTrackIds?: readonly string[]` both default to `[]`. Sets reference existing child IDs and are validated before construction. The store exposes the resolved `trackSets: readonly TrackSet[]` and `hiddenTrackIds: readonly string[]`; hidden tracks remain in `tracks` and `order`. See [track sets](trackSets.md) for membership, visibility, ordering and group actions.
 
 ## TrackStore and TrackStoreInstance
 

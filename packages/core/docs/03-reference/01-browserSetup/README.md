@@ -4,6 +4,7 @@ Render a browser, create its stores, and access them from hosted components.
 
 - [GenomeBrowser](GenomeBrowser.md): Render a responsive or fixed-width browser and magnify its SVG.
 - [Browser store](browserStore.md): Initialize and change viewport state, selection, and highlights.
+- [Track sets](trackSets.md): Group existing tracks while preserving independent child behavior.
 - [Track store](trackStore.md): Register modules and add, update, remove, order, or pin tracks.
 - [useTrackDownload](useTrackDownload.md): Download a track's visible plot and title as SVG or PNG.
 - [useBrowserDownload](useBrowserDownload.md): Experimental. Download every rendered track as one SVG or PNG from outside the browser.

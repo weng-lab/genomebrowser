@@ -1,3 +1,4 @@
+import { isTrackVisible } from "../state/trackSets";
 import {
   basePairDetailVisible,
   getBasePairDetailStatus,
@@ -250,7 +251,7 @@ export function createTrackDataController({
   const update = () => {
     if (!connected) return;
     const detailChanged = updateDetail();
-    const { tracks, registry } = trackStore.getState();
+    const { tracks, registry, trackSets, hiddenTrackIds } = trackStore.getState();
     const demand = getDemand();
     const chromosomeLength = demand.assembly.chromosomes[demand.view.chromosome] ?? 0;
 
@@ -268,6 +269,14 @@ export function createTrackDataController({
 
     for (const track of tracks) {
       const trackId = track.base.id;
+      if (!isTrackVisible(trackId, trackSets, hiddenTrackIds)) {
+        const entry = entries.get(trackId);
+        if (entry?.pending) {
+          entry.pending.controller.abort();
+          entries.set(trackId, { current: entry.current });
+        }
+        continue;
+      }
       const fetchKey = fetchKeyFor(registry, track);
       const entry = entries.get(trackId);
       const current = entry?.current;
@@ -355,7 +364,13 @@ export function createTrackDataController({
         update();
       });
       const unsubscribeTracks = trackStore.subscribe((state, previous) => {
-        if (state.tracks === previous.tracks && state.registry === previous.registry) return;
+        if (
+          state.tracks === previous.tracks &&
+          state.registry === previous.registry &&
+          state.trackSets === previous.trackSets &&
+          state.hiddenTrackIds === previous.hiddenTrackIds
+        )
+          return;
         flushWidth();
         update();
       });

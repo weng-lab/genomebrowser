@@ -60,3 +60,9 @@ Unexpected exceptions from a patch callback or custom schema code propagate.
 The browser supplies every prop in the table. `InteractionItem` defaults to `unknown`. Use `track.source` when your form needs to distinguish host-owned sources from user-editable sources; core does not identify or protect source config fields. Hosted controls sit inside a disabled fieldset while browser interactions are blocked. The callbacks also return `INTERACTION_BLOCKED` during that period.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
+
+## TrackSettingsPanel
+
+`<TrackSettingsPanel trackId={id} scopeTrackIds={childIds} />` mounts the registered module's existing settings form inside the hosting browser. Use it in a custom settings surface mounted within `GenomeBrowser`, such as `trackSetSettingsComponent`. It subscribes to that track's current instance and binds its validated mutation callbacks.
+
+`trackId: string` is required. `scopeTrackIds?: readonly string[]` limits `updateTracksOfType` to matching IDs of that type; without it, the batch covers all same-type tracks. A single `updateTrack` remains bound to `trackId`. Unknown tracks or modules without a settings form render no panel. The panel supplies no dialog, download controls or disabled fieldset; the host owns presentation and disabled styling. Mutation callbacks still enforce the browser's interaction gate.

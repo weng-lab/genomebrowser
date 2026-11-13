@@ -1,3 +1,4 @@
+import { findTrackSet } from "../../state/trackSets";
 import { useRef } from "react";
 import type { AnyTrackInstance } from "../../../modules/types";
 import {
@@ -21,23 +22,28 @@ export function TrackControls({
   const openSettings = useSettingsStore((state) => state.openSettings);
   const order = useTrackStore((state) => state.order);
   const pinnedTrackIds = useTrackStore((state) => state.pinnedTrackIds);
-  const reorderTracks = useTrackStore((state) => state.reorderTracks);
+  const moveTrackItem = useTrackStore((state) => state.moveTrackItem);
+  const group = useTrackStore((state) => findTrackSet(track.base.id, state.trackSets));
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const trackId = track.base.id;
   const index = order.indexOf(trackId);
   const pinned = new Set(pinnedTrackIds);
-  const canMove = !isInteractionBlocked && !pinned.has(trackId);
-  const firstUnpinnedIndex = order.findIndex((id) => !pinned.has(id));
-  const canMoveTop = canMove && index > firstUnpinnedIndex;
-  const canMoveBottom = canMove && index >= 0 && index < order.length - 1;
+  const members = group ? new Set(group.trackIds) : undefined;
+  const scope = order.filter((id) => (members ? members.has(id) : !pinned.has(id)));
+  const canMove =
+    !isInteractionBlocked && !pinned.has(trackId) && !group?.trackIds.some((id) => pinned.has(id));
+  const canMoveTop = canMove && index >= 0 && trackId !== scope[0];
+  const canMoveBottom = canMove && index >= 0 && trackId !== scope.at(-1);
   const controlsCenterY = wrapperHeight / 2;
   const iconY = controlsCenterY - 7.5;
 
   const moveTrack = (target: "top" | "bottom") => {
-    const nextOrder = order.filter((id) => id !== trackId);
-    if (target === "top") nextOrder.unshift(trackId);
-    if (target === "bottom") nextOrder.push(trackId);
-    runTrackMutation(() => reorderTracks(nextOrder));
+    runTrackMutation(() =>
+      moveTrackItem(
+        { kind: "track", id: trackId },
+        { trackSetId: group?.id, beforeTrackId: target === "top" ? scope[0] : undefined },
+      ),
+    );
   };
 
   const handleOpenSettings = (event: React.MouseEvent<SVGGElement>) => {

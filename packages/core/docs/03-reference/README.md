@@ -35,6 +35,8 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `MutationFailure`, `TrackMutationErrorCode`, `TrackMutationResult`                  | [Mutation results](01-browserSetup/trackStore.md#mutation-results)                                                   |
 | `TrackUpdate`, `TrackBaseUpdate`                                                    | [Update patches](01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate)                                      |
 
+Track sets: [`TrackSet`, `TrackSetInput`, `TrackSetSettingsProps`](01-browserSetup/trackSets.md). Hosted forms: [`TrackSettingsPanel`](03-trackDefinition/trackSettings.md#tracksettingspanel).
+
 ### Assemblies and regions
 
 | Exports                                          | Reference                                                                                    |
@@ -87,5 +89,7 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `generateTrackCollectionJsonSchema` | [generateTrackCollectionJsonSchema](05-collectionsAndSchemas/generateTrackCollectionJsonSchema.md#generatetrackcollectionjsonschema) |
 
 The [schema CLI](05-collectionsAndSchemas/schemaCli.md) documents `genomebrowser schema`, including file output and `--check`. Generated schemas depend on the supplied modules; no fixed collection schema or additional JavaScript subpath is exported.
+
+`TrackMoveSource` and `TrackMoveDestination` describe atomic [track placement](01-browserSetup/trackSets.md#movetrackitem-trackmovesource-and-trackmovedestination).
 
 Return to [Parent documentation](../README.md).

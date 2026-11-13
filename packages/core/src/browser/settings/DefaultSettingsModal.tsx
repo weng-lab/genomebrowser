@@ -1,4 +1,4 @@
-import { useEffect, useId } from "react";
+import { useEffect, useId, useMemo } from "react";
 import { useGenomeBrowser, useTrackMutationGate } from "../state/browserContextState";
 import {
   SETTINGS_MODAL_VIEWPORT_INSET,
@@ -57,7 +57,11 @@ function SettingsModalHeader({
   const { useTrackStore } = useGenomeBrowser();
   const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
   const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
-  const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(trackId));
+  const group = useTrackStore((state) =>
+    state.trackSets.find((set) => set.trackIds.includes(trackId)),
+  );
+  const members = useMemo(() => new Set(group?.trackIds ?? [trackId]), [group, trackId]);
+  const isPinned = useTrackStore((state) => state.pinnedTrackIds.some((id) => members.has(id)));
   const setPinnedTrackIds = useTrackStore((state) => state.setPinnedTrackIds);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   if (!title || !color) return null;
@@ -66,13 +70,19 @@ function SettingsModalHeader({
     runTrackMutation(() => {
       const { pinnedTrackIds } = useTrackStore.getState();
       return setPinnedTrackIds(
-        pinnedTrackIds.includes(trackId)
-          ? pinnedTrackIds.filter((id) => id !== trackId)
-          : [...pinnedTrackIds, trackId],
+        pinnedTrackIds.some((id) => members.has(id))
+          ? pinnedTrackIds.filter((id) => !members.has(id))
+          : [...pinnedTrackIds, ...members],
       );
     });
   };
-  const pinLabel = isPinned ? "Unpin track" : "Pin track";
+  const pinLabel = group
+    ? isPinned
+      ? "Unpin track set"
+      : "Pin track set"
+    : isPinned
+      ? "Unpin track"
+      : "Pin track";
 
   return (
     <div

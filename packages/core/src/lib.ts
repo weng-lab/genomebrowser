@@ -111,3 +111,9 @@ export type {
   TrackCollectionColumn,
   TrackMetadata,
 } from "./collections/collectionSchema";
+
+export type { TrackSet, TrackSetInput, TrackSetSettingsProps } from "./browser/state/trackSets";
+
+export { TrackSettingsPanel } from "./browser/settings/TrackSettingsPanel";
+
+export type { TrackMoveSource, TrackMoveDestination } from "./browser/state/trackPlacement";

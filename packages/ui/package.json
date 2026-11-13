@@ -48,7 +48,8 @@
     "@dnd-kit/utilities": "catalog:",
     "@weng-lab/genomebrowser": "workspace:^2.0.0",
     "@weng-lab/genomic-reader": "workspace:^2.0.0",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@emotion/react": "catalog:",
@@ -63,6 +64,7 @@
     "@types/react-dom": "catalog:",
     "@typescript/native": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "@weng-lab/render-probe": "workspace:*",
     "@weng-lab/ui-components": "catalog:",
     "jsdom": "catalog:",
     "react": "catalog:",

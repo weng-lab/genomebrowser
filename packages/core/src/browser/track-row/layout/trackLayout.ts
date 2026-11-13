@@ -24,3 +24,6 @@ export function createTrackLayouts(ids: string[], wrapperHeights: number[], star
     return layout;
   });
 }
+
+export const TRACK_SET_HEADER_HEIGHT = 32;
+export type TrackSetLayout = { id: string; y: number };

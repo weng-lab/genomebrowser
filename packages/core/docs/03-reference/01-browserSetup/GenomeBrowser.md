@@ -122,3 +122,7 @@ The choices are native buttons. The component does not implement ARIA menu roles
 - Each view owns its measurement and cleans up its observer on unmount or when switched to fixed sizing. Region and track stores survive unmounting when owned by the application.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
+
+## Track-set settings
+
+`trackSetSettingsComponent?: ComponentType<TrackSetSettingsProps>` supplies a host-owned settings surface for runtime track sets. Core mounts it inside the browser context when the user selects the parent's Settings action. Without it, set headers still provide show/hide. The standard per-track settings dialog remains available. See [track sets](trackSets.md).

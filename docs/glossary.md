@@ -16,6 +16,8 @@ Prefer these terms in issues, docs, and discussion. Preserve exact API names in 
 
 **Track / track instance** - One configured visualization (runtime object with id, type, config, optional interactions). **Pinned** means excluded from ordinary drag reorder, not sticky scroll.
 
+**Track set** - A runtime parent grouping configured tracks while each child retains its own data, rendering and settings. Distinct from a track collection catalog.
+
 **Track module** - Reusable type implementation (fetcher, renderers, validation, optional settings/tooltips). The **module registry** maps type ids to modules (the store's registration map, not an ad hoc global).
 
 **Display mode** - Module drawing choice (`base.display`). Distinct from a **collection view** (catalog organization).

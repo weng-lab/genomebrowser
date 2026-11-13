@@ -1,3 +1,5 @@
+import { findTrackSet } from "../../state/trackSets";
+import { useTrackSetDrag } from "./trackSetDragState";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PointerEvent, ReactNode } from "react";
@@ -38,12 +40,23 @@ export function TrackReorder({
   onPreviewEnd: () => void;
   children: (drag: FrameDragState) => ReactNode;
 }) {
+  const startSetDrag = useTrackSetDrag();
   const cloneRef = useRef<SVGGElement>(null);
   const svg = useBrowserSvg();
   const { titleSize } = useTrackStack();
   const { useTrackStore } = useGenomeBrowser();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
-  const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(track.base.id));
+  const isPinned = useTrackStore((state) => {
+    const pinned = new Set(state.pinnedTrackIds);
+    return (
+      pinned.has(track.base.id) ||
+      (findTrackSet(track.base.id, state.trackSets)?.trackIds.some((id) => pinned.has(id)) ?? false)
+    );
+  });
+  // Structured layouts share one gesture owner for tracks and parent headers.
+  const structuredLayout = useTrackStore(
+    (state) => state.trackSets.length > 0 || state.hiddenTrackIds.length > 0,
+  );
   const [dragSession, setDragSession] = useState<DragSession | null>(null);
   const isDragging = dragSession !== null;
   const previewRef = useRef<ReorderPreview | null>(null);
@@ -66,7 +79,14 @@ export function TrackReorder({
   }, [dragSession, onPreviewEnd]);
 
   const handleSwapPointerDown = (event: PointerEvent<SVGRectElement>) => {
-    if (isPinned || isInteractionBlocked || isDragging || !event.isPrimary || event.button !== 0)
+    if (
+      structuredLayout ||
+      isPinned ||
+      isInteractionBlocked ||
+      isDragging ||
+      !event.isPrimary ||
+      event.button !== 0
+    )
       return;
     const pointerId = event.pointerId;
     const { tracks, pinnedTrackIds, reorderTracks } = useTrackStore.getState();
@@ -151,7 +171,13 @@ export function TrackReorder({
     updatePreview(0);
   };
 
-  const onSwapPointerDown = isPinned || isInteractionBlocked ? undefined : handleSwapPointerDown;
+  const onSwapPointerDown =
+    isPinned || isInteractionBlocked
+      ? undefined
+      : structuredLayout
+        ? (event: PointerEvent<SVGRectElement>) =>
+            startSetDrag({ kind: "track", id: track.base.id }, event)
+        : handleSwapPointerDown;
   const frameProps: FrameDragState = {
     onSwapPointerDown,
     swapping: isDragging,

@@ -55,3 +55,5 @@ export type {
   TrackSelectInteraction,
   TrackSelectInteractionResolver,
 } from "./TrackSelect/collection/collectionInteraction";
+
+export { TrackSetSettings } from "./TrackSets/TrackSetSettings";

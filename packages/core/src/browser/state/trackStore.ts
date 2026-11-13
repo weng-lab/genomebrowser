@@ -1,3 +1,17 @@
+import {
+  getTrackPlacement,
+  type TrackMoveSource,
+  type TrackMoveDestination,
+} from "./trackPlacement";
+import {
+  parseTrackSet,
+  validateTrackSets,
+  retainTrackSets,
+  orderTrackSets,
+  isContiguousOrder,
+  type TrackSet,
+  type TrackSetInput,
+} from "./trackSets";
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import type { MutationFailure } from "../../mutation";
 import { PublicInputValidationError } from "../../modules/schemas";
@@ -16,12 +30,29 @@ export type TrackStoreOptions<
 > = {
   modules: Modules;
   tracks?: Track[];
+  trackSets?: readonly TrackSetInput[];
+  hiddenTrackIds?: readonly string[];
   /** Track IDs pinned at the top, in order. Missing IDs are reserved for later additions. */
   pinnedTrackIds?: readonly string[];
 };
 
 export type TrackStore<Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[]> = {
   tracks: AnyTrackInstance[];
+  trackSets: readonly TrackSet[];
+  hiddenTrackIds: readonly string[];
+  createTrackSet: (input: TrackSetInput) => TrackMutationResult;
+  updateTrackSet: (
+    id: string,
+    update: Partial<Pick<TrackSet, "title" | "visible">>,
+  ) => TrackMutationResult;
+  updateTrackSetDisplay: (id: string, display: string) => TrackMutationResult;
+  ungroupTrackSet: (id: string) => TrackMutationResult;
+  moveTrackItem: (
+    source: TrackMoveSource,
+    destination: TrackMoveDestination,
+  ) => TrackMutationResult;
+  moveTrackSet: (id: string, direction: "up" | "down") => TrackMutationResult;
+  setTrackVisibility: (id: string, visible: boolean) => TrackMutationResult;
   order: string[];
   pinnedTrackIds: readonly string[];
   setPinnedTrackIds: (ids: readonly string[]) => TrackMutationResult;
@@ -53,25 +84,150 @@ export function createTrackStore<
   const initialTracks = validateTracks(options.tracks ?? [], registry);
   assertUniqueTrackIds(initialTracks);
 
+  const trackSets = (options.trackSets ?? []).map((input) => {
+    const parsed = parseTrackSet(input);
+    if (!parsed.success) throw new Error(parsed.error.message);
+    return parsed.data;
+  });
+  const membership = validateTrackSets(trackSets, initialTracks);
+  if (!membership.ok) throw new Error(membership.error);
+  const initialIds = new Set(initialTracks.map((track) => track.base.id));
+  const hiddenTrackIds = [...new Set(options.hiddenTrackIds)].filter((id) => initialIds.has(id));
   const pinnedTrackIds = [...new Set(options.pinnedTrackIds)];
 
   return create<TrackStore<Modules>>((set, get) => {
     function commitMembership(tracks: AnyTrackInstance[]): TrackMutationResult {
       const result = getUniqueTrackIdsResult(tracks);
       if (!result.ok) return result;
-      set(getOrderedTracks(tracks, get().pinnedTrackIds));
+      const state = get();
+      const trackSets = retainTrackSets(state.trackSets, tracks);
+      const valid = validateTrackSets(trackSets, tracks);
+      if (!valid.ok) return valid;
+      const ids = new Set(tracks.map((track) => track.base.id));
+      const hiddenTrackIds = state.hiddenTrackIds.filter((id) => ids.has(id));
+      set({
+        ...getOrderedTracks(tracks, state.pinnedTrackIds, trackSets),
+        trackSets,
+        hiddenTrackIds:
+          hiddenTrackIds.length === state.hiddenTrackIds.length
+            ? state.hiddenTrackIds
+            : hiddenTrackIds,
+      });
       return mutationOk;
     }
 
     return {
-      ...getOrderedTracks(initialTracks, pinnedTrackIds),
+      ...getOrderedTracks(initialTracks, pinnedTrackIds, trackSets),
+      trackSets,
+      hiddenTrackIds,
       pinnedTrackIds,
       setPinnedTrackIds: (ids) => {
         const pinnedTrackIds = [...new Set(ids)];
-        set({ ...getOrderedTracks(get().tracks, pinnedTrackIds), pinnedTrackIds });
+        set({ ...getOrderedTracks(get().tracks, pinnedTrackIds, get().trackSets), pinnedTrackIds });
         return mutationOk;
       },
       registry,
+      createTrackSet: (input) => {
+        const parsed = parseTrackSet(input);
+        if (!parsed.success) return mutationError("INVALID_TRACK_SET", parsed.error.message);
+        const state = get();
+        const trackSets = [...state.trackSets, parsed.data];
+        const valid = validateTrackSets(trackSets, state.tracks);
+        if (!valid.ok) return valid;
+        set({ ...getOrderedTracks(state.tracks, state.pinnedTrackIds, trackSets), trackSets });
+        return mutationOk;
+      },
+      updateTrackSet: (id, update) => {
+        const state = get();
+        const current = state.trackSets.find((set) => set.id === id);
+        if (!current)
+          return mutationError("TRACK_SET_NOT_FOUND", `No track set found for id: ${id}`);
+        const parsed = parseTrackSet({
+          ...current,
+          ...update,
+          id: current.id,
+          trackIds: current.trackIds,
+        });
+        if (!parsed.success) return mutationError("INVALID_TRACK_SET", parsed.error.message);
+        set({ trackSets: state.trackSets.map((set) => (set.id === id ? parsed.data : set)) });
+        return mutationOk;
+      },
+      ungroupTrackSet: (id) => {
+        const state = get();
+        if (!state.trackSets.some((set) => set.id === id))
+          return mutationError("TRACK_SET_NOT_FOUND", `No track set found for id: ${id}`);
+        set({ trackSets: state.trackSets.filter((set) => set.id !== id) });
+        return mutationOk;
+      },
+      updateTrackSetDisplay: (id, display) => {
+        const state = get();
+        const group = state.trackSets.find((set) => set.id === id);
+        if (!group) return mutationError("TRACK_SET_NOT_FOUND", `No track set found for id: ${id}`);
+        const members = new Set(group.trackIds);
+        const next: AnyTrackInstance[] = [];
+        for (const track of state.tracks) {
+          if (!members.has(track.base.id)) {
+            next.push(track);
+            continue;
+          }
+          const parsed = getValidatedTrack(
+            { ...track, base: { ...track.base, display } },
+            state.registry,
+          );
+          if (!parsed.ok) return parsed;
+          next.push(parsed.track);
+        }
+        set({ tracks: next });
+        return mutationOk;
+      },
+      setTrackVisibility: (id, visible) => {
+        const state = get();
+        if (!state.tracks.some((track) => track.base.id === id))
+          return mutationError("TRACK_NOT_FOUND", `No track found for id: ${id}`);
+        const hidden = state.hiddenTrackIds.includes(id);
+        if (visible === !hidden) return mutationOk;
+        set({
+          hiddenTrackIds: visible
+            ? state.hiddenTrackIds.filter((value) => value !== id)
+            : [...state.hiddenTrackIds, id],
+        });
+        return mutationOk;
+      },
+      moveTrackItem: (source, destination) => {
+        const result = getTrackPlacement(get(), source, destination);
+        if (!result.ok) return result;
+        if (result.state) set(result.state);
+        return mutationOk;
+      },
+      moveTrackSet: (id, direction) => {
+        const state = get();
+        const group = state.trackSets.find((set) => set.id === id);
+        if (!group) return mutationError("TRACK_SET_NOT_FOUND", `No track set found for id: ${id}`);
+        const pinned = new Set(state.pinnedTrackIds);
+        if (group.trackIds.some((id) => pinned.has(id)))
+          return mutationError("INTERACTION_BLOCKED", "Unpin the track set before moving it.");
+        const owners = new Map(
+          state.trackSets.flatMap((set) => set.trackIds.map((id) => [id, set] as const)),
+        );
+        const blocks: { id: string; trackIds: string[] }[] = [];
+        for (const trackId of state.order) {
+          const owner = owners.get(trackId);
+          const blockId = owner?.id ?? trackId;
+          const last = blocks.at(-1);
+          if (owner && last?.id === blockId) last.trackIds.push(trackId);
+          else blocks.push({ id: blockId, trackIds: [trackId] });
+        }
+        const index = blocks.findIndex((block) => block.id === id);
+        const target = index + (direction === "up" ? -1 : 1);
+        if (
+          target < 0 ||
+          target >= blocks.length ||
+          blocks[target].trackIds.some((id) => pinned.has(id))
+        )
+          return mutationOk;
+        [blocks[index], blocks[target]] = [blocks[target], blocks[index]];
+        return state.reorderTracks(blocks.flatMap((block) => block.trackIds));
+      },
       setTracks: (tracks) => {
         const result = getValidatedTracks(tracks, registry);
         if (!result.ok) return result;
@@ -90,8 +246,7 @@ export function createTrackStore<
           return mutationError("TRACK_NOT_FOUND", `No track found for id: ${id}`);
         }
         const tracks = get().tracks.filter((track) => getTrackId(track) !== id);
-        set(getOrderedTracks(tracks, get().pinnedTrackIds));
-        return mutationOk;
+        return commitMembership(tracks);
       },
       applyTrackChanges: (changes) => {
         const result = getValidatedTracks(changes.add ?? [], registry);
@@ -113,10 +268,13 @@ export function createTrackStore<
         const tracksById = new Map(get().tracks.map((track) => [getTrackId(track), track]));
         const result = getValidOrderResult(ids, tracksById);
         if (!result.ok) return result;
+        if (!isContiguousOrder(ids, get().trackSets))
+          return mutationError("INVALID_TRACK_ORDER", "Track set members must remain together.");
         set(
           getOrderedTracks(
             ids.map((id) => tracksById.get(id)!),
             get().pinnedTrackIds,
+            get().trackSets,
           ),
         );
         return mutationOk;
@@ -156,7 +314,15 @@ export function createTrackStore<
   });
 }
 
-function getOrderedTracks(tracks: AnyTrackInstance[], pinnedTrackIds: readonly string[]) {
+function getOrderedTracks(
+  tracks: AnyTrackInstance[],
+  pinnedTrackIds: readonly string[],
+  trackSets: readonly TrackSet[] = [],
+) {
+  if (trackSets.length) {
+    const ordered = orderTrackSets(tracks, pinnedTrackIds, trackSets);
+    return { tracks: ordered, order: ordered.map(getTrackId) };
+  }
   const remaining = new Map(tracks.map((track) => [getTrackId(track), track]));
   const ordered: AnyTrackInstance[] = [];
   for (const id of pinnedTrackIds) {

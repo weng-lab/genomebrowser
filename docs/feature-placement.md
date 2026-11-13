@@ -26,6 +26,6 @@ Import and cycle rules are enforced by `.oxlintrc.json` and `tools/lint/policy.t
 
 How to run and extend the app: `apps/web/README.md`. Product scope: [product](product/README.md).
 
-## Open example: grouped tracks
+## Prototype: track sets
 
-Whether a multi-module “group” is another track module or new core coordination is **unresolved**. BulkBed is a starting example, not a decision. Identify any new browser responsibility separately from the visualization.
+The first one-level track-set implementation keeps membership, ordering, effective visibility and fetch cancellation in core. UI supplies the MUI parent settings dialog through a core component slot, and track modules retain their existing settings and rendering. This prototype does not settle nesting, signal overlays or inherited settings. BulkBed remains a distinct multi-dataset visualization, not the runtime group owner.

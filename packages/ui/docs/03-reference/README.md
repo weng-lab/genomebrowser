@@ -14,6 +14,8 @@ The application owns runtime stores, collection data, and dialog visibility. Sto
 
 - [Shared UI](05-sharedUI/README.md): Labeled outlines for custom content.
 
+- [Track sets](TrackSetSettings.md): Configure runtime sets and their independent children.
+
 ## Public export index
 
 Every current public export has one canonical destination below.
@@ -43,6 +45,8 @@ Every current public export has one canonical destination below.
 | Track selection     | `TrackSelectInteractionResolver`                          | [Interaction resolver](03-trackSelection/trackInteractions.md#trackselectinteractionresolver)                         |
 | Track selection     | `TrackSelectInteraction`, `AnyTrackSelectInteraction`     | [Interaction callbacks](03-trackSelection/trackInteractions.md#trackselectinteraction-and-anytrackselectinteraction)  |
 | Track selection     | `TrackSelectCollectionContext`                            | [Collection context](03-trackSelection/trackInteractions.md#trackselectcollectioncontext)                             |
+
+`TrackSetSettings` is documented in [Track-set settings](TrackSetSettings.md).
 
 Core owns the `TrackCollection` data format and its validation and schema APIs. Reader owns the `Cytoband` records consumed by `Cytobands`. These types are imported from their respective packages and are not re-exported by UI.
 

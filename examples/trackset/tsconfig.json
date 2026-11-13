@@ -1,0 +1,15 @@
+{
+  "extends": "../../packages/ui/tsconfig.app.json",
+  "compilerOptions": {
+    "paths": {
+      "react": ["../../packages/ui/node_modules/@types/react"],
+      "react-dom/*": ["../../packages/ui/node_modules/@types/react-dom/*"],
+      "@mui/material": ["../../packages/ui/node_modules/@mui/material"],
+      "@weng-lab/genomebrowser": ["../../packages/core/src/lib.ts"],
+      "@weng-lab/genomebrowser-ui": ["../../packages/ui/src/lib.ts"],
+      "@weng-lab/genomebrowser-tracks/*": ["../../packages/tracks/src/*/index.ts"],
+      "react/*": ["../../packages/ui/node_modules/@types/react/*"]
+    }
+  },
+  "include": ["main.tsx"]
+}

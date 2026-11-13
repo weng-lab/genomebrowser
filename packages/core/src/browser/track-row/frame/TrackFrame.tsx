@@ -136,6 +136,23 @@ export function TrackFrame({
           width={marginWidth}
           height={wrapperHeight}
           fill="#ffffff"
+          data-track-drag-handle={track.base.id}
+          role="button"
+          aria-label={`Move or configure track ${track.base.title}`}
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (
+              event.key !== "Enter" &&
+              event.key !== " " &&
+              event.key !== "ContextMenu" &&
+              !(event.shiftKey && event.key === "F10")
+            )
+              return;
+            event.preventDefault();
+            event.stopPropagation();
+            const rect = event.currentTarget.getBoundingClientRect();
+            openContextMenu(track.base.id, { x: rect.left, y: rect.top });
+          }}
           onPointerDown={onSwapPointerDown}
           style={{
             cursor: onSwapPointerDown ? (swapping ? "grabbing" : "grab") : "default",

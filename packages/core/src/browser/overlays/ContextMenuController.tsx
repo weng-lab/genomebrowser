@@ -39,6 +39,8 @@ export function ContextMenuController() {
   useEffect(() => {
     if (!open) return;
 
+    const previouslyFocused = document.activeElement;
+    menuRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
     const handlePointerDown = (event: PointerEvent) => {
       if (menuRef.current?.contains(event.target as Node)) return;
       closeContextMenu();
@@ -58,6 +60,9 @@ export function ContextMenuController() {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll, true);
+      if (previouslyFocused instanceof SVGElement || previouslyFocused instanceof HTMLElement) {
+        if (previouslyFocused.isConnected) previouslyFocused.focus();
+      }
     };
   }, [closeContextMenu, open]);
 
@@ -79,7 +84,33 @@ export function ContextMenuController() {
   };
 
   return (
-    <div ref={menuRef} style={menuStyle} onContextMenu={(event) => event.preventDefault()}>
+    <div
+      ref={menuRef}
+      role="menu"
+      aria-label={`Actions for ${track.base.title}`}
+      style={menuStyle}
+      onContextMenu={(event) => event.preventDefault()}
+      onKeyDown={(event) => {
+        const buttons = [
+          ...event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"),
+        ];
+        const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        const next =
+          event.key === "ArrowDown"
+            ? (index + 1) % buttons.length
+            : event.key === "ArrowUp"
+              ? (index - 1 + buttons.length) % buttons.length
+              : event.key === "Home"
+                ? 0
+                : event.key === "End"
+                  ? buttons.length - 1
+                  : undefined;
+        if (next !== undefined) {
+          event.preventDefault();
+          buttons[next]?.focus();
+        }
+      }}
+    >
       {displayOptions.map((display) => (
         <MenuButton
           key={display}
@@ -93,6 +124,11 @@ export function ContextMenuController() {
         />
       ))}
       {displayOptions.length > 0 && <div style={separatorStyle} />}
+      <TrackGroupMenuItems
+        trackId={trackId}
+        disabled={isInteractionBlocked}
+        onComplete={closeContextMenu}
+      />
       <MenuButton
         label="remove"
         hovered={hoveredItem === "remove"}
@@ -105,6 +141,46 @@ export function ContextMenuController() {
   );
 }
 
+function TrackGroupMenuItems({
+  trackId,
+  disabled,
+  onComplete,
+}: {
+  trackId: string;
+  disabled: boolean;
+  onComplete: () => void;
+}) {
+  const { useTrackStore } = useGenomeBrowser();
+  const sets = useTrackStore((state) => state.trackSets);
+  const pinnedIds = useTrackStore((state) => state.pinnedTrackIds);
+  const move = useTrackStore((state) => state.moveTrackItem);
+  const owner = sets.find((set) => set.trackIds.includes(trackId));
+  const pinned = new Set(pinnedIds);
+  const locked = disabled || pinned.has(trackId) || !!owner?.trackIds.some((id) => pinned.has(id));
+  const select = (trackSetId?: string) => {
+    const state = useTrackStore.getState();
+    const members = new Set(owner?.trackIds);
+    const last = state.order.findLastIndex((id) => members.has(id));
+    const beforeTrackId = trackSetId === undefined && owner ? state.order[last + 1] : undefined;
+    if (move({ kind: "track", id: trackId }, { trackSetId, beforeTrackId }).ok) onComplete();
+  };
+  return (
+    <>
+      {sets
+        .filter((set) => set.id !== owner?.id)
+        .map((set) => (
+          <MenuButton
+            key={set.id}
+            label={`Move to group: ${set.title}`}
+            disabled={locked || set.trackIds.some((id) => pinned.has(id))}
+            onClick={() => select(set.id)}
+          />
+        ))}
+      {owner && <MenuButton label="Remove from group" disabled={locked} onClick={() => select()} />}
+      {!!sets.length && <div style={separatorStyle} />}
+    </>
+  );
+}
 function MenuButton({
   label,
   selected = false,
@@ -118,13 +194,14 @@ function MenuButton({
   selected?: boolean;
   hovered?: boolean;
   disabled?: boolean;
-  onHover: () => void;
-  onLeave: () => void;
+  onHover?: () => void;
+  onLeave?: () => void;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
+      role="menuitem"
       style={{
         ...buttonStyle,
         background: selected ? "#d0d0d0" : hovered && !disabled ? "#f0f0f0" : "#ffffff",

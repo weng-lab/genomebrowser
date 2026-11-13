@@ -1,9 +1,10 @@
+import type { TrackSetSettingsProps } from "./state/trackSets";
 import { BrowserCanvas } from "./BrowserCanvas";
 import { BrowserProvider } from "./state/BrowserContext";
 import type { BrowserStoreInstance } from "./state/browserStore";
 import type { TrackStoreInstance } from "./state/trackStore";
 import { useContainerWidth } from "./viewport/useContainerWidth";
-import type { CSSProperties, Ref } from "react";
+import type { CSSProperties, Ref, ComponentType } from "react";
 
 export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
@@ -16,6 +17,8 @@ export type GenomeBrowserProps = {
   style?: CSSProperties;
   /** Receives the browser's `<svg>` while it is rendered, such as for `exportBrowserImage`. */
   svgRef?: Ref<SVGSVGElement>;
+  /** Optional host-owned settings UI for track sets. */
+  trackSetSettingsComponent?: ComponentType<TrackSetSettingsProps>;
 };
 
 export function GenomeBrowser({
@@ -26,6 +29,7 @@ export function GenomeBrowser({
   className,
   style,
   svgRef,
+  trackSetSettingsComponent,
 }: GenomeBrowserProps) {
   const useBrowserStore = browserStore;
   const marginWidth = useBrowserStore((state) => state.marginWidth);
@@ -65,7 +69,12 @@ export function GenomeBrowser({
           trackStore={trackStore}
           trackWidth={trackWidth}
         >
-          <BrowserCanvas trackWidth={trackWidth} scale={scale} svgRef={svgRef} />
+          <BrowserCanvas
+            trackWidth={trackWidth}
+            scale={scale}
+            svgRef={svgRef}
+            trackSetSettingsComponent={trackSetSettingsComponent}
+          />
         </BrowserProvider>
       )}
     </div>
