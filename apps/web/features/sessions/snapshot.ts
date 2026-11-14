@@ -53,6 +53,10 @@ export const sessionSnapshotSchema = z.strictObject({
       }),
       config: z.record(z.string(), z.json()),
       source: z.enum(["host", "user"]),
+      // Tracks saved before metadata, and tracks without any, have none.
+      metadata: z
+        .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
+        .optional(),
     }),
   ),
   pinnedTrackIds: z.array(z.string().min(1)),
