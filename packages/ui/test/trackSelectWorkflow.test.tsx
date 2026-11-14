@@ -505,7 +505,7 @@ describe("TrackSelect session workflow", () => {
     expect(runtime.config.url).toBe("updated-url");
     expect(runtime.base.color).toBe("#abcdef");
     expect(resolveTrackInteraction).toHaveBeenCalledOnce();
-    expect(track).not.toHaveProperty("metadata");
+    expect(track.metadata).toEqual({ group: "A" });
   });
 
   it("keeps resolver failures atomic and visible", async () => {

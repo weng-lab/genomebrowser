@@ -12,6 +12,11 @@ export const trackBaseSchema = z.strictObject({
   color: hexColorSchema,
 });
 
+export const trackMetadataSchema = z.record(
+  z.string(),
+  z.union([z.string(), z.number(), z.boolean(), z.null()]),
+);
+
 export function formatZodError(error: z.ZodError) {
   return error.issues
     .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)

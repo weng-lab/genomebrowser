@@ -142,6 +142,50 @@ describe("TrackSelect default track reconciliation", () => {
     expect(nextTracks).not.toContain(unselectedCollectionTrack);
   });
 
+  it("copies an entry's metadata onto a new track and keeps a loaded track's own", () => {
+    const tagged = compileTrackCollections([
+      validateTrackCollection(
+        {
+          assembly: "hg38",
+          id: "tagged",
+          tracks: [
+            {
+              type: "signal",
+              base: { id: "one", title: "One" },
+              config: { url: "one" },
+              metadata: { Assay: "ChIP-seq" },
+            },
+            {
+              type: "signal",
+              base: { id: "two", title: "Two" },
+              config: { url: "two" },
+              metadata: { Assay: "DNase-seq" },
+            },
+          ],
+        },
+        registry.modules,
+      ),
+    ]);
+    const edited = signalModule.create({
+      base: { id: "tagged::two", title: "Two" },
+      config: { url: "two" },
+      metadata: { Assay: "DNase-seq", Interesting: true },
+    });
+
+    const nextTracks = getReconciledTracks({
+      compiledCollections: tagged,
+      tracks: [edited],
+      selectedTrackIds: ["tagged::one", "tagged::two"],
+      registry,
+      maxTracks: 10,
+    });
+
+    expect(nextTracks.map((track) => track.metadata)).toEqual([
+      { Assay: "ChIP-seq" },
+      { Assay: "DNase-seq", Interesting: true },
+    ]);
+  });
+
   it("treats an empty default list as an authoritative collection clear", () => {
     const unmanagedTrack = signalModule.create({
       base: {
@@ -225,7 +269,7 @@ describe("TrackSelect default track reconciliation", () => {
       qualifiedTrackId: "beta::one",
       track: collections[1]!.tracks[0],
     });
-    expect(track).not.toHaveProperty("metadata");
+    expect(track.metadata).toEqual({});
     expect(track.config).not.toHaveProperty("metadata");
     expect(track.base).not.toHaveProperty("metadata");
 

@@ -129,6 +129,7 @@ export function createTrackStore<
           currentTrack.interaction !== undefined || update.interaction !== undefined
             ? { ...currentTrack.interaction, ...update.interaction }
             : undefined;
+        const metadata = update.metadata ?? currentTrack.metadata;
         const result = getValidatedTrack(
           {
             ...currentTrack,
@@ -140,13 +141,15 @@ export function createTrackStore<
             },
             config: { ...currentConfig, ...update.config },
             ...(interaction !== undefined ? { interaction } : {}),
+            ...(metadata !== undefined ? { metadata } : {}),
           },
           registry,
         );
         if (!result.ok) return result;
+        const updatedTrack = keepUnchangedParts(currentTrack, result.track, update);
 
         set((state) => ({
-          tracks: state.tracks.map((track) => (getTrackId(track) === id ? result.track : track)),
+          tracks: state.tracks.map((track) => (getTrackId(track) === id ? updatedTrack : track)),
           order: state.order,
         }));
         return mutationOk;
@@ -183,6 +186,28 @@ function getTrackId(track: AnyTrackInstance) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Keeps the current objects for the parts an update leaves out. Validation copies every part,
+ * so without this a metadata edit would hand the row a new config and redraw the track.
+ */
+function keepUnchangedParts(
+  current: AnyTrackInstance,
+  validated: AnyTrackInstance,
+  update: Partial<Record<keyof TrackUpdate<unknown>, unknown>>,
+): AnyTrackInstance {
+  return {
+    ...validated,
+    base: update.base === undefined ? current.base : validated.base,
+    config: update.config === undefined ? current.config : validated.config,
+    ...(update.metadata === undefined && current.metadata !== undefined
+      ? { metadata: current.metadata }
+      : {}),
+    ...(update.interaction === undefined && current.interaction !== undefined
+      ? { interaction: current.interaction }
+      : {}),
+  };
 }
 
 function validateTrack(track: AnyTrackInstance, registry: ModuleRegistry): AnyTrackInstance {

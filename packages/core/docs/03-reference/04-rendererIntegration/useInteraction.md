@@ -20,7 +20,7 @@ The returned object can contain `onClick`, `onHover`, and `onLeave`, each accept
 
 `TrackInteraction<Item, Config>` has optional `onClick`, `onHover`, and `onLeave` callbacks. Each is a `TrackInteractionCallback<Item, Config>` with signature `(item: Item, context: TrackRuntimeContext<Config>) => void`.
 
-`TrackRuntimeContext<Config>` contains readonly `type`, `base`, and parsed `config`. It is derived from the current validated instance. It is not persisted state and contains no collection metadata or source field. Object config and base are shallow readonly views.
+`TrackRuntimeContext<Config>` contains readonly `type`, `base`, and parsed `config`. It is derived from the current validated instance. It is not persisted state and contains no metadata or source field. Object config and base are shallow readonly views.
 
 The renderer decides which item to pass and when to emit each event. Hover handlers can run frequently, so avoid expensive work in them.
 

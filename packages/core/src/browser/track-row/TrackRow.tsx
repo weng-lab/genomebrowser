@@ -1,4 +1,4 @@
-import { useSyncExternalStore, type ErrorInfo } from "react";
+import { useRef, useSyncExternalStore, type ErrorInfo } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
@@ -29,12 +29,9 @@ export function TrackRow({
   onPreviewChange: (preview: ReorderPreview) => void;
   onPreviewEnd: () => void;
 }) {
-  const { useTrackStore } = useGenomeBrowser();
   const dataController = useDataController();
   const { marginWidth, trackWidth } = useTrackStack();
-  const track = useTrackStore((state) =>
-    state.tracks[layout.index]?.base.id === layout.id ? state.tracks[layout.index] : undefined,
-  );
+  const track = useDrawnTrack(layout);
   // Each row subscribes to its own entry, so one track's result renders only its row.
   const getDataState = () => dataController.getTrack(layout.id);
   const dataState = useSyncExternalStore(dataController.subscribe, getDataState, getDataState);
@@ -76,6 +73,31 @@ export function TrackRow({
         </TrackFrame>
       )}
     </TrackReorder>
+  );
+}
+
+/**
+ * The row's track from the store. Rows don't draw metadata, so after an edit that changes only
+ * metadata this keeps the object the row already drew, and the row doesn't render.
+ */
+function useDrawnTrack(layout: TrackLayout) {
+  const { useTrackStore } = useGenomeBrowser();
+  const drawn = useRef<AnyTrackInstance | undefined>(undefined);
+  return useTrackStore((state) => {
+    const track = state.tracks[layout.index];
+    if (track?.base.id !== layout.id) return undefined;
+    if (drawn.current === undefined || !differsOnlyInMetadata(drawn.current, track)) {
+      drawn.current = track;
+    }
+    return drawn.current;
+  });
+}
+
+function differsOnlyInMetadata(previous: AnyTrackInstance, next: AnyTrackInstance) {
+  const keys = new Set<string>([...Object.keys(previous), ...Object.keys(next)]);
+  keys.delete("metadata");
+  return [...keys].every(
+    (key) => (previous as Record<string, unknown>)[key] === (next as Record<string, unknown>)[key],
   );
 }
 

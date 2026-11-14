@@ -83,9 +83,9 @@ import { trackCollections } from "./trackCollections";
 const store = useTrackStore.getState();
 const collection = validateTrackCollection(trackCollections[0], store.registry.modules);
 const ruler = store.getTrack("ruler");
-const tracks = collection.tracks.map(({ type, base, config }) => {
+const tracks = collection.tracks.map(({ type, base, config, metadata }) => {
   const module: AnyTrackModule = store.registry.get(type);
-  return module.create({ base, config, source: "host" });
+  return module.create({ base, config, metadata, source: "host" });
 });
 const result = store.setTracks([...(ruler ? [ruler] : []), ...tracks]);
 if (!result.ok) throw new Error(result.error);
