@@ -72,12 +72,12 @@ Callbacks return `void`. The runtime context reflects the track when the rendere
 
 ## TrackSelectCollectionContext
 
-| Field             | Type                      | Description                                                                       |
-| ----------------- | ------------------------- | --------------------------------------------------------------------------------- |
-| `collectionId`    | `string`                  | Identifies the owning collection.                                                 |
-| `authoredTrackId` | `string`                  | Provides the unqualified track ID authored in the collection.                     |
-| `metadata`        | `Readonly<TrackMetadata>` | Provides the collection-owned metadata without copying it into the runtime track. |
+| Field             | Type                      | Description                                                   |
+| ----------------- | ------------------------- | ------------------------------------------------------------- |
+| `collectionId`    | `string`                  | Identifies the owning collection.                             |
+| `authoredTrackId` | `string`                  | Provides the unqualified track ID authored in the collection. |
+| `metadata`        | `Readonly<TrackMetadata>` | Provides the metadata authored in the collection entry.       |
 
-The context is read-only. Missing authored metadata becomes an empty object. Metadata stays in the collection instead of being copied into runtime base or config.
+The context is read-only. Missing authored metadata becomes an empty object. TrackSelect also copies the entry's metadata onto the created track's `metadata`, which the application may edit later; the context keeps the authored values.
 
 [Back to track selection](README.md) · [TrackSelect props](TrackSelect.md#trackselectprops)
