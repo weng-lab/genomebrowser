@@ -71,9 +71,11 @@ function savedSnapshot(): SessionSnapshot {
       ],
       selectionMode: "highlight",
     },
-    tracks: [...tracks]
-      .reverse()
-      .map((track) => ({ ...track, base: { ...track.base, title: `Saved ${track.base.title}` } })),
+    tracks: [...tracks].reverse().map((track) => ({
+      ...track,
+      base: { ...track.base, title: `Saved ${track.base.title}` },
+      ...(track.base.id === "ccres" ? { metadata: { Source: "SCREEN", Interesting: true } } : {}),
+    })),
     // Pinned tracks lead the display order.
     pinnedTrackIds: ["ccres"],
     regionGroups: [
@@ -116,6 +118,9 @@ it("restores every saved setting before saving, then saves whole snapshots of la
   stores().useTrackStore.getState().setPinnedTrackIds([]);
   stores().useTrackStore.getState().reorderTracks(["ruler", "genes", "ccres"]);
   stores().useRegionGroupStore.getState().setCollapsed("elements", false);
+  stores()
+    .useTrackStore.getState()
+    .updateTrack("ccres", { metadata: { Source: "SCREEN", Interesting: false } });
   state().rename("Enhancer scan");
   expect(state().saveStatus).toBe("saving");
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
@@ -128,7 +133,11 @@ it("restores every saved setting before saving, then saves whole snapshots of la
   });
   expect(server.stored.get(id)!.snapshot).toMatchObject({
     browser: { region: { start: 5000 }, highlights: [{ id: "promoter" }] },
-    tracks: [{ base: { id: "ruler" } }, { base: { id: "genes" } }, { base: { id: "ccres" } }],
+    tracks: [
+      { base: { id: "ruler" } },
+      { base: { id: "genes" } },
+      { base: { id: "ccres" }, metadata: { Source: "SCREEN", Interesting: false } },
+    ],
     pinnedTrackIds: [],
     // The removed highlight left its group.
     regionGroups: [{ id: "elements", collapsed: false, regionIds: ["promoter"] }],
