@@ -21,7 +21,13 @@ export function snapshot(session: SessionStores): SessionSnapshot {
       selectionMode: browser.selectionMode,
       selectionHighlight: browser.selectionHighlight,
     },
-    tracks: tracks.tracks.map(({ type, base, config, source }) => ({ type, base, config, source })),
+    tracks: tracks.tracks.map(({ type, base, config, source, metadata }) => ({
+      type,
+      base,
+      config,
+      source,
+      metadata,
+    })),
     pinnedTrackIds: tracks.pinnedTrackIds,
     regionGroups: groups,
   };

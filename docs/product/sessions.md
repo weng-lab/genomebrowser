@@ -10,7 +10,7 @@ Guests get one session restored in the same browser, with work preserved on sign
 
 ## What is saved
 
-Assembly (fixed for the session lifetime), persistent browser configuration (region, highlights, settings), region groups, track configurations/order/pins, and metadata (id, owner, name, times, revision, save id). Runtime modules, fetched data, loading flags, and connections are not part of a portable snapshot.
+Assembly (fixed for the session lifetime), persistent browser configuration (region, highlights, settings), region groups, tracks (configuration, metadata, order, pins), and session details (id, owner, name, times, revision, save id). Runtime modules, fetched data, loading flags, and connections are not part of a portable snapshot.
 
 `snapshot` / `restore` are the boundary between serializable data and live stores. Schemas and types live with the session feature in code.
 
