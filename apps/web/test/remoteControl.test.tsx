@@ -314,6 +314,97 @@ it("sorts tracks for the agent, replies with the new order, and saves it", async
   );
 });
 
+const runCommand = (name: string, params: object) =>
+  act(async () =>
+    latest().send({ commandId: crypto.randomUUID(), name, expiresAt: Date.now() + 5000, params }),
+  );
+const savedMetadata = () =>
+  server.stored.get(alpha)!.snapshot.tracks.map(({ base, metadata }) => [base.id, metadata]);
+
+it("lists and tags tracks for the agent, replies with their metadata, and saves it", async () => {
+  await enableRemoteControl();
+
+  await runCommand("list_tracks", {});
+  expect(reply(0).result).toEqual({
+    ok: true,
+    value: {
+      tracks: [
+        { id: "ruler", title: "Coordinates", type: "ruler", pinned: false, metadata: {} },
+        { id: "genes", title: "GENCODE 50 basic", type: "gene", pinned: false, metadata: {} },
+        { id: "ccres", title: "Human cCREs", type: "ccre-bigbed", pinned: false, metadata: {} },
+      ],
+    },
+  });
+
+  await runCommand("set_track_metadata", {
+    trackIds: ["ccres", "genes"],
+    set: { Interesting: true, Status: "abnormal" },
+  });
+  expect(reply(1).result).toEqual({
+    ok: true,
+    value: {
+      tracks: [
+        { id: "ccres", metadata: { Interesting: true, Status: "abnormal" } },
+        { id: "genes", metadata: { Interesting: true, Status: "abnormal" } },
+      ],
+    },
+  });
+
+  // Fields a change doesn't name stay.
+  await runCommand("set_track_metadata", {
+    trackIds: ["ccres"],
+    set: { Status: "normal" },
+    remove: ["Never set"],
+  });
+  expect(reply(2).result).toEqual({
+    ok: true,
+    value: { tracks: [{ id: "ccres", metadata: { Interesting: true, Status: "normal" } }] },
+  });
+  await runCommand("set_track_metadata", { trackIds: ["ccres"], remove: ["Interesting"] });
+  expect(reply(3).result).toEqual({
+    ok: true,
+    value: { tracks: [{ id: "ccres", metadata: { Status: "normal" } }] },
+  });
+
+  await runCommand("list_tracks", {});
+  expect(
+    reply(4).result.value.tracks.map(({ metadata }: { metadata: object }) => metadata),
+  ).toEqual([{}, { Interesting: true, Status: "abnormal" }, { Status: "normal" }]);
+  await vi.waitFor(() =>
+    expect(savedMetadata()).toEqual([
+      ["ruler", undefined],
+      ["genes", { Interesting: true, Status: "abnormal" }],
+      ["ccres", { Status: "normal" }],
+    ]),
+  );
+});
+
+it("changes no track's metadata when a change names a missing track or changes nothing", async () => {
+  await enableRemoteControl();
+
+  const cases = [
+    [
+      { trackIds: ["genes", "missing"], set: { Interesting: true } },
+      { code: "TRACK_NOT_FOUND", error: 'No loaded track has the ID "missing"' },
+    ],
+    [{ trackIds: ["genes"] }, { code: "INVALID_PARAMS", error: "Give fields to set or remove" }],
+    [
+      { trackIds: ["genes"], set: { Status: "abnormal" }, remove: ["Status"] },
+      { code: "INVALID_PARAMS", error: 'Fields both set and removed: "Status"' },
+    ],
+    [{ trackIds: ["genes", "genes"], set: { Interesting: true } }, { code: "INVALID_PARAMS" }],
+    [{ trackIds: ["genes"], set: { Cells: ["K562"] } }, { code: "INVALID_PARAMS" }],
+  ] as const;
+  for (const [index, [params, failure]] of cases.entries()) {
+    await runCommand("set_track_metadata", params);
+    expect(reply(index).result).toMatchObject({ ok: false, ...failure });
+  }
+  await runCommand("list_tracks", {});
+  expect(
+    reply(cases.length).result.value.tracks.map(({ metadata }: { metadata: object }) => metadata),
+  ).toEqual([{}, {}, {}]);
+});
+
 function fixture(path: string) {
   return new Uint8Array(
     readFileSync(join(import.meta.dirname, "../../../packages/reader/test/fixtures", path)),
