@@ -72,8 +72,8 @@ import { trackModules } from "./trackModules";
 const useTrackStore = createTrackStore({ modules: trackModules });
 const { registry } = useTrackStore.getState();
 const collection = validateTrackCollection(input, registry.modules);
-const tracks = collection.tracks.map(({ type, base, config }) =>
-  registry.get(type).create({ base, config }),
+const tracks = collection.tracks.map(({ type, base, config, metadata }) =>
+  registry.get(type).create({ base, config, metadata }),
 );
 const result = useTrackStore.getState().setTracks(tracks);
 if (!result.ok) throw new Error(result.error);
@@ -116,17 +116,15 @@ Its config and display are correlated with its module type. Without a module par
 | `type`     | `string`                  | Required | Registered module type.                                                                                                                                             |
 | `base`     | `TrackBaseInput`          | Required | Required ID and title, plus optional display, height, and color. See [creation input](../03-trackDefinition/trackInstances.md#trackcreateinput-and-trackbaseinput). |
 | `config`   | `Record<string, unknown>` | Required | Input validated by the selected module's config schema.                                                                                                             |
-| `metadata` | `TrackMetadata`           | Omitted  | Scalar attributes used to describe and organize tracks.                                                                                                             |
+| `metadata` | `TrackMetadata`           | Omitted  | Descriptive fields, kept on the created track when passed to `create`. See [TrackMetadata](../03-trackDefinition/trackInstances.md#trackmetadata).                  |
 
-Collection entries reject `source` and interaction callbacks. Supply runtime ownership and interactions in application code during module creation. Metadata stays with the collection rather than becoming part of the runtime instance.
+Collection entries reject `source` and interaction callbacks. Supply runtime ownership and interactions in application code during module creation.
 
 When serializing runtime tracks, config must still satisfy the module's creation input. A transformed runtime config is not necessarily valid collection input; preserve authored values or explicitly convert them back to input form.
 
-### TrackMetadata
+### Metadata in views
 
-`TrackMetadata` is `Record<string, string | number | boolean | null>`. Values cannot be arrays or nested objects. Metadata stays separate from module config and runtime interaction context.
-
-The built-in view fields are `id`, `title`, and `type`. All other referenced fields must exist in every track's metadata. Avoid using those built-in names as metadata keys because collection UI treats them as built-in values.
+Entries use the same [TrackMetadata](../03-trackDefinition/trackInstances.md#trackmetadata) as runtime tracks. The built-in view fields are `id`, `title`, and `type`. All other referenced fields must exist in every track's metadata. Avoid using those built-in names as metadata keys because collection UI treats them as built-in values.
 
 ## Views and columns
 

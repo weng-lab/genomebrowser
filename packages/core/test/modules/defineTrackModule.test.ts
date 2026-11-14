@@ -156,6 +156,23 @@ describe("defineTrackModule", () => {
     );
   });
 
+  it("keeps scalar metadata and rejects lists and objects", () => {
+    const input = { base: { id: "signal", title: "Signal" }, config: { url: "YOUR_URL_HERE" } };
+    const metadata = { Assay: "ChIP-seq", Replicate: 2, Interesting: true, Target: null };
+    const track = module.create({ ...input, metadata });
+
+    expect(track.metadata).toEqual(metadata);
+    expect(module.validate(track)).toEqual(track);
+    for (const invalid of [{ Cells: ["K562"] }, { Cells: { name: "K562" } }]) {
+      expect(() => module.create({ ...input, metadata: invalid as never })).toThrow(
+        /example input is invalid: metadata\.Cells/,
+      );
+      expect(() => module.validate({ ...track, metadata: invalid })).toThrow(
+        /example instance is invalid: metadata\.Cells/,
+      );
+    }
+  });
+
   it("returns create output that passes validate", () => {
     const track = module.create({
       base: {

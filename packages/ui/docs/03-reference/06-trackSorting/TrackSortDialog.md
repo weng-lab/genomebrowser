@@ -24,16 +24,18 @@ const useBrowserStore = createBrowserStore({
 
 const useTrackStore = createTrackStore({ modules: [] });
 
-// The application records metadata for each track it adds, keyed by track ID.
-const sampleInfoByTrackId = new Map<string, SampleInfo>();
-
 const sortOptions: TrackSortOption<SampleInfo>[] = [
   { id: "sample", label: "Sample ID", compare: (a, b) => a.sampleId.localeCompare(b.sampleId) },
   { id: "assay", label: "Assay", compare: (a, b) => a.assay.localeCompare(b.assay) },
 ];
 
-function getSampleInfo(track: AnyTrackInstance) {
-  return sampleInfoByTrackId.get(track.base.id);
+// Reads fields the application set when adding the track, such as
+// metadata: { "Sample ID": "S12", Assay: "ChIP-seq" }.
+function getSampleInfo(track: AnyTrackInstance): SampleInfo | undefined {
+  const sampleId = track.metadata?.["Sample ID"];
+  const assay = track.metadata?.Assay;
+  if (typeof sampleId !== "string" || typeof assay !== "string") return undefined;
+  return { sampleId, assay };
 }
 
 export function BrowserWithTrackSorting() {
