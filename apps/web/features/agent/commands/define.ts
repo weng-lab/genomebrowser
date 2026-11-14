@@ -1,5 +1,6 @@
 import type { BrowserImage, GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
+import type { TrackMetadataChange, TrackMetadataOutcome } from "../../browser/trackMetadata";
 import type { UrlTrackInput, UrlTracksOutcome } from "../../browser/urlTracks";
 
 export type CommandFailure = { ok: false; code: string; error: string };
@@ -15,6 +16,11 @@ export type CommandApp = {
   stores: GenomeBrowserStores;
   /** Sort the loaded tracks once by field IDs in priority order, as the Sort tracks dialog does. */
   sortTracks(fieldIds: readonly string[]): { ok: true } | CommandFailure;
+  /** Apply one change to the metadata of each listed track, changing every track or none. */
+  changeTrackMetadata(
+    trackIds: readonly string[],
+    change: TrackMetadataChange,
+  ): TrackMetadataOutcome;
   /** Export the rendered browser, named after its region unless `filename` is given. */
   exportImage(
     format: BrowserImage["format"],
