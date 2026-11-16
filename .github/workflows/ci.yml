@@ -79,5 +79,7 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # One package suite at a time: each Vitest run already uses every vCPU, and
+      # running them together slowed integration tests past their timeouts.
       - name: Test
-        run: pnpm test
+        run: pnpm test --concurrency=1
