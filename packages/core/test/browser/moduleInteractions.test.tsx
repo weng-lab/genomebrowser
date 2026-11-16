@@ -58,7 +58,7 @@ async function mount() {
     fetch: async () => null,
     render: { full: Renderer },
     tooltipComponent: ({ item, context }: { item: Item; context: TrackRuntimeContext<Config> }) => (
-      <text data-testid="tooltip">
+      <text data-testid="tooltip" data-metadata={JSON.stringify(context.metadata)}>
         {item.id}: {context.config.label} {context.base.color}
       </text>
     ),
@@ -100,7 +100,8 @@ async function event(id: string, type: string) {
   );
   await act(async () => vi.advanceTimersByTimeAsync(20));
 }
-const tooltipText = () => document.querySelector('[data-testid="tooltip"]')?.textContent;
+const tooltip = () => document.querySelector('[data-testid="tooltip"]');
+const tooltipText = () => tooltip()?.textContent;
 
 it("delivers item-only renderer interactions with current track context to the host", async () => {
   const t = await mount();
@@ -148,4 +149,24 @@ it("renders tooltip content with current context and lets only its owner dismiss
   await event("second", "mousemove");
   await act(async () => t.useTrackStore.getState().removeTrack("second"));
   expect(tooltipText()).toBeUndefined();
+});
+
+it("gives callbacks and tooltips the metadata current when they run", async () => {
+  const t = await mount();
+  await event("first", "click");
+  expect(t.onClick).toHaveBeenLastCalledWith(
+    { id: "first" },
+    expect.objectContaining({ metadata: {} }),
+  );
+  // A metadata edit doesn't redraw the track, so the drawn track still has the old record.
+  await act(async () =>
+    t.useTrackStore.getState().updateTrack("first", { metadata: { Interesting: true } }),
+  );
+  await event("first", "click");
+  expect(t.onClick).toHaveBeenLastCalledWith(
+    { id: "first" },
+    expect.objectContaining({ metadata: { Interesting: true } }),
+  );
+  await event("first", "mousemove");
+  expect(tooltip()?.getAttribute("data-metadata")).toBe('{"Interesting":true}');
 });

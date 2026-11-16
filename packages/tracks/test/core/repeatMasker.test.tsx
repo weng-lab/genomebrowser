@@ -151,12 +151,17 @@ describe("RepeatMasker public module", () => {
     // Tooltip dispatch follows the result, including a hover retained across a view switch.
     expect(
       renderToStaticMarkup(
-        <Tooltip item={standard.data.repeats[0]!} context={track({ view: "joined" })} />,
+        <Tooltip
+          item={standard.data.repeats[0]!}
+          context={{ ...track({ view: "joined" }), metadata: {} }}
+        />,
       ),
     ).toContain("SW score");
-    expect(renderToStaticMarkup(<Tooltip item={joined.data[0]!} context={track()} />)).toContain(
-      "24.2%",
-    );
+    expect(
+      renderToStaticMarkup(
+        <Tooltip item={joined.data[0]!} context={{ ...track(), metadata: {} }} />,
+      ),
+    ).toContain("24.2%");
   });
 
   it("rejects swapped or incompatible schemas and passes cancellation to the reader", async () => {

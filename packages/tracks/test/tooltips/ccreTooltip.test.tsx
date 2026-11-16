@@ -29,6 +29,7 @@ describe("cCRE BigBed tooltip", () => {
             color: "#4b9560",
           },
           config: { url: "YOUR_URL_HERE", rowHeight: 12 },
+          metadata: {},
         }}
       />,
     );
