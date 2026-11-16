@@ -74,6 +74,6 @@ const track = bigWigModule.create({
 
 Metadata describes a track without configuring it. Fetchers, renderers, and interaction callbacks don't receive it, so changing it never requests data or redraws the track. Applications read it from the instance, for example to build sort options. A track store update replaces the whole record; see [TrackUpdate](../01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate).
 
-Collection entries use the same type, and TrackSelect copies an entry's metadata onto the tracks it creates. Avoid `id`, `title`, and `type` as keys, because collection views treat them as built-in fields.
+Collection entries use the same type. Creating a track from an entry copies the entry's metadata as a starting value, as it does `base` and `config`; later edits change only the track. TrackSelect does this for the tracks it creates. Avoid `id`, `title`, and `type` as keys, because collection views treat them as built-in fields.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

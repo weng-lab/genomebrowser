@@ -103,7 +103,9 @@ A collection does not contain chromosome lengths, viewport state, highlights, or
 
 ### Track inputs
 
-An entry contains the input needed to create a track. Create a runtime `TrackInstance` from it before adding it to a store. Derive its type from the collection when needed:
+An entry contains the input needed to create a track. Create a runtime `TrackInstance` from it before adding it to a store. Creating a track copies the entry's `base`, `config`, and `metadata` as the track's starting values. From then on the track owns them: editing the track's color or metadata never changes the entry, and editing the entry never changes a track already created from it. To keep a track's current values, write a new entry from the track, as described below the field table.
+
+Derive an entry's type from the collection when needed:
 
 ```ts
 type CollectionTrack = TrackCollection<typeof trackModules>["tracks"][number];
