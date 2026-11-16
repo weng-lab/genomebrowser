@@ -26,6 +26,14 @@ Judge every test you write, keep, or review by imagining two edits:
 
 Keep a test that fails the first edit and survives the second. Rewrite or delete the rest.
 
+Three kinds of test usually still pass when the behavior breaks:
+
+- **It restates the code.** The assertion fails only when someone edits the line it mirrors, or it checks something the type system already guarantees, such as a typed store lacking a property. An optional field being wired up, such as a module's tooltip component, is behavior: keep one check of it.
+- **It restates a style or constant.** It asserts that a gap is `12px` or a border is `2px`. Changing the value is a design decision, not a regression.
+- **It asserts an internal call.** It checks `toHaveBeenCalled` on a first-party helper or hook the test replaced or wrapped. Assert the outcome instead. A callback handed to a consumer, a request sent to another service, or a call across a package boundary is contract and stays.
+
+A small direct test is fine when it feeds literal inputs to real logic and asserts a result a user or caller would notice is wrong, such as pixels, a decoded record, store state, or a callback payload.
+
 ## Where tests call in
 
 Call in through the smallest interface consumers use, and keep everything between input and outcome real. Typical boundaries:

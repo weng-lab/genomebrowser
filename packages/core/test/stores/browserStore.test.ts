@@ -73,7 +73,7 @@ describe("createBrowserStore", () => {
     expect(useFirst.getState().region).toEqual({ chromosome: "chr1", start: 20, end: 40 });
   });
 
-  it("requires object regions and an assembly and exposes no assembly setter", () => {
+  it("requires object regions and an assembly", () => {
     expectTypeOf<BrowserStoreInput["assembly"]>().toEqualTypeOf<AssemblyDefinition>();
     expectTypeOf<BrowserStoreInput["region"]>().toEqualTypeOf<GenomicRegion>();
 
@@ -84,7 +84,6 @@ describe("createBrowserStore", () => {
 
     expect(store.getState().assembly).toEqual(hg38);
     expect(store.getState().assembly).not.toBe(hg38);
-    expect(store.getState()).not.toHaveProperty("setAssembly");
   });
 
   it("starts not loading and accepts no loading input", () => {

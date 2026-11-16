@@ -60,7 +60,7 @@ describe("BigBed track", () => {
     reader.createBigBedFile.mockReturnValue({ read: reader.read });
   });
 
-  it("defines tooltip UI on the module", () => {
+  it("defaults track and row height to 12", () => {
     const config = bigBedModule.create({
       base: {
         id: "peaks",
@@ -69,8 +69,6 @@ describe("BigBed track", () => {
       config: { url: "YOUR_URL_HERE" },
     });
 
-    expect(bigBedModule.tooltipComponent).toBeTypeOf("function");
-    expect(config).not.toHaveProperty("tooltip");
     expect(config.base.height).toBe(12);
     expect(config.config.rowHeight).toBe(12);
   });

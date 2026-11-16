@@ -31,8 +31,6 @@ describe("MethylC module", () => {
         urls: createUrls("YOUR_URL_HERE"),
       },
     });
-    expect(methylCModule.tooltipComponent).toBeTypeOf("function");
-    expect(track).not.toHaveProperty("tooltip");
   });
 
   it("rejects combined as a display mode", () => {
