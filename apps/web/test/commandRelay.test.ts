@@ -1,5 +1,5 @@
 import { createClient } from "redis";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createCommandRelay,
   type CommandRelay,
@@ -49,10 +49,13 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
       await commands.reply(id, { commandId: command.commandId, result: { ok: true, value: 1 } }),
     ).toBe(true);
     expect(await result).toEqual({ ok: true, value: 1 });
-    // The reply completed the command; a repeated one finds nothing waiting.
-    expect(
-      await commands.reply(id, { commandId: command.commandId, result: { ok: true, value: 2 } }),
-    ).toBe(false);
+    // The reply completed the command; a repeated one soon finds nothing waiting.
+    // The relay stops listening in the background, so the first may still reach it.
+    await vi.waitFor(async () =>
+      expect(
+        await commands.reply(id, { commandId: command.commandId, result: { ok: true, value: 2 } }),
+      ).toBe(false),
+    );
   });
 
   it("delivers between server instances that share a namespace", async () => {

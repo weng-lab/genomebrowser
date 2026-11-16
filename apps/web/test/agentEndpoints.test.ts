@@ -147,10 +147,16 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
       await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } }),
     ).toEqual({ status: 200, body: { ok: true } });
     expect(await call).toMatchObject({ structuredContent: value });
-    // The reply was consumed.
-    expect(
-      await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } }),
-    ).toMatchObject({ status: 409 });
+    // The reply was consumed. The relay stops listening in the background, so a
+    // repeated reply may still reach it at first.
+    await vi.waitFor(async () =>
+      expect(
+        await reply("user_alice", id, {
+          commandId: command.commandId,
+          result: { ok: true, value },
+        }),
+      ).toMatchObject({ status: 409 }),
+    );
 
     tab.close();
     await client.close();
