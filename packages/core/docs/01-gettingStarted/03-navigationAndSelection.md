@@ -22,6 +22,8 @@ Drag the left margin to lift and reorder an unpinned track, then release to drop
 
 Open a track's settings and select the outlined **Pin track** button beside Close to place it below the existing pinned tracks. The pin fills when active. Select **Unpin track** to return the track to the beginning of the unpinned group. Pinning fixes track order, not scroll position; pinned tracks cannot be dragged or moved with the margin's ordering controls. The pin button is disabled while tracks load and is available for tracks with settings.
 
+Select the **Remove track** button left of Pin to remove the track and close its settings. Like the context menu's remove action, it applies immediately and is disabled while tracks load. Removing a pinned track keeps its ID in `pinnedTrackIds`, so adding it again restores its pinned placement.
+
 ## Navigate to a region
 
 Use `setRegion` to jump to a known genomic region, such as a search result or a selected feature. The region must use the browser's assembly and zero-based, half-open coordinates.

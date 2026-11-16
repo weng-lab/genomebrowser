@@ -269,6 +269,31 @@ describe("browser settings workflows", () => {
     expect(container?.querySelector("dialog")).toBeNull();
   });
 
+  it("removes the track and closes settings, unless interactions are blocked", async () => {
+    const tracks = ["first", "second", "third"].map((id) =>
+      signalModule.create({
+        base: { id, title: id },
+        config: { url: "YOUR_URL_HERE" },
+      }),
+    );
+    const useTrackStore = createTrackStore({ modules: [signalModule], tracks });
+    await mountBrowser(useTrackStore);
+    await openSettings("second");
+    await act(async () => removeButton().click());
+    expect(useTrackStore.getState().order).toEqual(["first", "third"]);
+    expect(container?.querySelector("dialog")).toBeNull();
+
+    await act(async () => useTrackStore.getState().addTrack(tracks[1]!));
+    expect(container?.querySelector("dialog")).toBeNull();
+
+    await openSettings("third");
+    await blockInteractions();
+    expect(removeButton().disabled).toBe(true);
+    await act(async () => removeButton().click());
+    expect(useTrackStore.getState().order).toEqual(["first", "third", "second"]);
+    expect(container?.querySelector("dialog")).not.toBeNull();
+  });
+
   it("offers image downloads for a module without custom settings", async () => {
     const module = { ...signalModule, settingsComponent: undefined };
     const track = module.create({
@@ -381,5 +406,11 @@ function requireValue<T>(value: T | undefined, message: string): T {
 function pinButton() {
   const button = container?.querySelector<HTMLButtonElement>("button[aria-pressed]");
   if (!button) throw new Error("Pin button not found");
+  return button;
+}
+
+function removeButton() {
+  const button = container?.querySelector<HTMLButtonElement>('[aria-label="Remove track"]');
+  if (!button) throw new Error("Remove button not found");
   return button;
 }
