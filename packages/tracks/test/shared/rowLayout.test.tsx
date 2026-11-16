@@ -1,70 +1,47 @@
 // @vitest-environment jsdom
-
-import { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
-
-(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
-  true;
-
-const trackState = vi.hoisted(() => ({
-  currentHeight: 60,
-  updateTrack: vi.fn(() => ({ ok: true as const })),
-}));
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useGenomeBrowser: () => ({
-    useTrackStore: (
-      selector: (state: {
-        getTrack: (trackId: string) => { base: { height: number } } | undefined;
-        updateTrack: typeof trackState.updateTrack;
-      }) => unknown,
-    ) =>
-      selector({
-        getTrack: (trackId) =>
-          trackId === "rows" ? { base: { height: trackState.currentHeight } } : undefined,
-        updateTrack: trackState.updateTrack,
-      }),
-  }),
-}));
-
+import { afterEach, describe, expect, it } from "vitest";
+import { z } from "zod";
+import { defineTrackModule, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useRowLayout } from "@weng-lab/genomebrowser-tracks/shared";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 
-let container: HTMLDivElement | undefined;
-let root: Root | undefined;
+type RowsConfig = { rowCount: number };
 
-afterEach(() => {
-  act(() => root?.unmount());
-  container?.remove();
-  container = undefined;
-  root = undefined;
-  trackState.currentHeight = 60;
-  trackState.updateTrack.mockClear();
+function Rows({ id, config }: TrackRendererProps<RowsConfig, null>) {
+  const layout = useRowLayout(id, config.rowCount, { rowHeight: 12 });
+  return <text>{`${layout.rowHeight}/${layout.trackHeight}`}</text>;
+}
+
+const rowsModule = defineTrackModule({
+  type: "rows",
+  configSchema: z.object({ rowCount: z.number() }),
+  fetch: async () => null,
+  render: { full: Rows },
+});
+
+let view: MountedTrack | undefined;
+afterEach(async () => {
+  await view?.unmount();
+  view = undefined;
 });
 
 describe("useRowLayout", () => {
-  it("preserves configured row height while packed row count changes total height", () => {
-    container = document.createElement("div");
-    document.body.append(container);
-    root = createRoot(container);
+  it("preserves configured row height while packed row count changes total height", async () => {
+    view = await mountTrack({
+      module: rowsModule,
+      track: { base: { id: "rows", title: "Rows", height: 60 }, config: { rowCount: 2 } },
+      data: null,
+      region: { chromosome: "chr1", start: 0, end: 100 },
+    });
+    const height = () => view?.trackStore.getState().getTrack("rows")?.base.height;
 
-    renderRows(2);
-    expect(container.textContent).toBe("12/24");
-    expect(trackState.updateTrack).toHaveBeenLastCalledWith("rows", { base: { height: 24 } });
+    expect(view.content.textContent).toBe("12/24");
+    expect(height()).toBe(24);
 
-    renderRows(3);
-    expect(container.textContent).toBe("12/36");
-    expect(trackState.updateTrack).toHaveBeenLastCalledWith("rows", { base: { height: 36 } });
-    expect(trackState.updateTrack).toHaveBeenCalledTimes(2);
+    await view.settle(() =>
+      view?.trackStore.getState().updateTrack("rows", { config: { rowCount: 3 } }),
+    );
+    expect(view.content.textContent).toBe("12/36");
+    expect(height()).toBe(36);
   });
 });
-
-function Rows({ rowCount }: { rowCount: number }) {
-  const layout = useRowLayout("rows", rowCount, { rowHeight: 12 });
-  return `${layout.rowHeight}/${layout.trackHeight}`;
-}
-
-function renderRows(rowCount: number) {
-  act(() => root?.render(<Rows rowCount={rowCount} />));
-}
