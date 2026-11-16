@@ -3,8 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { importSqliteSessions } from "../scripts/importSqliteSessions";
 import { createSessions } from "../features/sessions/server/sessions";
@@ -12,15 +11,13 @@ import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 describe.skipIf(!testServerUrl)("importing SQLite sessions", () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
-  let pool: Pool;
   let db: NodePgDatabase;
   let directory: string;
   let sqlitePath: string;
 
   beforeAll(async () => {
     database = await createTestDatabase();
-    pool = new Pool({ connectionString: database.url });
-    db = drizzle({ client: pool });
+    db = database.connect();
     directory = await mkdtemp(join(tmpdir(), "gb-import-"));
     sqlitePath = join(directory, "browser.sqlite");
     // The old browser server's table, with a valid and an unreadable snapshot.
@@ -34,7 +31,6 @@ describe.skipIf(!testServerUrl)("importing SQLite sessions", () => {
   });
 
   afterAll(async () => {
-    await pool?.end();
     await database?.drop();
     await rm(directory, { recursive: true, force: true });
   });
