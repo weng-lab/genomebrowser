@@ -140,8 +140,8 @@ function createInput<Display extends string>(
 /**
  * Check that the browser can read each URL's files as a track, then add the tracks below the
  * others, in order, where the session saves them. Adds every track or none: nothing is added
- * when any URL is not a readable file of a supported type, a request's metadata is too large,
- * the session lacks room for every track, or `signal` aborts first.
+ * when any URL is not a readable file of a supported type, a request's color isn't `#RRGGBB` or
+ * its metadata is too large, the session lacks room for every track, or `signal` aborts first.
  */
 export async function addTracksFromUrls(
   trackStore: TrackStoreInstance,
@@ -214,6 +214,11 @@ async function resolveTrack(
       `The track type cannot be inferred from the URL. Choose one of: ${types}.`,
     );
   }
+  if (request.color && !colorSchema(type).safeParse(request.color).success)
+    return failure(
+      "INVALID_COLOR",
+      `The color "${request.color}" is not #RRGGBB, such as #3366cc.`,
+    );
   const base = {
     id: crypto.randomUUID(),
     title: request.title?.trim() || fileTitle(url, extension?.[0]),
@@ -236,7 +241,12 @@ export function titleFromUrl(url: string): string | undefined {
 
 /** The color a request without one gets, as `#rrggbb`. */
 export function defaultColor(type: UrlTrackType): string {
-  return modules[type].createInputSchema.shape.base.shape.color.parse(undefined);
+  return colorSchema(type).parse(undefined);
+}
+
+/** The colors a type's tracks accept, defaulting to the type's own. */
+function colorSchema(type: UrlTrackType) {
+  return modules[type].createInputSchema.shape.base.shape.color;
 }
 
 /**

@@ -2,14 +2,13 @@
 
 // Import first: it mocks the Next.js router before the app's modules load.
 import { route, stubLayout, WorkspaceApp } from "./workspaceApp";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { installSessionServer, type SessionServer } from "./sessionServer";
+import { bigBedWithColumns, trackFiles } from "./trackFiles";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -39,13 +38,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function fixture(path: string) {
-  return new Uint8Array(
-    readFileSync(join(import.meta.dirname, "../../../packages/reader/test/fixtures", path)),
-  );
-}
-const bigWig = fixture("bigwig/basic.bw");
-const bed6 = fixture("bigbed/basic.bb");
+const { bigWig, bed6 } = trackFiles;
 const host = "https://data.example.test";
 const startingTitles = ["Coordinates", "GENCODE 50 basic", "Human cCREs"];
 
@@ -162,17 +155,15 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   await enter(field(signal, "Field"), "Replicate");
 
   // The batch adds nothing while any row fails, and says why on the row.
+  await enter(field(peaks, "Color"), "green");
   await click(button("Add 4 tracks"));
-  await vi.waitFor(() => expect(button("Remove 2 failed rows")).toBeDefined());
-  expect(rows().map((row) => row.textContent?.includes("UNREACHABLE"))).toEqual([
-    false,
-    false,
-    true,
-    true,
-  ]);
+  await vi.waitFor(() => expect(button("Remove 3 failed rows")).toBeDefined());
+  expect(failing("INVALID_COLOR")).toEqual([true, false, false, false]);
+  expect(failing("UNREACHABLE")).toEqual([false, false, true, true]);
 
   // Fixing a row clears its failure, and its title follows the new file; the other failed row
   // is removed.
+  await enter(field(peaks, "Color"), "#008000");
   await enter(field(rows()[2], "URL"), `${host}/found.bw`);
   expect(rows()[2].textContent).not.toContain("UNREACHABLE");
   expect(field(rows()[2], "Title").value).toBe("found");
@@ -263,12 +254,3 @@ it("reads an uploaded file, and says which BED columns a BigBed header chooses a
   await enter(field(colored, "BED columns"), "bed6");
   expect(colorHint(colored)).toContain("Colors every feature.");
 });
-
-/** The BED6 fixture with its header's column counts changed. */
-function bigBedWithColumns(fieldCount: number, definedFieldCount: number) {
-  const bytes = bed6.slice();
-  const view = new DataView(bytes.buffer);
-  view.setUint16(32, fieldCount, true);
-  view.setUint16(34, definedFieldCount, true);
-  return bytes;
-}

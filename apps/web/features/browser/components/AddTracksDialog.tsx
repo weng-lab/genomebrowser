@@ -82,6 +82,8 @@ type RowRequest = Omit<TrackRequest, "metadata">;
 type Row = { key: string; request: RowRequest; fields: MetadataField[]; failure?: string };
 
 const hexColor = /^#[0-9a-f]{6}$/i;
+// Empty text means no choice, so the file or the type decides.
+const optionalText = (value: string) => value.trim() || undefined;
 // Far more than the URLs and track lines of a session's most tracks.
 const maxUploadBytes = 1_000_000;
 // Collection views and sorting use these names for a track's own values, so a metadata field
@@ -313,8 +315,6 @@ function updated(request: RowRequest, update: Partial<RowRequest>): RowRequest {
 
 /** The row as a request, or why it can't be added before its files are checked. */
 function rowRequest({ request, fields }: Row): TrackRequest | string {
-  if (request.color && !hexColor.test(request.color))
-    return "Enter the color as #RRGGBB, such as #3366cc, or leave it empty.";
   const metadata = new Map<string, string>();
   for (const field of fields) {
     const name = field.name.trim();
@@ -364,8 +364,6 @@ function RequestRow({
   const header = useHeaderPreset(request.url, type === "bigbed");
   const preset = request.bedSchema ?? (header === "reading" ? undefined : header);
   const name = request.title || request.url;
-  // Empty text means no choice, so the file or the type decides.
-  const text = (value: string) => value.trim() || undefined;
   return (
     <Box
       component="li"
@@ -457,7 +455,7 @@ function RequestRow({
                 placeholder="The BAM URL with .bai added"
                 value={request.indexUrl ?? ""}
                 disabled={disabled}
-                onChange={(event) => onChange({ indexUrl: text(event.target.value) })}
+                onChange={(event) => onChange({ indexUrl: optionalText(event.target.value) })}
                 slotProps={{ inputLabel: { shrink: true } }}
               />
             </Field>
@@ -503,7 +501,7 @@ function ColorField({ trackName, color, fallback, effect, disabled, onChange }: 
       placeholder={fallback ? `${fallback}, the type's default` : "#RRGGBB"}
       value={color ?? ""}
       disabled={disabled}
-      onChange={(event) => onChange(event.target.value.trim() || undefined)}
+      onChange={(event) => onChange(optionalText(event.target.value))}
       helperText={effect}
       slotProps={{
         inputLabel: { shrink: true },
