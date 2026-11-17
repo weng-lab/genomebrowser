@@ -243,7 +243,7 @@ it("keeps Joined summary interactions and tooltips distinct across view changes"
   const tip = renderToStaticMarkup(
     <Tooltip
       item={onClick.mock.lastCall![0]}
-      context={{ ...track, config: { ...track.config, view: "standard" } }}
+      context={{ ...track, config: { ...track.config, view: "standard" }, metadata: {} }}
     />,
   );
   expect(tip).toContain("Joined repeat coverage summary");

@@ -14,15 +14,20 @@ export type TrackSource = "host" | "user";
 
 /**
  * Descriptive fields for one track, such as assay, cell type, or a user's tag. Values are
- * scalars so every field can be sorted. Fetchers, renderers, and interaction callbacks don't
- * receive metadata, so changing it never reloads or redraws a track.
+ * scalars so every field can be sorted. Fetchers and renderers don't receive metadata, so
+ * changing it never reloads or redraws a track.
  */
 export type TrackMetadata = z.output<typeof trackMetadataSchema>;
 
+/**
+ * The track an interaction callback or tooltip belongs to. `metadata` is read when the
+ * callback or tooltip runs, so it includes edits made after the track was drawn.
+ */
 export type TrackRuntimeContext<Config = unknown> = Readonly<{
   type: string;
   base: Readonly<TrackBase>;
   config: Config extends object ? Readonly<Config> : Config;
+  metadata: Readonly<TrackMetadata>;
 }>;
 
 export type TrackInteractionCallback<InteractionItem, Config = unknown> = (

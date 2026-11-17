@@ -11,10 +11,7 @@ import {
   type RepeatMaskerConfig,
   type RepeatMaskerData,
 } from "@weng-lab/genomebrowser-tracks/repeatmasker";
-import { TrackRuntime } from "../../../core/src/modules/trackRuntimeState";
-import { PanStatusContext } from "../../../core/src/browser/viewport/useBrowserPan";
-import { BrowserSvgContext } from "../../../core/src/browser/svg/browserSvgState";
-import { TestBrowser } from "../testBrowser";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 import { standardRepeatFile } from "../fixtures/repeatMaskerStandard";
 import { exampleBigRmsk } from "../fixtures/bigRmsk";
 import { sources, serveRepeatMasker } from "../fixtures/repeatMasker";
@@ -53,39 +50,28 @@ function context(
     },
   };
 }
-function markup(
+const mounted: MountedTrack[] = [];
+async function markup(
   data: RepeatMaskerData,
-  mode: "full" | "pack" | "dense",
+  display: "full" | "pack" | "dense",
   config: Partial<RepeatMaskerConfig> = {},
 ) {
-  const instance = track(config),
-    Renderer = module.render[mode];
-  const element = document.createElement("div");
-  element.innerHTML = renderToStaticMarkup(
-    <TestBrowser trackStore={createTrackStore({ modules: [module], tracks: [instance] })}>
-      <PanStatusContext.Provider value={() => false}>
-        <BrowserSvgContext.Provider value={null}>
-          <TrackRuntime.Provider value={{ context: instance, interaction: null }}>
-            <svg>
-              <Renderer
-                id="repeats"
-                config={instance.config}
-                data={data}
-                color="#333333"
-                height={240}
-                width={1000}
-                region={region}
-                visibleRegion={region}
-              />
-            </svg>
-          </TrackRuntime.Provider>
-        </BrowserSvgContext.Provider>
-      </PanStatusContext.Provider>
-    </TestBrowser>,
-  );
-  return element;
+  const view = await mountTrack({
+    module,
+    track: {
+      base: { id: "repeats", title: "RepeatMasker", display },
+      config: { sources, ...config },
+    },
+    data,
+    region,
+  });
+  mounted.push(view);
+  return view.content;
 }
-afterEach(() => vi.unstubAllGlobals());
+afterEach(async () => {
+  for (const view of mounted.splice(0)) await view.unmount();
+  vi.unstubAllGlobals();
+});
 
 describe("RepeatMasker public module", () => {
   it("selects only the active source, preserves typed annotations, and renders every display", async () => {
@@ -103,12 +89,16 @@ describe("RepeatMasker public module", () => {
       },
     });
     for (const mode of ["full", "pack"] as const) {
-      expect(markup(standard, mode).querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
+      expect(
+        (await markup(standard, mode)).querySelectorAll("[data-repeatmasker-block]"),
+      ).toHaveLength(11);
     }
-    expect(markup(standard, "dense").querySelector("[data-repeatmasker-summary]")).not.toBeNull();
-    expect(markup(standard, "full").querySelectorAll("[data-repeatmasker-category]")).toHaveLength(
-      10,
-    );
+    expect(
+      (await markup(standard, "dense")).querySelector("[data-repeatmasker-summary]"),
+    ).not.toBeNull();
+    expect(
+      (await markup(standard, "full")).querySelectorAll("[data-repeatmasker-category]"),
+    ).toHaveLength(10);
     const count = fetch.mock.calls.length;
     const joined = await module.fetch({ ...ctx, track: track({ view: "joined" }) });
     expect(fetch.mock.calls.slice(count).every(([url]) => String(url) === sources.joined)).toBe(
@@ -127,7 +117,7 @@ describe("RepeatMasker public module", () => {
       ],
     });
     for (const mode of ["full", "pack", "dense"] as const) {
-      const view = markup(joined, mode, { view: "joined" });
+      const view = await markup(joined, mode, { view: "joined" });
       expect(view.querySelectorAll("[data-bigrmsk-block]")).toHaveLength(2);
       if (mode !== "dense")
         expect(view.querySelector("[data-bigrmsk-join]")?.getAttribute("data-consensus-gap")).toBe(
@@ -135,17 +125,21 @@ describe("RepeatMasker public module", () => {
         );
     }
     expect(
-      markup(joined, "full", { view: "joined" }).querySelectorAll("[data-bigrmsk-context]"),
+      (await markup(joined, "full", { view: "joined" })).querySelectorAll("[data-bigrmsk-context]"),
     ).toHaveLength(2);
     expect(
-      markup(joined, "full", {
-        view: "joined",
-        showUnalignedExtents: false,
-        showLabels: false,
-      }).querySelector("[data-bigrmsk-context], [data-bigrmsk-label]"),
+      (
+        await markup(joined, "full", {
+          view: "joined",
+          showUnalignedExtents: false,
+          showLabels: false,
+        })
+      ).querySelector("[data-bigrmsk-context], [data-bigrmsk-label]"),
     ).toBeNull();
     expect(
-      markup(standard, "full", { view: "joined" }).querySelector("[data-repeatmasker-block]"),
+      (await markup(standard, "full", { view: "joined" })).querySelector(
+        "[data-repeatmasker-block]",
+      ),
     ).toBeNull();
     const Tooltip = module.tooltipComponent!;
     if (
@@ -157,12 +151,17 @@ describe("RepeatMasker public module", () => {
     // Tooltip dispatch follows the result, including a hover retained across a view switch.
     expect(
       renderToStaticMarkup(
-        <Tooltip item={standard.data.repeats[0]!} context={track({ view: "joined" })} />,
+        <Tooltip
+          item={standard.data.repeats[0]!}
+          context={{ ...track({ view: "joined" }), metadata: {} }}
+        />,
       ),
     ).toContain("SW score");
-    expect(renderToStaticMarkup(<Tooltip item={joined.data[0]!} context={track()} />)).toContain(
-      "24.2%",
-    );
+    expect(
+      renderToStaticMarkup(
+        <Tooltip item={joined.data[0]!} context={{ ...track(), metadata: {} }} />,
+      ),
+    ).toContain("24.2%");
   });
 
   it("rejects swapped or incompatible schemas and passes cancellation to the reader", async () => {
@@ -203,7 +202,7 @@ describe("RepeatMasker public module", () => {
     serveRepeatMasker();
     const standard = await module.fetch(context({}, wide));
     expect(standard).toMatchObject({ view: "standard", data: { kind: "summary" } });
-    expect(markup(standard, "full").textContent).toContain("Zoom in");
+    expect((await markup(standard, "full")).textContent).toContain("Zoom in");
     expect(await module.fetch(context({ view: "joined" }, wide))).toEqual({
       view: "joined-summary",
       url: sources.joined,
@@ -212,7 +211,7 @@ describe("RepeatMasker public module", () => {
     const fetch = serveRepeatMasker(standardRepeatFile, exampleBigRmsk);
     const joined = await module.fetch(context({ view: "joined" }, wide));
     expect(joined).toMatchObject({ view: "joined-summary", data: { kind: "summary" } });
-    const view = markup(joined, "dense", { view: "joined" });
+    const view = await markup(joined, "dense", { view: "joined" });
     expect(view.textContent).toContain("Zoom in");
     expect(view.querySelectorAll("[data-repeatmasker-summary]").length).toBeLessThanOrEqual(1000);
     expect(view.querySelector("[data-bigrmsk-block]")).toBeNull();

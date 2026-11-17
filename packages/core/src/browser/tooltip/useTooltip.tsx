@@ -1,9 +1,9 @@
 import { createElement, useEffect, useEffectEvent, useId, useRef } from "react";
-import { useTrackRuntimeContext } from "../../modules/trackRuntimeState";
+import { useTrackRuntime } from "../../modules/trackRuntimeState";
 import { useSvgPoint } from "../svg/useSvgPoint";
 import { useRegistry, useTooltipStore } from "../state/browserContextState";
 import { usePanDragStatus } from "../viewport/useBrowserPan";
-import type { TrackTooltipComponent } from "../../modules/types";
+import type { TrackRuntimeContext, TrackTooltipComponent } from "../../modules/types";
 import type { MousePosition } from "./types";
 
 export function useTooltip<Item, Config>() {
@@ -11,10 +11,8 @@ export function useTooltip<Item, Config>() {
   const showTooltip = useTooltipStore((state) => state.show);
   const hideTooltip = useTooltipStore((state) => state.hide);
   const panDragStatus = usePanDragStatus();
-  const context = useTrackRuntimeContext<Config>();
-  const Tooltip = useRegistry().get(context.type).tooltipComponent as
-    | TrackTooltipComponent<Item, Config>
-    | undefined;
+  const runtime = useTrackRuntime();
+  const registry = useRegistry();
   const getSvgPoint = useSvgPoint();
   const frameRef = useRef<number | undefined>(undefined);
 
@@ -31,6 +29,10 @@ export function useTooltip<Item, Config>() {
       hide();
       return;
     }
+    const context = runtime.getContext() as TrackRuntimeContext<Config>;
+    const Tooltip = registry.get(context.type).tooltipComponent as
+      | TrackTooltipComponent<Item, Config>
+      | undefined;
     if (!Tooltip) return;
 
     const content = createElement(Tooltip, { item, context });

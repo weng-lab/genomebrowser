@@ -31,7 +31,7 @@ Tooltip content does not intercept pointer events. The hook provides no keyboard
 
 ## TrackTooltipComponent
 
-`TrackTooltipComponent<Item, Config>` receives required `item: Item` and `context: TrackRuntimeContext<Config>`. Return SVG content; the hook positions it within the browser. The context shape is specified with [instance callbacks](useInteraction.md#instance-callbacks). Each tooltip receives the track's current validated configuration. Supply meaningful labels and implement any keyboard behavior in the renderer.
+`TrackTooltipComponent<Item, Config>` receives required `item: Item` and `context: TrackRuntimeContext<Config>`. Return SVG content; the hook positions it within the browser. The context shape is specified with [instance callbacks](useInteraction.md#instance-callbacks). Each tooltip receives the track's current validated configuration and the metadata current when `show` runs. Supply meaningful labels and implement any keyboard behavior in the renderer.
 
 ```tsx
 import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";

@@ -1,22 +1,13 @@
-import { PanStatusContext } from "../../../core/src/browser/viewport/useBrowserPan";
-import { BrowserSvgContext } from "../../../core/src/browser/svg/browserSvgState";
 // @vitest-environment jsdom
-import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  createTrackStore,
-  type TrackFetchContext,
-  type TrackResources,
-} from "@weng-lab/genomebrowser";
+import { type TrackFetchContext, type TrackResources } from "@weng-lab/genomebrowser";
 import {
   repeatMaskerModule as module,
   type RepeatMaskerConfig,
   type RepeatMaskerData,
 } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { sources } from "../fixtures/repeatMasker";
-
-import { TrackRuntime } from "../../../core/src/modules/trackRuntimeState";
-import { TestBrowser } from "../testBrowser";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 import { joinedRepeatColumns, serveBigRmsk, singleRepeatFile } from "../fixtures/bigRmsk";
 
 const region = { chromosome: "chr1", start: 8889, end: 35190 };
@@ -59,41 +50,31 @@ async function fetchView(context: TrackFetchContext<RepeatMaskerConfig>) {
   if (result.view !== "joined") throw new Error("Expected joined data");
   return result.data;
 }
-function markup(
+const mounted: MountedTrack[] = [];
+async function mount(
   data: JoinedData,
-  mode: "dense" | "pack" | "full",
+  display: "dense" | "pack" | "full",
   testRegion = region,
   config: Partial<RepeatMaskerConfig> = {},
 ) {
-  const Renderer = module.render[mode];
   const track = createTrack();
-  const element = document.createElement("div");
-  element.innerHTML = renderToStaticMarkup(
-    <TestBrowser trackStore={createTrackStore({ modules: [module], tracks: [track] })}>
-      <PanStatusContext.Provider value={() => false}>
-        <BrowserSvgContext.Provider value={null}>
-          <TrackRuntime.Provider value={{ context: track, interaction: null }}>
-            <svg>
-              <Renderer
-                id="repeats"
-                color={track.base.color}
-                height={24}
-                width={1000}
-                data={{ view: "joined", url: track.config.sources.joined, data }}
-                config={{ ...track.config, ...config }}
-                region={testRegion}
-                visibleRegion={testRegion}
-              />
-            </svg>
-          </TrackRuntime.Provider>
-        </BrowserSvgContext.Provider>
-      </PanStatusContext.Provider>
-    </TestBrowser>,
-  );
-  return element;
+  const view = await mountTrack({
+    module,
+    track: { base: { ...track.base, display }, config: { ...track.config, ...config } },
+    data: { view: "joined", url: track.config.sources.joined, data },
+    region: testRegion,
+  });
+  mounted.push(view);
+  return view;
+}
+async function markup(...args: Parameters<typeof mount>) {
+  return (await mount(...args)).content;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(async () => {
+  for (const view of mounted.splice(0)) await view.unmount();
+  vi.unstubAllGlobals();
+});
 
 describe("RepeatMasker joined view", () => {
   it("reads the hg38 example and renders aligned coverage rather than visualization bounds", async () => {
@@ -113,27 +94,23 @@ describe("RepeatMasker joined view", () => {
       alignedBlocks: [{ chromosome: "chr1", start: 11502, end: 11676 }],
       fields: [],
     });
-    const view = markup([repeat], "dense");
+    const dense = await mount([repeat], "dense");
+    const view = dense.content;
     const block = view.querySelector("[data-bigrmsk-block]")!;
     expect(Number(block.getAttribute("x"))).toBeCloseTo(((11502 - 8889) * 1000) / (35190 - 8889));
     expect(Number(block.getAttribute("width"))).toBeCloseTo((174 * 1000) / (35190 - 8889));
     expect(block.getAttribute("fill")).toBe("#ff7f0e");
     expect(view.querySelector("[data-bigrmsk-context]")).toBeNull();
     expect(view.querySelector("text")).toBeNull();
-    expect(
-      markup([repeat], "pack", { chromosome: "chr1", start: 12000, end: 12500 }).querySelector(
-        "[data-bigrmsk-repeat]",
-      ),
-    ).toBeNull();
-    const Tooltip = module.tooltipComponent!;
-    const tooltip = renderToStaticMarkup(
-      <svg>
-        <Tooltip item={repeat} context={createTrack()} />
-      </svg>,
-    );
+    const tooltip = await dense.hover(block);
     expect(tooltip).toContain("24.2%");
     expect(tooltip).toContain("chr1:11,503\u201311,676");
     expect(tooltip).toContain("LINE");
+    expect(
+      (
+        await markup([repeat], "pack", { chromosome: "chr1", start: 12000, end: 12500 })
+      ).querySelector("[data-bigrmsk-repeat]"),
+    ).toBeNull();
   });
 
   it("renders joined negative-strand blocks and keeps signed consensus overlap out of coverage", async () => {
@@ -144,7 +121,7 @@ describe("RepeatMasker joined view", () => {
       { chromosome: "chr1", start: 110, end: 130 },
       { chromosome: "chr1", start: 150, end: 170 },
     ]);
-    const view = markup(rows, "pack", testRegion);
+    const view = await markup(rows, "pack", testRegion);
     expect(view.querySelectorAll("[data-bigrmsk-block]")).toHaveLength(2);
     expect(view.querySelector("[data-bigrmsk-join]")?.getAttribute("data-consensus-gap")).toBe(
       "-5",
@@ -152,11 +129,11 @@ describe("RepeatMasker joined view", () => {
     expect(view.querySelector("[data-bigrmsk-block]")?.tagName.toLowerCase()).toBe("rect");
     expect(Number(view.querySelector("[data-bigrmsk-block]")?.getAttribute("x"))).toBe(100);
     expect(view.querySelector("[data-bigrmsk-label]")?.textContent).toBe("L1");
-    const full = markup(rows, "full", testRegion);
+    const full = await markup(rows, "full", testRegion);
     expect(full.querySelectorAll("[data-bigrmsk-context]")).toHaveLength(2);
     expect(full.textContent).toContain("10 bp");
     expect(full.textContent).toContain("30 bp");
-    const hidden = markup(rows, "full", testRegion, {
+    const hidden = await markup(rows, "full", testRegion, {
       showLabels: false,
       showUnalignedExtents: false,
     });
@@ -173,7 +150,7 @@ describe("RepeatMasker joined view", () => {
         columns[2] = strand;
         serveBigRmsk(singleRepeatFile(columns));
         const rows = await fetchView(context(testRegion));
-        const view = markup(rows, mode, testRegion);
+        const view = await markup(rows, mode, testRegion);
         const arrows = view.querySelectorAll("[data-bigrmsk-strand]");
         expect(arrows).toHaveLength(2);
         for (const arrow of arrows) {
@@ -205,7 +182,7 @@ describe("RepeatMasker joined view", () => {
   it("keeps arrows within clipped blocks and omits them when fragments are too narrow", async () => {
     serveBigRmsk(singleRepeatFile(joinedRepeatColumns));
     const rows = await fetchView(context({ chromosome: "chr1", start: 100, end: 200 }));
-    const clipped = markup(rows, "pack", { chromosome: "chr1", start: 129, end: 151 });
+    const clipped = await markup(rows, "pack", { chromosome: "chr1", start: 129, end: 151 });
     expect(clipped.querySelectorAll("[data-bigrmsk-strand]")).toHaveLength(2);
     for (const arrow of clipped.querySelectorAll("[data-bigrmsk-strand]")) {
       const points = arrow
@@ -217,11 +194,11 @@ describe("RepeatMasker joined view", () => {
         expect(points[index]).toBeLessThan(1000);
       }
     }
-    const narrow = markup(rows, "pack", { chromosome: "chr1", start: 0, end: 10000 });
+    const narrow = await markup(rows, "pack", { chromosome: "chr1", start: 0, end: 10000 });
     expect(narrow.querySelectorAll("[data-bigrmsk-block]")).toHaveLength(2);
     expect(narrow.querySelector("[data-bigrmsk-strand]")).toBeNull();
     expect(
-      markup(rows, "dense", { chromosome: "chr1", start: 100, end: 200 }).querySelector(
+      (await markup(rows, "dense", { chromosome: "chr1", start: 100, end: 200 })).querySelector(
         "[data-bigrmsk-strand]",
       ),
     ).toBeNull();

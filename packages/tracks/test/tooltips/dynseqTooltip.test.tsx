@@ -12,6 +12,7 @@ describe("dynseq tooltip", () => {
           type: "dynseq",
           base: { id: "dynseq", title: "Dynseq", display: "full", height: 50, color: "#000000" },
           config: configSchema.parse({ url: "YOUR_URL_HERE", twoBitUrl: "YOUR_URL_HERE" }),
+          metadata: {},
         }}
       />,
     );
