@@ -1,5 +1,5 @@
 import type { TrackMetadata } from "@weng-lab/genomebrowser";
-import type { TrackRequest } from "./urlTracks";
+import { parseUrl, type TrackRequest } from "./urlTracks";
 import type { BigBedPreset, TrackVisibility } from "./urlTrackTypes";
 
 /** A track request read from one line of pasted text. */
@@ -58,7 +58,7 @@ export function sortByPriority(tracks: readonly ParsedTrack[]): ParsedTrack[] {
 type ParsedLine = Omit<ParsedTrack, "line"> | string;
 
 function parseUrlLine(content: string): ParsedLine {
-  if (/\s/.test(content) || !isHttpUrl(content))
+  if (/\s/.test(content) || !parseUrl(content))
     return "Expected a file URL or a UCSC track line. Inline data, such as BED rows, isn't supported; host the file and paste its URL.";
   return { request: { url: content } };
 }
@@ -69,7 +69,7 @@ function parseTrackLine(text: string): ParsedLine {
   const url = settings.get("bigdataurl");
   if (!url)
     return "A track line needs bigDataUrl, the URL of an indexed file such as BigWig or BigBed. Inline data isn't supported.";
-  if (!isHttpUrl(url)) return `bigDataUrl "${url}" is not an absolute HTTP or HTTPS URL.`;
+  if (!parseUrl(url)) return `bigDataUrl "${url}" is not an absolute HTTP or HTTPS URL.`;
   const request: TrackRequest = { url };
 
   const type = settings.get("type");
@@ -186,13 +186,4 @@ function hexColor(value: string) {
   const numbers = channels.map(Number);
   if (numbers.some((channel) => channel > 255)) return undefined;
   return `#${numbers.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
-}
-
-function isHttpUrl(value: string) {
-  try {
-    const { protocol } = new URL(value);
-    return protocol === "http:" || protocol === "https:";
-  } catch {
-    return false;
-  }
 }
