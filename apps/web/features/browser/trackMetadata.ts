@@ -1,4 +1,12 @@
 import type { TrackMetadata, TrackStoreInstance } from "@weng-lab/genomebrowser";
+import { maxSessionBytes } from "../sessions/schema";
+import { maxSessionTracks } from "./urlTracks";
+
+/**
+ * Most metadata one track may have after a change, in bytes of JSON. A session's most tracks
+ * at this size fill half of what it can save, so metadata alone can't stop it saving.
+ */
+export const maxTrackMetadataBytes = Math.floor(maxSessionBytes / maxSessionTracks / 2);
 
 /** Fields to add or replace, and field names to remove. A track's other fields stay. */
 export type TrackMetadataChange = {
@@ -12,7 +20,8 @@ export type TrackMetadataOutcome =
 
 /**
  * Applies one change to the metadata of each given track, in the given order. Changes every
- * track or none: fails without changes when an ID isn't loaded or a value is invalid.
+ * track or none: fails without changes when an ID isn't loaded, a track would have more than
+ * `maxTrackMetadataBytes` of metadata, or a value is invalid.
  */
 export function changeTrackMetadata(
   trackStore: TrackStoreInstance,
@@ -29,6 +38,15 @@ export function changeTrackMetadata(
     id,
     metadata: applyChange(getTrack(id)!.metadata, change),
   }));
+  const tooLarge = tracks.filter(({ metadata }) => jsonBytes(metadata) > maxTrackMetadataBytes);
+  if (tooLarge.length > 0) {
+    const ids = tooLarge.map(({ id }) => `"${id}"`).join(", ");
+    return {
+      ok: false,
+      code: "METADATA_TOO_LARGE",
+      error: `This change would give ${ids} more than ${maxTrackMetadataBytes.toLocaleString("en-US")} bytes of metadata per track. Remove fields or shorten values. No track changed.`,
+    };
+  }
   for (const { id, metadata } of tracks) {
     // Every track gets the same change to an already valid record, so either the first update
     // fails and nothing has changed, or every update succeeds.
@@ -36,6 +54,10 @@ export function changeTrackMetadata(
     if (!result.ok) return result;
   }
   return { ok: true, tracks };
+}
+
+function jsonBytes(value: unknown) {
+  return new TextEncoder().encode(JSON.stringify(value)).length;
 }
 
 function applyChange(

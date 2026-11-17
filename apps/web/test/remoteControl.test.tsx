@@ -399,6 +399,16 @@ it("changes no track's metadata when a change names a missing track or changes n
     [{ trackIds: ["genes", "genes"], set: { Interesting: true } }, { code: "INVALID_PARAMS" }],
     [{ trackIds: ["genes"], set: { Cells: ["K562"] } }, { code: "INVALID_PARAMS" }],
     [{ trackIds: ["genes"], set: { title: "Mine" } }, { code: "INVALID_PARAMS" }],
+    [
+      // Each value is within its own limit; together they pass the track's.
+      {
+        trackIds: ["genes", "ccres"],
+        set: Object.fromEntries(
+          Array.from({ length: 10 }, (_, index) => [`Note ${index}`, "x".repeat(1000)]),
+        ),
+      },
+      { code: "METADATA_TOO_LARGE" },
+    ],
   ] as const;
   for (const [index, [params, failure]] of cases.entries()) {
     await runCommand("set_track_metadata", params);

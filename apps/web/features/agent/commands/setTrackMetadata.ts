@@ -9,7 +9,7 @@ import {
 export const setTrackMetadata = defineCommand({
   name: "set_track_metadata",
   description:
-    'Set or remove metadata fields on one or more loaded tracks, such as tagging tracks the user finds interesting. Fields in "set" are added or replace existing values; fields in "remove" are deleted; other fields stay. The same change applies to every listed track, and either every track changes or none does. Get track IDs and current fields from list_tracks. Returns each track\'s metadata after the change.',
+    'Set or remove metadata fields on one or more loaded tracks, such as tagging tracks the user finds interesting. Fields in "set" are added or replace existing values; fields in "remove" are deleted; other fields stay. The same change applies to every listed track, and either every track changes or none does. The metadata on each track has a size limit; a change that would pass it fails and says so. Get track IDs and current fields from list_tracks. Returns each track\'s metadata after the change.',
   params: z.strictObject({
     trackIds: z
       .array(z.string().min(1))
