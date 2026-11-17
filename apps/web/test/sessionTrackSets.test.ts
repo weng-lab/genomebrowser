@@ -3,7 +3,7 @@ import { createStores } from "../features/assemblies/assemblies";
 import { sessionSnapshotSchema } from "../features/sessions/snapshot";
 import { restore, snapshot } from "../features/sessions/storeSnapshot";
 
-it("round-trips groups and child visibility and clears them when restoring an older session", () => {
+it("round-trips track sets alongside metadata and saved-region groups, clearing older-session state", () => {
   const stores = createStores("hg38")!;
   const legacy = snapshot(stores);
   stores.useTrackStore
@@ -11,12 +11,36 @@ it("round-trips groups and child visibility and clears them when restoring an ol
     .createTrackSet({ id: "annotations", title: "Annotations", trackIds: ["genes", "ccres"] });
   stores.useTrackStore.getState().setTrackVisibility("ccres", false);
   stores.useTrackStore.getState().updateTrackSet("annotations", { visible: false });
+  stores.useTrackStore.getState().updateTrack("genes", {
+    metadata: { Source: "GENCODE", Selected: false, Priority: 2, Note: null },
+  });
+  stores.useBrowserStore.getState().addHighlight({
+    id: "promoter",
+    name: "Promoter",
+    region: { chromosome: "chr12", start: 53372922, end: 53373922 },
+    color: "#123456",
+    hidden: true,
+  });
+  stores.useRegionGroupStore.getState().addToNewGroup("promoter", {
+    name: "Saved regions",
+    color: "#123456",
+  });
   const saved = snapshot(stores);
   expect(saved).toMatchObject({
     trackSets: [
       { id: "annotations", title: "Annotations", trackIds: ["genes", "ccres"], visible: false },
     ],
     hiddenTrackIds: ["ccres"],
+    tracks: expect.arrayContaining([
+      expect.objectContaining({
+        base: expect.objectContaining({ id: "genes" }),
+        metadata: { Source: "GENCODE", Selected: false, Priority: 2, Note: null },
+      }),
+    ]),
+    browser: {
+      highlights: [expect.objectContaining({ id: "promoter", name: "Promoter", hidden: true })],
+    },
+    regionGroups: [expect.objectContaining({ name: "Saved regions", regionIds: ["promoter"] })],
   });
   const restored = createStores("hg38")!;
   restore(restored, sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(saved))));
@@ -24,6 +48,7 @@ it("round-trips groups and child visibility and clears them when restoring an ol
   restore(restored, legacy);
   expect(restored.useTrackStore.getState().trackSets).toEqual([]);
   expect(restored.useTrackStore.getState().hiddenTrackIds).toEqual([]);
+  expect(restored.useRegionGroupStore.getState().groups).toEqual([]);
   expect(snapshot(restored)).toEqual(legacy);
 });
 

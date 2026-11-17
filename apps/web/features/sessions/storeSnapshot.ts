@@ -1,14 +1,12 @@
-import {
-  createBrowserStore,
-  createTrackStore,
-  type GenomeBrowserStores,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
+import { normalizeGroups, type SessionStores } from "../browser/regions/regionGroups";
 import { sessionSnapshotSchema, type SessionSnapshot } from "./snapshot.ts";
 
-/** Serializable browser and track state, as saved and as returned to agents. */
-export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
+/** Serializable browser, track, and region-group state, as saved and as returned to agents. */
+export function snapshot(session: SessionStores): SessionSnapshot {
   const browser = session.useBrowserStore.getState();
   const tracks = session.useTrackStore.getState();
+  const { groups } = session.useRegionGroupStore.getState();
   const values = {
     version: 1,
     browser: {
@@ -23,19 +21,26 @@ export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
       selectionMode: browser.selectionMode,
       selectionHighlight: browser.selectionHighlight,
     },
-    tracks: tracks.tracks.map(({ type, base, config, source }) => ({ type, base, config, source })),
+    tracks: tracks.tracks.map(({ type, base, config, source, metadata }) => ({
+      type,
+      base,
+      config,
+      source,
+      metadata,
+    })),
     pinnedTrackIds: tracks.pinnedTrackIds,
     ...(tracks.trackSets.length ? { trackSets: tracks.trackSets } : {}),
     ...(tracks.hiddenTrackIds.length ? { hiddenTrackIds: tracks.hiddenTrackIds } : {}),
+    regionGroups: groups,
   };
   // Optional settings can be explicitly cleared to undefined. JSON omits those
   // keys, matching the payload sent to storage and the module defaults on restore.
   return sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(values)));
 }
 
-export function restore(session: GenomeBrowserStores, input: SessionSnapshot) {
+export function restore(session: SessionStores, input: SessionSnapshot) {
   const saved = sessionSnapshotSchema.parse(input);
-  // Validate both stores before changing either live store. Runtime actions and
+  // Validate the browser and track stores before changing live state. Runtime actions and
   // registered modules stay local; only serializable session values are restored.
   const { assembly } = session.useBrowserStore.getState();
   if (saved.browser.assembly !== assembly.id)
@@ -50,6 +55,14 @@ export function restore(session: GenomeBrowserStores, input: SessionSnapshot) {
   }).getState();
   const { assembly: _assembly, ...values } = saved.browser;
   session.useBrowserStore.setState({ ...values, region: browser.region });
+  // After the highlights, which the groups follow. Saved groups may hold stale or repeated
+  // members, or none, from older sessions or the sessions API.
+  session.useRegionGroupStore.setState({
+    groups: normalizeGroups(
+      saved.regionGroups,
+      saved.browser.highlights.map((highlight) => highlight.id),
+    ),
+  });
   session.useTrackStore.setState({
     tracks: tracks.tracks,
     order: tracks.order,

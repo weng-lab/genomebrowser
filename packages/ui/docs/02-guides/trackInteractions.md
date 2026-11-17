@@ -14,12 +14,12 @@ import type { TrackSelectInteractionResolver } from "@weng-lab/genomebrowser-ui"
 const resolveTrackInteraction: TrackSelectInteractionResolver = ({ collectionId }) => {
   if (collectionId !== "signals") return undefined;
   return {
-    onClick(item, runtime, collection) {
+    onClick(item, runtime) {
       console.info("Track item selected", {
         item,
         trackId: runtime.base.id,
         title: runtime.base.title,
-        assay: collection.metadata.assay,
+        assay: runtime.metadata.assay,
       });
     },
   };
@@ -34,9 +34,9 @@ The returned callback runs later, when the user interacts with a rendered item.
 
 ## Read runtime values and collection metadata
 
-A callback receives three arguments. `item` is the data item under the pointer, such as a signal value or a genomic feature. `runtime` describes the current track, including its base settings and config. `collection` identifies the authored track and provides its metadata.
+A callback receives three arguments. `item` is the data item under the pointer, such as a signal value or a genomic feature. `runtime` is the track now: its base settings, config, and metadata. `collection` is the entry the track came from: its collection, authored ID, and authored metadata.
 
-Read mutable track settings from `runtime` inside the callback. For example, `runtime.base.color` reflects a color change made after the track was selected. Metadata such as assay and biosample comes from `collection.metadata`; it is not part of the core runtime config.
+Read anything that can change from `runtime` inside the callback. For example, `runtime.base.color` reflects a color change made after the track was selected, and `runtime.metadata` includes a tag added later. TrackSelect copies the entry's metadata onto the track as its starting metadata, so the two match until someone edits the track. Read `collection.metadata` when you need the values the collection authored, regardless of later edits.
 
 Do not capture a copy of the initial config in the resolver when the action needs the current config. The callback's runtime argument supplies that current value without resolving the interaction again.
 

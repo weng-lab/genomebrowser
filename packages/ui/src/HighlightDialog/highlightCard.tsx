@@ -23,6 +23,7 @@ export function HighlightCard({
   onRemove,
   onEdit,
 }: HighlightCardProps) {
+  const name = highlight.name ?? highlight.id;
   return (
     <Paper
       elevation={0}
@@ -42,26 +43,27 @@ export function HighlightCard({
     >
       <Box sx={{ minWidth: 0 }}>
         <Typography fontWeight={600} noWrap variant="body2">
-          {highlight.id}
+          {name}
         </Typography>
         <Typography color="text.secondary" variant="caption">
           {formatDisplayRegion(region)} · {highlight.type === "outlined" ? "Outlined" : "Filled"}
+          {highlight.hidden ? " · Hidden" : ""}
         </Typography>
       </Box>
       <Box sx={{ alignItems: "center", display: "flex", flex: "0 0 auto", gap: 0.25 }}>
         <Tooltip title="Go to highlight">
-          <IconButton aria-label={`Go to ${highlight.id}`} onClick={onNavigate} size="small">
+          <IconButton aria-label={`Go to ${name}`} onClick={onNavigate} size="small">
             <ArrowForwardIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Edit highlight">
-          <IconButton aria-label={`Edit ${highlight.id}`} onClick={onEdit} size="small">
+          <IconButton aria-label={`Edit ${name}`} onClick={onEdit} size="small">
             <EditOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Remove highlight">
           <IconButton
-            aria-label={`Remove ${highlight.id}`}
+            aria-label={`Remove ${name}`}
             onClick={onRemove}
             size="small"
             sx={{ color: "error.main" }}

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { TrackSet } from "@weng-lab/genomebrowser";
 import { regionSchema } from "../browser/region";
+import { regionGroupSchema } from "../browser/regions/regionGroupSchema";
 
 const highlightStyleSchema = z.strictObject({
   color: z.string().min(1),
@@ -9,7 +10,7 @@ const highlightStyleSchema = z.strictObject({
 });
 
 /**
- * Serializable browser and track configuration of one session. `browser.assembly`
+ * Serializable browser, track, and saved-region group configuration of one session. `browser.assembly`
  * is the session's only assembly value. Runtime store state, actions, and
  * registered modules are not part of a snapshot.
  */
@@ -27,6 +28,9 @@ export const sessionSnapshotSchema = z
       highlights: z.array(
         highlightStyleSchema.extend({
           id: z.string().min(1),
+          // Highlights saved before names, and drawn ones, show their ID instead.
+          name: z.string().min(1).optional(),
+          hidden: z.boolean().optional(),
           region: z
             .strictObject({
               chromosome: z.string().min(1).optional(),
@@ -51,9 +55,15 @@ export const sessionSnapshotSchema = z
         }),
         config: z.record(z.string(), z.json()),
         source: z.enum(["host", "user"]),
+        // Tracks saved before metadata, and tracks without any, have none.
+        metadata: z
+          .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
+          .optional(),
       }),
     ),
     pinnedTrackIds: z.array(z.string().min(1)),
+    // Sessions saved before region groups have none.
+    regionGroups: z.array(regionGroupSchema).default([]),
     // Omitted fields describe older sessions and an empty track-set/visibility state.
     trackSets: z
       .array(

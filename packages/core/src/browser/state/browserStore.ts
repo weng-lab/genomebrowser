@@ -6,7 +6,10 @@ import type { MutationFailure } from "../../mutation";
 import { formatZodError, parsePublicInput } from "../../modules/schemas";
 
 export type Highlight = {
+  /** Identifies the highlight in store actions. */
   id: string;
+  /** The name shown for the highlight. Without it, applications show the ID. */
+  name?: string;
   region: {
     chromosome?: string;
     start: number;
@@ -15,6 +18,8 @@ export type Highlight = {
   color: string;
   opacity?: number;
   type?: "filled" | "outlined";
+  /** Keeps the highlight in the store without drawing it. Its style is kept for showing it again. */
+  hidden?: boolean;
 };
 
 export type BrowserSelectionMode = "pan" | "zoom" | "highlight";
@@ -60,7 +65,9 @@ export type BrowserSelectionMutationResult =
   | { ok: true }
   | MutationFailure<"INVALID_SELECTION_MODE" | "INVALID_SELECTION_HIGHLIGHT">;
 
-export type BrowserHighlightMutationResult = { ok: true } | MutationFailure<"INVALID_HIGHLIGHT">;
+export type BrowserHighlightMutationResult =
+  | { ok: true }
+  | MutationFailure<"INVALID_HIGHLIGHT" | "HIGHLIGHT_NOT_FOUND" | "DUPLICATE_HIGHLIGHT_ID">;
 
 export type BrowserStore = {
   basePairDetail: BasePairDetailSettings;
@@ -87,7 +94,13 @@ export type BrowserStore = {
   setTrackWidth: (trackWidth: number) => BrowserViewportMutationResult;
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
   addHighlight: (highlight: Highlight) => BrowserHighlightMutationResult;
+  /** Replace the highlight with ID `id`, keeping its position. The replacement may change the ID. */
+  updateHighlight: (id: string, highlight: Highlight) => BrowserHighlightMutationResult;
+  /** Replace each existing highlight with the entry that has its ID, in one update. */
+  updateHighlights: (highlights: readonly Highlight[]) => BrowserHighlightMutationResult;
   removeHighlight: (id: string) => void;
+  /** Remove every highlight with one of `ids`, in one update. */
+  removeHighlights: (ids: readonly string[]) => void;
   clearHighlights: () => void;
 };
 
@@ -95,6 +108,7 @@ export type BrowserStoreInstance = UseBoundStore<StoreApi<BrowserStore>>;
 
 const highlightSchema = z.object({
   id: z.string().min(1),
+  name: z.string().min(1).optional(),
   region: z
     .object({
       chromosome: z.string().min(1).optional(),
@@ -108,6 +122,7 @@ const highlightSchema = z.object({
   color: z.string().min(1),
   opacity: z.number().min(0).max(1).optional(),
   type: z.enum(["filled", "outlined"]).optional(),
+  hidden: z.boolean().optional(),
 });
 
 const selectionModeSchema = z.enum(["pan", "zoom", "highlight"]);
@@ -256,10 +271,85 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         set((state) => ({ highlights: [...state.highlights, parsedHighlight] }));
         return { ok: true };
       },
+      updateHighlight: (id, highlight) => {
+        const result = highlightSchema.safeParse(highlight);
+        if (!result.success)
+          return {
+            ok: false,
+            code: "INVALID_HIGHLIGHT",
+            error: `Highlight is invalid: ${formatZodError(result.error)}`,
+          };
+        const parsedHighlight = result.data;
+        const { highlights } = get();
+        // Initial highlights are not deduplicated, so replace only the first with this ID.
+        const index = highlights.findIndex((existing) => existing.id === id);
+        if (index === -1)
+          return {
+            ok: false,
+            code: "HIGHLIGHT_NOT_FOUND",
+            error: `No highlight found for id: ${id}`,
+          };
+        if (
+          parsedHighlight.id !== id &&
+          highlights.some((existing) => existing.id === parsedHighlight.id)
+        )
+          return {
+            ok: false,
+            code: "DUPLICATE_HIGHLIGHT_ID",
+            error: `Duplicate highlight id: ${parsedHighlight.id}`,
+          };
+        set({ highlights: highlights.with(index, parsedHighlight) });
+        return { ok: true };
+      },
+      updateHighlights: (replacements) => {
+        const byId = new Map<string, Highlight>();
+        for (const highlight of replacements) {
+          const result = highlightSchema.safeParse(highlight);
+          if (!result.success)
+            return {
+              ok: false,
+              code: "INVALID_HIGHLIGHT",
+              error: `Highlight is invalid: ${formatZodError(result.error)}`,
+            };
+          if (byId.has(result.data.id))
+            return {
+              ok: false,
+              code: "DUPLICATE_HIGHLIGHT_ID",
+              error: `Highlight id appears more than once: ${result.data.id}`,
+            };
+          byId.set(result.data.id, result.data);
+        }
+        const { highlights } = get();
+        const present = new Set(highlights.map((existing) => existing.id));
+        for (const id of byId.keys())
+          if (!present.has(id))
+            return {
+              ok: false,
+              code: "HIGHLIGHT_NOT_FOUND",
+              error: `No highlight found for id: ${id}`,
+            };
+        if (byId.size === 0) return { ok: true };
+        // Initial highlights are not deduplicated, so replace only the first with each ID.
+        set({
+          highlights: highlights.map((existing) => {
+            const replacement = byId.get(existing.id);
+            if (!replacement) return existing;
+            byId.delete(existing.id);
+            return replacement;
+          }),
+        });
+        return { ok: true };
+      },
       removeHighlight: (id) => {
         set((state) => ({
           highlights: state.highlights.filter((highlight) => highlight.id !== id),
         }));
+      },
+      removeHighlights: (ids) => {
+        const removed = new Set(ids);
+        const { highlights } = get();
+        if (!highlights.some((highlight) => removed.has(highlight.id))) return;
+        set({ highlights: highlights.filter((highlight) => !removed.has(highlight.id)) });
       },
       clearHighlights: () => {
         if (get().highlights.length > 0) set({ highlights: [] });

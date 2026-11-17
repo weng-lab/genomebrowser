@@ -1,13 +1,9 @@
-import {
-  createBrowserStore,
-  createTrackStore,
-  hg38,
-  type GenomeBrowserStores,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+import { createRegionGroupStore, type SessionStores } from "../browser/regions/regionGroups";
 
 /** The app's starting view and tracks for each assembly it supports. */
 const starters = {
@@ -38,15 +34,20 @@ export const supportedAssemblies = Object.values(starters).map(({ assembly, labe
 }));
 
 /**
- * New browser and track stores for an assembly, starting at its default view and
- * tracks, or undefined for an unsupported assembly. Every first-party track module
- * is registered so a restored session can contain any of their tracks.
+ * New browser, track, and region-group stores for an assembly, starting at its default
+ * view and tracks with no groups, or undefined for an unsupported assembly. Every
+ * first-party track module is registered so a restored session can contain any of their tracks.
  */
-export function createStores(assemblyId: string): GenomeBrowserStores | undefined {
+export function createStores(assemblyId: string): SessionStores | undefined {
   const starter = Object.values(starters).find(({ assembly }) => assembly.id === assemblyId);
   if (!starter) return undefined;
+  const useBrowserStore = createBrowserStore({
+    assembly: starter.assembly,
+    region: starter.region,
+  });
   return {
-    useBrowserStore: createBrowserStore({ assembly: starter.assembly, region: starter.region }),
+    useBrowserStore,
     useTrackStore: createTrackStore({ modules: firstPartyTrackModules, tracks: starter.tracks() }),
+    useRegionGroupStore: createRegionGroupStore(useBrowserStore),
   };
 }

@@ -27,7 +27,7 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `BasePairDetailSettings`, `BasePairDetailMutationResult`                            | [Base-pair detail settings](01-browserSetup/browserStore.md#base-pair-detail)                                        |
 | `BrowserViewportMutationResult`                                                     | [Fixed width](01-browserSetup/browserStore.md#fixed-width)                                                           |
 | `BrowserSelectionMode`, `SelectionHighlightStyle`, `BrowserSelectionMutationResult` | [Selection](01-browserSetup/browserStore.md#selection)                                                               |
-| `BrowserHighlightMutationResult`, `Highlight`                                       | [Highlights](01-browserSetup/browserStore.md#highlights)                                                             |
+| `BrowserHighlightMutationResult`, `Highlight`, `createHighlightId`                  | [Highlights](01-browserSetup/browserStore.md#highlights)                                                             |
 | `useGenomeBrowser`, `GenomeBrowserStores`                                           | [Hosting browser stores](01-browserSetup/useGenomeBrowser.md#usegenomebrowser)                                       |
 | `createTrackStore`, `TrackStoreOptions`                                             | [Store creation](01-browserSetup/trackStore.md#createtrackstore-and-trackstoreoptions)                               |
 | `TrackStore`, `TrackStoreInstance`                                                  | [State and store instance](01-browserSetup/trackStore.md#trackstore-and-trackstoreinstance)                          |
@@ -57,6 +57,7 @@ Track sets: [`TrackSet`, `TrackSetInput`](01-browserSetup/trackSets.md). Hosted 
 | `TrackModule`, `ModuleCreateInput`, `ModuleInstance`, `AnyTrackModule`, `AnyTrackInstance`, `AnyTrackInteraction` | [TrackModule and inferred types](03-trackDefinition/defineTrackModule.md#trackmodule-and-inferred-types)        |
 | `TrackCreateInput`, `TrackBaseInput`, `TrackSource`                                                               | [TrackCreateInput and TrackBaseInput](03-trackDefinition/trackInstances.md#trackcreateinput-and-trackbaseinput) |
 | `TrackInstance`, `TrackBase`, `ReadonlyTrackInstance`                                                             | [TrackInstance and TrackBase](03-trackDefinition/trackInstances.md#trackinstance-and-trackbase)                 |
+| `TrackMetadata`                                                                                                   | [TrackMetadata](03-trackDefinition/trackInstances.md#trackmetadata)                                             |
 | `TrackFetch`, `TrackFetchContext`, `TrackFetchTrack`, `TrackFetchDemand`                                          | [Fetching data](03-trackDefinition/fetchingData.md#fetching-data)                                               |
 | `TrackResources`                                                                                                  | [TrackResources](03-trackDefinition/fetchingData.md#trackresources)                                             |
 | `TrackSettingsComponent`, `TrackSettingsProps`                                                                    | [Settings](03-trackDefinition/trackSettings.md#settings)                                                        |
@@ -82,7 +83,6 @@ Track sets: [`TrackSet`, `TrackSetInput`](01-browserSetup/trackSets.md). Hosted 
 | Exports                             | Reference                                                                                                                            |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `TrackCollection`                   | [TrackCollection](05-collectionsAndSchemas/trackCollection.md#trackcollection)                                                       |
-| `TrackMetadata`                     | [TrackMetadata](05-collectionsAndSchemas/trackCollection.md#trackmetadata)                                                           |
 | `TrackCollectionView`               | [TrackCollectionView](05-collectionsAndSchemas/trackCollection.md#trackcollectionview)                                               |
 | `TrackCollectionColumn`             | [TrackCollectionColumn](05-collectionsAndSchemas/trackCollection.md#trackcollectioncolumn)                                           |
 | `validateTrackCollection`           | [validateTrackCollection](05-collectionsAndSchemas/validateTrackCollection.md#validatetrackcollection)                               |

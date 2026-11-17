@@ -1,5 +1,5 @@
-import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { Clock, Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
+import type { SessionStores } from "../browser/regions/regionGroups";
 import { snapshot } from "./storeSnapshot";
 import type { Session, SessionInput } from "./schema";
 import { SessionRequestError, type SessionTransport } from "./transport";
@@ -34,7 +34,7 @@ const unserializable = "";
 export const startAutosave = Effect.fnUntraced(function* (options: {
   id: string;
   revision: number;
-  stores: GenomeBrowserStores;
+  stores: SessionStores;
   name: () => string;
   transport: SessionTransport;
   onStatus: (status: SaveStatus, failure?: SessionRequestError) => void;
@@ -153,6 +153,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     Effect.sync(() => [
       stores.useBrowserStore.subscribe(changed),
       stores.useTrackStore.subscribe(changed),
+      stores.useRegionGroupStore.subscribe(changed),
     ]),
     (subscriptions) => Effect.sync(() => subscriptions.forEach((unsubscribe) => unsubscribe())),
   );

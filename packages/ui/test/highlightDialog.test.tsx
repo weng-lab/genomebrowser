@@ -29,13 +29,13 @@ describe("HighlightDialog", () => {
     });
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
     clickButton("Add New Highlight");
-    setTextInput("ID", "Focus region");
+    setTextInput("Name", "Focus region");
     setTextInput("Region", "chr2:1200-1500");
     clickButton("Add Highlight");
     expect(document.body.querySelector('[role="alert"]')?.textContent).toContain(
       "Highlight rejected.",
     );
-    expect(getInput("ID").value).toBe("Focus region");
+    expect(getInput("Name").value).toBe("Focus region");
     expect(getInput("Region").value).toBe("chr2:1200-1500");
     expect(browserStore.getState().highlights).toEqual([]);
   });
@@ -59,7 +59,7 @@ describe("HighlightDialog", () => {
     ]);
   });
 
-  it("edits all highlight fields in place without changing other highlights", () => {
+  it("edits all highlight fields in place, keeping its ID, without changing other highlights", () => {
     const browserStore = createTestStore();
     browserStore
       .getState()
@@ -71,10 +71,10 @@ describe("HighlightDialog", () => {
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
 
     clickButton("Edit Original");
-    expect(getInput("ID").value).toBe("Original");
+    expect(getInput("Name").value).toBe("Original");
     expect(getInput("Region").value).toBe("chr1:101-200");
     expect(getInput("Opacity (%)").value).toBe("20");
-    setTextInput("ID", "Renamed");
+    setTextInput("Name", "Renamed");
     setTextInput("Region", "chr2:301-450");
     setTextInput("Color", "#00aa66");
     const select = document.body.querySelector('[role="combobox"]')!;
@@ -89,7 +89,8 @@ describe("HighlightDialog", () => {
 
     expect(browserStore.getState().highlights).toEqual([
       {
-        id: "Renamed",
+        id: "Original",
+        name: "Renamed",
         region: { chromosome: "chr2", start: 300, end: 450 },
         color: "#00aa66",
         opacity: 0.75,
@@ -106,6 +107,31 @@ describe("HighlightDialog", () => {
     expect(browserStore.getState().region).toEqual({ chromosome: "chr2", start: 300, end: 450 });
   });
 
+  it("marks hidden highlights, keeps them hidden when edited, and shows them again", () => {
+    const browserStore = createTestStore();
+    browserStore.getState().addHighlight({
+      id: "Hidden",
+      region: { start: 100, end: 200 },
+      color: "#3366cc",
+      opacity: 0.5,
+      hidden: true,
+    });
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    expect(document.body.textContent).toContain("chr1:101-200 · Filled · Hidden");
+    clickButton("Edit Hidden");
+    expect(getInput("Hidden").checked).toBe(true);
+    setTextInput("Opacity (%)", "40");
+    clickButton("Save changes");
+    expect(browserStore.getState().highlights[0]).toMatchObject({ opacity: 0.4, hidden: true });
+
+    clickButton("Edit Hidden");
+    act(() => getInput("Hidden").click());
+    clickButton("Save changes");
+    expect(browserStore.getState().highlights[0]).not.toHaveProperty("hidden");
+    expect(browserStore.getState().highlights[0]).toMatchObject({ opacity: 0.4 });
+    expect(document.body.textContent).toContain("chr1:101-200 · FilledAdd New Highlight");
+  });
+
   it("retains invalid edits and cancels without modifying the highlight", () => {
     const browserStore = createTestStore();
     for (const id of ["Original", "Other"])
@@ -116,20 +142,20 @@ describe("HighlightDialog", () => {
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
     clickButton("Edit Original");
     expect(getInput("Opacity (%)").value).toBe("100");
-    setTextInput("ID", "Other");
+    // Names need not be unique, so only the region is rejected.
+    setTextInput("Name", "Other");
     setTextInput("Region", "chr2:2001-3000");
     clickButton("Save changes");
-    expect(document.body.textContent).toContain("Highlight IDs must be unique.");
     expect(document.body.textContent).toContain("Region does not overlap chromosome");
-    expect(getInput("ID").value).toBe("Other");
+    expect(getInput("Name").value).toBe("Other");
     expect(browserStore.getState().highlights).toBe(original);
     clickButton("Cancel");
     clickButton("Edit Original");
-    expect(getInput("ID").value).toBe("Original");
+    expect(getInput("Name").value).toBe("Original");
     expect(getInput("Region").value).toBe("chr1:101-200");
     clickButton("Cancel");
     clickButton("Edit Other");
-    expect(getInput("ID").value).toBe("Other");
+    expect(getInput("Name").value).toBe("Other");
   });
 
   it("adds a highlight from one parsed region field", () => {
@@ -137,14 +163,15 @@ describe("HighlightDialog", () => {
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
 
     clickButton("Add New Highlight");
-    setTextInput("ID", "Focus region");
+    setTextInput("Name", "Focus region");
     setTextInput("Region", "chr2:1,201-1,500");
     setTextInput("Opacity (%)", "65");
     clickButton("Add Highlight");
 
     expect(browserStore.getState().highlights).toEqual([
       {
-        id: "Focus region",
+        id: "chr2:1,201-1,500",
+        name: "Focus region",
         region: { chromosome: "chr2", start: 1_200, end: 1_500 },
         color: "#3366cc",
         opacity: 0.65,
@@ -155,11 +182,34 @@ describe("HighlightDialog", () => {
     expect(getInput("Opacity (%)").value).toBe("20");
   });
 
+  it("names a highlight by its coordinates when the name is blank", () => {
+    const browserStore = createTestStore();
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    clickButton("Add New Highlight");
+    setTextInput("Region", "chr2:1,201-1,500");
+    clickButton("Add Highlight");
+    setTextInput("Region", "chr2:1,201-1,500");
+    clickButton("Add Highlight");
+    expect(browserStore.getState().highlights.map(({ id, name }) => [id, name])).toEqual([
+      ["chr2:1,201-1,500", "chr2:1,201-1,500"],
+      ["chr2:1,201-1,500 (2)", "chr2:1,201-1,500 (2)"],
+    ]);
+
+    clickButton("Edit chr2:1,201-1,500 (2)");
+    setTextInput("Name", "");
+    setTextInput("Region", "chr2:1,301-1,400");
+    clickButton("Save changes");
+    expect(browserStore.getState().highlights[1]).toMatchObject({
+      id: "chr2:1,201-1,500 (2)",
+      name: "chr2:1,301-1,400",
+    });
+  });
+
   it("adds an outlined highlight with a visible border opacity and resets the type", () => {
     const browserStore = createTestStore();
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
     clickButton("Add New Highlight");
-    setTextInput("ID", "Outlined region");
+    setTextInput("Name", "Outlined region");
     clickButton("Use Current Region");
     const select = document.body.querySelector('[role="combobox"]')!;
     act(() => select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
@@ -179,7 +229,7 @@ describe("HighlightDialog", () => {
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
 
     clickButton("Add New Highlight");
-    setTextInput("ID", "Invalid region");
+    setTextInput("Name", "Invalid region");
     setTextInput("Region", "chr2:2001-3000");
     clickButton("Add Highlight");
 

@@ -58,7 +58,12 @@ export type CommandRelay = {
     tabId: string,
     signal: AbortSignal,
   ): Promise<ReadableStream<Uint8Array> | "taken">;
-  /** Hand a tab's reply to the dispatch waiting for it. False when none is. Rejects when Redis is unavailable. */
+  /**
+   * Hand a tab's reply to the dispatch waiting for it. False when none is.
+   * Shortly after a dispatch finishes, a repeated reply can still return true:
+   * the relay stops listening in the background, and the dispatch ignores it.
+   * Rejects when Redis is unavailable.
+   */
   reply(sessionId: string, reply: CommandReply): Promise<boolean>;
   /** End every stream and dispatch, finish connection cleanup, and disconnect from Redis. */
   close(): Promise<void>;

@@ -1,7 +1,8 @@
 import { useShallow } from "zustand/react/shallow";
 import { useRef } from "react";
-import type { AnyTrackInstance } from "../../../modules/types";
+import type { DrawnTrack } from "../../../modules/types";
 import { findTrackSet, isTrackPinned, getTrackBlocks } from "../../state/trackSets";
+
 import {
   useSettingsStore,
   useTrackMutationGate,
@@ -14,7 +15,7 @@ export function TrackControls({
   marginWidth,
   wrapperHeight,
 }: {
-  track: AnyTrackInstance;
+  track: DrawnTrack;
   marginWidth: number;
   wrapperHeight: number;
 }) {

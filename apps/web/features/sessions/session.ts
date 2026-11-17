@@ -1,6 +1,6 @@
-import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { Cause, Effect, Exit, Result, Schedule, Scope, Semaphore, type Fiber } from "effect";
 import { createStore } from "zustand/vanilla";
+import type { SessionStores } from "../browser/regions/regionGroups";
 import { restore, snapshot } from "./storeSnapshot";
 import { startAutosave, type Autosave, type SaveStatus } from "./autosave";
 import { sessionInputSchema, type Session } from "./schema";
@@ -17,7 +17,7 @@ export type SessionState = {
     | {
         id: string;
         name: string;
-        stores: GenomeBrowserStores;
+        stores: SessionStores;
         /**
          * Aborts as soon as this session is replaced or closed, or its edits can no
          * longer be saved, or while deletion is pending. Work on its stores outside the UI, such as agent
@@ -99,7 +99,7 @@ export function createSession({
 }: {
   transport: SessionTransport;
   /** Fresh stores at an assembly's defaults, or undefined when it is not supported. */
-  createStores: (assembly: string) => GenomeBrowserStores | undefined;
+  createStores: (assembly: string) => SessionStores | undefined;
   /** Show the active session, or none, once an operation settles. */
   navigation: { show(id: string | undefined): void };
 }) {
@@ -333,7 +333,7 @@ export function createSession({
    */
   const createAndOpen = (
     name: string,
-    stores: GenomeBrowserStores,
+    stores: SessionStores,
     refused: (error: SessionRequestError) => string,
     { takeOver = false } = {},
   ) =>

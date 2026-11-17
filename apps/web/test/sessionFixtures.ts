@@ -1,7 +1,7 @@
 import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { Client, Pool } from "pg";
+import { Client, DatabaseError, Pool } from "pg";
 
 /** PostgreSQL server for the database tests. They are skipped without it, except in CI. */
 export const testServerUrl = process.env.GB_TEST_DATABASE_URL;
@@ -17,23 +17,47 @@ async function admin(statement: string) {
   }
 }
 
+/**
+ * A pool that tolerates `drop`. `end` resolves before its connections close, and
+ * dropping the database terminates any still closing. Unhandled, that error
+ * would fail the test run.
+ */
+function droppablePool(url: string) {
+  const pool = new Pool({ connectionString: url });
+  pool.on("error", (error) => {
+    const terminated = error instanceof DatabaseError && error.code === "57P01";
+    if (!terminated) throw error;
+  });
+  return pool;
+}
+
 /** Creates a database with the committed migrations applied. Call `drop` when done. */
 export async function createTestDatabase() {
   const name = `gb_test_${process.pid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   await admin(`CREATE DATABASE ${name}`);
   const url = new URL(testServerUrl!);
   url.pathname = `/${name}`;
-  const pool = new Pool({ connectionString: url.toString() });
+  const migrations = droppablePool(url.toString());
   try {
-    await migrate(drizzle({ client: pool }), {
+    await migrate(drizzle({ client: migrations }), {
       migrationsFolder: new URL("../drizzle", import.meta.url).pathname,
     });
   } finally {
-    await pool.end();
+    await migrations.end();
   }
+  const pools: Pool[] = [];
   return {
     url: url.toString(),
-    drop: () => admin(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`),
+    /** A client for this database, closed by `drop`. */
+    connect(): NodePgDatabase {
+      const pool = droppablePool(url.toString());
+      pools.push(pool);
+      return drizzle({ client: pool });
+    },
+    async drop() {
+      await Promise.all(pools.map((pool) => pool.end()));
+      await admin(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`);
+    },
   };
 }
 
@@ -76,5 +100,14 @@ export function snapshot(overrides: Partial<SessionSnapshot["browser"]> = {}): S
       },
     ],
     pinnedTrackIds: ["ruler"],
+    regionGroups: [
+      {
+        id: "elements",
+        name: "Elements",
+        color: "#1a73e8",
+        collapsed: true,
+        regionIds: ["promoter", "enhancer"],
+      },
+    ],
   };
 }

@@ -22,6 +22,8 @@ Drag the left margin to lift and reorder an unpinned track, then release to drop
 
 Open a track's settings and select the outlined **Pin track** button beside Close to place it below the existing pinned tracks. The pin fills when active. Select **Unpin track** to return the track to the beginning of the unpinned group. Pinning fixes track order, not scroll position; pinned tracks cannot be dragged or moved with the margin's ordering controls. The pin button is disabled while tracks load and is available for tracks with settings.
 
+Select the **Remove track** button left of Pin to remove the track and close its settings. Like the context menu's remove action, it applies immediately and is disabled while tracks load. Removing a pinned track keeps its ID in `pinnedTrackIds`, so adding it again restores its pinned placement.
+
 ## Navigate to a region
 
 Use `setRegion` to jump to a known genomic region, such as a search result or a selected feature. The region must use the browser's assembly and zero-based, half-open coordinates.
@@ -69,11 +71,11 @@ A completed selection leaves the chosen mode active, allowing repeated zooms or 
 
 ## Keep regions marked with highlights
 
-Highlights mark genomic regions across the track area and follow their coordinates during navigation. A highlight created by dragging retains its chromosome and remains in the store when the view moves elsewhere. Returning to that region makes it visible again.
+Highlights mark genomic regions across the track area and follow their coordinates during navigation. A highlight created by dragging retains its chromosome, is named by its coordinates, and remains in the store when the view moves elsewhere. Returning to that region makes it visible again.
 
 The initial selection style is filled amber at opacity `0.25`. Configure `selectionHighlight` in the browser-store input, or use `setSelectionHighlight` to change the style for subsequent selections. The style accepts a color, opacity, and either `filled` or `outlined` type. Changing it does not restyle highlights already created.
 
-For known regions, `addHighlight` adds a highlight with an application-chosen ID, region, and style. `removeHighlight` removes it by ID, and `clearHighlights` removes every highlight. Include the chromosome in the region to keep the highlight specific to that chromosome. An existing ID makes `addHighlight` a no-op rather than replacing that entry. The [highlight reference](../03-reference/01-browserSetup/browserStore.md#highlights) describes the stored shape and validation behavior.
+For known regions, `addHighlight` adds a highlight with an application-chosen ID, region, and style. `updateHighlight` replaces it in place, `removeHighlight` removes it by ID, and `clearHighlights` removes every highlight. Include the chromosome in the region to keep the highlight specific to that chromosome. An existing ID makes `addHighlight` a no-op rather than replacing that entry. To name a highlight by its coordinates, as dragging does, use `createHighlightId`. The [highlight reference](../03-reference/01-browserSetup/browserStore.md#highlights) describes the stored shape and validation behavior.
 
 ## Use the provided controls
 

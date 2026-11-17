@@ -63,8 +63,13 @@ function SettingsModalHeader({
     isTrackPinned(trackId, state.trackSets, state.pinnedTrackIds),
   );
   const setPinnedTrackIds = useTrackStore((state) => state.setPinnedTrackIds);
+  const removeTrack = useTrackStore((state) => state.removeTrack);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   if (!title || !color) return null;
+
+  const handleRemove = () => {
+    if (runTrackMutation(() => removeTrack(trackId)).ok) closeSettings();
+  };
 
   const togglePin = () =>
     runTrackMutation(() =>
@@ -79,6 +84,11 @@ function SettingsModalHeader({
     : isPinned
       ? "Unpin track"
       : "Pin track";
+  const gatedButtonStyle = {
+    ...headerButtonStyle,
+    cursor: isInteractionBlocked ? "default" : "pointer",
+    opacity: isInteractionBlocked ? 0.5 : 1,
+  };
 
   return (
     <div
@@ -94,17 +104,40 @@ function SettingsModalHeader({
       <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
         <button
           type="button"
+          onClick={handleRemove}
+          onPointerDown={(event) => event.stopPropagation()}
+          aria-label="Remove track"
+          title="Remove track"
+          disabled={isInteractionBlocked}
+          style={gatedButtonStyle}
+        >
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+          >
+            <path d="M4 7h16" />
+            <path d="M10 3h4" />
+            <path d="M6 7l1 13h10l1-13" />
+            <path d="M10 11v5" />
+            <path d="M14 11v5" />
+          </svg>
+        </button>
+        <button
+          type="button"
           onClick={togglePin}
           onPointerDown={(event) => event.stopPropagation()}
           aria-label={pinLabel}
           aria-pressed={isPinned}
           title={pinLabel}
           disabled={isInteractionBlocked}
-          style={{
-            ...headerButtonStyle,
-            cursor: isInteractionBlocked ? "default" : "pointer",
-            opacity: isInteractionBlocked ? 0.5 : 1,
-          }}
+          style={gatedButtonStyle}
         >
           <svg
             aria-hidden="true"

@@ -1,7 +1,7 @@
 import type { MutationFailure } from "../mutation";
 import type { ComponentType } from "react";
 import type { z } from "zod";
-import type { trackBaseSchema } from "./schemas";
+import type { trackBaseSchema, trackMetadataSchema } from "./schemas";
 import type { AssemblyDefinition } from "../genome/assembly";
 import type { GenomicRegion } from "../genome/region";
 
@@ -12,10 +12,22 @@ export type TrackBaseInput<Display extends string = string> = z.input<
 
 export type TrackSource = "host" | "user";
 
+/**
+ * Descriptive fields for one track, such as assay, cell type, or a user's tag. Values are
+ * scalars so every field can be sorted. Fetchers and renderers don't receive metadata, so
+ * changing it never reloads or redraws a track.
+ */
+export type TrackMetadata = z.output<typeof trackMetadataSchema>;
+
+/**
+ * The track an interaction callback or tooltip belongs to. `metadata` is read when the
+ * callback or tooltip runs, so it includes edits made after the track was drawn.
+ */
 export type TrackRuntimeContext<Config = unknown> = Readonly<{
   type: string;
   base: Readonly<TrackBase>;
   config: Config extends object ? Readonly<Config> : Config;
+  metadata: Readonly<TrackMetadata>;
 }>;
 
 export type TrackInteractionCallback<InteractionItem, Config = unknown> = (
@@ -41,6 +53,7 @@ export type TrackCreateInput<ConfigInput, Display extends string = string> = {
   base: TrackBaseInput<Display>;
   source?: TrackSource;
   config: ConfigInput;
+  metadata?: TrackMetadata;
 };
 
 export type TrackInstance<Config, InteractionItem = unknown> = {
@@ -48,6 +61,7 @@ export type TrackInstance<Config, InteractionItem = unknown> = {
   base: TrackBase;
   config: Config;
   source: TrackSource;
+  metadata?: TrackMetadata;
   interaction?: TrackInteraction<InteractionItem, Config>;
 };
 
@@ -124,6 +138,8 @@ export type TrackBaseUpdate = Partial<Omit<TrackBase, "id">>;
 export type TrackUpdate<Config, InteractionItem = unknown> = {
   base?: TrackBaseUpdate;
   config?: Partial<Config>;
+  /** Replaces the whole record, unlike `base` and `config`, so a key left out is removed. */
+  metadata?: TrackMetadata;
   interaction?: Partial<TrackInteraction<InteractionItem, Config>>;
 };
 
@@ -132,6 +148,7 @@ export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<
   base: Readonly<TrackBase>;
   config: Config extends object ? Readonly<Config> : Config;
   source: TrackSource;
+  metadata?: Readonly<TrackMetadata>;
   interaction?: Readonly<TrackInteraction<InteractionItem, Config>>;
 }>;
 
@@ -174,6 +191,7 @@ export type TrackCreateInputSchema<
     >;
     source: z.ZodDefault<z.ZodType<TrackSource, TrackSource>>;
     config: ConfigSchema;
+    metadata: z.ZodOptional<typeof trackMetadataSchema>;
   },
   z.core.$strict
 >;
@@ -220,8 +238,14 @@ export type AnyTrackInstance = {
   base: TrackBase;
   config: Record<string, unknown>;
   source: TrackSource;
+  metadata?: TrackMetadata;
   interaction?: AnyTrackInteraction;
 };
+/**
+ * A track as its row draws it. Rows never draw metadata, so it is left out: editing metadata
+ * doesn't render the row, and row code can't read a stale copy.
+ */
+export type DrawnTrack = Omit<AnyTrackInstance, "metadata">;
 export type ModuleCreateInput<M extends AnyTrackModule> = z.input<M["createInputSchema"]>;
 export type ModuleInstance<M extends AnyTrackModule> = M extends AnyTrackModule
   ? ReturnType<M["validate"]>

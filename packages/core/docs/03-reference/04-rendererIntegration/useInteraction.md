@@ -20,7 +20,7 @@ The returned object can contain `onClick`, `onHover`, and `onLeave`, each accept
 
 `TrackInteraction<Item, Config>` has optional `onClick`, `onHover`, and `onLeave` callbacks. Each is a `TrackInteractionCallback<Item, Config>` with signature `(item: Item, context: TrackRuntimeContext<Config>) => void`.
 
-`TrackRuntimeContext<Config>` contains readonly `type`, `base`, and parsed `config`. It is derived from the current validated instance. It is not persisted state and contains no collection metadata or source field. Object config and base are shallow readonly views.
+`TrackRuntimeContext<Config>` contains readonly `type`, `base`, parsed `config`, and `metadata`. `type`, `base`, and `config` come from the current validated instance. `metadata` is read from the track store when the callback runs, because a metadata edit doesn't redraw the track, so it includes edits made since. The context is not persisted state and contains no source field. Object config, base, and metadata are shallow readonly views.
 
 The renderer decides which item to pass and when to emit each event. Hover handlers can run frequently, so avoid expensive work in them.
 
@@ -31,6 +31,7 @@ The item type is supplied by the renderer and is not checked at runtime. Define 
 | `type`        | `string`                                           | Module identifier.                                       |
 | `base`        | `Readonly<TrackBase>`                              | Current resolved ID, title, display, height, and color.  |
 | `config`      | `Readonly<Config>` for objects; otherwise `Config` | Parsed configuration. Nested values are not deep-frozen. |
+| `metadata`    | `Readonly<TrackMetadata>`                          | Current metadata, or an empty object when there is none. |
 
 `Item` and `Config` default to `unknown` in `TrackInteraction`. `Config` also defaults to `unknown` in `TrackInteractionCallback` and `TrackRuntimeContext`. The hook does not catch callback exceptions.
 

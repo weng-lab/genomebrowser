@@ -8,6 +8,7 @@ import {
 } from "@weng-lab/genomebrowser";
 import { useSession } from "../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../browser/BrowserSvg";
+import { changeTrackMetadata } from "../browser/trackMetadata";
 import { sortTracks } from "../browser/trackSort";
 import { addTracksFromUrls } from "../browser/urlTracks";
 import type { CommandApp } from "./commands";
@@ -47,6 +48,8 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
     const app: CommandApp = {
       stores,
       sortTracks: (fieldIds) => sortTracks(stores.useTrackStore, fieldIds),
+      changeTrackMetadata: (trackIds, change) =>
+        changeTrackMetadata(stores.useTrackStore, trackIds, change),
       exportImage: (format, { filename, ...options }, signal) =>
         exportBrowserImage(
           svgRef.current,

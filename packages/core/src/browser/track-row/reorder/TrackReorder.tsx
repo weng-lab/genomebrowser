@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PointerEvent, ReactNode } from "react";
-import type { AnyTrackInstance } from "../../../modules/types";
+import type { DrawnTrack } from "../../../modules/types";
 import { svgPoint } from "../../../modules/utils/svg";
 import { isTrackPinned } from "../../state/trackSets";
 import { useTrackMutationGate, useGenomeBrowser } from "../../state/browserContextState";
@@ -36,7 +36,7 @@ export function TrackReorder({
   onPreviewEnd,
   children,
 }: {
-  track: AnyTrackInstance;
+  track: DrawnTrack;
   onPreviewChange: (preview: ReorderPreview) => void;
   onPreviewEnd: () => void;
   children: (drag: FrameDragState) => ReactNode;

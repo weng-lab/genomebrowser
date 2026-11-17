@@ -283,7 +283,7 @@ describe("browser sizing", () => {
     });
     expect(useBrowserStore.getState().highlights).toEqual([
       {
-        id: "chr1:1,250-1,750",
+        id: "chr1:1,251-1,750",
         region: { chromosome: "chr1", start: 1250, end: 1750 },
         color: "#ff0000",
         opacity: 0.7,

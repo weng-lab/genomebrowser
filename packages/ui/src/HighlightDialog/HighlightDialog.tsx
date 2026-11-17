@@ -59,7 +59,7 @@ function HighlightDialogContent({ browserStore }: { browserStore: BrowserStoreIn
           variant="subtitle1"
           sx={{ minWidth: 0, overflowWrap: "anywhere" }}
         >
-          Edit highlight: {highlight.id}
+          Edit highlight: {highlight.name ?? highlight.id}
         </Typography>
       </Box>
       <HighlightForm

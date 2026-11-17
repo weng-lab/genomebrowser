@@ -61,6 +61,7 @@ describe("track module type contracts", () => {
         url: string;
         scale?: "auto" | "fixed" | undefined;
       };
+      metadata?: Record<string, string | number | boolean | null> | undefined;
     }>();
 
     expectTypeOf<ModuleCreateInput<typeof moduleB>>().toEqualTypeOf<{
@@ -76,6 +77,7 @@ describe("track module type contracts", () => {
         endpoint: string;
         enabled?: boolean | undefined;
       };
+      metadata?: Record<string, string | number | boolean | null> | undefined;
     }>();
   });
 
