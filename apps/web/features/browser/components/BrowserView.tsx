@@ -120,7 +120,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         <ManagementControls
           onSortTracks={openSort}
           onDownloadImage={() => setDownloadOpen(true)}
-          // Temporary (#368), until the design for adding tracks settles.
+          // A temporary placement (#368), until the collections design settles.
           managementActions={<AddTracksButton onClick={() => setAddOpen(true)} />}
         />
       </Box>

@@ -1,7 +1,8 @@
 "use client";
 
-// TEMPORARY (#368): a stand-in for adding tracks from URLs, so the flow can be tried, until the
-// design for adding tracks beside personal collections settles. Replace it rather than extend it.
+// TEMPORARY PLACEMENT (#368): adding tracks from URLs lives in this dialog until the collections
+// design settles. The review flow is expected to move into that design, so keep it independent of
+// the dialog and of the session, which it reaches only through `addTracksFromUrls` in `add`.
 
 import Add from "@mui/icons-material/Add";
 import Close from "@mui/icons-material/Close";
