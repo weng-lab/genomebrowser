@@ -215,6 +215,42 @@
       "excludeFiles": ["apps/web/features/**/server/**", "**/*.test.*", "**/*.spec.*"]
     },
     {
+      "files": ["apps/web/features/{account,browser,sessions}/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)(?:app|composition)(?:/|$)",
+                "message": "Features expose capabilities to routes and composition; they must not import those callers."
+              },
+              {
+                "regex": "^(?:\\.\\./)+(?:account|agent|browser)(?:/|$)",
+                "message": "Features depend in one direction: account and browser may import sessions, and agent may import all three. Combine features in composition instead of importing against that order."
+              },
+              {
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
+              }
+            ]
+          }
+        ]
+      },
+      "excludeFiles": ["apps/web/features/**/server/**", "**/*.test.*", "**/*.spec.*"]
+    },
+    {
       "files": ["apps/web/features/agent/commands/**"],
       "rules": {
         "no-restricted-imports": [
@@ -246,7 +282,7 @@
                   "!zod",
                   "!zod/**",
                   "!./**",
-                  "!../../browser/region",
+                  "!../../../shared/genome/region",
                   "!../../browser/urlTrackTypes"
                 ],
                 "allowTypeImports": true,
@@ -389,6 +425,26 @@
               {
                 "regex": "(?:^|/)(?:app|composition)(?:/|$)",
                 "message": "Features expose capabilities to routes and composition; they must not import those callers."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/web/features/{account,browser,sessions}/server/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(?:^|/)(?:app|composition)(?:/|$)",
+                "message": "Features expose capabilities to routes and composition; they must not import those callers."
+              },
+              {
+                "regex": "^(?:\\.\\./)+(?:account|agent|browser)(?:/|$)",
+                "message": "Features depend in one direction: account and browser may import sessions, and agent may import all three. Combine features in composition instead of importing against that order."
               }
             ]
           }

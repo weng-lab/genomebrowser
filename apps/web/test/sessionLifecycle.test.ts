@@ -2,7 +2,7 @@
 
 import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createStores } from "../features/assemblies/assemblies";
+import { createStores } from "../features/sessions/assemblies";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { maxSessionBytes } from "../features/sessions/schema";
 import { createSession } from "../features/sessions/session";

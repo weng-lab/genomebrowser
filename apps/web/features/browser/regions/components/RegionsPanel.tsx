@@ -29,8 +29,8 @@ import {
 } from "@weng-lab/genomebrowser";
 import { useId, useState } from "react";
 import { useSession } from "../../../sessions/SessionProvider";
-import type { RegionGroup } from "../regionGroupSchema";
-import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
+import type { RegionGroup } from "../../../sessions/regionGroupSchema";
+import { newGroupDefaults, type RegionGroupStoreInstance } from "../../../sessions/regionGroups";
 import { regionName, regionOf, sameRegion, saveRegion, setRegionsHidden } from "../regions";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { GroupDialog } from "./GroupDialog";

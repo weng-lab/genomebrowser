@@ -1,5 +1,5 @@
 import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import { normalizeGroups, type SessionStores } from "../browser/regions/regionGroups";
+import { normalizeGroups, type SessionStores } from "./regionGroups";
 import { sessionSnapshotSchema, type SessionSnapshot } from "./snapshot.ts";
 
 /** Serializable browser, track, and region-group state, as saved and as returned to agents. */

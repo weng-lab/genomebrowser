@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useStore } from "zustand";
-import { createStores } from "../assemblies/assemblies";
+import { createStores } from "./assemblies";
 import { sessionIdSchema } from "./schema";
 import { createSession, type SessionState, type SessionStore } from "./session";
 import { createSessionTransport } from "./transport";

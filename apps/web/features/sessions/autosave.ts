@@ -1,5 +1,5 @@
 import { Clock, Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
-import type { SessionStores } from "../browser/regions/regionGroups";
+import type { SessionStores } from "./regionGroups";
 import { snapshot } from "./storeSnapshot";
 import type { Session, SessionInput } from "./schema";
 import { SessionRequestError, type SessionTransport } from "./transport";

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { regionSchema } from "../../browser/region";
+import { regionSchema } from "../../../shared/genome/region";
 import { defineCommand } from "./define";
 
 export const setRegion = defineCommand({

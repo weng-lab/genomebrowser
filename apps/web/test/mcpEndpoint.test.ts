@@ -2,7 +2,7 @@ import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/cli
 import { expect, it } from "vitest";
 import { commands } from "../features/agent/commands";
 import type { AgentAccount } from "../features/agent/server/access";
-import { createMcpEndpoint } from "../features/mcp/server/mcp";
+import { createMcpEndpoint } from "../features/agent/server/mcp";
 
 // The endpoint resolves the account and relay only for a tool call, so missing
 // configuration fails that call as UNAVAILABLE instead of every MCP request.

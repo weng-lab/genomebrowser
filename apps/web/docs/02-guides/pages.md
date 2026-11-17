@@ -1,6 +1,6 @@
 # Pages and panels
 
-A feature page composes its title, optional side panels, and center content; the Next.js route imports it. Small routes can compose that content directly. The generic workspace components own their placement, sizing, and animation. Keep domain components in their owning `features/` folder; `shared/workspace/` must not import them or browser stores.
+A page composes its title, optional side panels, and center content. A route whose content comes from one feature composes it directly. A page that combines several features, as the browser page does with its session, region, and agent panels, lives in `composition/pages/`, and the route or layout renders it. The generic workspace components own their placement, sizing, and animation. Keep domain components in their owning `features/` folder; `shared/workspace/` must not import them or browser stores.
 
 ## Add a page
 
@@ -20,7 +20,7 @@ export default function ReportsPage() {
 }
 ```
 
-Add the route's link to `composition/navigation.tsx` using `href`, `label`, `icon`, and optional `placement: "bottom"`. Entries appear in list order within their group. Titles and panel elements stay in the feature page or its thin route composition. No central page registry or export is required.
+Add the route's link to `composition/navigation.tsx` using `href`, `label`, `icon`, and optional `placement: "bottom"`. Entries appear in list order within their group. Titles and panel elements stay in the route or its `composition/pages/` component. No central page registry or export is required.
 
 Every route has center content. Use a left panel for navigation within the page and a right panel for a tool used alongside it. An absent side panel has no toggle. A supplied panel can be collapsed and reopened by the user.
 

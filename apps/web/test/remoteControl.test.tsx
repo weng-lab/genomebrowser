@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { act, useLayoutEffect } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createStores } from "../features/assemblies/assemblies";
+import { createStores } from "../features/sessions/assemblies";
 import { maxSessionTracks } from "../features/browser/urlTracks";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { useSession } from "../features/sessions/SessionProvider";

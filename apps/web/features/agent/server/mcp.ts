@@ -1,8 +1,8 @@
 import "server-only";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
-import { commands, type Command } from "../../agent/commands";
-import { authorizeRemoteControl, type AgentAccount } from "../../agent/server/access";
-import type { CommandRelay } from "../../agent/server/relay";
+import { commands, type Command } from "../commands";
+import { authorizeRemoteControl, type AgentAccount } from "./access";
+import type { CommandRelay } from "./relay";
 import { sessionIdSchema } from "../../sessions/schema";
 
 /** Resolved when needed, so missing configuration fails the affected call rather than every request. */

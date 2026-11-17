@@ -8,7 +8,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import { useState, type FormEvent } from "react";
-import { supportedAssemblies } from "../../assemblies/assemblies";
+import { supportedAssemblies } from "../assemblies";
 import { useSession } from "../SessionProvider";
 
 /** The name a new session gets when none is entered. */

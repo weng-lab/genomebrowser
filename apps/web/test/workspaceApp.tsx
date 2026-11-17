@@ -2,7 +2,7 @@ import { useSyncExternalStore, type ReactNode } from "react";
 import { beforeEach, vi } from "vitest";
 import { AccountControls } from "../features/account/components/AccountControls";
 import { AppProviders } from "../composition/AppProviders";
-import { BrowserPage } from "../features/browser/components/BrowserPage";
+import { BrowserPage } from "../composition/pages/BrowserPage";
 import { BrowserView } from "../features/browser/components/BrowserView";
 import BrowserIndexPage from "../app/(workspace)/browser/page";
 import CollectionsPage from "../app/(workspace)/collections/page";

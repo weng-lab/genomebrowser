@@ -3,7 +3,7 @@ import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
-import { createRegionGroupStore, type SessionStores } from "../browser/regions/regionGroups";
+import { createRegionGroupStore, type SessionStores } from "./regionGroups";
 
 /** The app's starting view and tracks for each assembly it supports. */
 const starters = {

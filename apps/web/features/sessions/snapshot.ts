@@ -1,5 +1,5 @@
-import { regionSchema } from "../browser/region";
-import { regionGroupSchema } from "../browser/regions/regionGroupSchema";
+import { regionSchema } from "../../shared/genome/region";
+import { regionGroupSchema } from "./regionGroupSchema";
 import { z } from "zod";
 
 const highlightStyleSchema = z.strictObject({

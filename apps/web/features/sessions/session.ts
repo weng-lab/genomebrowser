@@ -1,6 +1,6 @@
 import { Cause, Effect, Exit, Result, Schedule, Scope, Semaphore, type Fiber } from "effect";
 import { createStore } from "zustand/vanilla";
-import type { SessionStores } from "../browser/regions/regionGroups";
+import type { SessionStores } from "./regionGroups";
 import { restore, snapshot } from "./storeSnapshot";
 import { startAutosave, type Autosave, type SaveStatus } from "./autosave";
 import { sessionInputSchema, type Session } from "./schema";

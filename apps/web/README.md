@@ -126,11 +126,13 @@ Each tab opens an SSE stream at `/api/sessions/<id>/commands?tab=<tab ID>` and p
 ```text
 app/           # Next.js routes and layout composition
 features/      # Product UI, operations, schemas, and feature server code
-shared/        # Generic workspace shell, panels, and theme
-composition/   # Concrete providers, navigation, and server dependencies
+shared/        # Generic workspace shell, panels, theme, and schemas every feature uses
+composition/   # Concrete providers, pages that combine features, navigation, and server dependencies
 ```
 
-Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns command definitions, the Effect remote-control connection, and the Redis relay; MCP owns the endpoint that publishes commands as tools. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/feature-placement.md#web-app).
+Keep UI and domain logic with their feature. Sessions own live stores, including region groups and each assembly's starting stores, plus metadata, persistence, and Effect autosave. Browser owns the browser view, the saved-regions panel, and track actions. Account owns identity and account settings. Agent owns command definitions, the Effect remote-control connection and its setting, the Redis relay, and the MCP endpoint that publishes commands as tools.
+
+Features depend in one direction: account and browser may import sessions, and agent may import all three. A page that combines features, such as the browser page with its session, region, and agent panels, lives in `composition/pages/`. Features must not import composition, and shared code must not import features. See [feature placement](../../docs/feature-placement.md#web-app).
 
 The workspace layout mounts one session provider per account. Use `useSession` with focused selectors and call its complete operations; panels should not coordinate saving, cancellation, or navigation themselves. Keep providers above routes so navigation preserves their state. See [data flow](docs/02-guides/dataFlow.md) for lifetimes and [routing](docs/02-guides/routing.md) for URL behavior.
 

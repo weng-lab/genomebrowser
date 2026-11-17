@@ -7,7 +7,7 @@ import {
 } from "../features/account/server/settings";
 import type { AgentAccount } from "../features/agent/server/access";
 import { createCommandRelay, type CommandRelay } from "../features/agent/server/relay";
-import { createMcpEndpoint } from "../features/mcp/server/mcp";
+import { createMcpEndpoint } from "../features/agent/server/mcp";
 import { createSessions, type Sessions } from "../features/sessions/server/sessions";
 import { connectDatabase } from "./server/database";
 

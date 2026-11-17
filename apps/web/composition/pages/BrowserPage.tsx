@@ -1,10 +1,10 @@
-import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
+import { WorkspacePage } from "../../shared/workspace/WorkspacePage";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import type { ReactNode } from "react";
-import { AgentPanel } from "../../agent/components/AgentPanel";
-import { SaveStatus } from "../../sessions/components/SaveStatus";
-import { SessionSwitcher } from "../../sessions/components/SessionSwitcher";
-import { RegionsPanel } from "../regions/components/RegionsPanel";
+import { AgentPanel } from "../../features/agent/components/AgentPanel";
+import { SaveStatus } from "../../features/sessions/components/SaveStatus";
+import { SessionSwitcher } from "../../features/sessions/components/SessionSwitcher";
+import { RegionsPanel } from "../../features/browser/regions/components/RegionsPanel";
 
 /**
  * The browser's frame around `children`, the browser route's page. The browser layout

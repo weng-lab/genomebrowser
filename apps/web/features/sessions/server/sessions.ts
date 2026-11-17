@@ -13,8 +13,13 @@ import {
   type SessionInput,
   type SessionUpdate,
 } from "../schema";
-import type { Identity } from "../../account/server/identity";
 import { sessionsTable } from "./table";
+
+/**
+ * Who a request acts for, or null when signed out. Sessions resolve it for every
+ * operation; composition supplies the account's Clerk identity.
+ */
+export type SessionIdentity = { userId(): Promise<string | null> };
 
 export class SessionError extends Error {
   constructor(
@@ -68,7 +73,7 @@ export function createSessions({
   identity,
 }: {
   db: NodePgDatabase;
-  identity: Identity;
+  identity: SessionIdentity;
 }): Sessions {
   async function actingUser() {
     const userId = await identity.userId();

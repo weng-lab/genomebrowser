@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
-import { createStores } from "../features/assemblies/assemblies";
-import type { RegionGroup } from "../features/browser/regions/regionGroupSchema";
-import { newGroupDefaults } from "../features/browser/regions/regionGroups";
+import { createStores } from "../features/sessions/assemblies";
+import type { RegionGroup } from "../features/sessions/regionGroupSchema";
+import { newGroupDefaults } from "../features/sessions/regionGroups";
 import { sessionSnapshotSchema } from "../features/sessions/snapshot";
 import { restore, snapshot } from "../features/sessions/storeSnapshot";
 

@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
-import { useRemoteControl } from "../../agent/RemoteControlProvider";
+import { useRemoteControl } from "../RemoteControlProvider";
 
 const stateLabels = { off: "Off", connecting: "Connecting…", connected: "Connected" };
 const preferenceLabels = {
@@ -16,7 +16,8 @@ const preferenceLabels = {
   unavailable: "Unavailable",
 };
 
-export function SettingsView() {
+/** The account's Remote Control switch, with this tab's connection state. Shown on the Settings page. */
+export function RemoteControlSetting() {
   const { state, preference } = useRemoteControl();
   return (
     <Box sx={{ p: 1 }}>

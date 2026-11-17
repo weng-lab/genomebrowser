@@ -10,12 +10,12 @@ The browser tab owns live browser state. Next.js serves the website, the saved-s
 | `features/sessions/session.ts`                                 | Session list, open session and its stores, and session operations    | Shared layout mount, per account                      |
 | `features/sessions/autosave.ts`                                | Effect worker that saves the open session                            | From restoration until replaced or removed            |
 | `features/sessions/transport.ts`                               | Cancellable requests to the session routes                           | Each request                                          |
-| `features/assemblies/assemblies.ts`                            | Supported assemblies and their default stores                        | Module                                                |
+| `features/sessions/assemblies.ts`                              | Supported assemblies and their default stores                        | Module                                                |
 | `app/api/sessions/`, `features/sessions/server/`               | Identity, validation, ownership checks, PostgreSQL                   | Each request                                          |
 | `features/agent/RemoteControlProvider.tsx`, `remoteControl.ts` | Command stream, command execution, and replies                       | While remote control is on and the open session saves |
 | `features/agent/commands/`                                     | Each command's definition: tool schema and the function the tab runs | Module                                                |
 | `shared/workspace/`                                            | Navigation, theme, panel widths and collapsed state                  | Panel state survives navigation                       |
-| `app/api/mcp/`, `features/mcp/server/`                         | MCP tools, caller authentication, and authorization                  | Each MCP request                                      |
+| `app/api/mcp/`, `features/agent/server/mcp.ts`                 | MCP tools, caller authentication, and authorization                  | Each MCP request                                      |
 | `app/api/sessions/[id]/commands/`, `features/agent/server/`    | Tab streams and replies, authorization, Redis relay                  | Each request; streams up to four minutes              |
 
 The browser uses `@weng-lab/genomebrowser` for stores and rendering, `@weng-lab/genomebrowser-ui` for browser controls, and `@weng-lab/genomebrowser-tracks` for track implementations. Track fetchers use `@weng-lab/genomic-reader` to read remote genomic files. MUI supplies application controls. The session snapshot schema comes from `features/sessions/snapshot.ts`, and tab message schemas from `features/agent/commands/protocol.ts`. Command definitions import only schemas and types, so the MCP endpoint loads them on the server.

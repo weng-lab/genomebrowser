@@ -11,8 +11,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useId, useState, type KeyboardEvent, type SyntheticEvent } from "react";
-import type { RegionGroup } from "../regionGroupSchema";
-import { groupColors } from "../regionGroups";
+import type { RegionGroup } from "../../../sessions/regionGroupSchema";
+import { groupColors } from "../../../sessions/regionGroups";
 
 type GroupEdit = Pick<RegionGroup, "name" | "color">;
 
