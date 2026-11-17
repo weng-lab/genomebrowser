@@ -2,8 +2,7 @@ import { z } from "zod";
 import { defineCommand } from "./define";
 import {
   metadataFieldInputSchema,
-  metadataSetFieldSchema,
-  metadataValueInputSchema,
+  metadataSetInputSchema,
   metadataValueSchema,
 } from "./trackMetadataSchema";
 
@@ -17,8 +16,7 @@ export const setTrackMetadata = defineCommand({
       .min(1)
       .refine((ids) => new Set(ids).size === ids.length, "Track IDs must not repeat")
       .describe("IDs of the tracks to change."),
-    set: z
-      .record(metadataSetFieldSchema, metadataValueInputSchema)
+    set: metadataSetInputSchema
       .optional()
       .describe(
         'Fields to add or replace, such as { "Interesting": true } or { "Status": "abnormal" }. Values are text, numbers, true or false, or null. "id", "title", and "type" are reserved for the track\'s own values.',
