@@ -360,7 +360,11 @@ it("lists and tags tracks for the agent, replies with their metadata, and saves 
     ok: true,
     value: { tracks: [{ id: "ccres", metadata: { Interesting: true, Status: "normal" } }] },
   });
-  await runCommand("set_track_metadata", { trackIds: ["ccres"], remove: ["Interesting"] });
+  // A name objects inherit, such as toString, is an ordinary field name.
+  await runCommand("set_track_metadata", {
+    trackIds: ["ccres"],
+    remove: ["Interesting", "toString"],
+  });
   expect(reply(3).result).toEqual({
     ok: true,
     value: { tracks: [{ id: "ccres", metadata: { Status: "normal" } }] },
@@ -394,6 +398,7 @@ it("changes no track's metadata when a change names a missing track or changes n
     ],
     [{ trackIds: ["genes", "genes"], set: { Interesting: true } }, { code: "INVALID_PARAMS" }],
     [{ trackIds: ["genes"], set: { Cells: ["K562"] } }, { code: "INVALID_PARAMS" }],
+    [{ trackIds: ["genes"], set: { title: "Mine" } }, { code: "INVALID_PARAMS" }],
   ] as const;
   for (const [index, [params, failure]] of cases.entries()) {
     await runCommand("set_track_metadata", params);

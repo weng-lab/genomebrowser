@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineCommand } from "./define";
 import {
   metadataFieldInputSchema,
+  metadataSetFieldSchema,
   metadataValueInputSchema,
   metadataValueSchema,
 } from "./trackMetadataSchema";
@@ -17,10 +18,10 @@ export const setTrackMetadata = defineCommand({
       .refine((ids) => new Set(ids).size === ids.length, "Track IDs must not repeat")
       .describe("IDs of the tracks to change."),
     set: z
-      .record(metadataFieldInputSchema, metadataValueInputSchema)
+      .record(metadataSetFieldSchema, metadataValueInputSchema)
       .optional()
       .describe(
-        'Fields to add or replace, such as { "Interesting": true } or { "Status": "abnormal" }. Values are text, numbers, true or false, or null.',
+        'Fields to add or replace, such as { "Interesting": true } or { "Status": "abnormal" }. Values are text, numbers, true or false, or null. "id", "title", and "type" are reserved for the track\'s own values.',
       ),
     remove: z
       .array(metadataFieldInputSchema)
@@ -38,7 +39,7 @@ export const setTrackMetadata = defineCommand({
     if (Object.keys(set).length === 0 && remove.length === 0) {
       return { ok: false, code: "INVALID_PARAMS", error: "Give fields to set or remove" };
     }
-    const both = remove.filter((field) => field in set);
+    const both = remove.filter((field) => Object.hasOwn(set, field));
     if (both.length > 0) {
       const fields = both.map((field) => `"${field}"`).join(", ");
       return { ok: false, code: "INVALID_PARAMS", error: `Fields both set and removed: ${fields}` };
