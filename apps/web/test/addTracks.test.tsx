@@ -148,17 +148,17 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   await enter(field(signal, "Title"), "My signal");
   await enter(field(signal, "Visibility"), "dense");
 
-  // A metadata field named like a track's own values stops the add before any file is checked.
+  // A metadata field without a value, or named like a track's own values, stops the add before
+  // any file is checked.
+  const failing = (reason: string) => rows().map((row) => row.textContent?.includes(reason));
   await click(within(signal, "Add metadata field"));
+  await enter(field(signal, "Field"), "Replicate");
+  await click(button("Add 4 tracks"));
+  expect(failing('Enter a value for "Replicate"')).toEqual([false, true, false, false]);
   await enter(field(signal, "Field"), "title");
   await enter(field(signal, "Value"), "2");
   await click(button("Add 4 tracks"));
-  expect(rows().map((row) => row.textContent?.includes("can't be named"))).toEqual([
-    false,
-    true,
-    false,
-    false,
-  ]);
+  expect(failing("can't be named")).toEqual([false, true, false, false]);
   await enter(field(signal, "Field"), "Replicate");
 
   // The batch adds nothing while any row fails, and says why on the row.

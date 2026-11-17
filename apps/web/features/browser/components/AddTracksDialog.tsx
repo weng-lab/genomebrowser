@@ -311,6 +311,8 @@ function rowRequest({ request, fields }: Row): TrackRequest | string {
     if (builtInFields.has(name))
       return `A metadata field can't be named "${name}", which is the track's own ${name}. Choose another name.`;
     if (metadata.has(name)) return `Two metadata fields are named "${name}". Rename or remove one.`;
+    // How a field without a value is stored waits on the shared metadata editor (#435).
+    if (value === "") return `Enter a value for "${name}", or remove the field.`;
     metadata.set(name, value);
   }
   return metadata.size > 0 ? { ...request, metadata: Object.fromEntries(metadata) } : request;
