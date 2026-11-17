@@ -1,7 +1,7 @@
 import type { BrowserImage, GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
 import type { TrackMetadataChange, TrackMetadataOutcome } from "../../browser/trackMetadata";
-import type { UrlTrackInput, UrlTracksOutcome } from "../../browser/urlTracks";
+import type { TrackRequest, UrlTracksOutcome } from "../../browser/urlTracks";
 
 export type CommandFailure = { ok: false; code: string; error: string };
 export type CommandOutcome<Value> = { ok: true; value: Value } | CommandFailure;
@@ -31,7 +31,7 @@ export type CommandApp = {
   showImage(image: BrowserImage): void;
   /** Check that the browser can read each file URL as a track, then add every track below the others, or none. */
   addTracksFromUrls(
-    inputs: readonly UrlTrackInput[],
+    requests: readonly TrackRequest[],
     signal: AbortSignal,
   ): Promise<UrlTracksOutcome>;
 };
