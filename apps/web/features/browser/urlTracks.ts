@@ -39,8 +39,15 @@ export type TrackRequest = {
 export type AddedUrlTrack = { id: string; title: string; type: UrlTrackType };
 
 type Failure = { ok: false; code: string; error: string };
-/** The tracks a batch added, in order, or why it added none. */
-export type UrlTracksOutcome = { ok: true; tracks: AddedUrlTrack[] } | Failure;
+/** Why one request can't be added. `index` is its position in the batch. */
+export type RequestFailure = { index: number; code: string; error: string };
+/**
+ * The tracks a batch added, in order, or why it added none. A `TRACKS_NOT_ADDED` failure also
+ * lists each failing request, in order.
+ */
+export type UrlTracksOutcome =
+  | { ok: true; tracks: AddedUrlTrack[] }
+  | (Failure & { failures?: RequestFailure[] });
 type ResolvedTrack = { ok: true; track: AnyTrackInstance; added: AddedUrlTrack };
 
 // File extensions that name a track type, matched case-insensitively at the end of the path.
@@ -144,13 +151,20 @@ export async function addTracksFromUrls(
   // A check can finish just after its command is cancelled or expires.
   if (signal.aborted) return cancelled();
   const resolved: ResolvedTrack[] = [];
-  const failures: string[] = [];
+  const failures: RequestFailure[] = [];
   for (const [index, result] of results.entries()) {
     if (result.ok) resolved.push(result);
-    else failures.push(`${requests[index].url}: ${result.code}: ${result.error}`);
+    else failures.push({ index, code: result.code, error: result.error });
   }
-  if (failures.length > 0)
-    return failure("TRACKS_NOT_ADDED", `No tracks were added. ${failures.join(" ")}`);
+  if (failures.length > 0) {
+    const reasons = failures.map(
+      ({ index, code, error }) => `${requests[index].url}: ${code}: ${error}`,
+    );
+    return {
+      ...failure("TRACKS_NOT_ADDED", `No tracks were added. ${reasons.join(" ")}`),
+      failures,
+    };
+  }
   // Commands run concurrently, so another add may have filled the session during the checks.
   const filled = limitFailure(trackStore, requests.length);
   if (filled) return filled;
@@ -173,11 +187,10 @@ async function resolveTrack(
       "METADATA_TOO_LARGE",
       `The metadata is more than ${maxTrackMetadataBytes.toLocaleString("en-US")} bytes as JSON. Remove fields or shorten values.`,
     );
-  const path = url.pathname.toLowerCase();
-  const extension = extensionTypes.find(([extension]) => path.endsWith(extension));
+  const extension = typeExtension(url);
   const type = request.type ?? extension?.[1];
   if (!type) {
-    const unzipped = path.replace(/\.gz$/, "");
+    const unzipped = url.pathname.toLowerCase().replace(/\.gz$/, "");
     const text = textFormats.find(([extension]) => unzipped.endsWith(extension));
     if (text) {
       const [, format, target, tool] = text;
@@ -204,6 +217,17 @@ async function resolveTrack(
       return failure(error.code, error.message);
     throw error;
   }
+}
+
+/** The track type a URL's file extension names, if it is an HTTP(S) URL with one. */
+export function typeFromUrl(url: string): UrlTrackType | undefined {
+  const parsed = parseUrl(url);
+  return parsed && typeExtension(parsed)?.[1];
+}
+
+function typeExtension(url: URL) {
+  const path = url.pathname.toLowerCase();
+  return extensionTypes.find(([extension]) => path.endsWith(extension));
 }
 
 function failure(code: string, error: string): Failure {

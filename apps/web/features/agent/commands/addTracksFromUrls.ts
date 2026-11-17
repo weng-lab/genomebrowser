@@ -62,6 +62,8 @@ export const addTracksFromUrls = defineCommand({
   }),
   async run({ addTracksFromUrls }, { tracks }, signal) {
     const outcome = await addTracksFromUrls(tracks, signal);
-    return outcome.ok ? { ok: true, value: { tracks: outcome.tracks } } : outcome;
+    if (outcome.ok) return { ok: true, value: { tracks: outcome.tracks } };
+    // The error names each failing URL, so the agent needs no list beside it.
+    return { ok: false, code: outcome.code, error: outcome.error };
   },
 });

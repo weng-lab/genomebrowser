@@ -17,6 +17,7 @@ import Typography from "@mui/material/Typography";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
+import { AddTracksButton, AddTracksDialog } from "./AddTracksDialog";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -88,6 +89,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   const svgRef = useBrowserSvgRef();
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   // Read the tracks when Sort is clicked rather than subscribing, so track changes
   // do not re-render the controls. A sort is a one-time operation.
   const [sortOptions, setSortOptions] = useState(() =>
@@ -115,7 +117,12 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         />
         <NavigationControls browserStore={useBrowserStore} />
         <InteractionControls browserStore={useBrowserStore} />
-        <ManagementControls onSortTracks={openSort} onDownloadImage={() => setDownloadOpen(true)} />
+        <ManagementControls
+          onSortTracks={openSort}
+          onDownloadImage={() => setDownloadOpen(true)}
+          // Temporary (#368), until the design for adding tracks settles.
+          managementActions={<AddTracksButton onClick={() => setAddOpen(true)} />}
+        />
       </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} svgRef={svgRef} />
       <DownloadImageDialog
@@ -123,6 +130,11 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         svgRef={svgRef}
         open={downloadOpen}
         onClose={() => setDownloadOpen(false)}
+      />
+      <AddTracksDialog
+        trackStore={useTrackStore}
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
       />
       <TrackSortDialog
         trackStore={useTrackStore}
