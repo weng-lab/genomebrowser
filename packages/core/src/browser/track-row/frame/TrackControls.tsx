@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { AnyTrackInstance } from "../../../modules/types";
+import type { DrawnTrack } from "../../../modules/types";
 import {
   useSettingsStore,
   useTrackMutationGate,
@@ -12,7 +12,7 @@ export function TrackControls({
   marginWidth,
   wrapperHeight,
 }: {
-  track: AnyTrackInstance;
+  track: DrawnTrack;
   marginWidth: number;
   wrapperHeight: number;
 }) {

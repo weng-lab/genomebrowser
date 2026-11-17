@@ -234,6 +234,11 @@ export type AnyTrackInstance = {
   metadata?: TrackMetadata;
   interaction?: AnyTrackInteraction;
 };
+/**
+ * A track as its row draws it. Rows never draw metadata, so it is left out: editing metadata
+ * doesn't render the row, and row code can't read a stale copy.
+ */
+export type DrawnTrack = Omit<AnyTrackInstance, "metadata">;
 export type ModuleCreateInput<M extends AnyTrackModule> = z.input<M["createInputSchema"]>;
 export type ModuleInstance<M extends AnyTrackModule> = M extends AnyTrackModule
   ? ReturnType<M["validate"]>
