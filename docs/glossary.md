@@ -14,7 +14,7 @@ Prefer these terms in issues, docs, and discussion. Preserve exact API names in 
 
 ## Tracks
 
-**Track / track instance** - One configured visualization (runtime object with id, type, config, optional interactions). **Pinned** means excluded from ordinary drag reorder, not sticky scroll.
+**Track / track instance** - One configured visualization (runtime object with id, type, config, optional metadata and interactions). **Pinned** means excluded from ordinary drag reorder, not sticky scroll.
 
 **Track module** - Reusable type implementation (fetcher, renderers, validation, optional settings/tooltips). The **module registry** maps type ids to modules (the store's registration map, not an ad hoc global).
 
@@ -22,7 +22,7 @@ Prefer these terms in issues, docs, and discussion. Preserve exact API names in 
 
 **Base-pair detail** - Per-base glyphs, shown only when the view is zoomed in far enough to draw them.
 
-**Track configuration** - Shared `base` settings plus module-specific `config`. **Source ownership** records who controls the data source: the host application or the user.
+**Track configuration** - Shared `base` settings plus module-specific `config`. **Source ownership** records who controls the data source: the host application or the user. **Track metadata** is descriptive fields beside the configuration, such as assay, cell type, or a user's tag. It describes a track without changing what the track fetches or draws.
 
 **Track anatomy** - **Frame** (core chrome), **margin** (color/controls/drag), **plot** (data area), **overlay** (viewport-anchored).
 
@@ -30,7 +30,7 @@ Prefer these terms in issues, docs, and discussion. Preserve exact API names in 
 
 ## Collections and fetching
 
-**Track collection** - Catalog of configured tracks for one assembly. Entries are not loaded until selected. **Qualified track id** (`collection::entry`) identifies selection in `TrackSelect`.
+**Track collection** - Catalog of configured tracks for one assembly. Entries are not loaded until selected. **Qualified track id** (`collection::entry`) identifies selection in `TrackSelect`. A **collection entry** is a recipe for one track: its type, base, config, and metadata. Creating a track copies them as starting values. After that the track owns its values: editing the track never changes the entry, and saving a track to a collection writes a new entry.
 
 **Render demand** - Region and width core asks a fetcher to satisfy. **Fetch-affecting config** is marked `fetchOnChange`.
 

@@ -149,8 +149,9 @@ if (!added.ok) console.error(added.error);
 | `base`        | `TrackBaseUpdate`                                    | Optional changes to title, display, height, or color. `TrackBaseUpdate` is `Partial<Omit<TrackBase, "id">>`. |
 | `config`      | `Partial<Config>`                                    | Optional changes to the module's configuration. The registered module validates the resulting config.        |
 | `interaction` | `Partial<TrackInteraction<InteractionItem, Config>>` | Optional changes to instance callbacks. Unspecified callbacks are retained.                                  |
+| `metadata`    | `TrackMetadata`                                      | Optional replacement for the whole [metadata](../03-trackDefinition/trackInstances.md#trackmetadata) record. |
 
-Each section is merged shallowly. A nested object or array supplied in a patch replaces its previous value rather than merging recursively. Omitting a section preserves it. The current ID, type, source, and track order are retained; replace the instance to change its identity or source.
+`base`, `config`, and `interaction` are merged shallowly. A nested object or array supplied in a patch replaces its previous value rather than merging recursively. `metadata` is not merged: a key left out of the new record is removed, and `{}` clears every field. Omitting a section preserves it. The current ID, type, source, and track order are retained; replace the instance to change its identity or source.
 
 ```ts
 const updated = useTrackStore.getState().updateTrack("signal", {
@@ -161,7 +162,14 @@ const updated = useTrackStore.getState().updateTrack("signal", {
 if (!updated.ok) console.error(updated.error);
 ```
 
-A config change requests new data when a field marked by the module with `fetchOnChange` changes. Display changes also request data. Other base fields, callbacks, and unmarked config changes reuse current data. See [request behavior](../03-trackDefinition/fetchingData.md#requests-and-result-lifetime) for the mounted browser's coordination rules.
+To add a field, spread the current record into the new one:
+
+```ts
+const { getTrack, updateTrack } = useTrackStore.getState();
+updateTrack("signal", { metadata: { ...getTrack("signal")?.metadata, Interesting: true } });
+```
+
+A config change requests new data when a field marked by the module with `fetchOnChange` changes. Display changes also request data. Other base fields, callbacks, metadata, and unmarked config changes reuse current data. A metadata change also leaves the track's drawing untouched. See [request behavior](../03-trackDefinition/fetchingData.md#requests-and-result-lifetime) for the mounted browser's coordination rules.
 
 ## Replacing tracks atomically
 

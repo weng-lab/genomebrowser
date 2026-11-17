@@ -1,5 +1,6 @@
 import { useSyncExternalStore, type ErrorInfo } from "react";
-import type { AnyTrackInstance } from "../../modules/types";
+import { useShallow } from "zustand/react/shallow";
+import type { DrawnTrack } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import { useDataController, useGenomeBrowser } from "../state/browserContextState";
@@ -29,12 +30,9 @@ export function TrackRow({
   onPreviewChange: (preview: ReorderPreview) => void;
   onPreviewEnd: () => void;
 }) {
-  const { useTrackStore } = useGenomeBrowser();
   const dataController = useDataController();
   const { marginWidth, trackWidth } = useTrackStack();
-  const track = useTrackStore((state) =>
-    state.tracks[layout.index]?.base.id === layout.id ? state.tracks[layout.index] : undefined,
-  );
+  const track = useDrawnTrack(layout);
   // Each row subscribes to its own entry, so one track's result renders only its row.
   const getDataState = () => dataController.getTrack(layout.id);
   const dataState = useSyncExternalStore(dataController.subscribe, getDataState, getDataState);
@@ -79,7 +77,26 @@ export function TrackRow({
   );
 }
 
-function reportTrackRenderError(track: AnyTrackInstance, error: unknown, info: ErrorInfo) {
+/**
+ * The row's track without metadata. `useShallow` keeps the previous object while the parts the
+ * row draws keep their identity, so a metadata edit doesn't render the row.
+ */
+function useDrawnTrack(layout: TrackLayout): DrawnTrack | undefined {
+  const { useTrackStore } = useGenomeBrowser();
+  return useTrackStore(
+    useShallow((state) => {
+      // After a reorder the store notifies before this row gets its new index. Finding the track
+      // by ID then keeps the result, so the row doesn't redraw its content.
+      const atIndex = state.tracks[layout.index];
+      const track = atIndex?.base.id === layout.id ? atIndex : state.getTrack(layout.id);
+      if (!track) return undefined;
+      const { type, base, config, source, interaction } = track;
+      return { type, base, config, source, interaction };
+    }),
+  );
+}
+
+function reportTrackRenderError(track: DrawnTrack, error: unknown, info: ErrorInfo) {
   console.error(trackRenderErrorPrefix, {
     track: {
       id: track.base.id,

@@ -53,6 +53,10 @@ describe("createTrackStore", () => {
       [() => state.removeTrack("missing"), "TRACK_NOT_FOUND"],
       [() => state.updateTrack("missing", {}), "TRACK_NOT_FOUND"],
       [() => state.updateTrack("signal", { base: { height: -1 } }), "INVALID_TRACK"],
+      [
+        () => state.updateTrack("signal", { metadata: { Cells: ["K562"] } as never }),
+        "INVALID_TRACK",
+      ],
       [() => state.reorderTracks([]), "INVALID_TRACK_ORDER"],
       [() => state.applyTrackChanges({ remove: ["signal"], add: [invalid] }), "INVALID_TRACK"],
       [() => state.applyTrackChanges({ remove: ["signal", "missing"] }), "TRACK_NOT_FOUND"],
@@ -565,6 +569,26 @@ describe("createTrackStore", () => {
     expect(subscriber).toHaveBeenCalledTimes(1);
     unsubscribe();
     validate.mockRestore();
+  });
+
+  it("replaces metadata on update and keeps it through other changes", () => {
+    const tagged = signalModule.create({
+      base: { id: "signal", title: "Signal" },
+      config: { url: "YOUR_URL_HERE" },
+      metadata: { Assay: "ChIP-seq", Interesting: true },
+    });
+    const store = createTrackStore({ modules: [signalModule], tracks: [] });
+    expect(store.getState().applyTrackChanges({ add: [tagged] })).toEqual({ ok: true });
+
+    const cases = [
+      [{ base: { height: 120 }, config: { url: "YOUR_OTHER_URL_HERE" } }, tagged.metadata],
+      [{ metadata: { Assay: "ChIP-seq" } }, { Assay: "ChIP-seq" }],
+      [{ metadata: {} }, {}],
+    ] as const;
+    for (const [update, metadata] of cases) {
+      expect(store.getState().updateTrack("signal", update)).toEqual({ ok: true });
+      expect(store.getState().getTrack("signal")?.metadata).toEqual(metadata);
+    }
   });
 
   it("persists signal yRange from initial config and external updates", () => {

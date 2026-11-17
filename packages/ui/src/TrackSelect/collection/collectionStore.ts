@@ -33,6 +33,7 @@ export function getReconciledTracks({
         registry.get(entry.track.type).create({
           base: { ...entry.track.base, id },
           config: entry.track.config,
+          ...(entry.track.metadata !== undefined ? { metadata: entry.track.metadata } : {}),
         })),
       source: "host" as const,
     };

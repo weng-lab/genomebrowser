@@ -1,6 +1,6 @@
 import { memo, type ComponentType } from "react";
 import { TrackRuntimeProvider } from "../../../modules/TrackRuntimeProvider";
-import type { AnyTrackInstance, TrackRendererProps } from "../../../modules/types";
+import type { DrawnTrack, TrackRendererProps } from "../../../modules/types";
 import type { GenomicRegion } from "../../../genome/region";
 import { useRegistry } from "../../state/browserContextState";
 import { ErrorState } from "./ErrorState";
@@ -20,7 +20,7 @@ export const TrackContent = memo(function TrackContent({
   width,
   height,
 }: {
-  track: AnyTrackInstance;
+  track: DrawnTrack;
   dataState: TrackContentState;
   visibleRegion: GenomicRegion;
   region: GenomicRegion;
