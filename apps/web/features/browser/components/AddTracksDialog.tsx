@@ -3,12 +3,13 @@
 // TEMPORARY (#368): a stand-in for adding tracks from URLs, so the flow can be tried, until the
 // design for adding tracks beside personal collections settles. Replace it rather than extend it.
 
+import Add from "@mui/icons-material/Add";
 import Close from "@mui/icons-material/Close";
 import PlaylistAdd from "@mui/icons-material/PlaylistAdd";
+import UploadFile from "@mui/icons-material/UploadFile";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -19,7 +20,14 @@ import Typography from "@mui/material/Typography";
 import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { parseCustomTracks, sortByPriority, type LineError } from "../customTracks";
-import { addTracksFromUrls, typeFromUrl, type TrackRequest } from "../urlTracks";
+import {
+  addTracksFromUrls,
+  defaultColor,
+  headerBedPreset,
+  titleFromUrl,
+  typeFromUrl,
+  type TrackRequest,
+} from "../urlTracks";
 import {
   bigBedPresetSchema,
   trackVisibilitySchema,
@@ -41,9 +49,9 @@ export function AddTracksButton({ onClick }: { onClick: () => void }) {
 type AddTracksDialogProps = { trackStore: TrackStoreInstance; open: boolean; onClose: () => void };
 
 /**
- * Adds tracks from pasted file URLs and UCSC track lines. Pasting reads the text into one row
- * per track without fetching anything; adding checks every file and adds all the rows or none,
- * showing each failure on its row.
+ * Adds tracks from pasted or uploaded file URLs and UCSC track lines. Reviewing reads the text
+ * into one row per track, which can be edited; adding checks every file and adds all the rows or
+ * none, showing each failure on its row.
  */
 export function AddTracksDialog({ trackStore, open, onClose }: AddTracksDialogProps) {
   return (
@@ -54,9 +62,23 @@ export function AddTracksDialog({ trackStore, open, onClose }: AddTracksDialogPr
   );
 }
 
-type Row = { key: string; request: TrackRequest; failure?: string };
+/** A metadata field being edited. `key` identifies it while its name changes. */
+type MetadataField = { key: string; name: string; value: string };
+type RowRequest = Omit<TrackRequest, "metadata">;
+type Row = { key: string; request: RowRequest; fields: MetadataField[]; failure?: string };
 
 const hexColor = /^#[0-9a-f]{6}$/i;
+// Far more than the URLs and track lines of a session's most tracks.
+const maxUploadBytes = 1_000_000;
+// Collection views and sorting use these names for a track's own values, so a metadata field
+// can't take one. The agent's metadata commands refuse them too.
+const builtInFields = new Set(["id", "title", "type"]);
+
+const newField = (name = "", value = ""): MetadataField => ({
+  key: crypto.randomUUID(),
+  name,
+  value,
+});
 
 function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open">) {
   const [text, setText] = useState("");
@@ -65,12 +87,13 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
   const [rows, setRows] = useState<Row[]>();
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string>();
+  const fileInput = useRef<HTMLInputElement>(null);
   const pending = useRef<AbortController>(undefined);
   // Closing the dialog while files are checked stops the add, so nothing is added.
   useEffect(() => () => pending.current?.abort(), []);
 
-  function review() {
-    const { tracks, errors } = parseCustomTracks(text);
+  function review(content: string) {
+    const { tracks, errors } = parseCustomTracks(content);
     setLineErrors(errors);
     setError(undefined);
     if (errors.length > 0) return;
@@ -78,27 +101,63 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
       setError("Paste at least one file URL or track line.");
       return;
     }
-    setRows(sortByPriority(tracks).map(({ request }) => ({ key: crypto.randomUUID(), request })));
+    setRows(
+      sortByPriority(tracks).map(({ request: { metadata = {}, ...request } }) => ({
+        key: crypto.randomUUID(),
+        // Show the title the track gets from its file name, ready to edit.
+        request: { ...request, title: request.title ?? titleFromUrl(request.url) },
+        fields: Object.entries(metadata).map(([name, value]) => newField(name, String(value))),
+      })),
+    );
+  }
+
+  // Reads the chosen file as if its text were pasted, then reviews it.
+  async function upload(input: HTMLInputElement) {
+    const file = input.files?.[0];
+    // Choosing the same file again, after editing it, reads it again.
+    input.value = "";
+    if (!file) return;
+    if (file.size > maxUploadBytes) {
+      setLineErrors([]);
+      setError(
+        `${file.name} is larger than 1 MB. Upload a file of URLs or track lines, not the track data itself.`,
+      );
+      return;
+    }
+    let content: string;
+    try {
+      content = await file.text();
+    } catch {
+      setLineErrors([]);
+      setError(`${file.name} could not be read. Choose the file again, or paste its text.`);
+      return;
+    }
+    setText(content);
+    review(content);
   }
 
   // Editing a row clears its failure, since the next add checks it again.
-  const change = (key: string, update: Partial<TrackRequest>) =>
+  const edit = (key: string, edited: (row: Row) => Partial<Row>) =>
     setRows((current) =>
       current?.map((row) =>
-        row.key === key ? { key, request: { ...row.request, ...update } } : row,
+        row.key === key ? { ...row, ...edited(row), failure: undefined } : row,
       ),
     );
   const remove = (key: string) => setRows((current) => current?.filter((row) => row.key !== key));
   const removeFailed = () => setRows((current) => current?.filter((row) => !row.failure));
 
   async function add(toAdd: Row[]) {
-    const badColor = toAdd.some(({ request }) => request.color && !hexColor.test(request.color));
-    if (badColor) {
+    const requests: TrackRequest[] = [];
+    const problems = new Map<number, string>();
+    for (const [index, row] of toAdd.entries()) {
+      const request = rowRequest(row);
+      if (typeof request === "string") problems.set(index, request);
+      else requests.push(request);
+    }
+    if (problems.size > 0) {
       setRows(
-        toAdd.map((row) =>
-          row.request.color && !hexColor.test(row.request.color)
-            ? { ...row, failure: "Enter the color as #RRGGBB, such as #3366cc, or leave it empty." }
-            : row,
+        toAdd.map((row, index) =>
+          problems.has(index) ? { ...row, failure: problems.get(index) } : row,
         ),
       );
       return;
@@ -108,11 +167,7 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
     setAdding(true);
     setError(undefined);
     try {
-      const outcome = await addTracksFromUrls(
-        trackStore,
-        toAdd.map(({ request }) => request),
-        controller.signal,
-      );
+      const outcome = await addTracksFromUrls(trackStore, requests, controller.signal);
       if (controller.signal.aborted) return;
       if (outcome.ok) onClose();
       else if (outcome.failures) {
@@ -135,8 +190,9 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
         {rows === undefined ? (
           <>
             <Typography variant="body2" color="text.secondary">
-              Paste hosted file URLs or UCSC track lines, one per line. BigWig, BigBed, BigGenePred,
-              and BAM files can be added; you can review each track before adding.
+              Paste hosted file URLs or UCSC track lines, one per line, or upload a .txt or .csv
+              file of them. BigWig, BigBed, BigGenePred, and BAM files can be added; you can review
+              each track before adding.
             </Typography>
             <TextField
               // oxlint-disable-next-line jsx-a11y/no-autofocus -- The dialog opens to paste.
@@ -149,6 +205,14 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
               slotProps={{
                 htmlInput: { spellCheck: false, sx: { fontFamily: "monospace", fontSize: 13 } },
               }}
+            />
+            <input
+              ref={fileInput}
+              type="file"
+              hidden
+              aria-label="File of URLs or track lines"
+              accept=".txt,.csv,text/plain,text/csv"
+              onChange={(event) => void upload(event.target)}
             />
             {lineErrors.length > 0 && (
               <Box component="ul" aria-label="Lines that can't be added" sx={{ m: 0, pl: 3 }}>
@@ -172,7 +236,10 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
                 index={index}
                 row={row}
                 disabled={adding}
-                onChange={(update) => change(row.key, update)}
+                onChange={(update) =>
+                  edit(row.key, ({ request }) => ({ request: updated(request, update) }))
+                }
+                onFieldsChange={(fields) => edit(row.key, () => ({ fields }))}
                 onRemove={() => remove(row.key)}
               />
             ))}
@@ -181,7 +248,15 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
         {error && <Alert severity="error">{error}</Alert>}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        {rows !== undefined && (
+        {rows === undefined ? (
+          <Button
+            startIcon={<UploadFile />}
+            onClick={() => fileInput.current?.click()}
+            sx={{ mr: "auto" }}
+          >
+            Upload a file
+          </Button>
+        ) : (
           <Button onClick={() => setRows(undefined)} disabled={adding} sx={{ mr: "auto" }}>
             Back to text
           </Button>
@@ -193,7 +268,7 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
         )}
         <Button onClick={onClose}>Cancel</Button>
         {rows === undefined ? (
-          <Button variant="contained" onClick={review} disabled={text.trim() === ""}>
+          <Button variant="contained" onClick={() => review(text)} disabled={text.trim() === ""}>
             Review
           </Button>
         ) : (
@@ -212,6 +287,34 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
   );
 }
 
+/** A request with an update applied. A title still named after the file follows a new URL. */
+function updated(request: RowRequest, update: Partial<RowRequest>): RowRequest {
+  const next = { ...request, ...update };
+  if (update.url !== undefined && request.title === titleFromUrl(request.url))
+    next.title = titleFromUrl(update.url);
+  return next;
+}
+
+/** The row as a request, or why it can't be added before its files are checked. */
+function rowRequest({ request, fields }: Row): TrackRequest | string {
+  if (request.color && !hexColor.test(request.color))
+    return "Enter the color as #RRGGBB, such as #3366cc, or leave it empty.";
+  const metadata = new Map<string, string>();
+  for (const field of fields) {
+    const name = field.name.trim();
+    const value = field.value.trim();
+    if (name === "") {
+      if (value === "") continue;
+      return "Name each metadata field, or remove it.";
+    }
+    if (builtInFields.has(name))
+      return `A metadata field can't be named "${name}", which is the track's own ${name}. Choose another name.`;
+    if (metadata.has(name)) return `Two metadata fields are named "${name}". Rename or remove one.`;
+    metadata.set(name, value);
+  }
+  return metadata.size > 0 ? { ...request, metadata: Object.fromEntries(metadata) } : request;
+}
+
 const typeLabels: Record<UrlTrackType, string> = {
   bigwig: "BigWig",
   bigbed: "BigBed",
@@ -224,20 +327,24 @@ type RequestRowProps = {
   index: number;
   row: Row;
   disabled: boolean;
-  onChange: (update: Partial<TrackRequest>) => void;
+  onChange: (update: Partial<RowRequest>) => void;
+  onFieldsChange: (fields: MetadataField[]) => void;
   onRemove: () => void;
 };
 
 /** Every choice a request can make, for one track. Empty fields leave the choice to the file. */
 function RequestRow({
   index,
-  row: { request, failure },
+  row: { request, fields, failure },
   disabled,
   onChange,
+  onFieldsChange,
   onRemove,
 }: RequestRowProps) {
   const inferred = typeFromUrl(request.url);
   const type = request.type ?? inferred;
+  const header = useHeaderPreset(request.url, type === "bigbed");
+  const preset = request.bedSchema ?? (header === "reading" ? undefined : header);
   const name = request.title || request.url;
   // Empty text means no choice, so the file or the type decides.
   const text = (value: string) => value.trim() || undefined;
@@ -262,6 +369,7 @@ function RequestRow({
             flex: 1,
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "repeat(4, minmax(0, 1fr))" },
+            alignItems: "start",
             gap: 1.5,
           }}
         >
@@ -278,7 +386,7 @@ function RequestRow({
             <TextField
               size="small"
               label="Title"
-              placeholder="The file name"
+              placeholder={titleFromUrl(request.url) ?? "The file name"}
               value={request.title ?? ""}
               disabled={disabled}
               onChange={(event) => onChange({ title: event.target.value || undefined })}
@@ -301,42 +409,27 @@ function RequestRow({
             options={trackVisibilitySchema.options.map((value) => [value, value])}
             onChange={(value) => onChange({ visibility: value })}
           />
-          <Field span={1}>
-            <TextField
-              size="small"
-              label="Color"
-              placeholder="The type's default"
-              value={request.color ?? ""}
+          <Field span={2}>
+            <ColorField
+              trackName={name}
+              color={request.color}
+              fallback={type && defaultColor(type)}
+              effect={colorEffect(type, preset)}
               disabled={disabled}
-              onChange={(event) => onChange({ color: text(event.target.value) })}
-              slotProps={{
-                inputLabel: { shrink: true },
-                input: {
-                  startAdornment: (
-                    <input
-                      type="color"
-                      aria-label={`Pick a color for ${name}`}
-                      disabled={disabled}
-                      value={
-                        request.color && hexColor.test(request.color) ? request.color : "#000000"
-                      }
-                      onChange={(event) => onChange({ color: event.target.value })}
-                      style={{ width: 24, height: 24, padding: 0, border: 0, marginRight: 8 }}
-                    />
-                  ),
-                },
-              }}
+              onChange={(color) => onChange({ color })}
             />
           </Field>
           {type === "bigbed" && (
-            <Choice<BigBedPreset>
-              label="BED columns"
-              value={request.bedSchema}
-              disabled={disabled}
-              empty="From the file's header"
-              options={bigBedPresetSchema.options.map((value) => [value, value])}
-              onChange={(value) => onChange({ bedSchema: value })}
-            />
+            <Field span={2}>
+              <Choice<BigBedPreset>
+                label="BED columns"
+                value={request.bedSchema}
+                disabled={disabled}
+                empty={headerChoice(header)}
+                options={bigBedPresetSchema.options.map((value) => [value, value])}
+                onChange={(value) => onChange({ bedSchema: value })}
+              />
+            </Field>
           )}
           {type === "bam" && (
             <Field span={2}>
@@ -361,18 +454,169 @@ function RequestRow({
           <Close fontSize="small" />
         </IconButton>
       </Box>
-      {request.metadata && (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }} aria-label="Metadata">
-          {Object.entries(request.metadata).map(([field, value]) => (
-            <Chip key={field} size="small" label={`${field}: ${String(value)}`} />
-          ))}
-        </Box>
-      )}
+      <MetadataFields fields={fields} disabled={disabled} onChange={onFieldsChange} />
       {failure && (
         <Typography variant="body2" color="error">
           {failure}
         </Typography>
       )}
+    </Box>
+  );
+}
+
+type ColorFieldProps = {
+  trackName: string;
+  color: string | undefined;
+  /** The type's color, which an empty field leaves the track. */
+  fallback: string | undefined;
+  /** What the color changes on this track. */
+  effect: string | undefined;
+  disabled: boolean;
+  onChange: (color: string | undefined) => void;
+};
+
+/** A track's color, typed as `#RRGGBB` or picked. */
+function ColorField({ trackName, color, fallback, effect, disabled, onChange }: ColorFieldProps) {
+  const picked = color && hexColor.test(color) ? color : (fallback ?? "#000000");
+  return (
+    <TextField
+      size="small"
+      label="Color"
+      placeholder={fallback ? `${fallback}, the type's default` : "#RRGGBB"}
+      value={color ?? ""}
+      disabled={disabled}
+      onChange={(event) => onChange(event.target.value.trim() || undefined)}
+      helperText={effect}
+      slotProps={{
+        inputLabel: { shrink: true },
+        input: {
+          startAdornment: (
+            <input
+              type="color"
+              aria-label={`Pick a color for ${trackName}`}
+              disabled={disabled}
+              value={picked}
+              onChange={(event) => onChange(event.target.value)}
+              style={{ width: 24, height: 24, padding: 0, border: 0, marginRight: 8 }}
+            />
+          ),
+        },
+      }}
+    />
+  );
+}
+
+/**
+ * The BED columns a BigBed file's header chooses, read from the file while `enabled`: "reading"
+ * until the read ends, then undefined when the file can't be read. Waits for typing in the URL
+ * field to pause, and drops a read once the URL changes.
+ */
+function useHeaderPreset(url: string, enabled: boolean): BigBedPreset | "reading" | undefined {
+  const [read, setRead] = useState<{ url: string; preset?: BigBedPreset }>();
+  useEffect(() => {
+    if (!enabled) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      headerBedPreset(url, controller.signal).then(
+        (preset) => setRead({ url, preset }),
+        () => {
+          if (!controller.signal.aborted) setRead({ url });
+        },
+      );
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [url, enabled]);
+  if (!enabled) return undefined;
+  return read?.url === url ? read.preset : "reading";
+}
+
+function headerChoice(header: BigBedPreset | "reading" | undefined) {
+  if (header === "reading") return "Reading the file's header…";
+  return header ? `From the file's header: ${header}` : "From the file's header";
+}
+
+const marginOnly = "so this colors only the strip at the track's left edge";
+
+/** What a track's color changes, for its type and, for BigBed, the columns it reads. */
+function colorEffect(type: UrlTrackType | undefined, preset: BigBedPreset | undefined) {
+  switch (type) {
+    case "bigwig":
+      return "Colors the signal.";
+    case "gene":
+      return "Colors genes and transcripts. MANE Select transcripts keep their own color.";
+    case "ccre-bigbed":
+      return `cCREs keep their class colors, ${marginOnly}.`;
+    case "bam":
+      return `Reads keep their strand colors, ${marginOnly}.`;
+    case "bigbed":
+      if (preset === "bed9")
+        return `Features keep the file's colors (itemRgb), ${marginOnly}. Choose bed6 columns to color them with it.`;
+      if (preset) return "Colors every feature.";
+      return "Colors every feature, unless the file has its own colors (bed9).";
+    default:
+      return undefined;
+  }
+}
+
+type MetadataFieldsProps = {
+  fields: MetadataField[];
+  disabled: boolean;
+  onChange: (fields: MetadataField[]) => void;
+};
+
+/** Name and value pairs for one track's metadata, until the shared metadata editor (#435). */
+function MetadataFields({ fields, disabled, onChange }: MetadataFieldsProps) {
+  const change = (key: string, update: Partial<MetadataField>) =>
+    onChange(fields.map((field) => (field.key === key ? { ...field, ...update } : field)));
+  return (
+    <Box
+      component="fieldset"
+      aria-label="Metadata"
+      sx={{ border: 0, m: 0, p: 0, minWidth: 0, display: "flex", flexDirection: "column", gap: 1 }}
+    >
+      {fields.map((field) => (
+        <Box key={field.key} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <TextField
+            // oxlint-disable-next-line jsx-a11y/no-autofocus -- A field just added is typed into next.
+            autoFocus={field.name === "" && field.value === ""}
+            size="small"
+            label="Field"
+            value={field.name}
+            disabled={disabled}
+            onChange={(event) => change(field.key, { name: event.target.value })}
+            sx={{ flex: 1 }}
+          />
+          <TextField
+            size="small"
+            label="Value"
+            value={field.value}
+            disabled={disabled}
+            onChange={(event) => change(field.key, { value: event.target.value })}
+            sx={{ flex: 2 }}
+          />
+          <IconButton
+            aria-label={`Remove the field ${field.name || "without a name"}`}
+            size="small"
+            onClick={() => onChange(fields.filter(({ key }) => key !== field.key))}
+            disabled={disabled}
+          >
+            <Close fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
+      <Box>
+        <Button
+          size="small"
+          startIcon={<Add />}
+          disabled={disabled}
+          onClick={() => onChange([...fields, newField()])}
+        >
+          Add metadata field
+        </Button>
+      </Box>
     </Box>
   );
 }

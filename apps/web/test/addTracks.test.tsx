@@ -57,6 +57,10 @@ const rows = () => [...dialog()!.querySelectorAll('[aria-label="Tracks to add"] 
 // MUI's multiline field also renders a hidden copy for measuring.
 const pasteBox = () => dialog()!.querySelector<HTMLTextAreaElement>("textarea:not([aria-hidden])")!;
 
+/** The button in `element` labeled `label`. */
+const within = (element: Element, label: string) =>
+  [...element.querySelectorAll("button")].find((candidate) => candidate.textContent === label);
+
 async function click(element: Element | undefined) {
   await act(async () => (element as HTMLElement).click());
 }
@@ -130,11 +134,32 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   expect(field(peaks, "Type").value).toBe("bigbed");
   expect(field(peaks, "BED columns").value).toBe("bed6");
   expect(field(peaks, "Color").value).toBe("#008000");
-  expect(peaks.querySelector('[aria-label="Metadata"]')?.textContent).toBe(
-    "Description: Called peaks",
-  );
+  expect([field(peaks, "Field").value, field(peaks, "Value").value]).toEqual([
+    "Description",
+    "Called peaks",
+  ]);
+  // A URL alone shows the title its file name gives it.
+  expect(rows().map((row) => field(row, "Title").value)).toEqual([
+    "Peaks",
+    "signal",
+    "missing",
+    "gone",
+  ]);
   await enter(field(signal, "Title"), "My signal");
   await enter(field(signal, "Visibility"), "dense");
+
+  // A metadata field named like a track's own values stops the add before any file is checked.
+  await click(within(signal, "Add metadata field"));
+  await enter(field(signal, "Field"), "title");
+  await enter(field(signal, "Value"), "2");
+  await click(button("Add 4 tracks"));
+  expect(rows().map((row) => row.textContent?.includes("can't be named"))).toEqual([
+    false,
+    true,
+    false,
+    false,
+  ]);
+  await enter(field(signal, "Field"), "Replicate");
 
   // The batch adds nothing while any row fails, and says why on the row.
   await click(button("Add 4 tracks"));
@@ -146,9 +171,11 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
     true,
   ]);
 
-  // Fixing a row clears its failure; the other failed row is removed.
+  // Fixing a row clears its failure, and its title follows the new file; the other failed row
+  // is removed.
   await enter(field(rows()[2], "URL"), `${host}/found.bw`);
   expect(rows()[2].textContent).not.toContain("UNREACHABLE");
+  expect(field(rows()[2], "Title").value).toBe("found");
   await click(button("Remove 1 failed row"));
   await click(button("Add 3 tracks"));
 
@@ -166,6 +193,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
       type: "bigwig",
       base: expect.objectContaining({ title: "My signal", display: "dense" }),
       config: expect.objectContaining({ url: `${host}/signal.bw` }),
+      metadata: { Replicate: "2" },
     }),
     expect.objectContaining({
       type: "bigwig",
@@ -205,3 +233,40 @@ it("adds nothing when the dialog closes while files are checked", async () => {
     expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
   );
 });
+
+it("reads an uploaded file, and says which BED columns a BigBed header chooses and what color changes", async () => {
+  server.files.set(`${host}/peaks.bb`, bed6);
+  server.files.set(`${host}/colored.bb`, bigBedWithColumns(9, 9));
+  await openDialog();
+  const input = dialog()!.querySelector<HTMLInputElement>('input[type="file"]')!;
+  const text = `${host}/peaks.bb\n${host}/colored.bb\n`;
+  // jsdom's File lacks text(), which browsers have.
+  const file = Object.assign(new File([text], "tracks.txt"), { text: async () => text });
+  Object.defineProperty(input, "files", { value: [file] });
+  await act(async () => input.dispatchEvent(new Event("change", { bubbles: true })));
+
+  // Uploading reviews the file's lines as if they were pasted.
+  await vi.waitFor(() => expect(rows()).toHaveLength(2));
+  const [peaks, colored] = rows();
+  const headerChoice = (row: Element) => field(row, "BED columns").options[0].textContent;
+  const colorHint = (row: Element) =>
+    field(row, "Color").closest(".MuiFormControl-root")!.textContent;
+  await vi.waitFor(() => {
+    expect(headerChoice(peaks)).toBe("From the file's header: bed6");
+    expect(headerChoice(colored)).toBe("From the file's header: bed9");
+  });
+  // A file with its own colors keeps them, so the track color only marks the track.
+  expect(colorHint(peaks)).toContain("Colors every feature.");
+  expect(colorHint(colored)).toContain("only the strip at the track's left edge");
+  await enter(field(colored, "BED columns"), "bed6");
+  expect(colorHint(colored)).toContain("Colors every feature.");
+});
+
+/** The BED6 fixture with its header's column counts changed. */
+function bigBedWithColumns(fieldCount: number, definedFieldCount: number) {
+  const bytes = bed6.slice();
+  const view = new DataView(bytes.buffer);
+  view.setUint16(32, fieldCount, true);
+  view.setUint16(34, definedFieldCount, true);
+  return bytes;
+}

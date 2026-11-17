@@ -8,6 +8,7 @@ import { TrackFileError } from "@weng-lab/genomebrowser-tracks/shared";
 import { maxSessionTracks } from "../sessions/schema";
 import { maxTrackMetadataBytes, metadataBytes } from "./trackMetadata";
 import {
+  bigBedPresetSchema,
   urlTrackTypeSchema,
   type BigBedPreset,
   type TrackVisibility,
@@ -75,6 +76,14 @@ const visibilityDisplays = {
   gene: { dense: "merged", squish: "merged", pack: "tagged", full: "full" },
   bam: { dense: "dense", squish: "squish", pack: "pack", full: "full" },
 } as const satisfies Record<UrlTrackType, Record<TrackVisibility, string>>;
+
+const modules = {
+  bigwig: bigWigModule,
+  bigbed: bigBedModule,
+  gene: geneModule,
+  "ccre-bigbed": ccreBigBedModule,
+  bam: bamModule,
+} as const satisfies Record<UrlTrackType, unknown>;
 
 type Base = { id: string; title: string };
 
@@ -215,6 +224,35 @@ async function resolveTrack(
   } catch (error) {
     if (!signal.aborted && error instanceof TrackFileError)
       return failure(error.code, error.message);
+    throw error;
+  }
+}
+
+/** The title a request without one gets, or undefined when the URL isn't absolute HTTP(S). */
+export function titleFromUrl(url: string): string | undefined {
+  const parsed = parseUrl(url);
+  return parsed && fileTitle(parsed, typeExtension(parsed)?.[0]);
+}
+
+/** The color a request without one gets, as `#rrggbb`. */
+export function defaultColor(type: UrlTrackType): string {
+  return modules[type].createInputSchema.shape.base.shape.color.parse(undefined);
+}
+
+/**
+ * The BED columns a BigBed file's header chooses for a request without `bedSchema`, read from the
+ * file. Undefined when the URL doesn't serve a BigBed file the browser can read. An abort rejects.
+ */
+export async function headerBedPreset(
+  url: string,
+  signal: AbortSignal,
+): Promise<BigBedPreset | undefined> {
+  if (!parseUrl(url)) return undefined;
+  try {
+    const { bedSchema } = await checkBigBedFiles({ url }, { signal });
+    return bigBedPresetSchema.safeParse(bedSchema).data;
+  } catch (error) {
+    if (!signal.aborted && error instanceof TrackFileError) return undefined;
     throw error;
   }
 }
