@@ -86,7 +86,7 @@ A test of private code needs a correctness or performance risk that public-bound
 
 ## Render budgets
 
-Render budgets are an intentional, implementation-sensitive exception. `*.renders.test.tsx` scenarios count committed renders with `@weng-lab/render-probe`. Follow the [verify-renders skill](../../.agents/skills/verify-renders/SKILL.md).
+Render budgets measure performance. They are not tests of behavior. `*.renders.test.tsx` scenarios count committed renders with `@weng-lab/render-probe`, and they run under vitest so that `pnpm verify` reports a count that changed. A changed count is a measurement to read, not a broken behavior, so the two-edit check and the boundary rules on this page do not apply to them. Do not rewrite or delete a scenario for being tied to the implementation. Follow the [verify-renders skill](../../.agents/skills/verify-renders/SKILL.md).
 
 ## Existing tests
 
