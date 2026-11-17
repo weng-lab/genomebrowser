@@ -25,13 +25,16 @@ export function snapshot(session: GenomeBrowserStores): SessionSnapshot {
     },
     tracks: tracks.tracks.map(({ type, base, config, source }) => ({ type, base, config, source })),
     pinnedTrackIds: tracks.pinnedTrackIds,
+    ...(tracks.trackSets.length ? { trackSets: tracks.trackSets } : {}),
+    ...(tracks.hiddenTrackIds.length ? { hiddenTrackIds: tracks.hiddenTrackIds } : {}),
   };
   // Optional settings can be explicitly cleared to undefined. JSON omits those
   // keys, matching the payload sent to storage and the module defaults on restore.
   return sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(values)));
 }
 
-export function restore(session: GenomeBrowserStores, saved: SessionSnapshot) {
+export function restore(session: GenomeBrowserStores, input: SessionSnapshot) {
+  const saved = sessionSnapshotSchema.parse(input);
   // Validate both stores before changing either live store. Runtime actions and
   // registered modules stay local; only serializable session values are restored.
   const { assembly } = session.useBrowserStore.getState();
@@ -42,6 +45,8 @@ export function restore(session: GenomeBrowserStores, saved: SessionSnapshot) {
     modules: session.useTrackStore.getState().registry.modules,
     tracks: saved.tracks,
     pinnedTrackIds: saved.pinnedTrackIds,
+    trackSets: saved.trackSets,
+    hiddenTrackIds: saved.hiddenTrackIds,
   }).getState();
   const { assembly: _assembly, ...values } = saved.browser;
   session.useBrowserStore.setState({ ...values, region: browser.region });
@@ -49,5 +54,7 @@ export function restore(session: GenomeBrowserStores, saved: SessionSnapshot) {
     tracks: tracks.tracks,
     order: tracks.order,
     pinnedTrackIds: tracks.pinnedTrackIds,
+    trackSets: tracks.trackSets,
+    hiddenTrackIds: tracks.hiddenTrackIds,
   });
 }

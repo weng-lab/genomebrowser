@@ -1,20 +1,21 @@
-import { findTrackSet } from "../../state/trackSets";
-import { useTrackSetDrag } from "./trackSetDragState";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PointerEvent, ReactNode } from "react";
 import type { AnyTrackInstance } from "../../../modules/types";
 import { svgPoint } from "../../../modules/utils/svg";
+import { isTrackPinned } from "../../state/trackSets";
 import { useTrackMutationGate, useGenomeBrowser } from "../../state/browserContextState";
 import { useBrowserSvg } from "../../svg/browserSvgState";
 import { getTrackWrapperHeight } from "../layout/trackLayout";
 import { useTrackStack } from "../trackStackContext";
+import { useTrackDrag } from "./trackDragContext";
 import {
   getReorderedTrackIds,
   getReorderPreview,
   isSameReorderPreview,
   type ReorderPreview,
 } from "./reorderMath";
+
 type FrameDragState = {
   onSwapPointerDown?: (event: PointerEvent<SVGRectElement>) => void;
   swapping: boolean;
@@ -40,19 +41,15 @@ export function TrackReorder({
   onPreviewEnd: () => void;
   children: (drag: FrameDragState) => ReactNode;
 }) {
-  const startSetDrag = useTrackSetDrag();
+  const startTrackDrag = useTrackDrag();
   const cloneRef = useRef<SVGGElement>(null);
   const svg = useBrowserSvg();
   const { titleSize } = useTrackStack();
   const { useTrackStore } = useGenomeBrowser();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
-  const isPinned = useTrackStore((state) => {
-    const pinned = new Set(state.pinnedTrackIds);
-    return (
-      pinned.has(track.base.id) ||
-      (findTrackSet(track.base.id, state.trackSets)?.trackIds.some((id) => pinned.has(id)) ?? false)
-    );
-  });
+  const isPinned = useTrackStore((state) =>
+    isTrackPinned(track.base.id, state.trackSets, state.pinnedTrackIds),
+  );
   // Structured layouts share one gesture owner for tracks and parent headers.
   const structuredLayout = useTrackStore(
     (state) => state.trackSets.length > 0 || state.hiddenTrackIds.length > 0,
@@ -176,7 +173,7 @@ export function TrackReorder({
       ? undefined
       : structuredLayout
         ? (event: PointerEvent<SVGRectElement>) =>
-            startSetDrag({ kind: "track", id: track.base.id }, event)
+            startTrackDrag({ kind: "track", id: track.base.id }, event)
         : handleSwapPointerDown;
   const frameProps: FrameDragState = {
     onSwapPointerDown,

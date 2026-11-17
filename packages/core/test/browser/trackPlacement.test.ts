@@ -73,3 +73,21 @@ it("rejects invalid destinations, nested groups and pinned moves without partial
   ).toBe(false);
   expect(useStore.getState().moveTrackItem({ kind: "track", id: "b" }, {}).ok).toBe(false);
 });
+
+it("treats reserved set-name pins as absent tracks and keeps partially pinned neighbors indivisible", () => {
+  const useStore = createStore();
+  useStore.getState().setPinnedTrackIds(["group", "pin"]);
+  expect(useStore.getState().moveTrackSet("group", "down")).toEqual({ ok: true });
+  expect(useStore.getState().order).toEqual(["pin", "outside", "last", "a", "b", "c"]);
+  useStore
+    .getState()
+    .createTrackSet({ id: "other", title: "Other", trackIds: ["outside", "last"] });
+  useStore.getState().setPinnedTrackIds(["pin", "outside"]);
+  const before = useStore.getState();
+  expect(useStore.getState().moveTrackSet("group", "up")).toEqual({ ok: true });
+  expect(useStore.getState().order).toEqual(before.order);
+  expect(
+    useStore.getState().moveTrackItem({ kind: "track", id: "a" }, { beforeTrackId: "last" }).ok,
+  ).toBe(false);
+  expect(useStore.getState().order).toEqual(before.order);
+});

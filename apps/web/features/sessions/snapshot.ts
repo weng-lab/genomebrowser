@@ -1,5 +1,6 @@
-import { regionSchema } from "../browser/region";
 import { z } from "zod";
+import type { TrackSet } from "@weng-lab/genomebrowser";
+import { regionSchema } from "../browser/region";
 
 const highlightStyleSchema = z.strictObject({
   color: z.string().min(1),
@@ -12,46 +13,96 @@ const highlightStyleSchema = z.strictObject({
  * is the session's only assembly value. Runtime store state, actions, and
  * registered modules are not part of a snapshot.
  */
-export const sessionSnapshotSchema = z.strictObject({
-  version: z.literal(1),
-  browser: z.strictObject({
-    assembly: z.string().min(1),
-    region: regionSchema,
-    basePairDetail: z.strictObject({ maxVisibleBases: z.number().int().positive() }),
-    marginWidth: z.number().positive(),
-    trackWidth: z.number().positive(),
-    fontSize: z.number().positive(),
-    titleSize: z.number().positive(),
-    highlights: z.array(
-      highlightStyleSchema.extend({
-        id: z.string().min(1),
-        region: z
-          .strictObject({
-            chromosome: z.string().min(1).optional(),
-            start: z.number().int(),
-            end: z.number().int(),
-          })
-          .refine((region) => region.end > region.start, "end must exceed start"),
+export const sessionSnapshotSchema = z
+  .strictObject({
+    version: z.literal(1),
+    browser: z.strictObject({
+      assembly: z.string().min(1),
+      region: regionSchema,
+      basePairDetail: z.strictObject({ maxVisibleBases: z.number().int().positive() }),
+      marginWidth: z.number().positive(),
+      trackWidth: z.number().positive(),
+      fontSize: z.number().positive(),
+      titleSize: z.number().positive(),
+      highlights: z.array(
+        highlightStyleSchema.extend({
+          id: z.string().min(1),
+          region: z
+            .strictObject({
+              chromosome: z.string().min(1).optional(),
+              start: z.number().int(),
+              end: z.number().int(),
+            })
+            .refine((region) => region.end > region.start, "end must exceed start"),
+        }),
+      ),
+      selectionMode: z.enum(["pan", "zoom", "highlight"]),
+      selectionHighlight: highlightStyleSchema,
+    }),
+    tracks: z.array(
+      z.strictObject({
+        type: z.string().min(1),
+        base: z.strictObject({
+          id: z.string().min(1),
+          title: z.string().min(1),
+          display: z.string().min(1),
+          height: z.number().positive(),
+          color: z.string().regex(/^#[0-9a-f]{6}$/i),
+        }),
+        config: z.record(z.string(), z.json()),
+        source: z.enum(["host", "user"]),
       }),
     ),
-    selectionMode: z.enum(["pan", "zoom", "highlight"]),
-    selectionHighlight: highlightStyleSchema,
-  }),
-  tracks: z.array(
-    z.strictObject({
-      type: z.string().min(1),
-      base: z.strictObject({
-        id: z.string().min(1),
-        title: z.string().min(1),
-        display: z.string().min(1),
-        height: z.number().positive(),
-        color: z.string().regex(/^#[0-9a-f]{6}$/i),
-      }),
-      config: z.record(z.string(), z.json()),
-      source: z.enum(["host", "user"]),
-    }),
-  ),
-  pinnedTrackIds: z.array(z.string().min(1)),
-});
+    pinnedTrackIds: z.array(z.string().min(1)),
+    // Omitted fields describe older sessions and an empty track-set/visibility state.
+    trackSets: z
+      .array(
+        z.strictObject({
+          id: z.string().min(1),
+          title: z.string().trim().min(1),
+          trackIds: z.array(z.string().min(1)).min(1),
+          visible: z.boolean(),
+        }) satisfies z.ZodType<TrackSet>,
+      )
+      .optional(),
+    hiddenTrackIds: z.array(z.string().min(1)).optional(),
+  })
+  .superRefine((snapshot, context) => {
+    const trackIds = new Set(snapshot.tracks.map((track) => track.base.id));
+    const trackSetIds = new Set<string>();
+    const members = new Set<string>();
+    for (const [index, trackSet] of (snapshot.trackSets ?? []).entries()) {
+      if (trackSetIds.has(trackSet.id) || trackIds.has(trackSet.id)) {
+        context.addIssue({
+          code: "custom",
+          path: ["trackSets", index, "id"],
+          message: "Track set IDs must be unique and differ from track IDs",
+        });
+      }
+      trackSetIds.add(trackSet.id);
+      for (const [childIndex, id] of trackSet.trackIds.entries()) {
+        if (!trackIds.has(id) || members.has(id)) {
+          context.addIssue({
+            code: "custom",
+            path: ["trackSets", index, "trackIds", childIndex],
+            message:
+              "Each track set member must be an existing track belonging to only one track set",
+          });
+        }
+        members.add(id);
+      }
+    }
+    const hidden = new Set<string>();
+    for (const [index, id] of (snapshot.hiddenTrackIds ?? []).entries()) {
+      if (!trackIds.has(id) || hidden.has(id)) {
+        context.addIssue({
+          code: "custom",
+          path: ["hiddenTrackIds", index],
+          message: "Hidden track IDs must be unique existing tracks",
+        });
+      }
+      hidden.add(id);
+    }
+  });
 
 export type SessionSnapshot = z.infer<typeof sessionSnapshotSchema>;

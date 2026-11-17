@@ -35,7 +35,7 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 | `MutationFailure`, `TrackMutationErrorCode`, `TrackMutationResult`                  | [Mutation results](01-browserSetup/trackStore.md#mutation-results)                                                   |
 | `TrackUpdate`, `TrackBaseUpdate`                                                    | [Update patches](01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate)                                      |
 
-Track sets: [`TrackSet`, `TrackSetInput`, `TrackSetSettingsProps`](01-browserSetup/trackSets.md). Hosted forms: [`TrackSettingsPanel`](03-trackDefinition/trackSettings.md#tracksettingspanel).
+Track sets: [`TrackSet`, `TrackSetInput`](01-browserSetup/trackSets.md). Hosted forms: [`TrackSettingsPanel`](03-trackDefinition/trackSettings.md#tracksettingspanel).
 
 ### Assemblies and regions
 

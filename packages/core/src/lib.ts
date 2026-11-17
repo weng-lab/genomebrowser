@@ -21,6 +21,8 @@ export type {
 } from "./browser/state/browserStore";
 export { createTrackStore } from "./browser/state/trackStore";
 export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
+export type { TrackSet, TrackSetInput } from "./browser/state/trackSets";
+export type { TrackMoveSource, TrackMoveDestination } from "./browser/state/trackPlacement";
 export type { ModuleRegistry } from "./modules/registry";
 export { useGenomeBrowser } from "./browser/state/browserContextState";
 export type { GenomeBrowserStores } from "./browser/state/browserContextState";
@@ -53,6 +55,7 @@ export {
 export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
 
 // Track definition
+export { TrackSettingsPanel } from "./browser/settings/TrackSettingsPanel";
 export { defineTrackModule } from "./modules/defineTrackModule";
 export { fetchOnChange } from "./modules/fetchOnChange";
 export type {
@@ -111,9 +114,3 @@ export type {
   TrackCollectionColumn,
   TrackMetadata,
 } from "./collections/collectionSchema";
-
-export type { TrackSet, TrackSetInput, TrackSetSettingsProps } from "./browser/state/trackSets";
-
-export { TrackSettingsPanel } from "./browser/settings/TrackSettingsPanel";
-
-export type { TrackMoveSource, TrackMoveDestination } from "./browser/state/trackPlacement";

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { findTrackSet, isTrackPinned, isTrackSetPinned } from "../state/trackSets";
 import {
   useContextMenuStore,
   useRegistry,
@@ -124,7 +125,7 @@ export function ContextMenuController() {
         />
       ))}
       {displayOptions.length > 0 && <div style={separatorStyle} />}
-      <TrackGroupMenuItems
+      <TrackSetMenuItems
         trackId={trackId}
         disabled={isInteractionBlocked}
         onComplete={closeContextMenu}
@@ -141,7 +142,7 @@ export function ContextMenuController() {
   );
 }
 
-function TrackGroupMenuItems({
+function TrackSetMenuItems({
   trackId,
   disabled,
   onComplete,
@@ -151,36 +152,40 @@ function TrackGroupMenuItems({
   onComplete: () => void;
 }) {
   const { useTrackStore } = useGenomeBrowser();
-  const sets = useTrackStore((state) => state.trackSets);
+  const trackSets = useTrackStore((state) => state.trackSets);
   const pinnedIds = useTrackStore((state) => state.pinnedTrackIds);
   const move = useTrackStore((state) => state.moveTrackItem);
-  const owner = sets.find((set) => set.trackIds.includes(trackId));
+  const trackSet = findTrackSet(trackId, trackSets);
   const pinned = new Set(pinnedIds);
-  const locked = disabled || pinned.has(trackId) || !!owner?.trackIds.some((id) => pinned.has(id));
+  const locked = disabled || isTrackPinned(trackId, trackSets, pinnedIds);
   const select = (trackSetId?: string) => {
     const state = useTrackStore.getState();
-    const members = new Set(owner?.trackIds);
+    const members = new Set(trackSet?.trackIds);
     const last = state.order.findLastIndex((id) => members.has(id));
-    const beforeTrackId = trackSetId === undefined && owner ? state.order[last + 1] : undefined;
+    const beforeTrackId = trackSetId === undefined && trackSet ? state.order[last + 1] : undefined;
     if (move({ kind: "track", id: trackId }, { trackSetId, beforeTrackId }).ok) onComplete();
   };
+
   return (
     <>
-      {sets
-        .filter((set) => set.id !== owner?.id)
-        .map((set) => (
+      {trackSets
+        .filter((candidate) => candidate.id !== trackSet?.id)
+        .map((candidate) => (
           <MenuButton
-            key={set.id}
-            label={`Move to group: ${set.title}`}
-            disabled={locked || set.trackIds.some((id) => pinned.has(id))}
-            onClick={() => select(set.id)}
+            key={candidate.id}
+            label={`Move to track set: ${candidate.title}`}
+            disabled={locked || isTrackSetPinned(candidate, pinned)}
+            onClick={() => select(candidate.id)}
           />
         ))}
-      {owner && <MenuButton label="Remove from group" disabled={locked} onClick={() => select()} />}
-      {!!sets.length && <div style={separatorStyle} />}
+      {trackSet && (
+        <MenuButton label="Remove from track set" disabled={locked} onClick={() => select()} />
+      )}
+      {!!trackSets.length && <div style={separatorStyle} />}
     </>
   );
 }
+
 function MenuButton({
   label,
   selected = false,

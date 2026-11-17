@@ -1,6 +1,7 @@
-import { findTrackSet } from "../../state/trackSets";
+import { useShallow } from "zustand/react/shallow";
 import { useRef } from "react";
 import type { AnyTrackInstance } from "../../../modules/types";
+import { findTrackSet, isTrackPinned, getTrackBlocks } from "../../state/trackSets";
 import {
   useSettingsStore,
   useTrackMutationGate,
@@ -20,18 +21,27 @@ export function TrackControls({
   const { useTrackStore } = useGenomeBrowser();
   const settingsButtonRef = useRef<SVGGElement>(null);
   const openSettings = useSettingsStore((state) => state.openSettings);
-  const order = useTrackStore((state) => state.order);
-  const pinnedTrackIds = useTrackStore((state) => state.pinnedTrackIds);
   const moveTrackItem = useTrackStore((state) => state.moveTrackItem);
-  const group = useTrackStore((state) => findTrackSet(track.base.id, state.trackSets));
+  const trackSet = useTrackStore((state) => findTrackSet(track.base.id, state.trackSets));
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const trackId = track.base.id;
-  const index = order.indexOf(trackId);
-  const pinned = new Set(pinnedTrackIds);
-  const members = group ? new Set(group.trackIds) : undefined;
-  const scope = order.filter((id) => (members ? members.has(id) : !pinned.has(id)));
-  const canMove =
-    !isInteractionBlocked && !pinned.has(trackId) && !group?.trackIds.some((id) => pinned.has(id));
+  const isPinned = useTrackStore((state) =>
+    isTrackPinned(trackId, state.trackSets, state.pinnedTrackIds),
+  );
+  const scope = useTrackStore(
+    useShallow((state) => {
+      const trackSet = findTrackSet(trackId, state.trackSets);
+      if (trackSet) {
+        const members = new Set(trackSet.trackIds);
+        return state.order.filter((id) => members.has(id));
+      }
+      return getTrackBlocks(state)
+        .filter((block) => !block.pinned)
+        .flatMap((block) => block.trackIds);
+    }),
+  );
+  const index = scope.indexOf(trackId);
+  const canMove = !isInteractionBlocked && !isPinned;
   const canMoveTop = canMove && index >= 0 && trackId !== scope[0];
   const canMoveBottom = canMove && index >= 0 && trackId !== scope.at(-1);
   const controlsCenterY = wrapperHeight / 2;
@@ -41,7 +51,7 @@ export function TrackControls({
     runTrackMutation(() =>
       moveTrackItem(
         { kind: "track", id: trackId },
-        { trackSetId: group?.id, beforeTrackId: target === "top" ? scope[0] : undefined },
+        { trackSetId: trackSet?.id, beforeTrackId: target === "top" ? scope[0] : undefined },
       ),
     );
   };

@@ -102,7 +102,11 @@ it("hides set children from layout and fetch demand without destroying their set
   expect(fetch).toHaveBeenCalledTimes(1);
   expect(document.querySelectorAll("[data-track-id]")).toHaveLength(1);
   expect(document.querySelector('[data-track-set-id="set"]')).not.toBeNull();
+  const outline = () => document.querySelector<SVGRectElement>('[data-track-set-outline="set"]');
+  expect(outline()).not.toBeNull();
+  expect(outline()!.getAttribute("height")).toBe("31");
   await probe.measure(() => useTrackStore.getState().updateTrackSet("set", { visible: true }));
+  expect(outline()!.getAttribute("height")).toBe("142");
   expect(fetch).toHaveBeenCalledTimes(4);
   expect(document.querySelectorAll("[data-track-id]")).toHaveLength(4);
   const renamed = await probe.measure(() =>
@@ -120,12 +124,17 @@ it("hides set children from layout and fetch demand without destroying their set
   `);
   await probe.measure(() => useTrackStore.getState().setTrackVisibility("two", false));
   expect(document.querySelector('[data-track-id="two"]')).toBeNull();
+  expect(outline()!.getAttribute("height")).toBe("105");
   expect(useTrackStore.getState().getTrack("two")!.config).toEqual({ value: 2 });
   await probe.measure(() => useTrackStore.getState().updateTrackSet("set", { visible: false }));
   await probe.measure(() => useTrackStore.getState().updateTrackSet("set", { visible: true }));
   expect(fetch).toHaveBeenCalledTimes(4);
   expect(document.querySelectorAll("[data-track-id]")).toHaveLength(3);
+  expect(outline()!.getAttribute("height")).toBe("105");
+  await probe.measure(() => useTrackStore.getState().updateTrack("one", { base: { height: 40 } }));
+  expect(outline()!.getAttribute("height")).toBe("125");
   await probe.measure(() => useTrackStore.getState().ungroupTrackSet("set"));
+  expect(outline()).toBeNull();
   expect(document.querySelector('[data-track-set-id="set"]')).toBeNull();
   expect(document.querySelectorAll("[data-track-id]")).toHaveLength(3);
 });
@@ -219,13 +228,13 @@ it("previews and commits membership drags without refetching, and cancels stale 
     );
   await probe.measure(start);
   const preview = await probe.measure(() => pointer("pointermove", y("two") + 1));
-  expect(preview.pick("BrowserCanvas", "TrackStack", "TrackRow", "Signal", "TrackSetDragOverlay"))
+  expect(preview.pick("BrowserCanvas", "TrackStack", "TrackRow", "Signal", "TrackDragOverlay"))
     .toMatchInlineSnapshot(`
    {
      "BrowserCanvas": 0,
      "Signal": 0,
+     "TrackDragOverlay": 1,
      "TrackRow": 0,
-     "TrackSetDragOverlay": 1,
      "TrackStack": 0,
    }
  `);
@@ -266,10 +275,69 @@ it("previews and commits membership drags without refetching, and cancels stale 
     handle.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
   });
   const remove = [...document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')].find(
-    (button) => button.textContent === "Remove from group",
+    (button) => button.textContent === "Remove from track set",
   )!;
   await probe.measure(() => remove.click());
   expect(useTrackStore.getState().trackSets[0].trackIds).not.toContain("outside");
   expect(document.querySelector('[data-signal="4"]')).not.toBeNull();
   expect(fetch).toHaveBeenCalledTimes(4);
+});
+
+it("moves and pins the whole set from accessible header controls while respecting pinned boundaries", async () => {
+  const pinned = module.create({
+    base: { id: "pinned", title: "Pinned", height: 20 },
+    config: { value: 5 },
+  });
+  const useTrackStore = createTrackStore({
+    modules: [module],
+    tracks: [pinned, tracks[3], ...tracks.slice(0, 3)],
+    pinnedTrackIds: ["pinned"],
+    trackSets: [
+      { id: "set", title: "Signals", trackIds: ["one", "two"] },
+      { id: "other", title: "Other", trackIds: ["three"] },
+    ],
+  });
+  const useBrowserStore = createBrowserStore({
+    assembly: { id: "test", chromosomes: { chr1: 10000 } },
+    region: { chromosome: "chr1", start: 1000, end: 2000 },
+    trackWidth: 800,
+  });
+  probe = await renderWithProbe(
+    <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
+  );
+  const button = (label: string) => document.querySelector<SVGGElement>(`[aria-label="${label}"]`)!;
+  const click = (label: string) =>
+    button(label).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  expect(button("Move track set Signals down")).not.toBeNull();
+  await probe.measure(() => click("Move track set Signals down"));
+  expect(useTrackStore.getState().order).toEqual(["pinned", "outside", "three", "one", "two"]);
+  expect(button("Move track set Signals down").getAttribute("aria-disabled")).toBe("true");
+  await probe.measure(() =>
+    button("Move track set Signals up").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    ),
+  );
+  expect(useTrackStore.getState().order).toEqual(["pinned", "outside", "one", "two", "three"]);
+  await probe.measure(() => click("Move track set Signals up"));
+  expect(useTrackStore.getState().order).toEqual(["pinned", "one", "two", "outside", "three"]);
+  expect(button("Move track set Signals up").getAttribute("aria-disabled")).toBe("true");
+  await probe.measure(() => click("Move track set Signals up"));
+  expect(useTrackStore.getState().order).toEqual(["pinned", "one", "two", "outside", "three"]);
+  await probe.measure(() =>
+    button("Pin track set Signals").dispatchEvent(
+      new KeyboardEvent("keydown", { key: " ", bubbles: true }),
+    ),
+  );
+  expect(useTrackStore.getState().pinnedTrackIds).toEqual(["pinned", "one", "two"]);
+  expect(button("Unpin track set Signals").getAttribute("aria-pressed")).toBe("true");
+  expect(button("Move track set Signals down").getAttribute("aria-disabled")).toBe("true");
+  await probe.measure(() => click("Move track set Signals down"));
+  expect(useTrackStore.getState().order).toEqual(["pinned", "one", "two", "outside", "three"]);
+  await probe.measure(() => click("Unpin track set Signals"));
+  expect(useTrackStore.getState().pinnedTrackIds).toEqual(["pinned"]);
+  await probe.measure(() => click("Hide track set Signals"));
+  await probe.measure(() => click("Move track set Signals down"));
+  expect(useTrackStore.getState().order).toEqual(["pinned", "outside", "one", "two", "three"]);
+  expect(document.querySelector('[data-track-id="one"]')).toBeNull();
+  expect(fetch).toHaveBeenCalledTimes(5);
 });

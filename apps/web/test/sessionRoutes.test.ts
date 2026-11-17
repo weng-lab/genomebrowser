@@ -40,7 +40,12 @@ describe.skipIf(!testServerUrl)("session routes", () => {
 
   it("creates, lists, loads, saves, and deletes the acting user's sessions", async () => {
     await as("user_alice");
-    const created = await create({ name: "Promoter scan", snapshot: snapshot() });
+    const grouped = {
+      ...snapshot(),
+      trackSets: [{ id: "signals", title: "Signals", trackIds: ["signal"], visible: true }],
+      hiddenTrackIds: ["signal"],
+    };
+    const created = await create({ name: "Promoter scan", snapshot: grouped });
     expect(created.status).toBe(200);
     expect(created.headers.get("cache-control")).toBe("no-store");
     const session = await created.json();
@@ -55,7 +60,7 @@ describe.skipIf(!testServerUrl)("session routes", () => {
     });
 
     expect(await (await collection.GET()).json()).toEqual([session]);
-    expect(await (await load(session.id)).json()).toEqual({ ...session, snapshot: snapshot() });
+    expect(await (await load(session.id)).json()).toEqual({ ...session, snapshot: grouped });
 
     const edited = snapshot({ region: { chromosome: "chr3", start: 10, end: 20 } });
     const write = { name: "Renamed", snapshot: edited, revision: 1, saveId: crypto.randomUUID() };

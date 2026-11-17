@@ -1,55 +1,53 @@
 import { useId, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
-  MenuItem,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import {
-  TrackSettingsPanel,
-  useGenomeBrowser,
-  type TrackMutationResult,
-  type TrackSetSettingsProps,
-} from "@weng-lab/genomebrowser";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import SvgIcon from "@mui/material/SvgIcon";
+import type { TrackMutationResult } from "../../modules/types";
+import { useGenomeBrowser } from "../state/browserContextState";
+import { getTrackSet } from "../state/trackSets";
+import { TrackSettingsPanel } from "./TrackSettingsPanel";
 
-/** Host this component through GenomeBrowser.trackSetSettingsComponent. */
-export function TrackSetSettings({ trackSetId, closeSettings }: TrackSetSettingsProps) {
+/** Built-in track-set settings, mounted by the browser. */
+export function DefaultTrackSetSettings({
+  trackSetId,
+  closeSettings,
+}: {
+  trackSetId: string;
+  closeSettings: () => void;
+}) {
   const { useTrackStore } = useGenomeBrowser();
-  const group = useTrackStore((state) => state.trackSets.find((set) => set.id === trackSetId));
+  const trackSet = useTrackStore((state) => getTrackSet(trackSetId, state.trackSets));
   const order = useTrackStore((state) => state.order);
-  const pinned = useTrackStore((state) => state.pinnedTrackIds);
   const update = useTrackStore((state) => state.updateTrackSet);
-  const move = useTrackStore((state) => state.moveTrackSet);
-  const ungroup = useTrackStore((state) => state.ungroupTrackSet);
-  const setPinned = useTrackStore((state) => state.setPinnedTrackIds);
+  const removeTrackSet = useTrackStore((state) => state.ungroupTrackSet);
   const [error, setError] = useState("");
   const titleId = useId();
-  const members = useMemo(() => new Set(group?.trackIds), [group]);
-  const pinnedIds = useMemo(() => new Set(pinned), [pinned]);
+  const members = useMemo(() => new Set(trackSet?.trackIds), [trackSet]);
   const childIds = useMemo(() => order.filter((id) => members.has(id)), [order, members]);
-  if (!group) return null;
+
+  if (!trackSet) return null;
+
   const report = (result: TrackMutationResult) => setError(result.ok ? "" : result.error);
-  const isPinned = childIds.some((id) => pinnedIds.has(id));
-  const first = order.indexOf(childIds[0]);
-  const last = order.indexOf(childIds.at(-1)!);
+
   return (
     <Dialog open onClose={closeSettings} fullWidth maxWidth="sm" aria-labelledby={titleId}>
-      <DialogTitle id={titleId}>{group.title}</DialogTitle>
+      <DialogTitle id={titleId}>{trackSet.title}</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2}>
           {error && <Alert severity="error">{error}</Alert>}
@@ -57,56 +55,31 @@ export function TrackSetSettings({ trackSetId, closeSettings }: TrackSetSettings
             label="Show track set"
             control={
               <Switch
-                checked={group.visible}
-                onChange={(_, visible) => report(update(group.id, { visible }))}
+                checked={trackSet.visible}
+                onChange={(_, visible) => report(update(trackSet.id, { visible }))}
               />
             }
           />
-          <TrackSetDisplay trackSetId={group.id} />
-          <FormControlLabel
-            label="Pin track set"
-            control={
-              <Checkbox
-                checked={isPinned}
-                onChange={(_, checked) =>
-                  report(
-                    setPinned(
-                      checked ? [...pinned, ...childIds] : pinned.filter((id) => !members.has(id)),
-                    ),
-                  )
-                }
-              />
-            }
-          />
+          <TrackSetDisplay trackSetId={trackSet.id} />
           <Typography variant="body2" color="text.secondary">
-            Each child keeps its own data and settings. Hide the set to pause its data requests.
+            Each child keeps its own data and settings. Hide the track set to pause its data
+            requests.
           </Typography>
           {childIds.map((id) => (
-            <TrackSetChild key={id} trackId={id} scopeTrackIds={group.trackIds} />
+            <TrackSetChild key={id} trackId={id} scopeTrackIds={trackSet.trackIds} />
           ))}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ flexWrap: "wrap", gap: 1 }}>
         <Button
-          disabled={isPinned || first <= 0 || pinnedIds.has(order[first - 1])}
-          onClick={() => report(move(group.id, "up"))}
-        >
-          Move up
-        </Button>
-        <Button
-          disabled={isPinned || last === order.length - 1}
-          onClick={() => report(move(group.id, "down"))}
-        >
-          Move down
-        </Button>
-        <Button
+          title="Keep all member tracks as standalone tracks"
           onClick={() => {
-            const result = ungroup(group.id);
+            const result = removeTrackSet(trackSet.id);
             report(result);
             if (result.ok) closeSettings();
           }}
         >
-          Ungroup
+          Remove track set
         </Button>
         <Button onClick={closeSettings}>Close</Button>
       </DialogActions>
@@ -115,9 +88,9 @@ export function TrackSetSettings({ trackSetId, closeSettings }: TrackSetSettings
 }
 function TrackSetDisplay({ trackSetId }: { trackSetId: string }) {
   const { useTrackStore, useBrowserStore } = useGenomeBrowser();
-  const group = useTrackStore((state) => state.trackSets.find((set) => set.id === trackSetId));
+  const trackSet = useTrackStore((state) => getTrackSet(trackSetId, state.trackSets));
   const registry = useTrackStore((state) => state.registry);
-  const members = useMemo(() => new Set(group?.trackIds), [group]);
+  const members = useMemo(() => new Set(trackSet?.trackIds), [trackSet]);
   const types = useTrackStore(
     useShallow((state) =>
       state.tracks.filter((track) => members.has(track.base.id)).map((track) => track.type),
@@ -185,7 +158,13 @@ function TrackSetChild({
         onChange={(_, checked) => setVisibility(trackId, checked)}
       />
       <Accordion disableGutters sx={{ flex: 1, minWidth: 0 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <AccordionSummary
+          expandIcon={
+            <SvgIcon>
+              <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
+            </SvgIcon>
+          }
+        >
           <Typography variant="body2">{title}</Typography>
         </AccordionSummary>
         <AccordionDetails>

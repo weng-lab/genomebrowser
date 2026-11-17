@@ -1,7 +1,6 @@
 import { TrackDownloadControls } from "../download/TrackDownloadControls";
 import { DefaultSettingsModal } from "../settings/DefaultSettingsModal";
-import type { ComponentType } from "react";
-import type { TrackSetSettingsProps } from "../state/trackSets";
+import { DefaultTrackSetSettings } from "../settings/DefaultTrackSetSettings";
 import { TrackSettingsPanel } from "../settings/TrackSettingsPanel";
 import {
   useSettingsStore,
@@ -10,9 +9,7 @@ import {
   useGenomeBrowser,
 } from "../state/browserContextState";
 
-export function SettingsModalController({
-  trackSetSettingsComponent: TrackSetSettings,
-}: { trackSetSettingsComponent?: ComponentType<TrackSetSettingsProps> } = {}) {
+export function SettingsModalController() {
   const trackSetId = useSettingsStore((state) => state.trackSetId);
   const trackId = useSettingsStore((state) => state.trackId);
   const position = useSettingsStore((state) => state.position);
@@ -22,9 +19,13 @@ export function SettingsModalController({
   const registry = useRegistry();
   const { isInteractionBlocked } = useTrackMutationGate();
 
-  if (trackSetId && TrackSetSettings)
+  if (trackSetId)
     return (
-      <TrackSetSettings key={trackSetId} trackSetId={trackSetId} closeSettings={closeSettings} />
+      <DefaultTrackSetSettings
+        key={trackSetId}
+        trackSetId={trackSetId}
+        closeSettings={closeSettings}
+      />
     );
   if (!trackId || !trackType) return null;
 

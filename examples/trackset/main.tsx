@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@mui/material";
 import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
-import { TrackSetSettings } from "@weng-lab/genomebrowser-ui";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
@@ -82,7 +81,9 @@ const useTrackStore = createTrackStore({
 });
 const theme = createTheme();
 function App() {
-  const grouped = useTrackStore((state) => state.trackSets.some((set) => set.id === "regulatory"));
+  const hasRegulatorySet = useTrackStore((state) =>
+    state.trackSets.some((trackSet) => trackSet.id === "regulatory"),
+  );
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -90,10 +91,11 @@ function App() {
         <Stack spacing={2}>
           <Typography variant="h5">Regulatory tracks</Typography>
           <Typography variant="body2" color="text.secondary">
-            Regulatory data groups two BigWig signals and one BigBed track. A second group, cCRE
+            Regulatory data groups two BigWig signals and one BigBed track. A second track set, cCRE
             annotations, contains only Human and HepG2 cCRE BigBeds. Standalone CTCF and HepG2 cCRE
-            tracks remain outside both groups. Drag a track's left margin between groups or outside
-            them, or drag a group title to move it. The blue line shows the drop destination.
+            tracks remain outside both track sets. Drag a track's left margin between track sets or
+            outside them, or drag a track-set title to move it. The highlighted line shows the drop
+            destination.
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             <Button variant="outlined" onClick={() => useBrowserStore.getState().setRegion(home)}>
@@ -111,7 +113,7 @@ function App() {
             </Button>
             <Button
               variant="outlined"
-              disabled={grouped}
+              disabled={hasRegulatorySet}
               onClick={() =>
                 useTrackStore.getState().createTrackSet({
                   id: "regulatory",
@@ -120,15 +122,11 @@ function App() {
                 })
               }
             >
-              Regroup tracks
+              Create regulatory track set
             </Button>
           </Stack>
           <Box sx={{ minWidth: 0 }}>
-            <GenomeBrowser
-              browserStore={useBrowserStore}
-              trackStore={useTrackStore}
-              trackSetSettingsComponent={TrackSetSettings}
-            />
+            <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
           </Box>
         </Stack>
       </Container>

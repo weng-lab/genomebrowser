@@ -8,8 +8,8 @@ import {
   createTrackStore,
   defineTrackModule,
   type TrackSettingsProps,
-} from "@weng-lab/genomebrowser";
-import { TrackSetSettings } from "../src/lib";
+} from "../../src/lib";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 function Settings({
   track,
@@ -73,22 +73,20 @@ it.each(["mixed", "same"])(
       trackWidth: 800,
     });
     probe = await renderWithProbe(
-      <GenomeBrowser
-        sizing="fixed"
-        browserStore={useBrowserStore}
-        trackStore={useTrackStore}
-        trackSetSettingsComponent={TrackSetSettings}
-      />,
+      <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
     );
+    expect(
+      document.querySelector('[aria-label="Settings for track set Regulatory data"]'),
+    ).not.toBeNull();
     const opened = await probe.measure(() =>
       document
         .querySelector<SVGGElement>('[aria-label="Settings for track set Regulatory data"]')!
         .dispatchEvent(new MouseEvent("click", { bubbles: true })),
     );
-    expect(opened.pick("TrackSetSettings", "Signal")).toMatchInlineSnapshot(`
+    expect(opened.pick("DefaultTrackSetSettings", "Signal")).toMatchInlineSnapshot(`
     {
+      "DefaultTrackSetSettings": 1,
       "Signal": 0,
-      "TrackSetSettings": 1,
     }
   `);
     expect(document.querySelector('[role="dialog"]')).not.toBeNull();
@@ -131,7 +129,7 @@ it.each(["mixed", "same"])(
       mixedOptions.find((option) => option.textContent === "dense")!.click(),
     );
     const ungroup = [...document.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Ungroup",
+      (button) => button.textContent === "Remove track set",
     )!;
     await probe.measure(() => ungroup.click());
     expect(useTrackStore.getState().trackSets).toEqual([]);
@@ -139,3 +137,120 @@ it.each(["mixed", "same"])(
     expect(useTrackStore.getState().hiddenTrackIds).toEqual(["two"]);
   },
 );
+
+function groupStores() {
+  return {
+    browserStore: createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 10000 } },
+      region: { chromosome: "chr1", start: 0, end: 1000 },
+      trackWidth: 800,
+    }),
+    trackStore: createTrackStore({
+      modules: [signal],
+      tracks: [
+        signal.create({
+          base: { id: "one", title: "Signal one", color: "#00b3cc" },
+          config: { label: "One" },
+        }),
+      ],
+      trackSets: [{ id: "set", title: "Signals", trackIds: ["one"] }],
+    }),
+  };
+}
+
+it("inherits the host theme for group chrome and the default dialog without changing scientific colors", async () => {
+  const stores = groupStores();
+  const light = createTheme({
+    palette: {
+      mode: "light",
+      background: { paper: "#fafafa" },
+      divider: "#526374",
+      text: { primary: "#123456" },
+    },
+    typography: { fontFamily: "Georgia" },
+  });
+  const dark = createTheme({
+    palette: {
+      mode: "dark",
+      background: { paper: "#101820" },
+      divider: "#789abc",
+      text: { primary: "#e0e8f0" },
+    },
+    typography: { fontFamily: "Georgia" },
+  });
+  const tree = (theme: typeof light) => (
+    <ThemeProvider theme={theme}>
+      <GenomeBrowser sizing="fixed" {...stores} />
+    </ThemeProvider>
+  );
+  probe = await renderWithProbe(tree(light));
+  const header = () => document.querySelector<SVGGElement>('[data-track-set-id="set"]')!;
+  const outline = () => document.querySelector('[data-track-set-outline="set"]')!;
+  expect(header().querySelector("rect")!.getAttribute("fill")).toBe("#fafafa");
+  expect(outline().getAttribute("stroke")).toBe("#526374");
+  expect(header().style.color).toBe("rgb(18, 52, 86)");
+  expect(header().style.fontFamily).toBe("Georgia");
+  await probe.measure(() => probe!.rerender(tree(dark)));
+  expect(header().querySelector("rect")!.getAttribute("fill")).toBe("#101820");
+  expect(outline().getAttribute("stroke")).toBe("#789abc");
+  expect(header().style.color).toBe("rgb(224, 232, 240)");
+  expect(stores.trackStore.getState().getTrack("one")!.base.color).toBe("#00b3cc");
+  await probe.measure(() =>
+    document
+      .querySelector('[aria-label="Settings for track set Signals"]')!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+  );
+  expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+  expect(getComputedStyle(document.querySelector(".MuiDialog-paper")!).backgroundColor).toBe(
+    "rgb(16, 24, 32)",
+  );
+});
+
+it("uses the host palette for a track-set drag preview and cancels it without changing membership", async () => {
+  const stores = groupStores();
+  const theme = createTheme({
+    palette: { mode: "dark", primary: { main: "#b744aa" }, background: { paper: "#101820" } },
+  });
+  probe = await renderWithProbe(
+    <ThemeProvider theme={theme}>
+      <GenomeBrowser sizing="fixed" {...stores} />
+    </ThemeProvider>,
+  );
+  const svg = document.querySelector<SVGSVGElement>('svg[aria-label="Genome browser"]')!;
+  const point = {
+    x: 0,
+    y: 0,
+    matrixTransform() {
+      return { x: this.x, y: this.y };
+    },
+  };
+  Object.assign(svg, {
+    createSVGPoint: () => point,
+    getScreenCTM: () => ({ inverse: () => ({}) }),
+  });
+  const pointer = (type: string, y: number, target: EventTarget) => {
+    const event = new MouseEvent(type, {
+      clientX: 20,
+      clientY: y,
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+    });
+    Object.defineProperties(event, { pointerId: { value: 1 }, isPrimary: { value: true } });
+    target.dispatchEvent(event);
+  };
+  await probe.measure(() =>
+    pointer("pointerdown", 10, document.querySelector('[data-track-set-drag-handle="set"]')!),
+  );
+  const bottom = Number(svg.getAttribute("viewBox")!.split(" ")[3]) + 10;
+  await probe.measure(() => pointer("pointermove", bottom, document));
+  const preview = document.querySelector("[data-track-drop-preview]")!;
+  expect(preview).not.toBeNull();
+  expect(preview.querySelector("line")!.getAttribute("stroke")).toBe("#b744aa");
+  expect(preview.querySelector("rect")!.getAttribute("fill")).toBe("#101820");
+  await probe.measure(() =>
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  expect(document.querySelector("[data-track-drop-preview]")).toBeNull();
+  expect(stores.trackStore.getState().trackSets[0].trackIds).toEqual(["one"]);
+});

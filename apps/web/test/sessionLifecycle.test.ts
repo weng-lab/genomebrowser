@@ -960,3 +960,35 @@ it("stops retrying a lost write once its session is deleted", async () => {
   expect(writes()).toEqual(["PUT", "DELETE"]);
   expect(server.stored.has(id)).toBe(false);
 });
+
+it("autosaves groups and visibility, restores them across switches, and keeps them in copies", async () => {
+  const id = server.add("Grouped session", defaults());
+  const other = server.add("Legacy session", defaults());
+  await state().open(id);
+  stores()
+    .useTrackStore.getState()
+    .createTrackSet({ id: "annotations", title: "Annotations", trackIds: ["genes", "ccres"] });
+  stores().useTrackStore.getState().setTrackVisibility("ccres", false);
+  stores().useTrackStore.getState().updateTrackSet("annotations", { visible: false });
+  expect(state().saveStatus).toBe("saving");
+  await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+  const saved = server.stored.get(id)!.snapshot;
+  expect(saved).toMatchObject({
+    trackSets: [
+      { id: "annotations", title: "Annotations", trackIds: ["genes", "ccres"], visible: false },
+    ],
+    hiddenTrackIds: ["ccres"],
+  });
+  await state().open(other);
+  expect(stores().useTrackStore.getState().trackSets).toEqual([]);
+  expect(stores().useTrackStore.getState().hiddenTrackIds).toEqual([]);
+  await state().open(id);
+  expect(snapshot(stores())).toEqual(saved);
+  stores().useTrackStore.getState().updateTrackSet("annotations", { visible: true });
+  await state().copy(id);
+  expect(state().active!.id).not.toBe(id);
+  expect(server.stored.get(state().active!.id)!.snapshot).toMatchObject({
+    trackSets: [{ id: "annotations", visible: true }],
+    hiddenTrackIds: ["ccres"],
+  });
+});

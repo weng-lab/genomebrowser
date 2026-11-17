@@ -751,3 +751,39 @@ it("budgets session readers when the open session changes", async () => {
     }
   `);
 });
+
+it("renders saved groups and their settings and autosaves header visibility changes", async () => {
+  const id = server.add("Grouped session", {
+    ...defaults(),
+    trackSets: [
+      { id: "annotations", title: "Annotations", trackIds: ["genes", "ccres"], visible: false },
+    ],
+    hiddenTrackIds: ["ccres"],
+  });
+  await visit(`/browser/${id}`);
+  await vi.waitFor(() =>
+    expect(document.querySelector('[data-track-set-id="annotations"]')).not.toBeNull(),
+  );
+  expect(document.querySelector('[data-track-id="genes"]')).toBeNull();
+  const settings = document.querySelector('[aria-label="Settings for track set Annotations"]');
+  expect(settings).not.toBeNull();
+  await act(async () => {
+    settings!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await vi.waitFor(() =>
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain("Annotations"),
+  );
+  await click(withText('[role="dialog"] button', "Close"));
+  await act(async () => {
+    document
+      .querySelector('[aria-label="Show track set Annotations"]')!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await act(async () => {
+    await vi.waitFor(() =>
+      expect(server.stored.get(id)!.snapshot.trackSets?.[0].visible).toBe(true),
+    );
+  });
+  expect(document.querySelector('[data-track-id="genes"]')).not.toBeNull();
+  expect(document.querySelector('[data-track-id="ccres"]')).toBeNull();
+});

@@ -28,4 +28,4 @@ How to run and extend the app: `apps/web/README.md`. Product scope: [product](pr
 
 ## Prototype: track sets
 
-The first one-level track-set implementation keeps membership, ordering, effective visibility and fetch cancellation in core. UI supplies the MUI parent settings dialog through a core component slot, and track modules retain their existing settings and rendering. This prototype does not settle nesting, signal overlays or inherited settings. BulkBed remains a distinct multi-dataset visualization, not the runtime group owner.
+The first one-level track-set implementation keeps membership, ordering, effective visibility and fetch cancellation in core. Core supplies the default MUI parent settings dialog and reads the host theme for group chrome. Track modules retain their existing settings and rendering. This prototype does not settle nesting, signal overlays or inherited settings. BulkBed remains a distinct multi-dataset visualization, not the runtime group owner.

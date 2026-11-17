@@ -1,18 +1,5 @@
-import { TrackSetDragController } from "./track-row/reorder/TrackSetDrag";
-import {
-  TrackSetDragContext,
-  type TrackSetDragHandle,
-} from "./track-row/reorder/trackSetDragState";
-import type { TrackSetSettingsProps } from "./state/trackSets";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { TrackSetHeader } from "./track-row/TrackSetHeader";
-import {
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-  type Ref,
-  type ComponentType,
-} from "react";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { BrowserSvgContext } from "./svg/browserSvgState";
 import { useGenomeBrowser } from "./state/browserContextState";
@@ -31,18 +18,12 @@ export function BrowserCanvas({
   trackWidth,
   scale,
   svgRef: hostSvgRef,
-  trackSetSettingsComponent,
 }: {
   trackWidth: number;
   scale: number;
   svgRef?: Ref<SVGSVGElement>;
-  trackSetSettingsComponent?: ComponentType<TrackSetSettingsProps>;
 }) {
-  const { useBrowserStore, useTrackStore } = useGenomeBrowser();
-  const structuredLayout = useTrackStore(
-    (state) => state.trackSets.length > 0 || state.hiddenTrackIds.length > 0,
-  );
-  const trackDragRef = useRef<TrackSetDragHandle | null>(null);
+  const { useBrowserStore } = useGenomeBrowser();
   const svgRef = useRef<SVGSVGElement>(null);
   // The SVG renders whenever this component does, so the host ref is never null while mounted.
   useImperativeHandle(hostSvgRef, () => svgRef.current as SVGSVGElement, []);
@@ -72,76 +53,59 @@ export function BrowserCanvas({
   return (
     <PanStatusContext value={panDrag.isDragging}>
       <BrowserSvgContext value={svg}>
-        <TrackSetDragContext value={trackDragRef}>
-          <svg
-            id="browserSVG"
-            role="group"
-            aria-label="Genome browser"
-            ref={svgRef}
-            viewBox={`0 0 ${browserWidth} ${totalHeight}`}
-            width={browserWidth * scale}
-            height={totalHeight * scale}
-            style={{ display: "block", background: "#ffffff", outline: "none", maxWidth: "none" }}
+        <svg
+          id="browserSVG"
+          role="group"
+          aria-label="Genome browser"
+          ref={svgRef}
+          viewBox={`0 0 ${browserWidth} ${totalHeight}`}
+          width={browserWidth * scale}
+          height={totalHeight * scale}
+          style={{ display: "block", background: "#ffffff", outline: "none", maxWidth: "none" }}
+        >
+          <RegionSelection
+            svg={svg}
+            marginWidth={marginWidth}
+            trackWidth={trackWidth}
+            totalHeight={totalHeight}
+            region={region}
           >
-            <RegionSelection
-              svg={svg}
+            <Highlights
+              type="filled"
+              region={region}
               marginWidth={marginWidth}
               trackWidth={trackWidth}
               totalHeight={totalHeight}
-              region={region}
-            >
-              <Highlights
-                type="filled"
-                region={region}
-                marginWidth={marginWidth}
-                trackWidth={trackWidth}
-                totalHeight={totalHeight}
-                registerContentGroup={registerContentGroup}
-              />
-              <g>
-                <TrackStack
-                  trackLayouts={trackLayouts}
-                  visibleRegion={region}
-                  marginWidth={marginWidth}
-                  trackWidth={trackWidth}
-                  registerContentGroup={registerContentGroup}
-                  panDrag={panDrag}
-                  titleSize={titleSize}
-                />
-              </g>
-              <Highlights
-                type="outlined"
-                region={region}
-                marginWidth={marginWidth}
-                trackWidth={trackWidth}
-                totalHeight={totalHeight}
-                registerContentGroup={registerContentGroup}
-              />
-            </RegionSelection>
-            <TooltipOverlay width={browserWidth} height={totalHeight} />
-            <InteractionShield width={browserWidth} height={totalHeight} />
-            {trackSetLayouts.map((layout) => (
-              <TrackSetHeader
-                key={layout.id}
-                layout={layout}
-                width={browserWidth}
-                configurable={!!trackSetSettingsComponent}
-              />
-            ))}
-            {structuredLayout && (
-              <TrackSetDragController
-                ref={trackDragRef}
-                svg={svg}
+              registerContentGroup={registerContentGroup}
+            />
+            <g>
+              <TrackStack
                 trackLayouts={trackLayouts}
-                trackSetLayouts={trackSetLayouts}
-                width={browserWidth}
-                totalHeight={totalHeight}
+                visibleRegion={region}
+                marginWidth={marginWidth}
+                trackWidth={trackWidth}
+                registerContentGroup={registerContentGroup}
+                panDrag={panDrag}
+                titleSize={titleSize}
               />
-            )}
-          </svg>
-          <ContextMenuController />
-          <SettingsModalController trackSetSettingsComponent={trackSetSettingsComponent} />
-        </TrackSetDragContext>
+            </g>
+            <Highlights
+              type="outlined"
+              region={region}
+              marginWidth={marginWidth}
+              trackWidth={trackWidth}
+              totalHeight={totalHeight}
+              registerContentGroup={registerContentGroup}
+            />
+          </RegionSelection>
+          <TooltipOverlay width={browserWidth} height={totalHeight} />
+          <InteractionShield width={browserWidth} height={totalHeight} />
+          {trackSetLayouts.map((layout) => (
+            <TrackSetHeader key={layout.id} layout={layout} width={browserWidth} />
+          ))}
+        </svg>
+        <ContextMenuController />
+        <SettingsModalController />
       </BrowserSvgContext>
     </PanStatusContext>
   );
