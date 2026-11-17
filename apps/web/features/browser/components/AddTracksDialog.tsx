@@ -55,10 +55,23 @@ type AddTracksDialogProps = { trackStore: TrackStoreInstance; open: boolean; onC
  * none, showing each failure on its row.
  */
 export function AddTracksDialog({ trackStore, open, onClose }: AddTracksDialogProps) {
+  // The add in progress. Every way of closing stops it at once, since the content stays mounted
+  // while the dialog fades out, and an add that ended then would still add its tracks.
+  const pending = useRef<AbortController>(undefined);
+  const close = () => {
+    pending.current?.abort();
+    onClose();
+  };
+  // Leaving the session while files are checked stops the add too.
+  useEffect(() => () => pending.current?.abort(), []);
+  const startAdd = () => {
+    pending.current = new AbortController();
+    return pending.current.signal;
+  };
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={close} fullWidth maxWidth="md">
       {/* The dialog unmounts its content once closed, so each opening starts empty. */}
-      <AddTracksForm trackStore={trackStore} onClose={onClose} />
+      <AddTracksForm trackStore={trackStore} startAdd={startAdd} onClose={close} />
     </Dialog>
   );
 }
@@ -81,7 +94,14 @@ const newField = (name = "", value = ""): MetadataField => ({
   value,
 });
 
-function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open">) {
+type AddTracksFormProps = {
+  trackStore: TrackStoreInstance;
+  /** Starts an add, returning the signal that closing the dialog aborts. */
+  startAdd: () => AbortSignal;
+  onClose: () => void;
+};
+
+function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
   const [text, setText] = useState("");
   const [lineErrors, setLineErrors] = useState<LineError[]>([]);
   // Undefined while pasting; the rows to add once the text is reviewed.
@@ -89,9 +109,6 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string>();
   const fileInput = useRef<HTMLInputElement>(null);
-  const pending = useRef<AbortController>(undefined);
-  // Closing the dialog while files are checked stops the add, so nothing is added.
-  useEffect(() => () => pending.current?.abort(), []);
 
   function review(content: string) {
     const { tracks, errors } = parseCustomTracks(content);
@@ -163,13 +180,12 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
       );
       return;
     }
-    const controller = new AbortController();
-    pending.current = controller;
+    const signal = startAdd();
     setAdding(true);
     setError(undefined);
     try {
-      const outcome = await addTracksFromUrls(trackStore, requests, controller.signal);
-      if (controller.signal.aborted) return;
+      const outcome = await addTracksFromUrls(trackStore, requests, signal);
+      if (signal.aborted) return;
       if (outcome.ok) onClose();
       else if (outcome.failures) {
         const reasons = new Map(outcome.failures.map((f) => [f.index, `${f.code}: ${f.error}`]));
@@ -178,7 +194,6 @@ function AddTracksForm({ trackStore, onClose }: Omit<AddTracksDialogProps, "open
     } catch (caught) {
       setError(`The tracks could not be added: ${String(caught)}`);
     } finally {
-      pending.current = undefined;
       setAdding(false);
     }
   }

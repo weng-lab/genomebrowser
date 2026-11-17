@@ -205,7 +205,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
 
 it("adds nothing when the dialog closes while files are checked", async () => {
   server.files.set(`${host}/signal.bw`, bigWig);
-  // The slow file answers only once released, after the dialog closes.
+  // The slow file answers only once released, after Cancel.
   let release!: () => void;
   const released = new Promise<void>((resolve) => (release = resolve));
   const serve = globalThis.fetch;
@@ -220,9 +220,11 @@ it("adds nothing when the dialog closes while files are checked", async () => {
   await click(button("Add 2 tracks"));
   expect(button("Checking files…")).toBeDefined();
 
+  // The checks end while the dialog fades out, before it unmounts its content.
   await click(button("Cancel"));
-  await vi.waitFor(() => expect(dialog()).toBeNull());
+  expect(dialog()).not.toBeNull();
   await act(async () => release());
+  await vi.waitFor(() => expect(dialog()).toBeNull());
 
   // A later add shows the stopped one added nothing, even after its checks would have ended.
   await click(button("Add tracks"));
