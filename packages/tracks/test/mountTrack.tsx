@@ -1,4 +1,4 @@
-import { act, type ComponentType } from "react";
+import { act, useSyncExternalStore, type ComponentType } from "react";
 import { createRoot } from "react-dom/client";
 import {
   createBrowserStore,
@@ -61,9 +61,16 @@ export async function mountTrack<M extends HostedModule>({
 }: MountTrackOptions<M>) {
   const mountId = String(++mounts);
   let pending = 0;
+  // What the renderer is pinned to; `setView` replaces it like a pan, resize, or new response.
+  let view = { data, region, visibleRegion, width };
+  const listeners = new Set<() => void>();
+  const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  };
   const fetch = (context: never) => {
     pending++;
-    const result = data === undefined ? module.fetch(context) : Promise.resolve(data);
+    const result = view.data === undefined ? module.fetch(context) : Promise.resolve(view.data);
     return result.finally(() => pending--);
   };
   const render = Object.fromEntries(
@@ -71,11 +78,20 @@ export async function mountTrack<M extends HostedModule>({
       module.render as Record<string, ComponentType<TrackRendererProps<unknown, unknown>>>,
     ).map(([display, Renderer]) => [
       display,
-      (props: TrackRendererProps<unknown, unknown>) => (
-        <g data-mounted-track="">
-          <Renderer {...props} region={region} visibleRegion={visibleRegion} width={width} />
-        </g>
-      ),
+      function MountedRenderer(props: TrackRendererProps<unknown, unknown>) {
+        const pinned = useSyncExternalStore(subscribe, () => view);
+        return (
+          <g data-mounted-track="">
+            <Renderer
+              {...props}
+              data={pinned.data === undefined ? props.data : pinned.data}
+              region={pinned.region}
+              visibleRegion={pinned.visibleRegion}
+              width={pinned.width}
+            />
+          </g>
+        );
+      },
     ]),
   );
   // Tooltips portal to the document body, so mark this mount's content to tell mounts apart.
@@ -140,6 +156,35 @@ export async function mountTrack<M extends HostedModule>({
     async hover(element: Element) {
       await settle(() => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
       return document.querySelector(`[data-mounted-tooltip="${mountId}"]`)?.textContent ?? "";
+    },
+    /**
+     * Pans, resizes, or delivers new literal data to the mounted track. The browser's
+     * region and width follow, as they do for `region`, `visibleRegion`, and `width`.
+     */
+    async setView(
+      next: Partial<Pick<MountTrackOptions<M>, "data" | "region" | "visibleRegion" | "width">>,
+    ) {
+      await settle(() => {
+        view = {
+          ...view,
+          ...next,
+          visibleRegion: next.visibleRegion ?? next.region ?? view.visibleRegion,
+        };
+        browserStore.getState().setRegion(view.visibleRegion);
+        browserStore.getState().setTrackWidth(view.width);
+        for (const listener of listeners) listener();
+      });
+    },
+    /** Opens the track's settings from its settings button and returns the dialog. */
+    async openSettings() {
+      await settle(() =>
+        container
+          .querySelector('[role="button"][aria-label^="Settings for"]')!
+          .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+      );
+      const dialog = container.querySelector("dialog");
+      if (!dialog) throw new Error("Settings did not open");
+      return dialog;
     },
     async click(element: Element) {
       await settle(() => element.dispatchEvent(new MouseEvent("click", { bubbles: true })));
