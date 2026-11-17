@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
@@ -19,11 +19,6 @@ const data = [
   { kind: "value" as const, ...region, start: 100, end: 200, value: 5 },
 ];
 
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
-
 /** Fixed labels the track draws in its plot overlay, leaving out the track title. */
 function labels(view: MountedTrack) {
   return Array.from(view.container.querySelectorAll("[data-track-id] text")).filter(
@@ -32,7 +27,7 @@ function labels(view: MountedTrack) {
 }
 
 async function mountSignal(display: "full" | "dense") {
-  const view = await mountTrack({
+  return mountTrack({
     module: bigWigModule,
     track: {
       base: { id: "signal", title: "Signal", color: "#2266aa", height: 100, display },
@@ -43,8 +38,6 @@ async function mountSignal(display: "full" | "dense") {
     visibleRegion: { ...region, start: 100, end: 200 },
     width: 900,
   });
-  mounted.push(view);
-  return view;
 }
 
 const ticks = [
@@ -62,15 +55,13 @@ const labelsModule = defineTrackModule({
 });
 
 async function mountLabels(height: number) {
-  const view = await mountTrack({
+  return mountTrack({
     module: labelsModule,
     track: { base: { id: "labels", title: "Labels", height }, config: {} },
     data: null,
     region,
     width: 900,
   });
-  mounted.push(view);
-  return view;
 }
 
 describe("renderer value labels", () => {

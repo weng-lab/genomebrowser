@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
-import type { ComponentProps } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   bamModule,
   type BamData,
@@ -43,19 +42,15 @@ type Interaction = {
   onHover?: (record: BamRecord) => void;
   onLeave?: (record: BamRecord) => void;
 };
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
 /** Mounts the BAM track in a browser whose span and width decide base-pair detail. */
-async function mount(
+function mount(
   display: BamDisplay,
   data: BamData,
   overrides: Partial<typeof props> = {},
   interaction?: Interaction,
 ) {
   const { config, width, region, visibleRegion } = { ...props, ...overrides };
-  const view = await mountTrack({
+  return mountTrack({
     module: bamModule,
     track: { base: { ...track.base, display }, config },
     interaction,
@@ -64,8 +59,6 @@ async function mount(
     visibleRegion,
     width,
   });
-  mounted.push(view);
-  return view;
 }
 async function markup(display: BamDisplay, data: BamData, overrides: Partial<typeof props> = {}) {
   return (await mount(display, data, overrides)).content;
@@ -75,26 +68,13 @@ const heightOf = (view: MountedTrack) => view.trackStore.getState().getTrack("ba
 /** Applies a config change the way settings do, through the browser's track store. */
 const configure = (view: MountedTrack, config: BamConfig) =>
   view.settle(() => view.trackStore.getState().updateTrack("bam", { config }));
-const tooltip = () => document.querySelector("[data-genomebrowser-tooltip-overlay]");
-const tooltipText = () => tooltip()?.textContent ?? "";
-/** Moves the pointer over an element and returns the tooltip text the browser shows. */
-async function move(
-  view: MountedTrack,
-  target: Element,
-  point: { clientX: number; clientY: number },
-) {
-  await view.settle(() =>
-    target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point })),
-  );
-  return tooltipText();
-}
 /** The text cells of the tooltip a hovered element shows, in reading order. */
 async function hoverTooltip(view: MountedTrack, target: Element) {
-  await view.hover(target);
+  const text = await view.hover(target);
   const cells = (selector: string) =>
-    [...(tooltip()?.querySelectorAll(selector) ?? [])].map((node) => node.textContent ?? "");
+    [...(view.tooltip?.querySelectorAll(selector) ?? [])].map((node) => node.textContent ?? "");
   return {
-    text: tooltipText(),
+    text,
     texts: cells("text"),
     labels: cells('text[x="0"]'),
     values: cells('text[x="84"]'),
@@ -297,35 +277,18 @@ describe("BAM displays", () => {
       type: "bam",
       base: expect.objectContaining({ id: "bam" }),
     });
-    // A consumer tooltip receives the item as given, so every field of it is contract.
-    const shown = vi.fn<(item: unknown) => void>();
-    const Tooltip = bamModule.tooltipComponent!;
-    const view = await mountTrack({
-      module: {
-        ...bamModule,
-        tooltipComponent: (tooltipProps: ComponentProps<typeof Tooltip>) => {
-          shown(tooltipProps.item);
-          return <Tooltip {...tooltipProps} />;
-        },
-      },
-      track: { base: { ...track.base, display: "pack" }, config: props.config },
-      interaction,
-      data: { records: [record], reference: [] },
-      region: props.region,
-      width: props.width,
-    });
-    mounted.push(view);
+    const view = await mount("pack", { records: [record], reference: [] }, {}, interaction);
     const glyph = view.content.querySelector("[data-bam-read]")!;
     const tip = await view.hover(glyph);
-    expect(shown).toHaveBeenLastCalledWith(record);
+    // A consumer tooltip receives the item as given, so every field of it is contract.
+    expect(view.tooltipItem).toEqual(record);
     expect(interaction.onHover).toHaveBeenCalledWith(record, bamTrack);
     for (const text of ["a", "Locationchr1:11–20", "CIGAR10M", "SequenceAAAAAAAAAA"])
       expect(tip).toContain(text);
     await view.click(glyph);
     expect(interaction.onClick).toHaveBeenCalledWith(record, bamTrack);
-    await view.settle(() => glyph.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(await view.leave(glyph)).toBe("");
     expect(interaction.onLeave).toHaveBeenCalledWith(record, bamTrack);
-    expect(tooltip()).toBeNull();
   });
   it("wraps long tooltip values into aligned continuation rows", async () => {
     const sequence = "ACGT".repeat(20);
@@ -722,8 +685,7 @@ describe("BAM sections", () => {
     const reverse = group.querySelector('[data-strand="-"]')!;
     const reverseColor = reverse.querySelector("path")!.getAttribute("stroke");
     expect(
-      await move(
-        view,
+      await view.move(
         reverse.querySelector('path[pointer-events="stroke"]')!,
         junctionPoint(reverse),
       ),
@@ -735,20 +697,19 @@ describe("BAM sections", () => {
     expect(view.content.querySelector("[data-junction-group]")).toBe(group);
     expect(group.querySelector('[data-strand="-"]')).toBeNull();
     expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
-    expect(tooltip()).toBeNull();
+    expect(view.tooltip).toBeNull();
 
     // Restoring the strand must not restore its old hover selection.
     await configure(view, withMinimum(1));
     expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
       reverseColor,
     );
-    expect(tooltip()).toBeNull();
+    expect(view.tooltip).toBeNull();
 
     await configure(view, withMinimum(2));
     const forward = group.querySelector('[data-strand="+"]')!;
     expect(
-      await move(
-        view,
+      await view.move(
         forward.querySelector('path[pointer-events="stroke"]')!,
         junctionPoint(forward),
       ),
@@ -769,7 +730,7 @@ describe("BAM sections", () => {
         const other = group.querySelector(
           `[data-strand="${strand === "+" ? "-" : "+"}"] path[pointer-events="stroke"]`,
         )!;
-        expect(await move(view, other, junctionPoint(arc))).toEqual(
+        expect(await view.move(other, junctionPoint(arc))).toEqual(
           junctionTip(strand, strand === "+" ? 2 : 1),
         );
       }
@@ -781,8 +742,7 @@ describe("BAM sections", () => {
       });
       const reversePath = group.querySelector('[data-strand="-"] path')!;
       expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
-      await view.settle(() => group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-      expect(tooltip()).toBeNull();
+      expect(await view.leave(group)).toBe("");
     },
   );
   it("selects visible curves whose peaks are offscreen and prefers forward at the shared endpoint", async () => {
@@ -816,7 +776,7 @@ describe("BAM sections", () => {
       [reverse, { clientX: 500, clientY: (forwardPoint.clientY + reversePoint.clientY) / 2 }, "+"],
       [reverse, { clientX: 0, clientY: 99 }, "+"],
     ] as const) {
-      expect(await move(view, arc.querySelector('path[pointer-events="stroke"]')!, point)).toEqual(
+      expect(await view.move(arc.querySelector('path[pointer-events="stroke"]')!, point)).toEqual(
         junctionTip(strand, 1),
       );
     }
@@ -959,7 +919,7 @@ describe("BAM sections", () => {
     const [forwardCoverage, reverseCoverage] = await (async () => {
       const texts = [];
       for (const overlay of overlays)
-        texts.push(await move(view, overlay, { clientX: 160, clientY: 0 }));
+        texts.push(await view.move(overlay, { clientX: 160, clientY: 0 }));
       return texts;
     })();
     expect(forwardCoverage).toBe("CoverageLocationchr1:11–11Strand+ (forward)Depth2 alignments");
@@ -976,7 +936,7 @@ describe("BAM sections", () => {
       const arc = group.querySelector(`[data-strand="${strand}"]`)!;
       const point = junctionPoint(arc);
       expect(
-        await move(view, arc.querySelector('path[pointer-events="stroke"]')!, {
+        await view.move(arc.querySelector('path[pointer-events="stroke"]')!, {
           clientX: point.clientX,
           clientY: point.clientY + 64,
         }),
@@ -992,7 +952,7 @@ describe("BAM sections", () => {
         '[data-bam-section="coverage"] rect[pointer-events="all"]',
       )[strand === "+" ? 0 : 1];
       overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
-      return move(view, overlay, { clientX, clientY: 0 });
+      return view.move(overlay, { clientX, clientY: 0 });
     };
     // One-base bins at 15 pixels per base.
     const perBase = await coverageAt("+", 160);
@@ -1010,14 +970,13 @@ describe("BAM sections", () => {
       const arc = group.querySelector(`[data-strand="${strand}"]`)!;
       const point = junctionPoint(arc);
       expect(
-        await move(view, arc.querySelector('path[pointer-events="stroke"]')!, {
+        await view.move(arc.querySelector('path[pointer-events="stroke"]')!, {
           clientX: point.clientX,
           clientY: point.clientY + 64,
         }),
       ).toContain(text);
     }
     // Twenty-base bins: [0,20) holds 20 bases of depth 1 and 5 of depth 2, a mean of 1.25.
-    await view.unmount();
     const summarized = await mount(
       "pack",
       {
@@ -1042,7 +1001,7 @@ describe("BAM sections", () => {
       '[data-bam-section="coverage"] rect[pointer-events="all"]',
     )!;
     overlay.getBoundingClientRect = () => ({ left: 0, width: 5 }) as DOMRect;
-    const summary = await move(summarized, overlay, { clientX: 0.5, clientY: 0 });
+    const summary = await summarized.move(overlay, { clientX: 0.5, clientY: 0 });
     expect(summary).toContain("Coverage across 20 bases");
     expect(summary).toContain("Mean depth");
     expect(summary).toContain("1.25");

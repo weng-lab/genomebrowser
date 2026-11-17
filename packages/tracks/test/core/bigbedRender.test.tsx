@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { bigBedModule, type BigBedRow } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { mountTrack, type MountedTrack } from "../mountTrack";
 
@@ -10,13 +10,8 @@ const data: BigBedRow[] = [
 ];
 const region = { chromosome: "chr1", start: 0, end: 100 };
 
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
-
 async function mount(display: "dense" | "squish", rows = data, visibleRegion = region) {
-  const view = await mountTrack({
+  return mountTrack({
     module: bigBedModule,
     track: { base: { id: "peaks", title: "Peaks", height: 99, display }, config },
     data: rows,
@@ -24,8 +19,6 @@ async function mount(display: "dense" | "squish", rows = data, visibleRegion = r
     visibleRegion,
     width: 100,
   });
-  mounted.push(view);
-  return view;
 }
 
 function trackHeight(view: MountedTrack) {

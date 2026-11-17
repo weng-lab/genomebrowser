@@ -1,19 +1,14 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { bigWigModule, type BigWigData } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { resolveBigWigRange } from "../../src/bigwig/helpers";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 
 const region = { chromosome: "chr1", start: 0, end: 1 };
 const clampedData = [
   { kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: -5 },
   { kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 5 },
 ];
-
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
 
 describe("BigWig module", () => {
   it.each([
@@ -246,7 +241,6 @@ async function mount(display: "full" | "dense", props: RenderProps) {
     visibleRegion: props.visibleRegion,
     width: props.width,
   });
-  mounted.push(view);
   return view.content.innerHTML;
 }
 

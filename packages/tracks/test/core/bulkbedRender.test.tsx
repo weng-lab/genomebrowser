@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   bulkBedModule,
   type BulkBedConfig,
@@ -12,11 +12,6 @@ const data: BulkBedData = [
   [{ chromosome: "chr1", start: 30, end: 50, fields: [], datasetName: "Dataset B" }],
 ];
 const fullRegion = { chromosome: "chr1", start: 0, end: 100 };
-
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
 
 describe("BulkBed row rendering", () => {
   it("gives each dataset one configured row", async () => {
@@ -78,7 +73,7 @@ function bulkBedConfig(options: { rowHeight: number; gap: number }): BulkBedConf
 }
 
 async function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = data) {
-  const view = await mountTrack({
+  return mountTrack({
     module: bulkBedModule,
     track: {
       base: { id: "bulk-peaks", title: "Bulk peaks", color: "#4b9560", height: 80 },
@@ -89,8 +84,6 @@ async function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = 
     visibleRegion,
     width: 100,
   });
-  mounted.push(view);
-  return view;
 }
 
 function trackHeight(view: MountedTrack) {

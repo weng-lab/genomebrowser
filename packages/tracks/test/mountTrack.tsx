@@ -1,5 +1,6 @@
 import { act, useSyncExternalStore, type ComponentType } from "react";
 import { createRoot } from "react-dom/client";
+import { onTestFinished } from "vitest";
 import {
   createBrowserStore,
   createTrackStore,
@@ -60,7 +61,9 @@ export async function mountTrack<M extends HostedModule>({
   assembly = { id: "test", chromosomes: { [region.chromosome]: 248_956_422 } },
 }: MountTrackOptions<M>) {
   const mountId = String(++mounts);
+  let started = 0;
   let pending = 0;
+  let tooltipItem: unknown;
   // What the renderer is pinned to; `setView` replaces it like a pan, resize, or new response.
   let view = { data, region, visibleRegion, width };
   const listeners = new Set<() => void>();
@@ -69,6 +72,7 @@ export async function mountTrack<M extends HostedModule>({
     return () => listeners.delete(listener);
   };
   const fetch = (context: never) => {
+    started++;
     pending++;
     const result = view.data === undefined ? module.fetch(context) : Promise.resolve(view.data);
     return result.finally(() => pending--);
@@ -95,14 +99,18 @@ export async function mountTrack<M extends HostedModule>({
     ]),
   );
   // Tooltips portal to the document body, so mark this mount's content to tell mounts apart.
-  const Tooltip = module.tooltipComponent as ComponentType<Record<string, unknown>> | undefined;
+  const Tooltip = module.tooltipComponent as ComponentType<{ item: unknown }> | undefined;
   const tooltipComponent =
     Tooltip &&
-    ((props: Record<string, unknown>) => (
-      <g data-mounted-tooltip={mountId}>
-        <Tooltip {...props} />
-      </g>
-    ));
+    ((props: { item: unknown }) => {
+      tooltipItem = props.item;
+      return (
+        <g data-mounted-tooltip={mountId}>
+          <Tooltip {...props} />
+        </g>
+      );
+    });
+  const tooltip = () => document.querySelector(`[data-mounted-tooltip="${mountId}"]`);
   const hosted = { ...module, fetch, render, tooltipComponent } as unknown as AnyTrackModule;
   const browserStore = createBrowserStore({ assembly, region: visibleRegion, trackWidth: width });
   const trackStore = createTrackStore({
@@ -117,8 +125,9 @@ export async function mountTrack<M extends HostedModule>({
    * Applies an update, then waits until every fetch has settled. React only commits
    * when an `act` scope closes, so each wait is its own scope: the first commits the
    * update and starts fetching, and the last commits what the fetches delivered.
+   * The 20 ms step outlasts the animation frame the browser shows a tooltip on.
    */
-  async function settle(update: () => unknown = () => {}) {
+  async function settle(update: () => unknown = () => {}, fetches = started) {
     await act(async () => {
       update();
     });
@@ -126,9 +135,14 @@ export async function mountTrack<M extends HostedModule>({
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 20));
       });
-      if (pending === 0) return;
+      if (pending === 0 && started >= fetches) return;
     }
     throw new Error("Track fetch did not settle");
+  }
+  /** Fires a pointer event and returns the text of the tooltip then showing ("" if none). */
+  async function pointer(type: string, element: Element, point?: MouseEventInit) {
+    await settle(() => element.dispatchEvent(new MouseEvent(type, { bubbles: true, ...point })));
+    return tooltip()?.textContent ?? "";
   }
   await settle(() =>
     root.render(
@@ -141,6 +155,16 @@ export async function mountTrack<M extends HostedModule>({
   const matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => matrix };
   Object.assign(svg, { createSVGPoint: () => point, getScreenCTM: () => matrix });
 
+  let unmounted = false;
+  async function unmount() {
+    if (unmounted) return;
+    unmounted = true;
+    await act(async () => root.unmount());
+    container.remove();
+  }
+  // Every mount cleans itself up, so suites need no afterEach.
+  onTestFinished(unmount);
+
   return {
     container,
     /** What the track's renderer drew, without browser chrome such as the title. */
@@ -152,11 +176,20 @@ export async function mountTrack<M extends HostedModule>({
     browserStore,
     trackStore,
     settle,
-    /** Hovers an element and returns the text of the tooltip the browser shows ("" if none). */
-    async hover(element: Element) {
-      await settle(() => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
-      return document.querySelector(`[data-mounted-tooltip="${mountId}"]`)?.textContent ?? "";
+    /** The tooltip the browser is showing for this track, or null. */
+    get tooltip() {
+      return tooltip();
     },
+    /** The item the browser handed that tooltip; any custom `tooltipComponent` receives it. */
+    get tooltipItem() {
+      return tooltip() ? tooltipItem : undefined;
+    },
+    /** Each returns the tooltip text the browser shows afterwards ("" if none). */
+    hover: (element: Element) => pointer("mouseover", element),
+    move: (element: Element, point: { clientX: number; clientY?: number }) =>
+      pointer("mousemove", element, point),
+    leave: (element: Element) => pointer("mouseout", element),
+    click: (element: Element) => pointer("click", element),
     /**
      * Pans, resizes, or delivers new literal data to the mounted track. The browser's
      * region and width follow, as they do for `region`, `visibleRegion`, and `width`.
@@ -164,35 +197,32 @@ export async function mountTrack<M extends HostedModule>({
     async setView(
       next: Partial<Pick<MountTrackOptions<M>, "data" | "region" | "visibleRegion" | "width">>,
     ) {
-      await settle(() => {
-        view = {
-          ...view,
-          ...next,
-          visibleRegion: next.visibleRegion ?? next.region ?? view.visibleRegion,
-        };
-        browserStore.getState().setRegion(view.visibleRegion);
-        browserStore.getState().setTrackWidth(view.width);
-        for (const listener of listeners) listener();
-      });
+      // Core refetches a resize only after a debounce, so wait for that fetch to start.
+      const resized = next.width !== undefined && next.width !== view.width;
+      await settle(
+        () => {
+          view = {
+            ...view,
+            ...next,
+            visibleRegion: next.visibleRegion ?? next.region ?? view.visibleRegion,
+          };
+          browserStore.getState().setRegion(view.visibleRegion);
+          browserStore.getState().setTrackWidth(view.width);
+          for (const listener of listeners) listener();
+        },
+        started + Number(resized),
+      );
     },
     /** Opens the track's settings from its settings button and returns the dialog. */
     async openSettings() {
-      await settle(() =>
-        container
-          .querySelector('[role="button"][aria-label^="Settings for"]')!
-          .dispatchEvent(new MouseEvent("click", { bubbles: true })),
-      );
+      const button = container.querySelector('[role="button"][aria-label^="Settings for"]');
+      if (!button) throw new Error("Track has no settings button");
+      await pointer("click", button);
       const dialog = container.querySelector("dialog");
       if (!dialog) throw new Error("Settings did not open");
       return dialog;
     },
-    async click(element: Element) {
-      await settle(() => element.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    },
-    async unmount() {
-      await act(async () => root.unmount());
-      container.remove();
-    },
+    unmount,
   };
 }
 

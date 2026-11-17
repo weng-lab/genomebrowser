@@ -7,6 +7,11 @@ import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/g
 import { repeatMaskerModule as module } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { serveRepeatMasker, sources } from "../fixtures/repeatMasker";
+// jsdom has no SVG geometry. A tooltip measures itself on the animation frame after a hover.
+Object.defineProperty(SVGElement.prototype, "getBBox", {
+  configurable: true,
+  value: () => ({ x: 0, y: 0, width: 100, height: 20 }),
+});
 let probe: Probe | undefined;
 afterEach(() => {
   probe?.unmount();
