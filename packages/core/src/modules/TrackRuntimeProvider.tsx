@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
-import type { AnyTrackInstance, TrackMetadata } from "./types";
+import type { DrawnTrack, TrackMetadata } from "./types";
 import { bindTrackInteraction, TrackRuntime } from "./trackRuntimeState";
 
 /**
  * Provide a track's runtime context and bound interaction callbacks to its renderer.
- * `readMetadata` returns the track's current metadata. The drawn track keeps its old
- * metadata, because a metadata edit doesn't redraw it.
+ * `readMetadata` returns the track's current metadata from the store. The drawn track has
+ * none, because a metadata edit doesn't redraw it.
  */
 export function TrackRuntimeProvider({
   track,
   readMetadata,
   children,
 }: {
-  track: AnyTrackInstance;
+  track: DrawnTrack;
   readMetadata: () => TrackMetadata | undefined;
   children: ReactNode;
 }) {

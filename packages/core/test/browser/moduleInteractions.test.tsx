@@ -158,7 +158,7 @@ it("gives callbacks and tooltips the metadata current when they run", async () =
     { id: "first" },
     expect.objectContaining({ metadata: {} }),
   );
-  // A metadata edit doesn't redraw the track, so the drawn track still has the old record.
+  // A metadata edit doesn't redraw the track, so callbacks must read it from the store.
   await act(async () =>
     t.useTrackStore.getState().updateTrack("first", { metadata: { Interesting: true } }),
   );
