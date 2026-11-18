@@ -48,3 +48,6 @@ export const sessionErrorSchema = z.object({ code: sessionErrorCodeSchema, messa
 
 /** Largest accepted request body, in bytes. */
 export const maxSessionBytes = 1_000_000;
+
+/** The most tracks a session holds. An addition that does not fit is refused whole. */
+export const maxSessionTracks = 50;
