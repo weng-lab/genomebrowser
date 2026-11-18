@@ -1,4 +1,5 @@
 import type { BigBedMetadata } from "@weng-lab/genomic-reader";
+import { getAutoSqlFieldNames } from "../shared/autoSql";
 import { bigRmskSchema } from "./joined/schema";
 import { standardRepeatMaskerSchema } from "./standard/schema";
 
@@ -14,10 +15,7 @@ export function validateRepeatMaskerLayout(metadata: BigBedMetadata, view: "stan
   if (metadata.autoSql === undefined) return;
   const schema = standard ? standardRepeatMaskerSchema : bigRmskSchema;
   const expectedNames = ["chrom", "chromStart", "chromEnd", ...Object.keys(schema.shape)];
-  const text = metadata.autoSql.replace(/"(?:\\.|[^"\\])*"/g, "");
-  const names = [
-    ...text.matchAll(/\b(?:uint|int|string|lstring|char)(?:\s*\[\s*\w+\s*\])?\s+(\w+)\s*;/g),
-  ].map((match) => match[1]);
+  const names = getAutoSqlFieldNames(metadata.autoSql);
   if (
     names.length !== expectedNames.length ||
     names.some((name, index) => name !== expectedNames[index])

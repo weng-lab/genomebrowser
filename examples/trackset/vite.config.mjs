@@ -5,6 +5,7 @@ export default {
   resolve: {
     alias: {
       "@weng-lab/genomebrowser-ui": path("../../packages/ui/src/lib.ts"),
+      "@weng-lab/genomebrowser-tracks/clingen": path("../../packages/tracks/src/clingen/index.ts"),
       "@weng-lab/genomebrowser-tracks/bigwig": path("../../packages/tracks/src/bigwig/index.ts"),
       "@weng-lab/genomebrowser-tracks/bigbed": path("../../packages/tracks/src/bigbed/index.ts"),
       "@weng-lab/genomebrowser-tracks/ruler": path("../../packages/tracks/src/ruler/index.ts"),

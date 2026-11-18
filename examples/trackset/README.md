@@ -20,3 +20,5 @@ Check or build the example independently:
 pnpm ui exec tsc --noEmit -p ../../examples/trackset/tsconfig.json
 pnpm ui exec vite build --config ../../examples/trackset/vite.config.mjs
 ```
+
+The ClinGen track set contains four independent hg38 BigBed tracks: Haploinsufficiency, Triplosensitivity, Gene-Disease Validity, and VCEP Specifications. The demo starts at BRCA1, `chr17:43,000,000-43,100,000`; **ClinGen close-up** goes to `chr17:43,050,000-43,051,000`. Switch modes in the parent or child settings, and click an interval for annotation details and ClinGen links. Source schemas, colors, and API usage are documented in the [ClinGen reference](../../packages/tracks/docs/03-reference/01-trackModules/clingen.md). Existing regulatory tracks and standalone tracks remain available through the SP1 region button.

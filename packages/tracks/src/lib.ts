@@ -7,6 +7,12 @@ import { bigWigModule } from "./bigwig";
 import { bulkBedModule } from "./bulkbed";
 import { caveModule } from "./cave";
 import { ccreBigBedModule } from "./ccre";
+import {
+  clinGenHaploModule,
+  clinGenTriploModule,
+  clinGenGeneDiseaseModule,
+  clinGenCspecModule,
+} from "./clingen";
 import { geneModule } from "./gene";
 import { methylCModule } from "./methylc";
 
@@ -22,4 +28,8 @@ export const firstPartyTrackModules = [
   methylCModule,
   bamModule,
   repeatMaskerModule,
+  clinGenHaploModule,
+  clinGenTriploModule,
+  clinGenGeneDiseaseModule,
+  clinGenCspecModule,
 ] as const;

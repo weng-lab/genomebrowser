@@ -4,7 +4,7 @@ Choose a track by the source you already have. Each module includes a renderer, 
 
 ## Using modules
 
-[Create and validate tracks](trackCreation.md) covers registration, creation input, and schemas shared by all first-party modules. Import individual modules from their track subpaths, or use [firstPartyTrackModules](../02-collectionsAndSchemas/firstPartyTrackModules.md) to register all eleven.
+[Create and validate tracks](trackCreation.md) covers registration, creation input, and schemas shared by all first-party modules. Import individual modules from their track subpaths, or use [firstPartyTrackModules](../02-collectionsAndSchemas/firstPartyTrackModules.md) to register all fifteen.
 
 ## BAM files
 
@@ -12,6 +12,7 @@ Choose a track by the source you already have. Each module includes a renderer, 
 
 ## BigBed files
 
+- [ClinGen](clingen.md): four hg38 curation tracks, source-specific details, and a core track-set preset.
 - [BigBed](bigbed.md) reads one general BigBed file. Use it for genomic intervals and BED-like metadata.
 - [RepeatMasker](repeatMasker.md): switch between standard annotations and joined models within one track.
 - [cCRE BigBed](ccre.md) reads an ENCODE aggregate cCRE BigBed file. Use it when the columns match the cCRE schema and you want cCRE classification in the tooltip.

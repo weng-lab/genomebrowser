@@ -9,6 +9,7 @@ const trackNames = [
   "bam",
   "bigbed",
   "repeatmasker",
+  "clingen",
   "bigwig",
   "bulkbed",
   "cave",
@@ -23,6 +24,16 @@ const expectedRuntimeExports = new Map([
   ["./ruler", ["rulerModule"]],
   ["./bigbed", ["bigBedModule", "checkBigBedFiles", "fetchBigBedRows"]],
   ["./repeatmasker", ["repeatMaskerModule"]],
+  [
+    "./clingen",
+    [
+      "clinGenHaploModule",
+      "clinGenTriploModule",
+      "clinGenGeneDiseaseModule",
+      "clinGenCspecModule",
+      "createClinGenTrackSet",
+    ],
+  ],
   ["./bigwig", ["bigWigModule", "checkBigWigFiles"]],
   ["./bulkbed", ["bulkBedModule"]],
   ["./cave", ["caveModule"]],
@@ -85,7 +96,7 @@ const collectionSchema = JSON.parse(
 );
 assertEqual(
   collectionSchema.properties.tracks.items.oneOf.length,
-  trackNames.length,
+  (await import(resolveExport(manifest.exports["."].import))).firstPartyTrackModules.length,
   "collection schema track count",
 );
 

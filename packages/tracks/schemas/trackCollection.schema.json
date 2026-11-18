@@ -144,10 +144,6 @@
                 },
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "ruler"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -169,6 +165,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "ruler"
               }
             },
             "required": ["base", "config", "type"],
@@ -246,10 +246,6 @@
                 "required": ["url", "twoBitUrl"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "dynseq"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -271,6 +267,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "dynseq"
               }
             },
             "required": ["base", "config", "type"],
@@ -329,10 +329,6 @@
                 "required": ["url"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "bigbed"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -354,6 +350,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "bigbed"
               }
             },
             "required": ["base", "config", "type"],
@@ -427,10 +427,6 @@
                 "required": ["url"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "bigwig"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -452,6 +448,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "bigwig"
               }
             },
             "required": ["base", "config", "type"],
@@ -528,10 +528,6 @@
                 "required": ["datasets"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "bulkbed"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -553,6 +549,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "bulkbed"
               }
             },
             "required": ["base", "config", "type"],
@@ -623,10 +623,6 @@
                 "required": ["neurotransmitter", "age"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "cave"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -648,6 +644,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "cave"
               }
             },
             "required": ["base", "config", "type"],
@@ -702,10 +702,6 @@
                 "required": ["url"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "ccre-bigbed"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -727,6 +723,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "ccre-bigbed"
               }
             },
             "required": ["base", "config", "type"],
@@ -806,10 +806,6 @@
                 "required": ["url"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "gene"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -831,6 +827,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "gene"
               }
             },
             "required": ["base", "config", "type"],
@@ -1013,10 +1013,6 @@
                 "required": ["urls"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "methylc"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -1038,6 +1034,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "methylc"
               }
             },
             "required": ["base", "config", "type"],
@@ -1255,10 +1255,6 @@
                 "required": ["url", "indexUrl"],
                 "additionalProperties": false
               },
-              "type": {
-                "type": "string",
-                "const": "bam"
-              },
               "metadata": {
                 "type": "object",
                 "propertyNames": {
@@ -1280,6 +1276,10 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "bam"
               }
             },
             "required": ["base", "config", "type"],
@@ -1371,9 +1371,94 @@
                 "required": ["sources"],
                 "additionalProperties": false
               },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
               "type": {
                 "type": "string",
                 "const": "repeatmasker"
+              }
+            },
+            "required": ["base", "config", "type"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "pack",
+                    "type": "string",
+                    "enum": ["pack", "dense", "full"]
+                  },
+                  "height": {
+                    "default": 18,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#000000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "default": "https://hgdownload.soe.ucsc.edu/gbdb/hg38/bbi/clinGen/clinGenHaplo.bb",
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "rowHeight": {
+                    "default": 18,
+                    "type": "number",
+                    "minimum": 1
+                  },
+                  "showLabels": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "maxDetailBases": {
+                    "default": 5000000,
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "additionalProperties": false
               },
               "metadata": {
                 "type": "object",
@@ -1396,6 +1481,277 @@
                     }
                   ]
                 }
+              },
+              "type": {
+                "type": "string",
+                "const": "clingen-haplo"
+              }
+            },
+            "required": ["base", "config", "type"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "pack",
+                    "type": "string",
+                    "enum": ["pack", "dense", "full"]
+                  },
+                  "height": {
+                    "default": 18,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#000000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "default": "https://hgdownload.soe.ucsc.edu/gbdb/hg38/bbi/clinGen/clinGenTriplo.bb",
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "rowHeight": {
+                    "default": 18,
+                    "type": "number",
+                    "minimum": 1
+                  },
+                  "showLabels": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "maxDetailBases": {
+                    "default": 5000000,
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "additionalProperties": false
+              },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "type": {
+                "type": "string",
+                "const": "clingen-triplo"
+              }
+            },
+            "required": ["base", "config", "type"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "pack",
+                    "type": "string",
+                    "enum": ["pack", "dense", "full"]
+                  },
+                  "height": {
+                    "default": 18,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#000000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "default": "https://hgdownload.soe.ucsc.edu/gbdb/hg38/bbi/clinGen/clinGenGeneDisease.bb",
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "rowHeight": {
+                    "default": 18,
+                    "type": "number",
+                    "minimum": 1
+                  },
+                  "showLabels": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "maxDetailBases": {
+                    "default": 5000000,
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "additionalProperties": false
+              },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "type": {
+                "type": "string",
+                "const": "clingen-gene-disease"
+              }
+            },
+            "required": ["base", "config", "type"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "pack",
+                    "type": "string",
+                    "enum": ["pack", "dense", "full"]
+                  },
+                  "height": {
+                    "default": 18,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#000000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "default": "https://hgdownload.soe.ucsc.edu/gbdb/hg38/bbi/clinGen/clinGenCspec.bb",
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "rowHeight": {
+                    "default": 18,
+                    "type": "number",
+                    "minimum": 1
+                  },
+                  "showLabels": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "maxDetailBases": {
+                    "default": 5000000,
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "additionalProperties": false
+              },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "type": {
+                "type": "string",
+                "const": "clingen-cspec"
               }
             },
             "required": ["base", "config", "type"],

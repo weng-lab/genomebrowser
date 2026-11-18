@@ -75,6 +75,10 @@
     "./repeatmasker": {
       "types": "./dist/src/repeatmasker/index.d.ts",
       "import": "./dist/repeatmasker.js"
+    },
+    "./clingen": {
+      "types": "./dist/src/clingen/index.d.ts",
+      "import": "./dist/clingen.js"
     }
   },
   "publishConfig": {

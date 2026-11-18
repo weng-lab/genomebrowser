@@ -13,11 +13,34 @@ import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+import {
+  clinGenHaploModule,
+  clinGenTriploModule,
+  clinGenGeneDiseaseModule,
+  clinGenCspecModule,
+  createClinGenTrackSet,
+} from "@weng-lab/genomebrowser-tracks/clingen";
+
+const clinGen = createClinGenTrackSet();
+const clinGenRegion = { chromosome: "chr17", start: 43_000_000, end: 43_100_000 };
 const home = { chromosome: "chr12", start: 53356198, end: 53431525 };
-const useBrowserStore = createBrowserStore({ assembly: hg38, region: home, trackWidth: 1100 });
+const useBrowserStore = createBrowserStore({
+  assembly: hg38,
+  region: clinGenRegion,
+  trackWidth: 1100,
+});
 const useTrackStore = createTrackStore({
-  modules: [bigWigModule, bigBedModule, rulerModule],
+  modules: [
+    bigWigModule,
+    bigBedModule,
+    rulerModule,
+    clinGenHaploModule,
+    clinGenTriploModule,
+    clinGenGeneDiseaseModule,
+    clinGenCspecModule,
+  ],
   tracks: [
+    ...clinGen.tracks,
     rulerModule.create({ base: { id: "ruler", title: "Coordinates" }, config: {} }),
     bigWigModule.create({
       base: {
@@ -71,6 +94,7 @@ const useTrackStore = createTrackStore({
   ],
   pinnedTrackIds: ["ruler"],
   trackSets: [
+    ...clinGen.trackSets,
     { id: "regulatory", title: "Regulatory data", trackIds: ["h3k27ac", "h3k4me3", "ccres"] },
     {
       id: "annotations",
@@ -89,7 +113,7 @@ function App() {
       <CssBaseline />
       <Container maxWidth={false} sx={{ py: 3 }}>
         <Stack spacing={2}>
-          <Typography variant="h5">Regulatory tracks</Typography>
+          <Typography variant="h5">Track sets</Typography>
           <Typography variant="body2" color="text.secondary">
             Regulatory data groups two BigWig signals and one BigBed track. A second track set, cCRE
             annotations, contains only Human and HepG2 cCRE BigBeds. Standalone CTCF and HepG2 cCRE
@@ -98,6 +122,22 @@ function App() {
             destination.
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Button
+              variant="outlined"
+              onClick={() => useBrowserStore.getState().setRegion(clinGenRegion)}
+            >
+              ClinGen BRCA1
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() =>
+                useBrowserStore
+                  .getState()
+                  .setRegion({ chromosome: "chr17", start: 43_050_000, end: 43_051_000 })
+              }
+            >
+              ClinGen close-up
+            </Button>
             <Button variant="outlined" onClick={() => useBrowserStore.getState().setRegion(home)}>
               SP1 region
             </Button>

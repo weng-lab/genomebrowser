@@ -38,6 +38,12 @@ import {
 } from "@weng-lab/genomebrowser-tracks/cave";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
+  clinGenHaploModule,
+  clinGenTriploModule,
+  clinGenGeneDiseaseModule,
+  clinGenCspecModule,
+} from "@weng-lab/genomebrowser-tracks/clingen";
+import {
   geneModule,
   type GeneConfig,
   type GeneCreateInput,
@@ -67,6 +73,10 @@ describe("first-party track package", () => {
       methylCModule,
       bamModule,
       repeatMaskerModule,
+      clinGenHaploModule,
+      clinGenTriploModule,
+      clinGenGeneDiseaseModule,
+      clinGenCspecModule,
     ]);
     expect(firstPartyTrackModules.map((module) => module.type)).toEqual([
       "ruler",
@@ -80,6 +90,10 @@ describe("first-party track package", () => {
       "methylc",
       "bam",
       "repeatmasker",
+      "clingen-haplo",
+      "clingen-triplo",
+      "clingen-gene-disease",
+      "clingen-cspec",
     ]);
     for (const module of firstPartyTrackModules) {
       expect(module.configSchema).toBeDefined();
