@@ -8,6 +8,8 @@ The workspace applies its own MUI theme and baseline styles inside `Workspace`. 
 
 `Workspace` wraps its content in a `ThemeProvider` with its internal `theme` and renders MUI's `CssBaseline`. The baseline resets page margins and box sizing for the whole document, which suits the workspace's full-window layout. Shared product screens should use this internal theme.
 
+The palette sets a navy primary color, a cornflower blue secondary color, slate text and divider colors, a white page background, a faintly tinted paper surface, and a light blue `background.subtle` surface for areas set apart from both. Hover, selected, and focus backgrounds on neutral controls are tinted with the primary text color rather than black. Use palette keys such as `primary.main` and `text.secondary` instead of literal colors.
+
 Icons in `IconButton` and similar controls use a solid dark gray rather than MUI's default semi-transparent black. The current page's side bar icon uses the primary color.
 
 Tooltips wait 500 milliseconds before opening. Moving between controls shortly after a tooltip opens uses MUI's immediate follow-on behavior. Set `enterDelay` or `enterNextDelay` on an individual `Tooltip` to override these defaults.
