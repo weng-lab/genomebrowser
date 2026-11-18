@@ -8,6 +8,7 @@ import { TrackFileError } from "@weng-lab/genomebrowser-tracks/shared";
 import { maxSessionTracks } from "../sessions/schema";
 import { maxTrackMetadataBytes, metadataBytes } from "./trackMetadata";
 import {
+  bigBedPresetSchema,
   urlTrackTypeSchema,
   type BigBedPreset,
   type TrackVisibility,
@@ -39,8 +40,15 @@ export type TrackRequest = {
 export type AddedUrlTrack = { id: string; title: string; type: UrlTrackType };
 
 type Failure = { ok: false; code: string; error: string };
-/** The tracks a batch added, in order, or why it added none. */
-export type UrlTracksOutcome = { ok: true; tracks: AddedUrlTrack[] } | Failure;
+/** Why one request can't be added. `index` is its position in the batch. */
+export type RequestFailure = { index: number; code: string; error: string };
+/**
+ * The tracks a batch added, in order, or why it added none. A `TRACKS_NOT_ADDED` failure also
+ * lists each failing request, in order.
+ */
+export type UrlTracksOutcome =
+  | { ok: true; tracks: AddedUrlTrack[] }
+  | (Failure & { failures?: RequestFailure[] });
 type ResolvedTrack = { ok: true; track: AnyTrackInstance; added: AddedUrlTrack };
 
 // File extensions that name a track type, matched case-insensitively at the end of the path.
@@ -68,6 +76,14 @@ const visibilityDisplays = {
   gene: { dense: "merged", squish: "merged", pack: "tagged", full: "full" },
   bam: { dense: "dense", squish: "squish", pack: "pack", full: "full" },
 } as const satisfies Record<UrlTrackType, Record<TrackVisibility, string>>;
+
+const modules = {
+  bigwig: bigWigModule,
+  bigbed: bigBedModule,
+  gene: geneModule,
+  "ccre-bigbed": ccreBigBedModule,
+  bam: bamModule,
+} as const satisfies Record<UrlTrackType, unknown>;
 
 type Base = { id: string; title: string };
 
@@ -124,8 +140,8 @@ function createInput<Display extends string>(
 /**
  * Check that the browser can read each URL's files as a track, then add the tracks below the
  * others, in order, where the session saves them. Adds every track or none: nothing is added
- * when any URL is not a readable file of a supported type, a request's metadata is too large,
- * the session lacks room for every track, or `signal` aborts first.
+ * when any URL is not a readable file of a supported type, a request's color isn't `#RRGGBB` or
+ * its metadata is too large, the session lacks room for every track, or `signal` aborts first.
  */
 export async function addTracksFromUrls(
   trackStore: TrackStoreInstance,
@@ -144,13 +160,20 @@ export async function addTracksFromUrls(
   // A check can finish just after its command is cancelled or expires.
   if (signal.aborted) return cancelled();
   const resolved: ResolvedTrack[] = [];
-  const failures: string[] = [];
+  const failures: RequestFailure[] = [];
   for (const [index, result] of results.entries()) {
     if (result.ok) resolved.push(result);
-    else failures.push(`${requests[index].url}: ${result.code}: ${result.error}`);
+    else failures.push({ index, code: result.code, error: result.error });
   }
-  if (failures.length > 0)
-    return failure("TRACKS_NOT_ADDED", `No tracks were added. ${failures.join(" ")}`);
+  if (failures.length > 0) {
+    const reasons = failures.map(
+      ({ index, code, error }) => `${requests[index].url}: ${code}: ${error}`,
+    );
+    return {
+      ...failure("TRACKS_NOT_ADDED", `No tracks were added. ${reasons.join(" ")}`),
+      failures,
+    };
+  }
   // Commands run concurrently, so another add may have filled the session during the checks.
   const filled = limitFailure(trackStore, requests.length);
   if (filled) return filled;
@@ -173,11 +196,10 @@ async function resolveTrack(
       "METADATA_TOO_LARGE",
       `The metadata is more than ${maxTrackMetadataBytes.toLocaleString("en-US")} bytes as JSON. Remove fields or shorten values.`,
     );
-  const path = url.pathname.toLowerCase();
-  const extension = extensionTypes.find(([extension]) => path.endsWith(extension));
+  const extension = typeExtension(url);
   const type = request.type ?? extension?.[1];
   if (!type) {
-    const unzipped = path.replace(/\.gz$/, "");
+    const unzipped = url.pathname.toLowerCase().replace(/\.gz$/, "");
     const text = textFormats.find(([extension]) => unzipped.endsWith(extension));
     if (text) {
       const [, format, target, tool] = text;
@@ -192,6 +214,11 @@ async function resolveTrack(
       `The track type cannot be inferred from the URL. Choose one of: ${types}.`,
     );
   }
+  if (request.color && !colorSchema(type).safeParse(request.color).success)
+    return failure(
+      "INVALID_COLOR",
+      `The color "${request.color}" is not #RRGGBB, such as #3366cc.`,
+    );
   const base = {
     id: crypto.randomUUID(),
     title: request.title?.trim() || fileTitle(url, extension?.[0]),
@@ -204,6 +231,51 @@ async function resolveTrack(
       return failure(error.code, error.message);
     throw error;
   }
+}
+
+/** The title a request without one gets, or undefined when the URL isn't absolute HTTP(S). */
+export function titleFromUrl(url: string): string | undefined {
+  const parsed = parseUrl(url);
+  return parsed && fileTitle(parsed, typeExtension(parsed)?.[0]);
+}
+
+/** The color a request without one gets, as `#rrggbb`. */
+export function defaultColor(type: UrlTrackType): string {
+  return colorSchema(type).parse(undefined);
+}
+
+/** The colors a type's tracks accept, defaulting to the type's own. */
+function colorSchema(type: UrlTrackType) {
+  return modules[type].createInputSchema.shape.base.shape.color;
+}
+
+/**
+ * The BED columns a BigBed file's header chooses for a request without `bedSchema`, read from the
+ * file. Undefined when the URL doesn't serve a BigBed file the browser can read. An abort rejects.
+ */
+export async function headerBedPreset(
+  url: string,
+  signal: AbortSignal,
+): Promise<BigBedPreset | undefined> {
+  if (!parseUrl(url)) return undefined;
+  try {
+    const { bedSchema } = await checkBigBedFiles({ url }, { signal });
+    return bigBedPresetSchema.safeParse(bedSchema).data;
+  } catch (error) {
+    if (!signal.aborted && error instanceof TrackFileError) return undefined;
+    throw error;
+  }
+}
+
+/** The track type a URL's file extension names, if it is an HTTP(S) URL with one. */
+export function typeFromUrl(url: string): UrlTrackType | undefined {
+  const parsed = parseUrl(url);
+  return parsed && typeExtension(parsed)?.[1];
+}
+
+function typeExtension(url: URL) {
+  const path = url.pathname.toLowerCase();
+  return extensionTypes.find(([extension]) => path.endsWith(extension));
 }
 
 function failure(code: string, error: string): Failure {

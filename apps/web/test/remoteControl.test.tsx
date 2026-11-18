@@ -3,8 +3,6 @@
 // Import first: it mocks the Next.js router before the app's modules load.
 import { clerk, route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { act, useLayoutEffect } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
@@ -12,6 +10,7 @@ import { maxSessionTracks } from "../features/sessions/schema";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { useSession } from "../features/sessions/SessionProvider";
 import { installSessionServer, type SessionServer } from "./sessionServer";
+import { bigBedWithColumns, trackFiles as files } from "./trackFiles";
 
 // EventSource and fetch are the external boundaries. The session owner, remote
 // control attachment, command execution, stores, and UI are real.
@@ -420,26 +419,6 @@ it("changes no track's metadata when a change names a missing track or changes n
   ).toEqual([{}, {}, {}]);
 });
 
-function fixture(path: string) {
-  return new Uint8Array(
-    readFileSync(join(import.meta.dirname, "../../../packages/reader/test/fixtures", path)),
-  );
-}
-const files = {
-  bigWig: fixture("bigwig/basic.bw"),
-  bed6: fixture("bigbed/basic.bb"),
-  bam: fixture("bam/bamExample.bam"),
-  bai: fixture("bam/bamExample.bam.bai"),
-};
-// A copy of the BED6 fixture whose header declares other column counts, standing in for gene and
-// cCRE files. Adding a track reads only the header.
-function bigBedWithColumns(fieldCount: number, definedFieldCount: number) {
-  const bytes = files.bed6.slice();
-  const view = new DataView(bytes.buffer);
-  view.setUint16(32, fieldCount, true);
-  view.setUint16(34, definedFieldCount, true);
-  return bytes;
-}
 const dataHost = "https://data.example.test";
 const addTracksCommand = (tracks: object[], expiresAt = Date.now() + 5000) => ({
   commandId: crypto.randomUUID(),
