@@ -1,4 +1,4 @@
-import type { MutationFailure } from "@weng-lab/genomebrowser";
+import { useTrackSettingsBlocked, type MutationFailure } from "@weng-lab/genomebrowser";
 import { useEffect, useEffectEvent, useState, type KeyboardEvent } from "react";
 
 type DraftCommitResult = { ok: true } | MutationFailure<string>;
@@ -40,6 +40,7 @@ type DraftState<Raw, Value> = {
   externalValue: Value;
   dirty: boolean;
   error?: string;
+  errorCode?: string;
   revision: number;
   pendingRevision?: number;
 };
@@ -49,6 +50,7 @@ export function useDraftController<Raw, Value>(
   options: DraftControllerOptions<Raw, Value>,
 ): DraftController<Raw, Value> {
   const [draft, setDraft] = useState<DraftState<Raw, Value>>();
+  const blocked = useTrackSettingsBlocked();
 
   const currentBaseline = (currentDraft: DraftState<Raw, Value> | undefined) => {
     if (currentDraft !== undefined && options.isEqual(currentDraft.externalValue, options.value)) {
@@ -85,7 +87,12 @@ export function useDraftController<Raw, Value>(
   ) => {
     const validation = options.validate(currentDraft.raw);
     if (!validation.ok) {
-      setDraft({ ...currentDraft, error: validation.error, pendingRevision: undefined });
+      setDraft({
+        ...currentDraft,
+        error: validation.error,
+        errorCode: undefined,
+        pendingRevision: undefined,
+      });
       return {
         ok: false,
         code: "INVALID_TRACK",
@@ -109,17 +116,36 @@ export function useDraftController<Raw, Value>(
       return { ok: true } satisfies DraftCommitResult;
     }
 
-    const result = (submitOptions?.onCommit ?? options.onCommit)(validation.value);
+    const result: DraftCommitResult = blocked
+      ? {
+          ok: false,
+          code: "INTERACTION_BLOCKED",
+          error: "Track interactions are currently blocked",
+        }
+      : (submitOptions?.onCommit ?? options.onCommit)(validation.value);
     if (!result.ok) {
       setDraft(
         (submitOptions?.retainRejectedDraft ?? true)
-          ? { ...currentDraft, error: result.error, pendingRevision: undefined }
+          ? {
+              ...currentDraft,
+              error: result.error,
+              errorCode: result.code,
+              // A loading block can resume the normal debounced commit. Explicit
+              // batch actions retain their draft but must be requested again.
+              pendingRevision:
+                blocked !== undefined &&
+                result.code === "INTERACTION_BLOCKED" &&
+                submitOptions?.onCommit === undefined
+                  ? currentDraft.pendingRevision
+                  : undefined,
+            }
           : {
               raw: options.toRaw(baseline),
               baseline,
               externalValue: options.value,
               dirty: false,
               error: result.error,
+              errorCode: result.code,
               revision: currentDraft.revision,
             },
       );
@@ -143,11 +169,11 @@ export function useDraftController<Raw, Value>(
   const pendingRevision = draft?.pendingRevision;
   const debounceMs = options.debounceMs ?? defaultDebounceMs;
   useEffect(() => {
-    if (pendingRevision === undefined || debounceMs === false) return;
+    if (blocked || pendingRevision === undefined || debounceMs === false) return;
 
     const timer = setTimeout(() => commitAfterDelay(pendingRevision), debounceMs);
     return () => clearTimeout(timer);
-  }, [debounceMs, pendingRevision]);
+  }, [blocked, debounceMs, pendingRevision]);
 
   const change = (raw: Raw) => setDraft(makeDraft(raw));
 
@@ -206,7 +232,8 @@ export function useDraftController<Raw, Value>(
       draft === undefined || externalSupersedesSettledDraft
         ? options.toRaw(options.value)
         : draft.raw,
-    error: draft?.error,
+    error:
+      draft?.errorCode === "INTERACTION_BLOCKED" && blocked === false ? undefined : draft?.error,
     change,
     blur: flush,
     keyDown,

@@ -57,6 +57,7 @@ export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/regi
 
 // Track definition
 export { TrackSettingsPanel } from "./browser/settings/TrackSettingsPanel";
+export { useTrackSettingsBlocked } from "./browser/settings/trackSettingsContext";
 export { defineTrackModule } from "./modules/defineTrackModule";
 export { fetchOnChange } from "./modules/fetchOnChange";
 export type {

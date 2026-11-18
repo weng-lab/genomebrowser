@@ -44,6 +44,8 @@ Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escap
 
 The field stores the draft locally. Pass the accepted value through `value` and return `TrackMutationResult` from `onCommit`. In a module form, return core's `updateTrack` result. A successful result accepts the draft. A failed result keeps the draft and displays its error. The field does not read browser stores.
 
+When hosted by core's `TrackSettingsPanel`, automatic commits pause during track loading and resume after the panel becomes ready. Drafts survive the wait; invalid drafts keep their validation errors. A temporary `INTERACTION_BLOCKED` message does not remain after loading finishes. Independently rendered fields keep their callback-driven behavior.
+
 ## Accessibility
 
 The visible label names the input; validation errors appear as helper text.

@@ -132,12 +132,14 @@ describe("browser settings workflows", () => {
       useTrackStore.getState().getTrack("active"),
     );
 
+    const updateBeforeReload = requireValue(
+      receivedProps,
+      "Module settings props not received",
+    ).updateTrack;
     await blockInteractions();
     let blockedResult: TrackMutationResult | undefined;
     await act(async () => {
-      blockedResult = requireValue(receivedProps, "Module settings props not received").updateTrack(
-        { base: { title: "Blocked update" } },
-      );
+      blockedResult = updateBeforeReload({ base: { title: "Blocked update" } });
     });
     expect(blockedResult).toEqual({
       ok: false,

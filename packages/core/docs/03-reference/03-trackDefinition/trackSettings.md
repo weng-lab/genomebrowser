@@ -65,4 +65,10 @@ The browser supplies every prop in the table. `InteractionItem` defaults to `unk
 
 `trackId: string` is required. `scopeTrackIds?: readonly string[]` limits `updateTracksOfType` to matching IDs of that type; without it, the batch covers all same-type tracks. A single `updateTrack` remains bound to `trackId`. Unknown tracks or modules without a settings form render no panel. The panel supplies no dialog, download controls or disabled fieldset; the host owns presentation and disabled styling. Mutation callbacks still enforce the browser's interaction gate.
 
+## useTrackSettingsBlocked
+
+`useTrackSettingsBlocked(): boolean | undefined` subscribes a field to the loading guard supplied by the nearest `TrackSettingsPanel`. It returns `true` while hosted mutations are blocked, `false` while they are available, and `undefined` for an independently rendered form outside a panel. Import it from `@weng-lab/genomebrowser` when implementing custom debounced controls.
+
+Shared first-party fields use this signal to pause automatic commits during a reload and resume valid pending drafts once loading ends. They preserve invalid drafts and validation errors. Explicit URL Set and batch actions retain their drafts and require another explicit submission if blocked; they are never silently converted into an automatic single-track update. Transient loading errors stop displaying when the panel becomes ready. Mutation callbacks check current store readiness at invocation, including callbacks retained from an earlier render.
+
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

@@ -34,6 +34,8 @@ The component supplies URL input, autocomplete, and virtual-keyboard hints. It d
 
 The field stores the draft locally. Pass the accepted value through `value` and return `TrackMutationResult` from `onCommit`. In a module form, return core's `updateTrack` result. A successful result accepts the draft. A failed result keeps the draft and displays its error. The field does not read browser stores.
 
+Inside core's `TrackSettingsPanel`, a temporary loading rejection preserves the URL draft and clears its loading error once the panel becomes ready. Click **Set** again to apply it; Enter and background loading completion do not apply a URL.
+
 ## Accessibility
 
 The input has a visible label. The Set button is named `Set ${label}` and supports button keyboard activation. `disabled` disables both the input and button.

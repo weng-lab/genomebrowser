@@ -80,12 +80,13 @@ export function useIsInteractionBlocked() {
 }
 
 export function useTrackMutationGate() {
-  const isInteractionBlocked = useIsInteractionBlocked();
+  const useBrowserStore = useBrowserContext("useTrackMutationGate").browserStore;
+  const isInteractionBlocked = useBrowserStore((state) => state.isLoading);
 
   return {
     isInteractionBlocked,
     runTrackMutation: (mutation: () => TrackMutationResult): TrackMutationResult => {
-      if (isInteractionBlocked) {
+      if (useBrowserStore.getState().isLoading) {
         return {
           ok: false,
           code: "INTERACTION_BLOCKED",
