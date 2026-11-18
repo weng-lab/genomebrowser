@@ -178,7 +178,10 @@ export function TrackSetHeader({ layout, width }: { layout: TrackSetLayout; widt
       <HeaderAction
         x={controlsX + 96}
         label={`Settings for track set ${trackSet.title}`}
-        action={() => open(trackSet.id)}
+        action={(element) => {
+          const bounds = element.getBoundingClientRect();
+          open(trackSet.id, { x: bounds.left, y: bounds.top });
+        }}
       >
         <SettingsIcon x={8} y={8} height={16} width={16} fill="currentColor" aria-hidden="true" />
       </HeaderAction>
@@ -211,7 +214,7 @@ function HeaderAction({
   label: string;
   disabled?: boolean;
   pressed?: boolean;
-  action: () => void;
+  action: (element: SVGGElement) => void;
   children: ReactNode;
 }) {
   const theme = useTheme();
@@ -226,13 +229,13 @@ function HeaderAction({
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
         event.stopPropagation();
-        if (!disabled) action();
+        if (!disabled) action(event.currentTarget);
       }}
       onKeyDown={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.preventDefault();
         event.stopPropagation();
-        if (!disabled) action();
+        if (!disabled) action(event.currentTarget);
       }}
       style={{
         cursor: disabled ? "default" : "pointer",
