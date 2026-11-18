@@ -60,7 +60,7 @@ describe("BigBed track", () => {
     reader.createBigBedFile.mockReturnValue({ read: reader.read });
   });
 
-  it("defaults track and row height to 12", () => {
+  it("uses the documented 12 px track and row height defaults", () => {
     const config = bigBedModule.create({
       base: {
         id: "peaks",
