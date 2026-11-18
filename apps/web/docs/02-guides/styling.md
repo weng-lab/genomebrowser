@@ -10,7 +10,9 @@ The workspace applies its own MUI theme and baseline styles inside `Workspace`. 
 
 The palette sets a navy primary color, a cornflower blue secondary color, slate text and divider colors, a white page background, a faintly tinted paper surface, and a light blue `background.subtle` surface for areas set apart from both. Hover, selected, and focus backgrounds on neutral controls are tinted with the primary text color rather than black. Use palette keys such as `primary.main` and `text.secondary` instead of literal colors.
 
-Icons in `IconButton` and similar controls use a solid dark gray rather than MUI's default semi-transparent black. The current page's side bar icon uses the primary color.
+Icons in `IconButton` and similar controls use a solid dark gray rather than MUI's default semi-transparent black.
+
+The frame uses the navy primary color for the side bar and the side panels' title rows, the paper color for the side panels' content, and the light blue `background.subtle` behind the center content. The current page's side bar icon sits on a lighter square. The right panel's button fills with the primary color while its panel is open. Spread the internal `primarySurfaceSx` onto other navy areas: MUI text, icon buttons, and inputs inside it switch to the light contrast text, while menus and dialogs opened from it stay light.
 
 Tooltips wait 500 milliseconds before opening. Moving between controls shortly after a tooltip opens uses MUI's immediate follow-on behavior. Set `enterDelay` or `enterNextDelay` on an individual `Tooltip` to override these defaults.
 

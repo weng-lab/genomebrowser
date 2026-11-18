@@ -4,6 +4,7 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import { useId, type ReactNode } from "react";
 import { titleRowSx } from "../frame/layout";
+import { primarySurfaceSx } from "../theme";
 import { usePanelState } from "./panelState";
 import { Resizable } from "./Resizable";
 import type { Side, WorkspacePanel } from "../types";
@@ -46,9 +47,21 @@ export function SidePanel({ side, panel, open, animate, heading, onClose }: Side
           component="aside"
           aria-labelledby={heading === undefined ? titleId : undefined}
           aria-label={heading === undefined ? undefined : panel.title}
-          sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+            minHeight: 0,
+            bgcolor: "background.paper",
+          }}
         >
-          <Box sx={{ ...titleRowSx({ clearLeft: side === "left" }), pr: onClose ? 0.5 : 1.5 }}>
+          <Box
+            sx={{
+              ...titleRowSx({ clearLeft: side === "left" }),
+              ...primarySurfaceSx,
+              pr: onClose ? 0.5 : 1.5,
+            }}
+          >
             {heading ?? (
               <Typography id={titleId} variant="subtitle2" component="h2" noWrap>
                 {panel.title}

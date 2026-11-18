@@ -120,7 +120,10 @@ export function WorkspacePage({
           clearLeftToggle={left !== undefined && !leftOpen}
           animate={transitionEnabled}
         />
-        <Box component="main" sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", p: 1 }}>
+        <Box
+          component="main"
+          sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", p: 1, bgcolor: "background.subtle" }}
+        >
           {children}
         </Box>
       </Box>

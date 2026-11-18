@@ -1,10 +1,12 @@
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
+import { alpha, type Theme } from "@mui/material/styles";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { SIDE_BAR_WIDTH } from "./layout";
+import { primarySurfaceSx } from "../theme";
 import type { WorkspaceNavigationItem } from "../types";
 
 type SideBarProps = { navigation: readonly WorkspaceNavigationItem[]; footer?: ReactNode };
@@ -21,7 +23,7 @@ export function SideBar({ navigation, footer }: SideBarProps) {
           href={item.href}
           aria-label={item.label}
           aria-current={exact ? "page" : current ? "location" : undefined}
-          color={current ? "primary" : "default"}
+          sx={[linkSx, current && currentLinkSx]}
         >
           {item.icon}
         </IconButton>
@@ -33,6 +35,7 @@ export function SideBar({ navigation, footer }: SideBarProps) {
       component="nav"
       aria-label="Workspace"
       sx={{
+        ...primarySurfaceSx,
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
@@ -41,7 +44,7 @@ export function SideBar({ navigation, footer }: SideBarProps) {
         width: SIDE_BAR_WIDTH,
         p: 0.5,
         borderRight: 1,
-        borderColor: "divider",
+        borderColor: (theme) => alpha(theme.palette.primary.contrastText, 0.12),
       }}
     >
       {navigation.filter((item) => item.placement !== "bottom").map(pageLink)}
@@ -51,3 +54,10 @@ export function SideBar({ navigation, footer }: SideBarProps) {
     </Box>
   );
 }
+
+const linkSx = { borderRadius: 1.5 } as const;
+
+/** The current page's link sits on a lighter square, since the primary color is the bar itself. */
+const currentLinkSx = {
+  bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.16),
+} as const;

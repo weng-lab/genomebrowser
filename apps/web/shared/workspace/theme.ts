@@ -1,5 +1,5 @@
 import { grey } from "@mui/material/colors";
-import { alpha, createTheme } from "@mui/material/styles";
+import { alpha, createTheme, type Theme } from "@mui/material/styles";
 
 declare module "@mui/material/styles" {
   interface TypeBackground {
@@ -17,6 +17,22 @@ const textPrimary = "#151822";
  * on the element that directly contains the text, not on a flex container around it.
  */
 export const textBoxTrim = { textBox: "trim-both cap alphabetic" } as const;
+
+const onPrimaryHover = (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.12);
+
+/**
+ * A navy surface, such as the side bar and the side panels' title rows. MUI text, icon
+ * buttons, and inputs set their own colors, so inside the surface they inherit its light
+ * text color instead. Menus and dialogs opened from it render outside it and stay light.
+ */
+export const primarySurfaceSx = {
+  bgcolor: "primary.main",
+  color: "primary.contrastText",
+  "& .MuiTypography-root, & .MuiIconButton-root, & .MuiInputBase-root": { color: "inherit" },
+  "& .MuiButtonBase-root:hover, & .MuiButtonBase-root.Mui-focusVisible": {
+    bgcolor: onPrimaryHover,
+  },
+} as const;
 
 // Shared theme for the web application and workspace.
 export const theme = createTheme({
