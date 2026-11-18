@@ -1,9 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
-import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-import { ValueLabels } from "../../src/shared/ValueLabels";
 import { mountTrack, type MountedTrack } from "../mountTrack";
 
 const region = { chromosome: "chr1", start: 0, end: 300 };
@@ -40,25 +37,15 @@ async function mountSignal(display: "full" | "dense") {
   });
 }
 
-const ticks = [
-  { value: 1, y: 0 },
-  { value: 0, y: 35 },
-  { value: 0.5, y: 17.5 },
-];
-const labelsModule = defineTrackModule({
-  type: "value-labels",
-  configSchema: z.object({}),
-  fetch: async () => null,
-  render: {
-    full: ({ height }: { height: number }) => <ValueLabels height={height} ticks={ticks} />,
-  },
-});
-
-async function mountLabels(height: number) {
+/** A BigWig plot from -1 to 1 puts its zero tick midway between the endpoints. */
+async function mountSymmetric(height: number) {
   return mountTrack({
-    module: labelsModule,
-    track: { base: { id: "labels", title: "Labels", height }, config: {} },
-    data: null,
+    module: bigWigModule,
+    track: {
+      base: { id: "signal", title: "Signal", color: "#2266aa", height },
+      config: { ...config, yRange: { min: -1, max: 1 } },
+    },
+    data,
     region,
     width: 900,
   });
@@ -78,10 +65,13 @@ describe("renderer value labels", () => {
   });
 
   it("keeps endpoint labels inside short tracks and suppresses colliding middle labels", async () => {
-    const shown = labels(await mountLabels(35));
-    expect(shown.map((label) => label.textContent)).toEqual(["1", "0"]);
-    // A 14 px label for the bottom tick of a 35 px track sits at 35 - 14 = 21.
-    expect(shown[1]?.previousElementSibling?.getAttribute("y")).toBe("21");
-    expect(labels(await mountLabels(10))).toHaveLength(0);
+    const shown = labels(await mountSymmetric(35));
+    expect(shown.map((label) => label.textContent)).toEqual(["1", "-1"]);
+    // Each label sits on a 14 px box; the bottom one must end inside the 35 px track.
+    const box = shown[1]?.closest("g")?.querySelector("rect");
+    const top = Number(box?.getAttribute("y"));
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(top + Number(box?.getAttribute("height"))).toBeLessThanOrEqual(35);
+    expect(labels(await mountSymmetric(10))).toHaveLength(0);
   });
 });
