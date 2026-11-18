@@ -226,7 +226,7 @@ function limitFailure(trackStore: TrackStoreInstance, adding: number) {
 }
 
 /** The URL, when it is an absolute HTTP or HTTPS URL. */
-function parseUrl(url: string) {
+export function parseUrl(url: string) {
   try {
     const parsed = new URL(url);
     return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed : undefined;
