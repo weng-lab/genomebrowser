@@ -93,6 +93,4 @@ Module `create(input, interaction?)` accepts the existing `onClick`, `onHover`, 
 
 `createClinGenTrackSet({ id?, title?, display? } = {})` returns `{ tracks, trackSets }` for `createTrackStore`. Defaults are ID `clingen`, title `ClinGen`, and display `pack`. Child IDs are `<id>-haplo`, `<id>-triplo`, `<id>-gene-disease`, and `<id>-cspec`. Supply a distinct nonempty ID when adding multiple sets. It creates plain independent instances and membership data; it does not mutate stores or start requests. Registering modules and mounting the browser starts the normal runtime.
 
-The standalone [track-set demo](../../../../../examples/trackset/README.md) includes the set and buttons for `chr17:43,000,000-43,100,000` and `chr17:43,050,000-43,051,000`. This implementation does not modify saved web sessions.
-
 See [the module reference](README.md) and [the export index](../README.md#public-export-index) for related APIs.

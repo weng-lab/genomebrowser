@@ -24,6 +24,7 @@ export function SettingsModalController() {
       <DefaultTrackSetSettings
         key={trackSetId}
         trackSetId={trackSetId}
+        position={position}
         closeSettings={closeSettings}
       />
     );

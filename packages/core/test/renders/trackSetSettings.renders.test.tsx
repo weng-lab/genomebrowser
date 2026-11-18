@@ -201,7 +201,7 @@ it("inherits the host theme for group chrome and the default dialog without chan
       .dispatchEvent(new MouseEvent("click", { bubbles: true })),
   );
   expect(document.querySelector('[role="dialog"]')).not.toBeNull();
-  expect(getComputedStyle(document.querySelector(".MuiDialog-paper")!).backgroundColor).toBe(
+  expect(getComputedStyle(document.querySelector("dialog")!).backgroundColor).toBe(
     "rgb(16, 24, 32)",
   );
 });
@@ -253,4 +253,47 @@ it("uses the host palette for a track-set drag preview and cancels it without ch
   );
   expect(document.querySelector("[data-track-drop-preview]")).toBeNull();
   expect(stores.trackStore.getState().trackSets[0].trackIds).toEqual(["one"]);
+});
+
+it("drags track-set settings, preserves child state, and returns focus when closed", async () => {
+  const stores = groupStores();
+  probe = await renderWithProbe(<GenomeBrowser sizing="fixed" {...stores} />);
+  const opener = document.querySelector<SVGGElement>(
+    '[aria-label="Settings for track set Signals"]',
+  )!;
+  await probe.measure(() => {
+    opener.focus();
+    opener.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+  expect(dialog).not.toBeNull();
+  expect(document.activeElement).toBe(dialog);
+  const before = stores.trackStore.getState().tracks;
+  const handle = dialog.firstElementChild as HTMLElement;
+  Object.assign(handle, {
+    setPointerCapture: () => undefined,
+    hasPointerCapture: () => true,
+    releasePointerCapture: () => undefined,
+  });
+  const left = Number.parseFloat(dialog.style.left) || dialog.getBoundingClientRect().left;
+  const top = Number.parseFloat(dialog.style.top) || dialog.getBoundingClientRect().top;
+  const pointer = (type: string, x: number, y: number) => {
+    const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y });
+    Object.defineProperty(event, "pointerId", { value: 1 });
+    handle.dispatchEvent(event);
+  };
+  const dragged = await probe.measure(() => {
+    pointer("pointerdown", left + 10, top + 10);
+    pointer("pointermove", left + 110, top + 70);
+    pointer("pointerup", left + 110, top + 70);
+  });
+  expect(dialog.style.left).toBe(`${left + 100}px`);
+  expect(dialog.style.top).toBe(`${top + 60}px`);
+  expect(dragged.pick("Signal")).toEqual({ Signal: 0 });
+  expect(stores.trackStore.getState().tracks).toBe(before);
+  await probe.measure(() =>
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  expect(document.activeElement).toBe(opener);
 });

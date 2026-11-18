@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -7,10 +7,6 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
@@ -22,13 +18,17 @@ import type { TrackMutationResult } from "../../modules/types";
 import { useGenomeBrowser } from "../state/browserContextState";
 import { getTrackSet } from "../state/trackSets";
 import { TrackSettingsPanel } from "./TrackSettingsPanel";
+import { TrackSetSettingsModal } from "./TrackSetSettingsModal";
+import type { SettingsPosition } from "./types";
 
 /** Built-in track-set settings, mounted by the browser. */
 export function DefaultTrackSetSettings({
   trackSetId,
+  position,
   closeSettings,
 }: {
   trackSetId: string;
+  position: SettingsPosition;
   closeSettings: () => void;
 }) {
   const { useTrackStore } = useGenomeBrowser();
@@ -37,7 +37,6 @@ export function DefaultTrackSetSettings({
   const update = useTrackStore((state) => state.updateTrackSet);
   const removeTrackSet = useTrackStore((state) => state.ungroupTrackSet);
   const [error, setError] = useState("");
-  const titleId = useId();
   const members = useMemo(() => new Set(trackSet?.trackIds), [trackSet]);
   const childIds = useMemo(() => order.filter((id) => members.has(id)), [order, members]);
 
@@ -46,43 +45,59 @@ export function DefaultTrackSetSettings({
   const report = (result: TrackMutationResult) => setError(result.ok ? "" : result.error);
 
   return (
-    <Dialog open onClose={closeSettings} fullWidth maxWidth="sm" aria-labelledby={titleId}>
-      <DialogTitle id={titleId}>{trackSet.title}</DialogTitle>
-      <DialogContent dividers>
-        <Stack spacing={2}>
-          {error && <Alert severity="error">{error}</Alert>}
-          <FormControlLabel
-            label="Show track set"
-            control={
-              <Switch
-                checked={trackSet.visible}
-                onChange={(_, visible) => report(update(trackSet.id, { visible }))}
-              />
-            }
-          />
-          <FormControlLabel
-            label="Allow moving tracks into or out of this set"
-            control={
-              <Switch
-                checked={trackSet.allowTrackTransfer !== false}
-                onChange={(_, allowTrackTransfer) =>
-                  report(update(trackSet.id, { allowTrackTransfer }))
-                }
-              />
-            }
-          />
-          <TrackSetDisplay trackSetId={trackSet.id} />
-          <Typography variant="body2" color="text.secondary">
-            Each child keeps its own data and settings. Hide the track set to pause its data
-            requests.
-          </Typography>
-          {childIds.map((id) => (
-            <TrackSetChild key={id} trackId={id} scopeTrackIds={trackSet.trackIds} />
-          ))}
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ flexWrap: "wrap", gap: 1 }}>
+    <TrackSetSettingsModal title={trackSet.title} position={position} closeSettings={closeSettings}>
+      {error && <Alert severity="error">{error}</Alert>}
+      <Box
+        component="fieldset"
+        sx={{
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 1,
+          display: "grid",
+          gap: 1.25,
+          m: 0,
+          minWidth: 0,
+          px: 1.25,
+          pb: 1.25,
+        }}
+      >
+        <Typography component="legend" variant="subtitle2" sx={{ px: 0.5 }}>
+          Track set
+        </Typography>
+        <FormControlLabel
+          label="Show track set"
+          control={
+            <Switch
+              checked={trackSet.visible}
+              onChange={(_, visible) => report(update(trackSet.id, { visible }))}
+            />
+          }
+        />
+        <FormControlLabel
+          label="Allow moving tracks into or out of this set"
+          control={
+            <Switch
+              checked={trackSet.allowTrackTransfer !== false}
+              onChange={(_, allowTrackTransfer) =>
+                report(update(trackSet.id, { allowTrackTransfer }))
+              }
+            />
+          }
+        />
+        <TrackSetDisplay trackSetId={trackSet.id} />
+      </Box>
+      <Stack spacing={1.5}>
+        <Typography variant="subtitle2">Tracks</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Each child keeps its own data and settings. Hide the track set to pause its data requests.
+        </Typography>
+        {childIds.map((id) => (
+          <TrackSetChild key={id} trackId={id} scopeTrackIds={trackSet.trackIds} />
+        ))}
+      </Stack>
+      <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
         <Button
+          size="small"
           title="Keep all member tracks as standalone tracks"
           onClick={() => {
             const result = removeTrackSet(trackSet.id);
@@ -92,9 +107,11 @@ export function DefaultTrackSetSettings({
         >
           Remove track set
         </Button>
-        <Button onClick={closeSettings}>Close</Button>
-      </DialogActions>
-    </Dialog>
+        <Button size="small" onClick={closeSettings}>
+          Close
+        </Button>
+      </Box>
+    </TrackSetSettingsModal>
   );
 }
 function TrackSetDisplay({ trackSetId }: { trackSetId: string }) {
