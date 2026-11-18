@@ -483,10 +483,9 @@ describe("BAM sections", () => {
       });
       expect(Math.min(...depthYs(view.content, "+"))).toBe(0);
       expect(Math.max(...depthYs(view.content, "-"))).toBe(60);
-      await configure(view, config);
-      await view.setView({ data: { records: [], reference: [] } });
-      expect(new Set(depthYs(view.content, "+"))).toEqual(new Set([30]));
-      expect(new Set(depthYs(view.content, "-"))).toEqual(new Set([30]));
+      const empty = await mount("pack", { records: [], reference: [] }, { config, width: 100 });
+      expect(new Set(depthYs(empty.content, "+"))).toEqual(new Set([30]));
+      expect(new Set(depthYs(empty.content, "-"))).toEqual(new Set([30]));
     },
   );
   it.each(["bars", "line"] as const)(
@@ -806,8 +805,10 @@ describe("BAM sections", () => {
     const before = rowOf();
     await view.setView({ visibleRegion: { chromosome: "chr1", start: 180, end: 280 } });
     expect(rowOf()).toEqual(before);
-    // New data drops "left" and adds a read that would otherwise take its row.
+    // Panning back past the loaded data refetches, and the new data drops "left" and
+    // adds a read that would otherwise take its row.
     await view.setView({
+      visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
       data: {
         records: [
           read({ readName: "long", start: 20, end: 280 }),
@@ -817,7 +818,10 @@ describe("BAM sections", () => {
         reference: [],
       },
     });
-    expect(rowOf()).toMatchObject({ long: before.long, right: before.right });
+    const after = rowOf();
+    expect(after).toMatchObject({ long: before.long, right: before.right });
+    expect(after.new).toBeDefined();
+    expect(after.left).toBeUndefined();
   });
   it.each(["mean", "max"] as const)(
     "excludes partial off-screen bins from %s autoscaling",

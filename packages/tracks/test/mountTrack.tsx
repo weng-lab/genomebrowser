@@ -35,7 +35,7 @@ export type MountTrackOptions<M extends HostedModule> = {
   track: Parameters<M["create"]>[0];
   /** Delivered through the track's public `interaction` field. */
   interaction?: Parameters<M["create"]>[1];
-  /** Literal fetch result. Omit to run the module's real `fetch`. */
+  /** Literal result for every fetch. Omit to run the module's real `fetch`. */
   data?: Awaited<ReturnType<M["fetch"]>>;
   /** Region the renderer draws; also the browser region unless `visibleRegion` is set. */
   region: GenomicRegion;
@@ -64,7 +64,7 @@ export async function mountTrack<M extends HostedModule>({
   let started = 0;
   let pending = 0;
   let tooltipItem: unknown;
-  // What the renderer is pinned to; `setView` replaces it like a pan, resize, or new response.
+  // The view the renderer is pinned to and the data fetches return; `setView` replaces it.
   let view = { data, region, visibleRegion, width };
   const listeners = new Set<() => void>();
   const subscribe = (listener: () => void) => {
@@ -88,7 +88,6 @@ export async function mountTrack<M extends HostedModule>({
           <g data-mounted-track="">
             <Renderer
               {...props}
-              data={pinned.data === undefined ? props.data : pinned.data}
               region={pinned.region}
               visibleRegion={pinned.visibleRegion}
               width={pinned.width}
@@ -191,8 +190,10 @@ export async function mountTrack<M extends HostedModule>({
     leave: (element: Element) => pointer("mouseout", element),
     click: (element: Element) => pointer("click", element),
     /**
-     * Pans, resizes, or delivers new literal data to the mounted track. The browser's
-     * region and width follow, as they do for `region`, `visibleRegion`, and `width`.
+     * Pans or resizes the mounted track. The browser's region and width follow, as they
+     * do for `region`, `visibleRegion`, and `width`. `data` sets what the next fetch
+     * returns; the renderer only sees it once core fetches, as it does after a pan past
+     * the loaded data, so pass it with such a pan or mount a new view.
      */
     async setView(
       next: Partial<Pick<MountTrackOptions<M>, "data" | "region" | "visibleRegion" | "width">>,
