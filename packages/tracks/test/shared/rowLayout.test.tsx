@@ -27,15 +27,12 @@ describe("useRowLayout", () => {
       data: null,
       region: { chromosome: "chr1", start: 0, end: 100 },
     });
-    const height = () => view.trackStore.getState().getTrack("rows")?.base.height;
 
     expect(view.content.textContent).toBe("12/24");
-    expect(height()).toBe(24);
+    expect(view.height).toBe(24);
 
-    await view.settle(() =>
-      view.trackStore.getState().updateTrack("rows", { config: { rowCount: 3 } }),
-    );
+    await view.update({ config: { rowCount: 3 } });
     expect(view.content.textContent).toBe("12/36");
-    expect(height()).toBe(36);
+    expect(view.height).toBe(36);
   });
 });

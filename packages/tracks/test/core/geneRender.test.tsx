@@ -8,7 +8,7 @@ import {
   type GeneInteractionTarget,
   type GeneTranscript,
 } from "@weng-lab/genomebrowser-tracks/gene";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 
 const firstTranscript = transcript("tx1", "gene1", 100, 180, {
   tags: ["MANE_Select"],
@@ -146,7 +146,7 @@ describe("Gene rendering", () => {
     const mounted = await render("merged");
 
     expect(container.querySelectorAll("[data-gene-hit-target]")).toHaveLength(2);
-    expect(trackHeight(mounted)).toBe(16);
+    expect(mounted.height).toBe(16);
     expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-gene-part="cds"]')).toHaveLength(4);
@@ -171,7 +171,7 @@ describe("Gene rendering", () => {
       visibleRegion: { chromosome: "chr1", start: 250, end: 400 },
     });
 
-    expect(trackHeight(mounted)).toBe(16);
+    expect(mounted.height).toBe(16);
     expect(container.querySelectorAll("[data-gene-label]")).toHaveLength(3);
   });
 
@@ -236,14 +236,14 @@ describe("Gene rendering", () => {
   it("repaints composite genes in a new track color", async () => {
     const mounted = await render("merged");
 
-    await recolor(mounted, "#123456");
+    await mounted.update({ base: { color: "#123456" } });
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 
   it("keeps the tag color on transcripts when the track color changes", async () => {
     const mounted = await render("full");
 
-    await recolor(mounted, "#123456");
+    await mounted.update({ base: { color: "#123456" } });
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#d45c2f");
   });
 
@@ -300,16 +300,6 @@ async function render(
   });
   container = view.content;
   return view;
-}
-
-function trackHeight(mounted: MountedTrack) {
-  return mounted.trackStore.getState().getTrack("genes")?.base.height;
-}
-
-function recolor(mounted: MountedTrack, next: string) {
-  return mounted.settle(() =>
-    mounted.trackStore.getState().updateTrack("genes", { base: { color: next } }),
-  );
 }
 
 function transcript(

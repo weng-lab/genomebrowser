@@ -11,6 +11,8 @@ import {
   type TrackRendererProps,
 } from "@weng-lab/genomebrowser";
 
+type TrackStoreState = ReturnType<ReturnType<typeof createTrackStore>["getState"]>;
+
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 // jsdom has no SVG geometry. The browser's tooltip only needs a box to place itself.
@@ -112,10 +114,8 @@ export async function mountTrack<M extends HostedModule>({
   const tooltip = () => document.querySelector(`[data-mounted-tooltip="${mountId}"]`);
   const hosted = { ...module, fetch, render, tooltipComponent } as unknown as AnyTrackModule;
   const browserStore = createBrowserStore({ assembly, region: visibleRegion, trackWidth: width });
-  const trackStore = createTrackStore({
-    modules: [hosted],
-    tracks: [hosted.create(track, interaction as never)],
-  });
+  const instance = hosted.create(track, interaction as never);
+  const trackStore = createTrackStore({ modules: [hosted], tracks: [instance] });
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
@@ -175,6 +175,13 @@ export async function mountTrack<M extends HostedModule>({
     browserStore,
     trackStore,
     settle,
+    /** The track height the browser stores and lays the track out with. */
+    get height() {
+      return trackStore.getState().getTrack(instance.base.id)?.base.height;
+    },
+    /** Updates the track through the browser's track store, as its settings do. */
+    update: (patch: Parameters<TrackStoreState["updateTrack"]>[1]) =>
+      settle(() => trackStore.getState().updateTrack(instance.base.id, patch)),
     /** The tooltip the browser is showing for this track, or null. */
     get tooltip() {
       return tooltip();

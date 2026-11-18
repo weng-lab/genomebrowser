@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { bigBedModule, type BigBedRow } from "@weng-lab/genomebrowser-tracks/bigbed";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 
 const config = { url: "YOUR_URL_HERE", rowHeight: 7 };
 const data: BigBedRow[] = [
@@ -21,17 +21,13 @@ async function mount(display: "dense" | "squish", rows = data, visibleRegion = r
   });
 }
 
-function trackHeight(view: MountedTrack) {
-  return view.trackStore.getState().getTrack("peaks")?.base.height;
-}
-
 describe("BigBed row layout", () => {
   it("uses one configured row for dense and packed row count for squish", async () => {
     const dense = await mount("dense");
     const squish = await mount("squish");
 
-    expect(trackHeight(dense)).toBe(7);
-    expect(trackHeight(squish)).toBe(14);
+    expect(dense.height).toBe(7);
+    expect(squish.height).toBe(14);
     expect(dense.content.innerHTML).toContain('height="7"');
     expect(dense.content.innerHTML).toContain('height="4.2"');
     expect(squish.content.innerHTML).toContain('height="14"');
@@ -49,7 +45,7 @@ describe("BigBed row layout", () => {
       { chromosome: "chr1", start: 60, end: 90 },
     );
 
-    expect(trackHeight(view)).toBe(7);
+    expect(view.height).toBe(7);
     expect(view.content.innerHTML).toContain('transform="translate(0,7)"');
   });
 });

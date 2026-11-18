@@ -30,7 +30,6 @@ const track = bamModule.create({
   base: { id: "bam", title: "Alignments" },
   config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", coverage: { show: false } },
 });
-type BamConfig = typeof track.config;
 const props = {
   config: track.config,
   width: 1500,
@@ -63,11 +62,6 @@ function mount(
 async function markup(display: BamDisplay, data: BamData, overrides: Partial<typeof props> = {}) {
   return (await mount(display, data, overrides)).content;
 }
-/** The track height the browser stores and lays the track out with. */
-const heightOf = (view: MountedTrack) => view.trackStore.getState().getTrack("bam")?.base.height;
-/** Applies a config change the way settings do, through the browser's track store. */
-const configure = (view: MountedTrack, config: BamConfig) =>
-  view.settle(() => view.trackStore.getState().updateTrack("bam", { config }));
 /** The text cells of the tooltip a hovered element shows, in reading order. */
 async function hoverTooltip(view: MountedTrack, target: Element) {
   const text = await view.hover(target);
@@ -116,7 +110,7 @@ describe("BAM displays", () => {
       expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(0);
       await view.setView({ visibleRegion: { ...region, end: 49999 } });
       expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(1);
-      await configure(view, { ...props.config, maxWindow: 40000 });
+      await view.update({ config: { ...props.config, maxWindow: 40000 } });
       expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(0);
     }
   });
@@ -136,12 +130,12 @@ describe("BAM displays", () => {
       ["squish", 2, 14],
       ["dense", 1, 14],
     ] as const) {
-      await view.settle(() => view.trackStore.getState().updateTrack("bam", { base: { display } }));
+      await view.update({ base: { display } });
       expect(
         view.content.querySelector("[data-bam-display]")?.getAttribute("data-bam-display"),
       ).toBe(display);
       expect(rowCount(view.content)).toBe(rows);
-      expect(heightOf(view)).toBe(height);
+      expect(view.height).toBe(height);
     }
     expect((await markup("squish", data)).querySelectorAll("text")).toHaveLength(0);
     expect((await markup("pack", data)).textContent).toContain("a");
@@ -248,10 +242,10 @@ describe("BAM displays", () => {
   it("sizes only visible rows, keeps overscan reads, and reserves label bounds when packing", async () => {
     const data = { records: [read(), read(), read({ start: 70, end: 80 })], reference: [] };
     const view = await mount("full", data);
-    expect(heightOf(view)).toBe(42);
+    expect(view.height).toBe(42);
     await view.setView({ visibleRegion: { chromosome: "chr1", start: 60, end: 90 } });
     expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(3);
-    expect(heightOf(view)).toBe(14);
+    expect(view.height).toBe(14);
     const labels = {
       records: [read({ readName: "read_with_a_long_name" }), read({ start: 23, end: 33 })],
       reference: [],
@@ -387,7 +381,7 @@ describe("BAM sections", () => {
       ["coverage", "translate(0,0)"],
       ["alignments", "translate(0,64)"],
     ]);
-    expect(heightOf(view)).toBe(60 + 4 + 2 * 14);
+    expect(view.height).toBe(60 + 4 + 2 * 14);
     const all = withSections({ coverage: true, junctions: true, alignments: true });
     expect(sectionTops(await markup("full", data, { config: all }))).toEqual([
       ["coverage", "translate(0,0)"],
@@ -403,11 +397,11 @@ describe("BAM sections", () => {
       [{ coverage: true, junctions: true }, 164],
       [{ alignments: true }, 14],
     ] as const) {
-      await configure(view, withSections(sections));
+      await view.update({ config: withSections(sections) });
       expect(
         view.content.querySelector("[data-bam-display]")?.getAttribute("data-bam-display"),
       ).toBe("squish");
-      expect(heightOf(view)).toBe(height);
+      expect(view.height).toBe(height);
     }
   });
   it("draws one arc per junction with its support and skips aggregates while zoomed out", async () => {
@@ -477,9 +471,11 @@ describe("BAM sections", () => {
       expect(coverage.querySelector("line")?.getAttribute("y1")).toBe("30");
       expect(Math.min(...depthYs(view.content, "+"))).toBe(0);
       expect(Math.max(...depthYs(view.content, "-"))).toBe(45);
-      await configure(view, {
-        ...config,
-        coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 } },
+      await view.update({
+        config: {
+          ...config,
+          coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 } },
+        },
       });
       expect(Math.min(...depthYs(view.content, "+"))).toBe(0);
       expect(Math.max(...depthYs(view.content, "-"))).toBe(60);
@@ -529,16 +525,20 @@ describe("BAM sections", () => {
           Array.from({ length: 10 }, (_, index) => [10.5 + index, edge, inward]),
         );
       }
-      await configure(view, config);
+      await view.update({ config });
       expect(view.content.querySelector('[data-bam-clamp="true"]')).toBeNull();
-      await configure(view, {
-        ...fixed,
-        coverage: { ...fixed.coverage, showClampIndicators: false },
+      await view.update({
+        config: {
+          ...fixed,
+          coverage: { ...fixed.coverage, showClampIndicators: false },
+        },
       });
       expect(view.content.querySelector('[data-bam-clamp="true"]')).toBeNull();
-      await configure(view, {
-        ...fixed,
-        coverage: { ...fixed.coverage, clampIndicatorColor: "#123456" },
+      await view.update({
+        config: {
+          ...fixed,
+          coverage: { ...fixed.coverage, clampIndicatorColor: "#123456" },
+        },
       });
       const customIndicators = view.content.querySelectorAll('[data-bam-clamp="true"]');
       expect([...customIndicators].map((indicator) => indicator.getAttribute("stroke"))).toEqual([
@@ -590,7 +590,7 @@ describe("BAM sections", () => {
       expect(coverage.querySelector('[data-bam-clamp="true"]')?.getAttribute("data-strand")).toBe(
         "+",
       );
-      await configure(view, withScale());
+      await view.update({ config: withScale() });
       const automaticReverse = view.content.querySelector('[data-bam-section="coverage"]')!;
       expect(automaticReverse.getAttribute("data-scale-forward-max")).toBe("1");
       expect(automaticReverse.getAttribute("data-scale-reverse-max")).toBe("2");
@@ -626,7 +626,7 @@ describe("BAM sections", () => {
     // The [10,20) bin has mean depth 1 and maximum depth 2.
     const view = await mount("pack", summarized, { width: 10, config: summary("mean") });
     expect(view.content.querySelector('[data-bam-clamp="true"]')).toBeNull();
-    await configure(view, summary("max"));
+    await view.update({ config: summary("max") });
     const indicator = view.content.querySelector('[data-bam-clamp="true"]')!;
     expect(indicator.getAttribute("data-strand")).toBe("+");
     expect(
@@ -668,7 +668,9 @@ describe("BAM sections", () => {
       (label) => `${label.getAttribute("x")},${label.getAttribute("y")}`,
     );
     expect(new Set(labels).size).toBe(2);
-    await configure(view, { ...config, junctions: { ...config.junctions, minimumSupport: 2 } });
+    await view.update({
+      config: { ...config, junctions: { ...config.junctions, minimumSupport: 2 } },
+    });
     expect(view.content.querySelectorAll("[data-junction]")).toHaveLength(1);
     expect(view.content.querySelector("[data-junction]")?.getAttribute("data-strand")).toBe("+");
   });
@@ -692,20 +694,20 @@ describe("BAM sections", () => {
     expect(reverse.querySelector("path")!.getAttribute("stroke")).not.toBe(reverseColor);
 
     // The forward arc keeps the same group mounted while the pointer stays still.
-    await configure(view, withMinimum(2));
+    await view.update({ config: withMinimum(2) });
     expect(view.content.querySelector("[data-junction-group]")).toBe(group);
     expect(group.querySelector('[data-strand="-"]')).toBeNull();
     expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
     expect(view.tooltip).toBeNull();
 
     // Restoring the strand must not restore its old hover selection.
-    await configure(view, withMinimum(1));
+    await view.update({ config: withMinimum(1) });
     expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
       reverseColor,
     );
     expect(view.tooltip).toBeNull();
 
-    await configure(view, withMinimum(2));
+    await view.update({ config: withMinimum(2) });
     const forward = group.querySelector('[data-strand="+"]')!;
     expect(
       await view.move(
@@ -735,9 +737,11 @@ describe("BAM sections", () => {
       }
       // Rebuilding the arc geometry on a palette update must retain the
       // stationary pointer's chosen strand highlight.
-      await configure(view, {
-        ...config,
-        strandColors: { ...config.strandColors, reverse: "#3366cc" },
+      await view.update({
+        config: {
+          ...config,
+          strandColors: { ...config.strandColors, reverse: "#3366cc" },
+        },
       });
       const reversePath = group.querySelector('[data-strand="-"] path')!;
       expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
@@ -858,12 +862,14 @@ describe("BAM sections", () => {
       await view.setView({ visibleRegion: visible(5) });
       expect(scaleMax()).toBe("10");
       await view.setView({ visibleRegion: visible(15) });
-      await configure(view, {
-        ...config,
-        coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 3, reverseMax: 3 } },
+      await view.update({
+        config: {
+          ...config,
+          coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 3, reverseMax: 3 } },
+        },
       });
       expect(scaleMax()).toBe("3");
-      expect(heightOf(view)).toBe(60);
+      expect(view.height).toBe(60);
     },
   );
   it("repacks colliding labels after resize and respects a reduced row limit", async () => {
@@ -884,7 +890,7 @@ describe("BAM sections", () => {
     await view.setView({ width: 200 });
     expect(rowCount(view.content)).toBe(2);
     expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(2);
-    await configure(view, { ...config, alignments: { ...config.alignments, maxRows: 1 } });
+    await view.update({ config: { ...config, alignments: { ...config.alignments, maxRows: 1 } } });
     expect(rowCount(view.content)).toBe(1);
     expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(1);
   });
@@ -897,7 +903,7 @@ describe("BAM sections", () => {
     for (const display of ["pack", "full"] as const) {
       const view = await mount(display, { records: stacked, reference: [] }, { config });
       expect(rowCount(view.content)).toBe(2);
-      expect(heightOf(view)).toBe(60 + 4 + 2 * 14 + 14);
+      expect(view.height).toBe(60 + 4 + 2 * 14 + 14);
       expect(
         view.content
           .querySelector('[data-bam-section="coverage"]')

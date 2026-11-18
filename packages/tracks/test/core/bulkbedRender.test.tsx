@@ -5,7 +5,7 @@ import {
   type BulkBedConfig,
   type BulkBedData,
 } from "@weng-lab/genomebrowser-tracks/bulkbed";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 
 const data: BulkBedData = [
   [{ chromosome: "chr1", start: 0, end: 20, fields: [], datasetName: "Dataset A" }],
@@ -18,7 +18,7 @@ describe("BulkBed row rendering", () => {
     const view = await render(bulkBedConfig({ rowHeight: 10, gap: 3 }));
     const markup = view.content.innerHTML;
 
-    expect(trackHeight(view)).toBe(20);
+    expect(view.height).toBe(20);
     expect(markup).toContain('height="20"');
     expect(markup).toContain('height="7"');
     expect(markup).toContain('transform="translate(0,0)"');
@@ -56,7 +56,7 @@ describe("BulkBed row rendering", () => {
     });
     const markup = view.content.innerHTML;
 
-    expect(trackHeight(view)).toBe(10);
+    expect(view.height).toBe(10);
     expect(markup).toContain('height="10"');
     expect(markup).toContain('transform="translate(0,10)"');
   });
@@ -84,8 +84,4 @@ async function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = 
     visibleRegion,
     width: 100,
   });
-}
-
-function trackHeight(view: MountedTrack) {
-  return view.trackStore.getState().getTrack("bulk-peaks")?.base.height;
 }
