@@ -101,7 +101,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   await openDialog();
   const lines = [
     `${host}/signal.bw`,
-    `track type=bigBed 6 name="Peaks" bigDataUrl=${host}/peaks.bb color=0,128,0 description="Called peaks" priority=1`,
+    `track type=bigBed 6 name="peaks" bigDataUrl=${host}/peaks.bb color=0,128,0 description="Called peaks" priority=1`,
     `${host}/missing.bw`,
     `${host}/gone.bw`,
   ];
@@ -123,7 +123,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
     `${host}/gone.bw`,
   ]);
   const [peaks, signal] = rows();
-  expect(field(peaks, "Title").value).toBe("Peaks");
+  expect(field(peaks, "Title").value).toBe("peaks");
   expect(field(peaks, "Type").value).toBe("bigbed");
   expect(field(peaks, "BED columns").value).toBe("bed6");
   expect(field(peaks, "Color").value).toBe("#008000");
@@ -133,7 +133,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   ]);
   // A URL alone shows the title its file name gives it.
   expect(rows().map((row) => field(row, "Title").value)).toEqual([
-    "Peaks",
+    "peaks",
     "signal",
     "missing",
     "gone",
@@ -167,6 +167,10 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   await enter(field(rows()[2], "URL"), `${host}/found.bw`);
   expect(rows()[2].textContent).not.toContain("UNREACHABLE");
   expect(field(rows()[2], "Title").value).toBe("found");
+  // A title the track line names stays, even one that matches the file name.
+  await enter(field(peaks, "URL"), `${host}/moved.bb`);
+  expect(field(peaks, "Title").value).toBe("peaks");
+  await enter(field(peaks, "URL"), `${host}/peaks.bb`);
   await click(button("Remove 1 failed row"));
   await click(button("Add 3 tracks"));
 
@@ -176,7 +180,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   expect(savedTracks().slice(startingTitles.length)).toEqual([
     expect.objectContaining({
       type: "bigbed",
-      base: expect.objectContaining({ title: "Peaks", color: "#008000" }),
+      base: expect.objectContaining({ title: "peaks", color: "#008000" }),
       config: expect.objectContaining({ url: `${host}/peaks.bb`, bedSchema: "bed6" }),
       metadata: { Description: "Called peaks" },
     }),

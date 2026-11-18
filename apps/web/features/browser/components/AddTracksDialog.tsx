@@ -79,7 +79,14 @@ export function AddTracksDialog({ trackStore, open, onClose }: AddTracksDialogPr
 /** A metadata field being edited. `key` identifies it while its name changes. */
 type MetadataField = { key: string; name: string; value: string };
 type RowRequest = Omit<TrackRequest, "metadata">;
-type Row = { key: string; request: RowRequest; fields: MetadataField[]; failure?: string };
+type Row = {
+  key: string;
+  request: RowRequest;
+  fields: MetadataField[];
+  /** The title was filled in from the file name and hasn't been edited, so it follows the URL. */
+  titleFromFile: boolean;
+  failure?: string;
+};
 
 const hexColor = /^#[0-9a-f]{6}$/i;
 // Empty text means no choice, so the file or the type decides.
@@ -127,6 +134,7 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
         // Show the title the track gets from its file name, ready to edit.
         request: { ...request, title: request.title ?? titleFromUrl(request.url) },
         fields: Object.entries(metadata).map(([name, value]) => newField(name, String(value))),
+        titleFromFile: request.title === undefined,
       })),
     );
   }
@@ -254,9 +262,7 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
                 index={index}
                 row={row}
                 disabled={adding}
-                onChange={(update) =>
-                  edit(row.key, ({ request }) => ({ request: updated(request, update) }))
-                }
+                onChange={(update) => edit(row.key, (current) => updated(current, update))}
                 onFieldsChange={(fields) => edit(row.key, () => ({ fields }))}
                 onRemove={() => remove(row.key)}
               />
@@ -305,12 +311,16 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
   );
 }
 
-/** A request with an update applied. A title still named after the file follows a new URL. */
-function updated(request: RowRequest, update: Partial<RowRequest>): RowRequest {
+/** A row's request with an update applied. A title filled in from the file follows a new URL. */
+function updated(
+  { request, titleFromFile }: Row,
+  update: Partial<RowRequest>,
+): Pick<Row, "request" | "titleFromFile"> {
+  // Editing the title, even clearing it, makes it the row's own.
+  if ("title" in update) return { request: { ...request, ...update }, titleFromFile: false };
   const next = { ...request, ...update };
-  if (update.url !== undefined && request.title === titleFromUrl(request.url))
-    next.title = titleFromUrl(update.url);
-  return next;
+  if (titleFromFile && update.url !== undefined) next.title = titleFromUrl(update.url);
+  return { request: next, titleFromFile };
 }
 
 /** The row as a request, or why it can't be added before its files are checked. */
