@@ -226,6 +226,65 @@ it("previews and commits membership drags without refetching, and cancels stale 
       y("outside") + 10,
       document.querySelector('[data-track-drag-handle="outside"]')!,
     );
+  // Locked membership blocks both drag directions and the keyboard menu.
+  await probe.measure(() =>
+    useTrackStore.getState().updateTrackSet("set", { allowTrackTransfer: false }),
+  );
+  await probe.measure(start);
+  await probe.measure(() => pointer("pointermove", y("two") + 1));
+  expect(document.querySelector("[data-track-drop-preview]")).toBeNull();
+  await probe.measure(() => pointer("pointerup", y("two") + 1));
+  expect(useTrackStore.getState().trackSets[0].trackIds).toEqual(["one", "two", "three"]);
+  await probe.measure(() =>
+    pointer(
+      "pointerdown",
+      y("one") + 10,
+      document.querySelector('[data-track-drag-handle="one"]')!,
+    ),
+  );
+  const outsideY = Number(svg.getAttribute("viewBox")!.split(" ")[3]) + 10;
+  await probe.measure(() => pointer("pointermove", outsideY));
+  expect(document.querySelector("[data-track-drop-preview]")).toBeNull();
+  await probe.measure(() => pointer("pointerup", outsideY));
+  expect(useTrackStore.getState().order).toEqual(["one", "two", "three", "outside"]);
+  const openMenu = (id: string) =>
+    document
+      .querySelector(`[data-track-drag-handle="${id}"]`)!
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  const menuButton = (text: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')].find(
+      (button) => button.textContent === text,
+    )!;
+  await probe.measure(() => openMenu("outside"));
+  expect(menuButton("Move to track set: Signals").disabled).toBe(true);
+  await probe.measure(() =>
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  await probe.measure(() => openMenu("one"));
+  expect(menuButton("Remove from track set").disabled).toBe(true);
+  await probe.measure(() =>
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  await probe.measure(() =>
+    document
+      .querySelector('[aria-label="Settings for track set Signals"]')!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+  );
+  const transfer = document.querySelector<HTMLInputElement>(
+    'input[role="switch"][type="checkbox"]:not(:checked)',
+  )!;
+  expect(transfer).not.toBeNull();
+  const enabled = await probe.measure(() => transfer.click());
+  expect(enabled.pick("DefaultTrackSetSettings", "Signal")).toEqual({
+    DefaultTrackSetSettings: 1,
+    Signal: 0,
+  });
+  expect(useTrackStore.getState().trackSets[0].allowTrackTransfer).toBe(true);
+  await probe.measure(() =>
+    [...document.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "Close")!
+      .click(),
+  );
   await probe.measure(start);
   const preview = await probe.measure(() => pointer("pointermove", y("two") + 1));
   expect(preview.pick("BrowserCanvas", "TrackStack", "TrackRow", "Signal", "TrackDragOverlay"))

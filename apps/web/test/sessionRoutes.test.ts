@@ -42,7 +42,15 @@ describe.skipIf(!testServerUrl)("session routes", () => {
     await as("user_alice");
     const grouped = {
       ...snapshot(),
-      trackSets: [{ id: "signals", title: "Signals", trackIds: ["signal"], visible: true }],
+      trackSets: [
+        {
+          id: "signals",
+          title: "Signals",
+          trackIds: ["signal"],
+          visible: true,
+          allowTrackTransfer: false,
+        },
+      ],
       hiddenTrackIds: ["signal"],
     };
     const created = await create({ name: "Promoter scan", snapshot: grouped });

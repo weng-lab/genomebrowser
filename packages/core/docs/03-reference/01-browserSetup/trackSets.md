@@ -14,7 +14,7 @@ useTrackStore.getState().createTrackSet({
 });
 ```
 
-This example assumes those IDs already exist. Alternatively pass `trackSets` to `createTrackStore`, alongside `tracks`. `TrackSetInput` requires `id`, `title` and a nonempty `readonly string[]` of `trackIds`; `visible` defaults to `true`. `TrackSet` is the readonly resolved shape with `visible: boolean`.
+This example assumes those IDs already exist. Alternatively pass `trackSets` to `createTrackStore`, alongside `tracks`. `TrackSetInput` requires `id`, `title` and a nonempty `readonly string[]` of `trackIds`; `visible` defaults to `true`. Optional `allowTrackTransfer` also behaves as `true` when omitted. `TrackSet` is the readonly resolved shape with `visible: boolean`.
 
 A track may belong to one set. Nested sets, duplicate members, duplicate set IDs and missing child IDs are rejected. A set ID must also differ from track IDs. Membership references IDs rather than copying track configuration. Child order follows the store's track order, not the order of the membership array. Creating or pinning a set keeps its children contiguous.
 
@@ -22,14 +22,14 @@ A track may belong to one set. Nested sets, duplicate members, duplicate set IDs
 
 All actions return the store's [TrackMutationResult](trackStore.md#mutation-results).
 
-| Action                                     | Behavior                                                                                                                            |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `createTrackSet(input)`                    | Validate membership and insert the set header before its children.                                                                  |
-| `updateTrackSet(id, { title?, visible? })` | Rename the set or show/hide its children without overwriting child settings.                                                        |
-| `setTrackVisibility(trackId, visible)`     | Change one child's independent visibility, also available for standalone tracks.                                                    |
-| `updateTrackSetDisplay(id, display)`       | Validate the mode against every child, then commit all changes atomically.                                                          |
-| `moveTrackSet(id, direction)`              | Use `"up"` or `"down"` to move the children together past the adjacent set or standalone track. Pinned sets must be unpinned first. |
-| `ungroupTrackSet(id)`                      | Remove the parent while retaining every child, its configuration, order and individual visibility.                                  |
+| Action                                                          | Behavior                                                                                                                            |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `createTrackSet(input)`                                         | Validate membership and insert the set header before its children.                                                                  |
+| `updateTrackSet(id, { title?, visible?, allowTrackTransfer? })` | Rename the set, show/hide its children, or enable/disable membership transfers without overwriting child settings.                  |
+| `setTrackVisibility(trackId, visible)`                          | Change one child's independent visibility, also available for standalone tracks.                                                    |
+| `updateTrackSetDisplay(id, display)`                            | Validate the mode against every child, then commit all changes atomically.                                                          |
+| `moveTrackSet(id, direction)`                                   | Use `"up"` or `"down"` to move the children together past the adjacent set or standalone track. Pinned sets must be unpinned first. |
+| `ungroupTrackSet(id)`                                           | Remove the parent while retaining every child, its configuration, order and individual visibility.                                  |
 
 `trackSets` and `hiddenTrackIds` are store state and optional constructor inputs. Save them with the configured tracks to restore an embedding's state. Core does not persist them. Removing tracks prunes their membership and visibility; a set disappears when its last child is removed. `INVALID_TRACK_SET` reports invalid membership or metadata; `TRACK_SET_NOT_FOUND` reports an unknown parent ID.
 
@@ -37,7 +37,7 @@ Hiding a set suppresses rendering and new fetch demand for its children, aborts 
 
 ## Settings UI
 
-`GenomeBrowser` includes a MUI settings dialog for each set; no settings component prop is required. Open it through the rightmost gear in the header. Show/hide the parent, independently enable children, choose a display mode supported by every child, and remove the set while retaining its tracks. Expand a child to edit its module settings. [TrackSettingsPanel](../03-trackDefinition/trackSettings.md#tracksettingspanel) scopes same-type batch changes to the set. Move and pin controls live in the header.
+`GenomeBrowser` includes a MUI settings dialog for each set; no settings component prop is required. Open it through the rightmost gear in the header. Show/hide the parent, enable/disable moving tracks into or out of the set, independently enable children, choose a display mode supported by every child, and remove the set while retaining its tracks. Expand a child to edit its module settings. [TrackSettingsPanel](../03-trackDefinition/trackSettings.md#tracksettingspanel) scopes same-type batch changes to the set. Move and pin controls live in the header.
 
 A thin rounded outline encloses the header and its visible children, ending before the next standalone track or set. It follows child visibility and row height; collapsing a set leaves an outline around its header. Header colors, typography, icon states, corner radii and the dialog inherit the host's MUI theme. Core does not install a theme provider or global CSS reset. Scientific track colors remain in each track's configuration.
 
@@ -46,6 +46,12 @@ The header provides show/hide, move-up, move-down, pin and settings icons. Each 
 ## Dragging and membership
 
 Drag a track by the blank area in its left control margin. Drop inside a set's header or between its child rows to join or reorder within the set. Drop above a set's header, at the bottom edge of its last visible child, or beside a standalone track to leave the set. The themed drop line is indented for an inside drop and spans the browser for an outside drop; its label names the destination. A collapsed set accepts a drop on its header and keeps the new child hidden until shown.
+
+Set `allowTrackTransfer: false` when creating or updating a set to prevent individual tracks from entering or leaving it. Both the source and destination must allow a membership change. Invalid drag targets have no drop preview, the corresponding menu actions are disabled, and `moveTrackItem` returns `INTERACTION_BLOCKED` without changing state. Reordering children within that set and moving the whole set remain available. The settings switch can re-enable transfers. This option does not prevent explicit track deletion, removing the parent with `ungroupTrackSet`, or replacing store state.
+
+```ts
+useTrackStore.getState().updateTrackSet("regulatory", { allowTrackTransfer: false });
+```
 
 Drag the set's title to move all its children together. Sets cannot be nested. Pinned tracks and sets are stationary, and tracks cannot enter pinned sets. Escape, pointer cancellation, window blur, resizing, store replacement and intervening layout/data changes cancel a drag. Nothing changes until drop; successful placement retains each leaf's configuration, individual visibility and reusable data.
 
@@ -74,4 +80,4 @@ useTrackStore.getState().moveTrackItem({ kind: "set", id: "regulatory" }, {});
 
 Sets support one level of membership, visibility, shared display updates and movement as a unit. Pinning a child through the browser settings pins/unpins its entire set. Unpin a track or set before moving it or changing its membership.
 
-Image downloads contain the visible child tracks; parent headers are not included. Signal overlays, shared numerical scales and inherited settings are outside this first version. The web app saves membership, parent visibility and independently hidden children with its session snapshots. Collection catalogs remain separate from runtime sets. The standalone example demonstrates the same built-in track-set controls and resets on reload.
+Image downloads contain the visible child tracks; parent headers are not included. Signal overlays, shared numerical scales and inherited settings are outside this first version. The web app saves membership, transfer settings, parent visibility and independently hidden children with its session snapshots. Collection catalogs remain separate from runtime sets. The standalone example demonstrates the same built-in track-set controls and resets on reload.

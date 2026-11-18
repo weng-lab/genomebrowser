@@ -6,6 +6,8 @@ export type TrackSet = Readonly<{
   title: string;
   trackIds: readonly string[];
   visible: boolean;
+  /** Allow individual tracks to enter or leave this set. Omitted means true. */
+  allowTrackTransfer?: boolean;
 }>;
 
 export type TrackSetInput = Omit<TrackSet, "visible"> & { visible?: boolean };
@@ -29,6 +31,7 @@ const schema = z.strictObject({
   title: z.string().trim().min(1),
   trackIds: z.array(z.string().min(1)).min(1),
   visible: z.boolean().default(true),
+  allowTrackTransfer: z.boolean().optional(),
 });
 
 export function parseTrackSet(input: TrackSetInput) {
@@ -77,6 +80,14 @@ export function findTrackSet(trackId: string, trackSets: readonly TrackSet[]) {
 
 export function getTrackSet(id: string, trackSets: readonly TrackSet[]) {
   return trackSets.find((trackSet) => trackSet.id === id);
+}
+
+/** Reordering within the same set never changes membership. */
+export function canTransferTrack(source: TrackSet | undefined, target: TrackSet | undefined) {
+  return (
+    source?.id === target?.id ||
+    (source?.allowTrackTransfer !== false && target?.allowTrackTransfer !== false)
+  );
 }
 
 export function indexTrackSets(trackSets: readonly TrackSet[]) {

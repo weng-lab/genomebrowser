@@ -72,6 +72,7 @@ export const sessionSnapshotSchema = z
           title: z.string().trim().min(1),
           trackIds: z.array(z.string().min(1)).min(1),
           visible: z.boolean(),
+          allowTrackTransfer: z.boolean().optional(),
         }) satisfies z.ZodType<TrackSet>,
       )
       .optional(),

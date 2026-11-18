@@ -1,5 +1,5 @@
 import type { TrackMoveDestination, TrackMoveSource } from "../../state/trackPlacement";
-import { getTrackBlocks, type TrackBlock } from "../../state/trackSets";
+import { canTransferTrack, getTrackBlocks, type TrackBlock } from "../../state/trackSets";
 import type { TrackStore } from "../../state/trackStore";
 import { TRACK_SET_HEADER_HEIGHT, type TrackLayout } from "../layout/trackLayout";
 import { getTrackLayoutSnapshot } from "../layout/useTrackLayout";
@@ -56,6 +56,15 @@ export function getTrackDrop(
   source: TrackMoveSource,
   y: number,
 ): TrackDrop | null {
+  const drop = findTrackDrop(blocks, source, y);
+  if (!drop || source.kind === "set") return drop;
+
+  const sourceSet = blocks.find((block) => block.trackIds.includes(source.id))?.trackSet;
+  const targetSet = blocks.find((block) => block.id === drop.destination.trackSetId)?.trackSet;
+  return canTransferTrack(sourceSet, targetSet) ? drop : null;
+}
+
+function findTrackDrop(blocks: DragBlock[], source: TrackMoveSource, y: number): TrackDrop | null {
   for (const [index, block] of blocks.entries()) {
     if (y > block.end) continue;
     if (y < block.y) return outsideDrop(blocks, source, index);

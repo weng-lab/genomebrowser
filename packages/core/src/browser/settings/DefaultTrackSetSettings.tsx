@@ -60,6 +60,17 @@ export function DefaultTrackSetSettings({
               />
             }
           />
+          <FormControlLabel
+            label="Allow moving tracks into or out of this set"
+            control={
+              <Switch
+                checked={trackSet.allowTrackTransfer !== false}
+                onChange={(_, allowTrackTransfer) =>
+                  report(update(trackSet.id, { allowTrackTransfer }))
+                }
+              />
+            }
+          />
           <TrackSetDisplay trackSetId={trackSet.id} />
           <Typography variant="body2" color="text.secondary">
             Each child keeps its own data and settings. Hide the track set to pause its data

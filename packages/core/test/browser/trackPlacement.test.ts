@@ -91,3 +91,49 @@ it("treats reserved set-name pins as absent tracks and keeps partially pinned ne
   ).toBe(false);
   expect(useStore.getState().order).toEqual(before.order);
 });
+
+it("locks transfers at either boundary while allowing reordering and whole-set movement", () => {
+  const useStore = createStore();
+  const state = () => useStore.getState();
+  expect(state().updateTrackSet("group", { allowTrackTransfer: false })).toEqual({ ok: true });
+  expect(state().trackSets[0]).toMatchObject({ allowTrackTransfer: false });
+  expect(state().createTrackSet({ id: "other", title: "Other", trackIds: ["last"] }).ok).toBe(true);
+  const before = state();
+  for (const [id, destination] of [
+    ["outside", { trackSetId: "group" }],
+    ["a", {}],
+    ["a", { trackSetId: "other" }],
+    ["last", { trackSetId: "group" }],
+  ] as const) {
+    expect(state().moveTrackItem({ kind: "track", id }, destination)).toMatchObject({
+      ok: false,
+      code: "INTERACTION_BLOCKED",
+    });
+    expect(state()).toBe(before);
+  }
+  expect(
+    state().moveTrackItem({ kind: "track", id: "c" }, { trackSetId: "group", beforeTrackId: "a" })
+      .ok,
+  ).toBe(true);
+  expect(state().order).toEqual(["pin", "outside", "c", "a", "b", "last"]);
+  expect(state().moveTrackSet("group", "down").ok).toBe(true);
+  expect(state().order).toEqual(["pin", "outside", "last", "c", "a", "b"]);
+  expect(state().moveTrackItem({ kind: "set", id: "group" }, { beforeTrackId: "outside" }).ok).toBe(
+    true,
+  );
+  expect(state().order).toEqual(["pin", "c", "a", "b", "outside", "last"]);
+  const restored = createTrackStore({
+    modules: [module],
+    tracks: state().tracks,
+    trackSets: state().trackSets,
+  });
+  expect(
+    restored.getState().moveTrackItem({ kind: "track", id: "outside" }, { trackSetId: "group" }).ok,
+  ).toBe(false);
+  expect(state().updateTrackSet("group", { allowTrackTransfer: true }).ok).toBe(true);
+  expect(state().moveTrackItem({ kind: "track", id: "outside" }, { trackSetId: "group" }).ok).toBe(
+    true,
+  );
+  expect(state().moveTrackItem({ kind: "track", id: "a" }, { trackSetId: "other" }).ok).toBe(true);
+  expect(state().moveTrackItem({ kind: "track", id: "outside" }, {}).ok).toBe(true);
+});

@@ -10,7 +10,9 @@ it("round-trips track sets alongside metadata and saved-region groups, clearing 
     .getState()
     .createTrackSet({ id: "annotations", title: "Annotations", trackIds: ["genes", "ccres"] });
   stores.useTrackStore.getState().setTrackVisibility("ccres", false);
-  stores.useTrackStore.getState().updateTrackSet("annotations", { visible: false });
+  stores.useTrackStore
+    .getState()
+    .updateTrackSet("annotations", { visible: false, allowTrackTransfer: false });
   stores.useTrackStore.getState().updateTrack("genes", {
     metadata: { Source: "GENCODE", Selected: false, Priority: 2, Note: null },
   });
@@ -28,7 +30,13 @@ it("round-trips track sets alongside metadata and saved-region groups, clearing 
   const saved = snapshot(stores);
   expect(saved).toMatchObject({
     trackSets: [
-      { id: "annotations", title: "Annotations", trackIds: ["genes", "ccres"], visible: false },
+      {
+        id: "annotations",
+        title: "Annotations",
+        trackIds: ["genes", "ccres"],
+        visible: false,
+        allowTrackTransfer: false,
+      },
     ],
     hiddenTrackIds: ["ccres"],
     tracks: expect.arrayContaining([
@@ -45,6 +53,9 @@ it("round-trips track sets alongside metadata and saved-region groups, clearing 
   const restored = createStores("hg38")!;
   restore(restored, sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(saved))));
   expect(snapshot(restored)).toEqual(saved);
+  expect(
+    restored.useTrackStore.getState().moveTrackItem({ kind: "track", id: "genes" }, {}),
+  ).toMatchObject({ ok: false, code: "INTERACTION_BLOCKED" });
   restore(restored, legacy);
   expect(restored.useTrackStore.getState().trackSets).toEqual([]);
   expect(restored.useTrackStore.getState().hiddenTrackIds).toEqual([]);

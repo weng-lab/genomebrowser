@@ -45,7 +45,7 @@ export type TrackStore<Modules extends readonly AnyTrackModule[] = readonly AnyT
   createTrackSet: (input: TrackSetInput) => TrackMutationResult;
   updateTrackSet: (
     id: string,
-    update: Partial<Pick<TrackSet, "title" | "visible">>,
+    update: Partial<Pick<TrackSet, "title" | "visible" | "allowTrackTransfer">>,
   ) => TrackMutationResult;
   updateTrackSetDisplay: (id: string, display: string) => TrackMutationResult;
   ungroupTrackSet: (id: string) => TrackMutationResult;

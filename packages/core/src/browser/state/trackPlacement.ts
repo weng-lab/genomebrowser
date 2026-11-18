@@ -1,5 +1,6 @@
 import type { AnyTrackInstance, TrackMutationResult } from "../../modules/types";
 import {
+  canTransferTrack,
   getTrackBlocks,
   getTrackSet,
   indexTrackSets,
@@ -84,6 +85,14 @@ function validatePlacement(placement: Placement): PlacementFailure | undefined {
   }
   if (source.kind === "set" && targetSet) {
     return { ok: false, code: "INVALID_TRACK_SET", error: "Track sets cannot be nested." };
+  }
+
+  if (source.kind === "track" && !canTransferTrack(sourceSet, targetSet)) {
+    return {
+      ok: false,
+      code: "INTERACTION_BLOCKED",
+      error: "Enable moving tracks into or out of the track set before changing membership.",
+    };
   }
 
   const pinned = new Set(state.pinnedTrackIds);

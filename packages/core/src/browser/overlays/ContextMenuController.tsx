@@ -1,5 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { findTrackSet, isTrackPinned, isTrackSetPinned } from "../state/trackSets";
+import {
+  canTransferTrack,
+  findTrackSet,
+  isTrackPinned,
+  isTrackSetPinned,
+} from "../state/trackSets";
 import {
   useContextMenuStore,
   useRegistry,
@@ -174,12 +179,20 @@ function TrackSetMenuItems({
           <MenuButton
             key={candidate.id}
             label={`Move to track set: ${candidate.title}`}
-            disabled={locked || isTrackSetPinned(candidate, pinned)}
+            disabled={
+              locked ||
+              isTrackSetPinned(candidate, pinned) ||
+              !canTransferTrack(trackSet, candidate)
+            }
             onClick={() => select(candidate.id)}
           />
         ))}
       {trackSet && (
-        <MenuButton label="Remove from track set" disabled={locked} onClick={() => select()} />
+        <MenuButton
+          label="Remove from track set"
+          disabled={locked || !canTransferTrack(trackSet, undefined)}
+          onClick={() => select()}
+        />
       )}
       {!!trackSets.length && <div style={separatorStyle} />}
     </>
