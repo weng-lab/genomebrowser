@@ -51,16 +51,18 @@ describe("portable track collections", () => {
     const original = signalModule.create({
       base: { id: "one", title: "Custom", height: 125, color: "#abcdef" },
       config: { url: "YOUR_URL_HERE", scale: 4 },
+      metadata: { Assay: "ChIP-seq", Interesting: true },
     });
-    const { type, base, config } = original;
+    const { type, base, config, metadata } = original;
     const collection = validateTrackCollection(
-      JSON.parse(JSON.stringify({ ...minimal, tracks: [{ type, base, config }] })),
+      JSON.parse(JSON.stringify({ ...minimal, tracks: [{ type, base, config, metadata }] })),
       registry.modules,
     );
+    const entry = collection.tracks[0]!;
     expect(
       registry
-        .get(collection.tracks[0]!.type)
-        .create({ base: collection.tracks[0]!.base, config: collection.tracks[0]!.config }),
+        .get(entry.type)
+        .create({ base: entry.base, config: entry.config, metadata: entry.metadata }),
     ).toEqual(original);
   });
 

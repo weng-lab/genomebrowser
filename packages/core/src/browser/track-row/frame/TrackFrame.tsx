@@ -1,6 +1,6 @@
 import { trackOverlayContext } from "../../track-overlay/context";
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { AnyTrackInstance } from "../../../modules/types";
+import type { DrawnTrack } from "../../../modules/types";
 import { useContextMenuStore, useRegistry } from "../../state/browserContextState";
 import { PanTrack } from "./PanTrack";
 import { TrackControls } from "./TrackControls";
@@ -20,7 +20,7 @@ export function TrackFrame({
   disableHover,
   children,
 }: {
-  track: AnyTrackInstance;
+  track: DrawnTrack;
   y: number;
   previewOffsetY: number;
   /** Where the content group sits before any drag. */

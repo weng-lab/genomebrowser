@@ -537,6 +537,31 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
   });
 
+  it("updates one track's metadata without rendering the track", async () => {
+    const { probe, trackStore } = await mountBrowser();
+
+    const report = await probe.measure(() =>
+      trackStore.getState().updateTrack("second", { metadata: { Interesting: true } }),
+    );
+
+    // Nothing renders: rows don't draw metadata, and the fetch key ignores it, so no row
+    // fetches again.
+    expect(budget(report)).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
   it("adds a fourth track", async () => {
     const { probe, trackStore } = await mountBrowser();
 

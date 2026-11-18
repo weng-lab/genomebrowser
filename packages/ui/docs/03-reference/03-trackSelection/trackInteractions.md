@@ -68,16 +68,16 @@ type AnyTrackSelectInteraction = TrackSelectInteraction<never, never>;
 | `onHover` | `(item, runtime, collection) => void` | Runs when the renderer emits a hover interaction. |
 | `onLeave` | `(item, runtime, collection) => void` | Runs when the renderer emits a leave interaction. |
 
-Callbacks return `void`. The runtime context reflects the track when the renderer emits the event, including later settings changes. TrackSelect does not throttle callbacks or catch errors thrown by your event handlers.
+Callbacks return `void`. The runtime context reflects the track when the renderer emits the event, including later settings and metadata changes. TrackSelect does not throttle callbacks or catch errors thrown by your event handlers.
 
 ## TrackSelectCollectionContext
 
-| Field             | Type                      | Description                                                                       |
-| ----------------- | ------------------------- | --------------------------------------------------------------------------------- |
-| `collectionId`    | `string`                  | Identifies the owning collection.                                                 |
-| `authoredTrackId` | `string`                  | Provides the unqualified track ID authored in the collection.                     |
-| `metadata`        | `Readonly<TrackMetadata>` | Provides the collection-owned metadata without copying it into the runtime track. |
+| Field             | Type                      | Description                                                   |
+| ----------------- | ------------------------- | ------------------------------------------------------------- |
+| `collectionId`    | `string`                  | Identifies the owning collection.                             |
+| `authoredTrackId` | `string`                  | Provides the unqualified track ID authored in the collection. |
+| `metadata`        | `Readonly<TrackMetadata>` | Provides the metadata authored in the collection entry.       |
 
-The context is read-only. Missing authored metadata becomes an empty object. Metadata stays in the collection instead of being copied into runtime base or config.
+The context is read-only. Missing authored metadata becomes an empty object. `runtime` is the track now, and `collection` is the entry it came from. TrackSelect copies the entry's metadata onto the created track as its starting metadata. Later edits to the track appear in `runtime.metadata`; `collection.metadata` keeps the authored values.
 
 [Back to track selection](README.md) · [TrackSelect props](TrackSelect.md#trackselectprops)

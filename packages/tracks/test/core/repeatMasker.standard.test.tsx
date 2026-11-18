@@ -1,25 +1,13 @@
-import { PanStatusContext } from "../../../core/src/browser/viewport/useBrowserPan";
-import { BrowserSvgContext } from "../../../core/src/browser/svg/browserSvgState";
 // @vitest-environment jsdom
-import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  createBrowserStore,
-  createTrackStore,
-  GenomeBrowser,
-  type TrackFetchContext,
-  type TrackResources,
-} from "@weng-lab/genomebrowser";
-import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
+import { type TrackFetchContext, type TrackResources } from "@weng-lab/genomebrowser";
 import {
   repeatMaskerModule as module,
   type RepeatMaskerConfig,
   type RepeatMaskerData,
 } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { sources } from "../fixtures/repeatMasker";
-
-import { TrackRuntime } from "../../../core/src/modules/trackRuntimeState";
-import { TestBrowser } from "../testBrowser";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 import { standardRepeatFile, serveRepeats } from "../fixtures/repeatMaskerStandard";
 
 const region = { chromosome: "chr1", start: 0, end: 3000 };
@@ -62,44 +50,31 @@ async function fetchView(context: TrackFetchContext<RepeatMaskerConfig>) {
   if (result.view !== "standard") throw new Error("Expected standard data");
   return result.data;
 }
-function markup(
-  data: StandardData,
-  mode: "dense" | "pack" | "full",
+const mounted: MountedTrack[] = [];
+async function mount(
+  data: StandardData | undefined,
+  display: "dense" | "pack" | "full",
   testRegion = region,
-  config: Partial<RepeatMaskerConfig> = {},
+  interaction?: { onClick: (item: unknown) => void },
 ) {
-  const Renderer = module.render[mode];
   const track = createTrack();
-  const element = document.createElement("div");
-  element.innerHTML = renderToStaticMarkup(
-    <TestBrowser trackStore={createTrackStore({ modules: [module], tracks: [track] })}>
-      <PanStatusContext.Provider value={() => false}>
-        <BrowserSvgContext.Provider value={null}>
-          <TrackRuntime.Provider value={{ context: track, interaction: null }}>
-            <svg>
-              <Renderer
-                id="repeats"
-                color={track.base.color}
-                height={24}
-                width={1000}
-                data={{ view: "standard", url: track.config.sources.standard, data }}
-                config={{ ...track.config, ...config }}
-                region={testRegion}
-                visibleRegion={testRegion}
-              />
-            </svg>
-          </TrackRuntime.Provider>
-        </BrowserSvgContext.Provider>
-      </PanStatusContext.Provider>
-    </TestBrowser>,
-  );
-  return element;
+  const view = await mountTrack({
+    module,
+    track: { base: { ...track.base, display }, config: track.config },
+    interaction,
+    data: data && { view: "standard", url: track.config.sources.standard, data },
+    region: testRegion,
+    assembly: { id: "hg38", chromosomes: { chr1: 248956422 } },
+  });
+  mounted.push(view);
+  return view;
+}
+async function markup(data: StandardData, display: "dense" | "pack" | "full", testRegion = region) {
+  return (await mount(data, display, testRegion)).content;
 }
 
-let probe: Probe | undefined;
-afterEach(() => {
-  probe?.unmount();
-  probe = undefined;
+afterEach(async () => {
+  for (const view of mounted.splice(0)) await view.unmount();
   vi.unstubAllGlobals();
 });
 
@@ -141,8 +116,22 @@ describe("standard RepeatMasker BED6+11", () => {
       "Other",
       "Unknown",
     ]);
-    const Tooltip = module.tooltipComponent!;
-    const tip = renderToStaticMarkup(<Tooltip item={data.repeats[2]!} context={createTrack()} />);
+    const fullView = await mount(data, "full");
+    const full = fullView.content;
+    expect(full.querySelectorAll("[data-repeatmasker-category]")).toHaveLength(10);
+    expect(full.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
+    const blocks = full.querySelectorAll("[data-repeatmasker-block]");
+    expect(blocks[0]!.getAttribute("y")).not.toBe(blocks[1]!.getAttribute("y"));
+    expect(Number(blocks[0]!.getAttribute("x"))).toBeCloseTo(100 / 3);
+    expect(Number(blocks[0]!.getAttribute("width"))).toBeCloseTo(60);
+    expect(blocks[0]!.getAttribute("fill")).toBe("rgb(69,69,69)");
+    expect(full.querySelector("[data-repeatmasker-strand='-']")).not.toBeNull();
+    // The third repeat spans [700, 880): x = 700 / 3, width = 180 / 3 at 1000 px for 3000 bp.
+    const third = Array.from(blocks).find(
+      (block) => Math.abs(Number(block.getAttribute("x")) - 700 / 3) < 0.01,
+    )!;
+    expect(Number(third.getAttribute("width"))).toBeCloseTo(60);
+    const tip = await fullView.hover(third);
     for (const text of [
       "12.3%",
       "2%",
@@ -154,19 +143,10 @@ describe("standard RepeatMasker BED6+11", () => {
       "start -5; end 180; left -12",
     ])
       expect(tip).toContain(text);
-    const full = markup(data, "full");
-    expect(full.querySelectorAll("[data-repeatmasker-category]")).toHaveLength(10);
-    expect(full.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
-    const blocks = full.querySelectorAll("[data-repeatmasker-block]");
-    expect(blocks[0]!.getAttribute("y")).not.toBe(blocks[1]!.getAttribute("y"));
-    expect(Number(blocks[0]!.getAttribute("x"))).toBeCloseTo(100 / 3);
-    expect(Number(blocks[0]!.getAttribute("width"))).toBeCloseTo(60);
-    expect(blocks[0]!.getAttribute("fill")).toBe("rgb(69,69,69)");
-    expect(full.querySelector("[data-repeatmasker-strand='-']")).not.toBeNull();
-    const pack = markup(data, "pack");
+    const pack = await markup(data, "pack");
     expect(pack.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
     expect(pack.querySelector("[data-repeatmasker-label]")).not.toBeNull();
-    const dense = markup(data, "dense");
+    const dense = await markup(data, "dense");
     expect(dense.querySelector("[data-repeatmasker-summary]")).not.toBeNull();
     expect(dense.querySelector("[data-repeatmasker-block]")).toBeNull();
     expect(dense.querySelector("[data-repeatmasker-label]")).toBeNull();
@@ -196,7 +176,7 @@ describe("standard RepeatMasker BED6+11", () => {
           !/^bytes=(8192|8200|12000)-/.test(new Headers(init?.headers).get("Range") ?? ""),
       ),
     ).toBe(true);
-    const view = markup(data, "dense", { chromosome: "chr1", start: 0, end: 248956422 });
+    const view = await markup(data, "dense", { chromosome: "chr1", start: 0, end: 248956422 });
     expect(view.querySelectorAll("[data-repeatmasker-summary]").length).toBeLessThanOrEqual(1000);
     expect(view.textContent).toContain("Zoom in");
   });
@@ -225,8 +205,12 @@ describe("standard RepeatMasker BED6+11", () => {
       milliIns: 0,
     }));
     const overlap = { chromosome: "chr1", start: 100, end: 280 };
-    const forward = markup({ kind: "repeats", repeats }, "dense", overlap);
-    const reverse = markup({ kind: "repeats", repeats: [...repeats].reverse() }, "dense", overlap);
+    const forward = await markup({ kind: "repeats", repeats }, "dense", overlap);
+    const reverse = await markup(
+      { kind: "repeats", repeats: [...repeats].reverse() },
+      "dense",
+      overlap,
+    );
     const cells = forward.querySelectorAll("[data-repeatmasker-summary] rect");
     expect(cells).toHaveLength(1000);
     expect(forward.querySelector("[data-repeatmasker-block]")).toBeNull();
@@ -242,7 +226,7 @@ describe("standard RepeatMasker BED6+11", () => {
       { ...repeats[1]!, start: 100, end: 260 },
     ];
     for (const records of [partial, [...partial].reverse()]) {
-      const view = markup({ kind: "repeats", repeats: records }, "dense", {
+      const view = await markup({ kind: "repeats", repeats: records }, "dense", {
         chromosome: "chr1",
         start: 0,
         end: 360000,
@@ -263,7 +247,7 @@ describe("standard RepeatMasker BED6+11", () => {
         repeatId: index,
       })),
     };
-    const view = markup(crowded, "dense");
+    const view = await markup(crowded, "dense");
     expect(view.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(0);
     const cells = view.querySelectorAll("[data-repeatmasker-summary]");
     expect(cells.length).toBeGreaterThan(0);
@@ -271,40 +255,27 @@ describe("standard RepeatMasker BED6+11", () => {
   });
   it("separates covered bases from overlap depth in a partially covered Dense pixel", async () => {
     serveRepeats(standardRepeatFile);
-    const onClick = vi.fn();
-    const browserStore = createBrowserStore({
-      assembly: { id: "hg38", chromosomes: { chr1: 248956422 } },
-      region: { chromosome: "chr1", start: 0, end: 360000 },
-      trackWidth: 1000,
-    });
-    const track = createTrack();
-    const trackStore = createTrackStore({
-      modules: [module],
-      tracks: [
-        module.create(
-          { base: { ...track.base, display: "dense" }, config: track.config },
-          { onClick },
-        ),
-      ],
-    });
-    probe = await renderWithProbe(
-      <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+    const onClick = vi.fn<(item: unknown) => void>();
+    // No literal data: the module's real fetch reads the fixture for the mounted view.
+    const view = await mount(
+      undefined,
+      "dense",
+      { chromosome: "chr1", start: 0, end: 360000 },
+      {
+        onClick,
+      },
     );
     // The first 360-bp pixel contains two repeats, both covering [100, 280).
     // Their union is 180 bp (half a pixel), while their total overlap is 360 bp.
-    const cell = document.querySelector("[data-repeatmasker-summary]")!;
-    await probe.measure(() => cell.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    const cell = view.content.querySelector("[data-repeatmasker-summary]")!;
+    await view.click(cell);
     expect(onClick).toHaveBeenLastCalledWith(
       expect.objectContaining({ kind: "summary", start: 0, end: 360, validCount: 180, mean: 2 }),
       expect.objectContaining({ base: expect.objectContaining({ display: "dense" }) }),
     );
     expect(cell.querySelector("rect")!.getAttribute("fill")).toBe("rgb(115,115,115)");
-    const Tooltip = module.tooltipComponent!;
-    const tip = document.createElement("div");
-    tip.innerHTML = renderToStaticMarkup(
-      <Tooltip item={onClick.mock.calls[0]![0]} context={track} />,
-    );
-    expect(tip.textContent).toContain("Covered bases (estimated)180.00");
-    expect(tip.textContent).toContain("Mean overlap2.00");
+    const tip = await view.hover(cell);
+    expect(tip).toContain("Covered bases (estimated)180.00");
+    expect(tip).toContain("Mean overlap2.00");
   });
 });

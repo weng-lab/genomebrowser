@@ -351,6 +351,7 @@ function context<Config>(type: string, config: Config): TrackRuntimeContext<Conf
     type,
     base: { id: type, title: type, display: "full", height: 40, color: "#000000" },
     config: config as Config extends object ? Readonly<Config> : Config,
+    metadata: {},
   };
 }
 

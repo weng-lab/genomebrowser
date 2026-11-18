@@ -1,8 +1,8 @@
 import { memo, type ComponentType } from "react";
 import { TrackRuntimeProvider } from "../../../modules/TrackRuntimeProvider";
-import type { AnyTrackInstance, TrackRendererProps } from "../../../modules/types";
+import type { DrawnTrack, TrackRendererProps } from "../../../modules/types";
 import type { GenomicRegion } from "../../../genome/region";
-import { useRegistry } from "../../state/browserContextState";
+import { useGenomeBrowser, useRegistry } from "../../state/browserContextState";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 
@@ -20,7 +20,7 @@ export const TrackContent = memo(function TrackContent({
   width,
   height,
 }: {
-  track: AnyTrackInstance;
+  track: DrawnTrack;
   dataState: TrackContentState;
   visibleRegion: GenomicRegion;
   region: GenomicRegion;
@@ -28,6 +28,7 @@ export const TrackContent = memo(function TrackContent({
   height: number;
 }) {
   const registry = useRegistry();
+  const { useTrackStore } = useGenomeBrowser();
 
   if (dataState.status === "loading") {
     return <LoadingState x={0} y={0} width={width} height={height} />;
@@ -48,7 +49,10 @@ export const TrackContent = memo(function TrackContent({
     );
   }
   return (
-    <TrackRuntimeProvider track={track}>
+    <TrackRuntimeProvider
+      track={track}
+      readMetadata={() => useTrackStore.getState().getTrack(track.base.id)?.metadata}
+    >
       <Renderer
         id={track.base.id}
         config={track.config}

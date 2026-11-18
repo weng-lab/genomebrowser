@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { trackBaseSchema, parsePublicInput } from "./schemas";
+import { trackBaseSchema, trackMetadataSchema, parsePublicInput } from "./schemas";
 import type {
   TrackFetch,
   TrackBase,
@@ -7,6 +7,7 @@ import type {
   TrackCreateInputSchema,
   TrackInteraction,
   TrackInteractionCallback,
+  TrackMetadata,
   TrackModule,
   TrackRenderer,
   TrackSettingsComponent,
@@ -20,6 +21,7 @@ type ParsedCreateInput<ConfigSchema extends TrackConfigSchema, Display extends s
   base: TrackBase & { display: Display };
   source: "host" | "user";
   config: z.output<ConfigSchema>;
+  metadata?: TrackMetadata;
 };
 
 type ModuleDefaults<Display extends string> = {
@@ -126,6 +128,7 @@ function createTrackModule<
     }),
     source: z.enum(["host", "user"]).default("user"),
     config: configSchema,
+    metadata: trackMetadataSchema.optional(),
   }) as TrackCreateInputSchema<ConfigSchema, DisplayKey<Renderers>>;
 
   const instanceSchema = z.strictObject({
@@ -133,6 +136,7 @@ function createTrackModule<
     base: fullBaseSchema,
     config: configSchema,
     source: z.enum(["host", "user"]),
+    metadata: trackMetadataSchema.optional(),
     interaction: interactionSchema.optional(),
   });
   validateModuleDefaults(definition.type, definition.defaults, defaultDisplay, fullBaseSchema);

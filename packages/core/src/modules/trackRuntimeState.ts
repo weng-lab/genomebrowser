@@ -8,7 +8,8 @@ import type {
 
 /** What a mounted renderer can read about its own track. */
 export type TrackRuntimeValue = {
-  context: TrackRuntimeContext;
+  /** The context as of now. Call it when an event fires, not while rendering. */
+  getContext: () => TrackRuntimeContext;
   interaction: TrackRendererInteraction<never> | null;
 };
 
@@ -20,15 +21,15 @@ export function useInteraction<Item>(): TrackRendererInteraction<Item> | null {
   return (use(TrackRuntime)?.interaction ?? null) as TrackRendererInteraction<Item> | null;
 }
 
-export function useTrackRuntimeContext<Config>(): TrackRuntimeContext<Config> {
+export function useTrackRuntime(): TrackRuntimeValue {
   const runtime = use(TrackRuntime);
   if (!runtime) throw new Error("Track runtime context must be used within a track renderer");
-  return runtime.context as TrackRuntimeContext<Config>;
+  return runtime;
 }
 
 export function bindTrackInteraction(
   interaction: AnyTrackInteraction | undefined,
-  context: TrackRuntimeContext,
+  getContext: () => TrackRuntimeContext,
 ): TrackRendererInteraction<never> | null {
   if (!interaction) return null;
 
@@ -37,8 +38,8 @@ export function bindTrackInteraction(
   const onLeave = interaction.onLeave as TrackInteractionCallback<unknown> | undefined;
 
   return {
-    ...(onClick ? { onClick: (item: never) => onClick(item, context) } : {}),
-    ...(onHover ? { onHover: (item: never) => onHover(item, context) } : {}),
-    ...(onLeave ? { onLeave: (item: never) => onLeave(item, context) } : {}),
+    ...(onClick ? { onClick: (item: never) => onClick(item, getContext()) } : {}),
+    ...(onHover ? { onHover: (item: never) => onHover(item, getContext()) } : {}),
+    ...(onLeave ? { onLeave: (item: never) => onLeave(item, getContext()) } : {}),
   };
 }
