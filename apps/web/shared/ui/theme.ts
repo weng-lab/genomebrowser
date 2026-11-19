@@ -18,6 +18,19 @@ const textPrimary = "#151822";
  */
 export const textBoxTrim = { textBox: "trim-both cap alphabetic" } as const;
 
+/** Hides text from view while screen readers still read it. */
+export const visuallyHidden = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  margin: "-1px",
+  padding: 0,
+  border: 0,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+} as const;
+
 const onPrimaryHover = (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.12);
 
 /**

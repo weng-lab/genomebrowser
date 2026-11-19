@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname localhost",
+    "design": "vite design --port 3100",
     "build": "next build",
     "start": "next start --hostname localhost",
     "typecheck": "next typegen && tsc --noEmit",
@@ -59,6 +60,7 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "typescript": "catalog:native",
+    "vite": "catalog:",
     "vitest": "catalog:"
   }
 }

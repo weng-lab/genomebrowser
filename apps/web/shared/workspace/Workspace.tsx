@@ -6,7 +6,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { SideBar } from "./frame/SideBar";
 import { PanelStateProvider } from "./panels/panelState";
-import { theme } from "./theme";
+import { theme } from "../ui/theme";
 import type { WorkspaceNavigationItem } from "./types";
 
 export type WorkspaceProps = {

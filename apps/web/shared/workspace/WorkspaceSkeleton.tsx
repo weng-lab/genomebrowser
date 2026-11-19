@@ -4,8 +4,9 @@ import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import Skeleton from "@mui/material/Skeleton";
 import { ThemeProvider } from "@mui/material/styles";
-import { SIDE_BAR_WIDTH, titleRowSx } from "./frame/layout";
-import { theme } from "./theme";
+import { NAV_RAIL_WIDTH } from "../ui/NavRail";
+import { titleRowSx } from "./frame/layout";
+import { theme } from "../ui/theme";
 
 /**
  * Placeholder in the workspace frame's shape, shown while the workspace loads. It renders
@@ -28,7 +29,7 @@ export function WorkspaceSkeleton() {
             flexShrink: 0,
             alignItems: "center",
             gap: 0.5,
-            width: SIDE_BAR_WIDTH,
+            width: NAV_RAIL_WIDTH,
             p: 0.5,
             borderRight: 1,
             borderColor: "divider",

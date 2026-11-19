@@ -6,7 +6,7 @@ The workspace applies its own MUI theme and baseline styles inside `Workspace`. 
 
 ## The theme
 
-`Workspace` wraps its content in a `ThemeProvider` with its internal `theme` and renders MUI's `CssBaseline`. The baseline resets page margins and box sizing for the whole document, which suits the workspace's full-window layout. Shared product screens should use this internal theme.
+`Workspace` wraps its content in a `ThemeProvider` with the app's `theme` from `shared/ui/theme.ts` and renders MUI's `CssBaseline`. The baseline resets page margins and box sizing for the whole document, which suits the workspace's full-window layout. Shared product screens should use this internal theme. [Design system](designSystem.md) lists the shared components built on it.
 
 The palette sets a navy primary color, a cornflower blue secondary color, slate text and divider colors, a white page background, a faintly tinted paper surface, and a light blue `background.subtle` surface for areas set apart from both. Hover, selected, and focus backgrounds on neutral controls are tinted with the primary text color rather than black. Use palette keys such as `primary.main` and `text.secondary` instead of literal colors.
 
@@ -39,7 +39,7 @@ For text in other elements, spread the internal `textBoxTrim` style onto the ele
 ```tsx
 import Box from "@mui/material/Box";
 // Example from a module directly inside shared/workspace/.
-import { textBoxTrim } from "./theme";
+import { textBoxTrim } from "../ui/theme";
 
 <Box component="span" sx={{ ...textBoxTrim, display: "block" }}>
   3 selected

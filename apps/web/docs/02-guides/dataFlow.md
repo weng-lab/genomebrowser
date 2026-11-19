@@ -14,7 +14,8 @@ The browser tab owns live browser state. Next.js serves the website, the saved-s
 | `app/api/sessions/`, `features/sessions/server/`               | Identity, validation, ownership checks, PostgreSQL                   | Each request                                          |
 | `features/agent/RemoteControlProvider.tsx`, `remoteControl.ts` | Command stream, command execution, and replies                       | While remote control is on and the open session saves |
 | `features/agent/commands/`                                     | Each command's definition: tool schema and the function the tab runs | Module                                                |
-| `shared/workspace/`                                            | Navigation, theme, panel widths and collapsed state                  | Panel state survives navigation                       |
+| `shared/workspace/`                                            | Navigation, panel widths and collapsed state                         | Panel state survives navigation                       |
+| `shared/ui/`                                                   | Theme and shared presentational components                           | Module                                                |
 | `app/api/mcp/`, `features/mcp/server/`                         | MCP tools, caller authentication, and authorization                  | Each MCP request                                      |
 | `app/api/sessions/[id]/commands/`, `features/agent/server/`    | Tab streams and replies, authorization, Redis relay                  | Each request; streams up to four minutes              |
 

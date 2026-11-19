@@ -2,7 +2,8 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import type { ReactNode } from "react";
-import { narrowTitleRow, visuallyHidden } from "../frame/layout";
+import { visuallyHidden } from "../../ui/theme";
+import { narrowTitleRow } from "../frame/layout";
 
 type PanelButtonProps = {
   /** The panel's title, which the button shows. */
