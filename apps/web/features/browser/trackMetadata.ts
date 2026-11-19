@@ -1,6 +1,5 @@
 import type { TrackMetadata, TrackStoreInstance } from "@weng-lab/genomebrowser";
-import { maxSessionBytes } from "../sessions/schema";
-import { maxSessionTracks } from "./urlTracks";
+import { maxSessionBytes, maxSessionTracks } from "../sessions/schema";
 
 /**
  * Most metadata one track may have after a change, in bytes of JSON. A session's most tracks
@@ -38,7 +37,7 @@ export function changeTrackMetadata(
     id,
     metadata: applyChange(getTrack(id)!.metadata, change),
   }));
-  const tooLarge = tracks.filter(({ metadata }) => jsonBytes(metadata) > maxTrackMetadataBytes);
+  const tooLarge = tracks.filter(({ metadata }) => metadataBytes(metadata) > maxTrackMetadataBytes);
   if (tooLarge.length > 0) {
     const ids = tooLarge.map(({ id }) => `"${id}"`).join(", ");
     return {
@@ -56,8 +55,9 @@ export function changeTrackMetadata(
   return { ok: true, tracks };
 }
 
-function jsonBytes(value: unknown) {
-  return new TextEncoder().encode(JSON.stringify(value)).length;
+/** The size of a metadata record as JSON, in bytes, which `maxTrackMetadataBytes` limits. */
+export function metadataBytes(metadata: Readonly<TrackMetadata>) {
+  return new TextEncoder().encode(JSON.stringify(metadata)).length;
 }
 
 function applyChange(
