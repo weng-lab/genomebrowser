@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   bulkBedModule,
   type BulkBedConfig,
   type BulkBedData,
 } from "@weng-lab/genomebrowser-tracks/bulkbed";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 
 const data: BulkBedData = [
   [{ chromosome: "chr1", start: 0, end: 20, fields: [], datasetName: "Dataset A" }],
@@ -13,17 +13,12 @@ const data: BulkBedData = [
 ];
 const fullRegion = { chromosome: "chr1", start: 0, end: 100 };
 
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
-
 describe("BulkBed row rendering", () => {
   it("gives each dataset one configured row", async () => {
     const view = await render(bulkBedConfig({ rowHeight: 10, gap: 3 }));
     const markup = view.content.innerHTML;
 
-    expect(trackHeight(view)).toBe(20);
+    expect(view.height).toBe(20);
     expect(markup).toContain('height="20"');
     expect(markup).toContain('height="7"');
     expect(markup).toContain('transform="translate(0,0)"');
@@ -61,7 +56,7 @@ describe("BulkBed row rendering", () => {
     });
     const markup = view.content.innerHTML;
 
-    expect(trackHeight(view)).toBe(10);
+    expect(view.height).toBe(10);
     expect(markup).toContain('height="10"');
     expect(markup).toContain('transform="translate(0,10)"');
   });
@@ -78,7 +73,7 @@ function bulkBedConfig(options: { rowHeight: number; gap: number }): BulkBedConf
 }
 
 async function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = data) {
-  const view = await mountTrack({
+  return mountTrack({
     module: bulkBedModule,
     track: {
       base: { id: "bulk-peaks", title: "Bulk peaks", color: "#4b9560", height: 80 },
@@ -89,10 +84,4 @@ async function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = 
     visibleRegion,
     width: 100,
   });
-  mounted.push(view);
-  return view;
-}
-
-function trackHeight(view: MountedTrack) {
-  return view.trackStore.getState().getTrack("bulk-peaks")?.base.height;
 }

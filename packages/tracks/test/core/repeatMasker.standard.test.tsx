@@ -7,7 +7,7 @@ import {
   type RepeatMaskerData,
 } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { sources } from "../fixtures/repeatMasker";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 import { standardRepeatFile, serveRepeats } from "../fixtures/repeatMaskerStandard";
 
 const region = { chromosome: "chr1", start: 0, end: 3000 };
@@ -50,7 +50,6 @@ async function fetchView(context: TrackFetchContext<RepeatMaskerConfig>) {
   if (result.view !== "standard") throw new Error("Expected standard data");
   return result.data;
 }
-const mounted: MountedTrack[] = [];
 async function mount(
   data: StandardData | undefined,
   display: "dense" | "pack" | "full",
@@ -58,7 +57,7 @@ async function mount(
   interaction?: { onClick: (item: unknown) => void },
 ) {
   const track = createTrack();
-  const view = await mountTrack({
+  return mountTrack({
     module,
     track: { base: { ...track.base, display }, config: track.config },
     interaction,
@@ -66,15 +65,12 @@ async function mount(
     region: testRegion,
     assembly: { id: "hg38", chromosomes: { chr1: 248956422 } },
   });
-  mounted.push(view);
-  return view;
 }
 async function markup(data: StandardData, display: "dense" | "pack" | "full", testRegion = region) {
   return (await mount(data, display, testRegion)).content;
 }
 
 afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
   vi.unstubAllGlobals();
 });
 

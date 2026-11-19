@@ -6,19 +6,13 @@ import {
   getGeneDatasetTitle,
   type GeneCreateInput,
 } from "@weng-lab/genomebrowser-tracks/gene";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { reorderTagColors } from "../../src/gene/settings/reorderTagColors";
 import { publishObservedGeneTags } from "../../src/gene/data/tagCatalog";
 import { mountTrack, type MountedTrack } from "../mountTrack";
 
-let view: MountedTrack | undefined;
-let container: HTMLDialogElement | undefined;
-
-afterEach(async () => {
-  await view?.unmount();
-  view = undefined;
-  container = undefined;
-});
+let view: MountedTrack;
+let container: HTMLDialogElement;
 
 /** Mounts a gene track in a browser on `assemblyId` and opens its settings like a user. */
 async function openGeneSettings(track: GeneCreateInput, assemblyId = "hg38") {
@@ -34,7 +28,7 @@ async function openGeneSettings(track: GeneCreateInput, assemblyId = "hg38") {
   /** The track the browser stores after the panel's updates. */
   return () => geneModule.validate(mounted.trackStore.getState().getTrack(track.base.id));
 }
-const act = (update: () => unknown) => view!.settle(update);
+const settle = (update: () => unknown) => view.settle(update);
 describe("Gene settings", () => {
   it("renders gene highlighting controls and forwards query changes", async () => {
     const stored = await openGeneSettings({
@@ -45,20 +39,20 @@ describe("Gene settings", () => {
       config: { url: "YOUR_URL_HERE", geneName: "TP53", highlightColor: "#123456" },
     });
 
-    const input = Array.from(container!.querySelectorAll<HTMLInputElement>("input")).find(
+    const input = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Highlight gene",
     );
     if (!input) throw new Error("Could not find the Highlight gene input");
     expect(input.value).toBe("TP53");
-    expect(container!.textContent).toContain("Transcript tag");
-    expect(container!.textContent).toContain("MANE_Select");
-    expect(container!.textContent).toContain("MANE_Select color");
-    expect(container!.textContent).toContain("Highlight color");
-    expect(container!.textContent).not.toContain("Annotation dataset");
+    expect(container.textContent).toContain("Transcript tag");
+    expect(container.textContent).toContain("MANE_Select");
+    expect(container.textContent).toContain("MANE_Select color");
+    expect(container.textContent).toContain("Highlight color");
+    expect(container.textContent).not.toContain("Annotation dataset");
 
     const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
     if (!valueSetter) throw new Error("Could not set the Highlight gene input value");
-    await act(() => {
+    await settle(() => {
       valueSetter.call(input, "BRCA1");
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
@@ -76,23 +70,23 @@ describe("Gene settings", () => {
       config: { url: "https://example.org/uncataloged.bb" },
     });
 
-    const datasetInput = Array.from(container!.querySelectorAll<HTMLInputElement>("input")).find(
+    const datasetInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Annotation dataset",
     );
-    const urlInput = Array.from(container!.querySelectorAll<HTMLInputElement>("input")).find(
+    const urlInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent?.startsWith("URL"),
     );
     if (!datasetInput || !urlInput) throw new Error("Could not find host dataset controls");
     expect(urlInput.disabled).toBe(true);
 
-    await act(() =>
+    await settle(() =>
       datasetInput.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })),
     );
     const option = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]')).find(
       (candidate) => candidate.textContent === "GENCODE comprehensive",
     );
     if (!option) throw new Error("Could not find the GENCODE comprehensive option");
-    await act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await settle(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
     expect(stored().config.url).toBe(
       "https://users.wenglab.org/niship/gencodefiles/human.gencode.v49.comprehensive.annotation.bb",
@@ -111,20 +105,20 @@ describe("Gene settings", () => {
       },
     });
 
-    const versionInput = Array.from(container!.querySelectorAll<HTMLInputElement>("input")).find(
+    const versionInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Version",
     );
     if (!versionInput) throw new Error("Could not find the GENCODE version control");
     expect(versionInput.value).toBe("40");
 
-    await act(() =>
+    await settle(() =>
       versionInput.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })),
     );
     const option = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]')).find(
       (candidate) => candidate.textContent === "46",
     );
     if (!option) throw new Error("Could not find GENCODE version 46");
-    await act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await settle(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
     expect(stored().config.url).toBe(
       "https://users.wenglab.org/niship/gencodefiles/human.gencode.v46.basic.annotation.bb",
@@ -155,14 +149,14 @@ describe("Gene settings", () => {
       const stored = await openGeneSettings(input, "mm10");
       // In a mounted browser the renderer owns the height; the switch must keep it.
       const { height } = stored().base;
-      const inputs = Array.from(container!.querySelectorAll<HTMLInputElement>("input"));
+      const inputs = Array.from(container.querySelectorAll<HTMLInputElement>("input"));
       expect(inputs.find((input) => input.labels?.[0]?.textContent === "Version")?.value).toBe(
         "M25",
       );
       const datasetInput = inputs.find(
         (input) => input.labels?.[0]?.textContent === "Annotation dataset",
       )!;
-      await act(() =>
+      await settle(() =>
         datasetInput.dispatchEvent(
           new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
         ),
@@ -170,7 +164,7 @@ describe("Gene settings", () => {
       const option = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]')).find(
         (candidate) => candidate.textContent === "GENCODE comprehensive",
       )!;
-      await act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+      await settle(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
       const updated = stored();
       expect(updated.config).toEqual({ ...track.config, url: comprehensive.url });
       expect(updated.base).toEqual({
@@ -181,7 +175,7 @@ describe("Gene settings", () => {
       const restored = geneModule.validate(JSON.parse(JSON.stringify(updated)));
       expect(restored).toEqual(updated);
       expect(
-        Array.from(container!.querySelectorAll<HTMLInputElement>("input")).find(
+        Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
           (input) => input.labels?.[0]?.textContent === "Annotation dataset",
         )?.value,
       ).toBe("GENCODE comprehensive");
@@ -200,8 +194,8 @@ describe("Gene settings", () => {
       },
       "mm39",
     );
-    expect(container!.textContent).toContain("No datasets available for mm39.");
-    const input = Array.from(container!.querySelectorAll<HTMLInputElement>("input")).find(
+    expect(container.textContent).toContain("No datasets available for mm39.");
+    const input = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Annotation dataset",
     )!;
     expect(input.disabled).toBe(true);
@@ -217,18 +211,18 @@ describe("Gene settings", () => {
       },
       config: { url },
     });
-    await act(() => publishObservedGeneTags(url, ["Ensembl_canonical", "MANE_Select"]));
-    const addButton = Array.from(container!.querySelectorAll("button")).find(
+    await settle(() => publishObservedGeneTags(url, ["Ensembl_canonical", "MANE_Select"]));
+    const addButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent === "Add tag",
     );
     if (!addButton) throw new Error("Could not find the add tag button");
-    await act(() => addButton.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await settle(() => addButton.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
-    const selectorInput = Array.from(container!.querySelectorAll<HTMLInputElement>("input")).find(
+    const selectorInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Transcript tag" && !candidate.value,
     );
     if (!selectorInput) throw new Error("Could not find the new tag selector input");
-    await act(() =>
+    await settle(() =>
       selectorInput.dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
       ),
@@ -238,7 +232,7 @@ describe("Gene settings", () => {
       (candidate) => candidate.textContent === "Ensembl_canonical",
     );
     if (!option) throw new Error("Could not find the observed Ensembl_canonical option");
-    await act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await settle(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
     expect(stored().config.tagColors).toEqual([
       { tag: "MANE_Select", color: "#000000" },
@@ -260,8 +254,8 @@ describe("Gene settings", () => {
         ],
       },
     });
-    const firstHandle = container!.querySelector('[data-tag-drag-handle="MANE_Select"]');
-    const secondHandle = container!.querySelector('[data-tag-drag-handle="basic"]');
+    const firstHandle = container.querySelector('[data-tag-drag-handle="MANE_Select"]');
+    const secondHandle = container.querySelector('[data-tag-drag-handle="basic"]');
     if (!firstHandle || !secondHandle) throw new Error("Could not find tag drag handles");
     expect(firstHandle.hasAttribute("draggable")).toBe(false);
     expect(reorderTagColors(stored().config.tagColors, "MANE_Select", "basic")).toEqual([

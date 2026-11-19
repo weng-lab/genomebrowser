@@ -3,16 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTrackStore, hg38, type TrackResources } from "@weng-lab/genomebrowser";
 import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/ruler";
 import { tickStep } from "../../src/ruler/helpers";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
 // Only the fetch cases reach the reader; rendering cases pass literal data.
 vi.mock("@weng-lab/genomic-reader", () => ({ createTwoBitFile: createFile }));
 const region = { chromosome: "chr1", start: 100, end: 110 };
 const input = { base: { id: "ruler", title: "Reference" }, config: {} };
 const url = "https://example.test/reference.2bit";
-const mounted: MountedTrack[] = [];
 afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
   vi.resetAllMocks();
 });
 function resources(): TrackResources {
@@ -46,7 +44,6 @@ async function render(
     region: { ...region, end: region.start + viewportSpan },
     width,
   });
-  mounted.push(view);
   return view.content.innerHTML;
 }
 describe("ruler module", () => {

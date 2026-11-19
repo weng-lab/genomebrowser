@@ -8,7 +8,7 @@ import {
   type GeneInteractionTarget,
   type GeneTranscript,
 } from "@weng-lab/genomebrowser-tracks/gene";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 
 const firstTranscript = transcript("tx1", "gene1", 100, 180, {
   tags: ["MANE_Select"],
@@ -50,14 +50,11 @@ const interaction = {
 /** Callbacks receive the track the item belongs to after the item. */
 const geneTrack = expect.objectContaining({ base: expect.objectContaining({ id: "genes" }) });
 
-let view: MountedTrack | undefined;
 let container: Element;
-afterEach(async () => {
+afterEach(() => {
   interaction.onClick.mockClear();
   interaction.onHover.mockClear();
   interaction.onLeave.mockClear();
-  await view?.unmount();
-  view = undefined;
 });
 
 describe("Gene rendering", () => {
@@ -138,7 +135,7 @@ describe("Gene rendering", () => {
       expect.objectContaining({ kind: "part", feature: firstTranscript }),
       geneTrack,
     );
-    expect(await leave(mounted, partHitTarget)).toBe("");
+    expect(await mounted.leave(partHitTarget)).toBe("");
     expect(interaction.onLeave).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "part", feature: firstTranscript }),
       geneTrack,
@@ -149,7 +146,7 @@ describe("Gene rendering", () => {
     const mounted = await render("merged");
 
     expect(container.querySelectorAll("[data-gene-hit-target]")).toHaveLength(2);
-    expect(trackHeight(mounted)).toBe(16);
+    expect(mounted.height).toBe(16);
     expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-gene-part="cds"]')).toHaveLength(4);
@@ -174,7 +171,7 @@ describe("Gene rendering", () => {
       visibleRegion: { chromosome: "chr1", start: 250, end: 400 },
     });
 
-    expect(trackHeight(mounted)).toBe(16);
+    expect(mounted.height).toBe(16);
     expect(container.querySelectorAll("[data-gene-label]")).toHaveLength(3);
   });
 
@@ -229,7 +226,7 @@ describe("Gene rendering", () => {
       expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
       geneTrack,
     );
-    expect(await leave(mounted, hitTarget)).toBe("");
+    expect(await mounted.leave(hitTarget)).toBe("");
     expect(interaction.onLeave).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
       geneTrack,
@@ -239,14 +236,14 @@ describe("Gene rendering", () => {
   it("repaints composite genes in a new track color", async () => {
     const mounted = await render("merged");
 
-    await recolor(mounted, "#123456");
+    await mounted.update({ base: { color: "#123456" } });
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 
   it("keeps the tag color on transcripts when the track color changes", async () => {
     const mounted = await render("full");
 
-    await recolor(mounted, "#123456");
+    await mounted.update({ base: { color: "#123456" } });
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#d45c2f");
   });
 
@@ -288,7 +285,7 @@ async function render(
     visibleRegion?: { chromosome: string; start: number; end: number };
   } = {},
 ) {
-  view = await mountTrack({
+  const view = await mountTrack({
     module: geneModule,
     track: {
       // Starts off the laid-out height, so the height checks need the row layout to run.
@@ -303,23 +300,6 @@ async function render(
   });
   container = view.content;
   return view;
-}
-
-function trackHeight(mounted: MountedTrack) {
-  return mounted.trackStore.getState().getTrack("genes")?.base.height;
-}
-
-async function recolor(mounted: MountedTrack, next: string) {
-  await mounted.settle(() =>
-    mounted.trackStore.getState().updateTrack("genes", { base: { color: next } }),
-  );
-  container = mounted.content;
-}
-
-/** Moves the pointer off a target and returns the tooltip text left showing. */
-async function leave(mounted: MountedTrack, target: Element) {
-  await mounted.settle(() => target.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-  return document.querySelector("[data-genomebrowser-tooltip-overlay]")?.textContent ?? "";
 }
 
 function transcript(

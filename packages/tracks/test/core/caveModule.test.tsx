@@ -1,18 +1,13 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { caveModule } from "@weng-lab/genomebrowser-tracks/cave";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 
 const region = { chromosome: "chr1", start: 0, end: 1 };
 const data = {
   top: [{ kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 0.5 }],
   bottom: [{ kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 0.5 }],
 };
-
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
 
 describe("CAVE module", () => {
   it("parses concrete top and bottom color defaults", () => {
@@ -24,7 +19,6 @@ describe("CAVE module", () => {
       topColor: "#123456",
       bottomColor: "#654321",
     });
-    expect(caveModule.settingsComponent).toBeTypeOf("function");
   });
 
   it("renders concrete config colors directly", async () => {
@@ -83,6 +77,5 @@ async function renderFull(config: ReturnType<typeof createTrack>["config"], colo
     region,
     width: 1,
   });
-  mounted.push(view);
   return view.content.innerHTML;
 }

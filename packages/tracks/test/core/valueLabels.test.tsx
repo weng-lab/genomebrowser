@@ -1,9 +1,6 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
-import { z } from "zod";
-import { defineTrackModule } from "@weng-lab/genomebrowser";
+import { describe, expect, it } from "vitest";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-import { ValueLabels } from "../../src/shared/ValueLabels";
 import { mountTrack, type MountedTrack } from "../mountTrack";
 
 const region = { chromosome: "chr1", start: 0, end: 300 };
@@ -19,11 +16,6 @@ const data = [
   { kind: "value" as const, ...region, start: 100, end: 200, value: 5 },
 ];
 
-const mounted: MountedTrack[] = [];
-afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
-});
-
 /** Fixed labels the track draws in its plot overlay, leaving out the track title. */
 function labels(view: MountedTrack) {
   return Array.from(view.container.querySelectorAll("[data-track-id] text")).filter(
@@ -32,7 +24,7 @@ function labels(view: MountedTrack) {
 }
 
 async function mountSignal(display: "full" | "dense") {
-  const view = await mountTrack({
+  return mountTrack({
     module: bigWigModule,
     track: {
       base: { id: "signal", title: "Signal", color: "#2266aa", height: 100, display },
@@ -43,34 +35,20 @@ async function mountSignal(display: "full" | "dense") {
     visibleRegion: { ...region, start: 100, end: 200 },
     width: 900,
   });
-  mounted.push(view);
-  return view;
 }
 
-const ticks = [
-  { value: 1, y: 0 },
-  { value: 0, y: 35 },
-  { value: 0.5, y: 17.5 },
-];
-const labelsModule = defineTrackModule({
-  type: "value-labels",
-  configSchema: z.object({}),
-  fetch: async () => null,
-  render: {
-    full: ({ height }: { height: number }) => <ValueLabels height={height} ticks={ticks} />,
-  },
-});
-
-async function mountLabels(height: number) {
-  const view = await mountTrack({
-    module: labelsModule,
-    track: { base: { id: "labels", title: "Labels", height }, config: {} },
-    data: null,
+/** A BigWig plot from -1 to 1 puts its zero tick midway between the endpoints. */
+async function mountSymmetric(height: number) {
+  return mountTrack({
+    module: bigWigModule,
+    track: {
+      base: { id: "signal", title: "Signal", color: "#2266aa", height },
+      config: { ...config, yRange: { min: -1, max: 1 } },
+    },
+    data,
     region,
     width: 900,
   });
-  mounted.push(view);
-  return view;
 }
 
 describe("renderer value labels", () => {
@@ -87,10 +65,13 @@ describe("renderer value labels", () => {
   });
 
   it("keeps endpoint labels inside short tracks and suppresses colliding middle labels", async () => {
-    const shown = labels(await mountLabels(35));
-    expect(shown.map((label) => label.textContent)).toEqual(["1", "0"]);
-    // A 14 px label for the bottom tick of a 35 px track sits at 35 - 14 = 21.
-    expect(shown[1]?.previousElementSibling?.getAttribute("y")).toBe("21");
-    expect(labels(await mountLabels(10))).toHaveLength(0);
+    const shown = labels(await mountSymmetric(35));
+    expect(shown.map((label) => label.textContent)).toEqual(["1", "-1"]);
+    // Each label sits on a 14 px box; the bottom one must end inside the 35 px track.
+    const box = shown[1]?.closest("g")?.querySelector("rect");
+    const top = Number(box?.getAttribute("y"));
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(top + Number(box?.getAttribute("height"))).toBeLessThanOrEqual(35);
+    expect(labels(await mountSymmetric(10))).toHaveLength(0);
   });
 });

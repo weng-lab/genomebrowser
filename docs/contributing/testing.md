@@ -43,7 +43,7 @@ Call in through the smallest interface consumers use, and keep everything betwee
 | `reader`      | Public reader API on fixture files over HTTP range requests                      | Decoded records                             |
 | `reader`      | Public parsers such as `parseChromSizes` on text input                           | Parsed values and rejected input            |
 | `core`        | Mounted `GenomeBrowser`, documented store operations, track module contract      | Rendered output, store state, callbacks     |
-| `tracks`      | The track module mounted in `GenomeBrowser` with a fixture                       | SVG snapshot, tooltip text, setting effect  |
+| `tracks`      | The track module mounted in `GenomeBrowser` with a fixture, through `mountTrack` | SVG snapshot, tooltip text, setting effect  |
 | `ui`          | The user workflow on the component                                               | Screen content or browser store state       |
 | `apps/server` | A real HTTP server and MCP client                                                | Tool results and delivered command payloads |
 | `apps/web`    | Routes and persistence with real Postgres and Redis                              | Responses and stored sessions               |
