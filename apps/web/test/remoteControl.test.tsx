@@ -3,15 +3,14 @@
 // Import first: it mocks the Next.js router before the app's modules load.
 import { clerk, route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { act, useLayoutEffect } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
-import { maxSessionTracks } from "../features/browser/urlTracks";
+import { maxSessionTracks } from "../features/sessions/schema";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { useSession } from "../features/sessions/SessionProvider";
 import { installSessionServer, type SessionServer } from "./sessionServer";
+import { bigBedWithColumns, trackFiles as files } from "./trackFiles";
 
 // EventSource and fetch are the external boundaries. The session owner, remote
 // control attachment, command execution, stores, and UI are real.
@@ -420,17 +419,6 @@ it("changes no track's metadata when a change names a missing track or changes n
   ).toEqual([{}, {}, {}]);
 });
 
-function fixture(path: string) {
-  return new Uint8Array(
-    readFileSync(join(import.meta.dirname, "../../../packages/reader/test/fixtures", path)),
-  );
-}
-const files = {
-  bigWig: fixture("bigwig/basic.bw"),
-  bed6: fixture("bigbed/basic.bb"),
-  bam: fixture("bam/bamExample.bam"),
-  bai: fixture("bam/bamExample.bam.bai"),
-};
 const dataHost = "https://data.example.test";
 const addTracksCommand = (tracks: object[], expiresAt = Date.now() + 5000) => ({
   commandId: crypto.randomUUID(),
@@ -444,7 +432,12 @@ const savedTracks = () => server.stored.get(alpha)!.snapshot.tracks;
 const startingTitles = ["Coordinates", "GENCODE 50 basic", "Human cCREs"];
 
 // Each row is a file URL an agent might add, and the track the session saves for it.
-const additions = [
+const additions: {
+  url: string;
+  hosted: Record<string, Uint8Array>;
+  params: object;
+  saved: { type: string; title: string; config: object; base?: object; metadata?: object };
+}[] = [
   {
     url: `${dataHost}/tracks/ENCFF001ABC.bigWig`,
     hosted: { [`${dataHost}/tracks/ENCFF001ABC.bigWig`]: files.bigWig },
@@ -477,6 +470,54 @@ const additions = [
     params: { type: "bigwig", title: "Signal" },
     saved: { type: "bigwig", title: "Signal", config: {} },
   },
+  // A request's own choices. Each visibility shows as a display other than the type's default.
+  {
+    // The given columns are read, though the header declares six.
+    url: `${dataHost}/named.bb`,
+    hosted: { [`${dataHost}/named.bb`]: files.bed6 },
+    params: {
+      bedSchema: "bed4",
+      color: "#aa3300",
+      visibility: "pack",
+      metadata: { Assay: "ChIP-seq", Replicate: 2, Interesting: true },
+    },
+    saved: {
+      type: "bigbed",
+      title: "named",
+      config: { bedSchema: "bed4" },
+      base: { color: "#aa3300", display: "squish" },
+      metadata: { Assay: "ChIP-seq", Replicate: 2, Interesting: true },
+    },
+  },
+  {
+    url: `${dataHost}/coverage.bw`,
+    hosted: { [`${dataHost}/coverage.bw`]: files.bigWig },
+    params: { visibility: "dense" },
+    saved: { type: "bigwig", title: "coverage", config: {}, base: { display: "dense" } },
+  },
+  {
+    url: `${dataHost}/genes.bb`,
+    hosted: { [`${dataHost}/genes.bb`]: bigBedWithColumns(20, 12) },
+    params: { type: "gene", visibility: "pack" },
+    saved: { type: "gene", title: "genes", config: {}, base: { display: "tagged" } },
+  },
+  {
+    url: `${dataHost}/ccres.bb`,
+    hosted: { [`${dataHost}/ccres.bb`]: bigBedWithColumns(10, 9) },
+    params: { type: "ccre-bigbed", visibility: "full" },
+    saved: { type: "ccre-bigbed", title: "ccres", config: {}, base: { display: "squish" } },
+  },
+  {
+    url: `${dataHost}/aligned.bam`,
+    hosted: { [`${dataHost}/aligned.bam`]: files.bam, [`${dataHost}/aligned.bam.bai`]: files.bai },
+    params: { visibility: "dense" },
+    saved: {
+      type: "bam",
+      title: "aligned",
+      config: { indexUrl: `${dataHost}/aligned.bam.bai` },
+      base: { display: "dense" },
+    },
+  },
 ];
 
 it("adds a batch of tracks for the agent in order, and saves them", async () => {
@@ -501,13 +542,20 @@ it("adds a batch of tracks for the agent in order, and saves them", async () => 
   await vi.waitFor(() =>
     expect(savedTracks()).toHaveLength(startingTitles.length + additions.length),
   );
-  expect(savedTracks().slice(startingTitles.length)).toMatchObject(
-    additions.map(({ url, saved }, index) => ({
-      type: saved.type,
-      base: { id: result.value.tracks[index].id, title: saved.title },
-      source: "user",
-      config: { url, ...saved.config },
-    })),
+  expect(savedTracks().slice(startingTitles.length)).toEqual(
+    additions.map(({ url, saved }, index) =>
+      expect.objectContaining({
+        type: saved.type,
+        base: expect.objectContaining({
+          id: result.value.tracks[index].id,
+          title: saved.title,
+          ...saved.base,
+        }),
+        source: "user",
+        config: expect.objectContaining({ url, ...saved.config }),
+        ...(saved.metadata && { metadata: saved.metadata }),
+      }),
+    ),
   );
 });
 
@@ -554,6 +602,17 @@ it("tells the agent why each URL in a batch cannot be added, and adds none of th
       params: { url: `${dataHost}/peaks.bb`, type: "bigwig" },
       code: "UNREADABLE",
       error: "The BigWig file could not be read: Expected a BigWig file",
+    },
+    {
+      // Each value is within its own limit; together they pass the track's.
+      params: {
+        url: `${dataHost}/signal.bw`,
+        metadata: Object.fromEntries(
+          Array.from({ length: 10 }, (_, index) => [`Note ${index}`, "x".repeat(1000)]),
+        ),
+      },
+      code: "METADATA_TOO_LARGE",
+      error: "The metadata is more than 10,000 bytes as JSON. Remove fields or shorten values.",
     },
   ];
 
