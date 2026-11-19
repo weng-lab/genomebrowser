@@ -62,8 +62,8 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
           signal,
         ),
       showImage: (image) => setPreview({ image, open: true }),
-      addTracksFromUrls: (inputs, signal) =>
-        addTracksFromUrls(stores.useTrackStore, inputs, signal),
+      addTracksFromUrls: (requests, signal) =>
+        addTracksFromUrls(stores.useTrackStore, requests, signal),
     };
     return connectRemoteControl(`/api/sessions/${id}/commands`, app, signal, setState);
   }, [enabled, id, stores, signal, svgRef]);

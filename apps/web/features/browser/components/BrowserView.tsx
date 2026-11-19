@@ -19,6 +19,7 @@ import SortIcon from "@mui/icons-material/Sort";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
+import { AddTracksButton, AddTracksDialog } from "./AddTracksDialog";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -90,6 +91,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   const svgRef = useBrowserSvgRef();
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   // Read the tracks when Sort is clicked rather than subscribing, so track changes
   // do not re-render the controls. A sort is a one-time operation.
   const [sortOptions, setSortOptions] = useState(() =>
@@ -137,6 +139,8 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
               >
                 Download
               </Button>
+              {/* A temporary placement (#368), until the collections design settles. */}
+              <AddTracksButton onClick={() => setAddOpen(true)} />
             </>
           }
         />
@@ -147,6 +151,11 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         svgRef={svgRef}
         open={downloadOpen}
         onClose={() => setDownloadOpen(false)}
+      />
+      <AddTracksDialog
+        trackStore={useTrackStore}
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
       />
       <TrackSortDialog
         trackStore={useTrackStore}
