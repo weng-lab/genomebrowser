@@ -596,7 +596,7 @@ it("sorts the open session's tracks and saves the order", async () => {
   const titles = () => server.stored.get(id)!.snapshot.tracks.map(({ base }) => base.title);
   expect(titles()).toEqual(["Human cCREs", "GENCODE 50 basic", "Coordinates"]);
 
-  await click(button("Sort tracks"));
+  await click(withText("button", "Sort tracks"));
   await click(withText("button", "Apply order"));
   await vi.waitFor(() => expect(closeTab()).toBe(false));
   expect(titles()).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);

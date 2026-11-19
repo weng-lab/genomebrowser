@@ -49,6 +49,9 @@ export const primarySurfaceSx = {
     onPrimaryStateSx,
 } as const;
 
+/** The corner radius of control cards and the buttons inside them, so the two match. */
+const controlRadius = (theme: Theme) => Number(theme.shape.borderRadius) * 1.5;
+
 // Shared theme for the web application and workspace.
 export const theme = createTheme({
   palette: {
@@ -67,6 +70,24 @@ export const theme = createTheme({
     },
   },
   components: {
+    // Control groups, such as the browser toolbar sections, are paper cards.
+    GbLabeledGroup: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: controlRadius(theme),
+        }),
+      },
+    },
+    // Toggle groups, such as the browser's interaction modes, are separate borderless buttons.
+    // The selected one sits on a rounded tint.
+    MuiToggleButtonGroup: {
+      styleOverrides: {
+        root: { gap: 4 },
+        // Theme overrides follow MUI's rules that join grouped buttons, so this one wins.
+        grouped: ({ theme }) => ({ border: 0, margin: 0, borderRadius: controlRadius(theme) }),
+      },
+    },
     // Workspace text goes through Typography, so trimming here covers titles, labels, and body text.
     MuiTypography: {
       styleOverrides: {
