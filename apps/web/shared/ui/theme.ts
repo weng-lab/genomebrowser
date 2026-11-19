@@ -83,6 +83,8 @@ export const theme = createTheme({
     },
   },
   components: {
+    // The browser toolbar centers sections that wrap onto a new line.
+    GbControlToolbar: { styleOverrides: { root: { justifyContent: "center" } } },
     // Control groups, such as the browser toolbar sections, are paper cards.
     GbLabeledGroup: {
       styleOverrides: {

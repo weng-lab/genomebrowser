@@ -7,7 +7,7 @@ import { Fragment, type ElementType, type ReactNode } from "react";
 import { primarySurfaceSx } from "./theme";
 
 /** The rail's width: a 40px icon button, 4px padding on each side, and its border. */
-export const NAV_RAIL_WIDTH = 49;
+const NAV_RAIL_WIDTH = 49;
 
 export type NavRailItem = {
   href: string;
@@ -77,7 +77,8 @@ export function NavRail({
   );
 }
 
-const railSx = {
+/** The rail's navy column, also used by placeholders that stand in for it while loading. */
+export const railSx = {
   ...primarySurfaceSx,
   display: "flex",
   flexDirection: "column",

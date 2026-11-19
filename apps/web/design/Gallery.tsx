@@ -1,25 +1,22 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useTheme, type PaletteColor } from "@mui/material/styles";
-import ContentCopy from "@mui/icons-material/ContentCopy";
 import Download from "@mui/icons-material/Download";
-import FolderOutlined from "@mui/icons-material/FolderOutlined";
-import Highlight from "@mui/icons-material/Highlight";
-import PanTool from "@mui/icons-material/PanTool";
-import Schedule from "@mui/icons-material/Schedule";
-import Search from "@mui/icons-material/Search";
-import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
 import Sort from "@mui/icons-material/Sort";
-import ViewTimelineOutlined from "@mui/icons-material/ViewTimelineOutlined";
-import ZoomIn from "@mui/icons-material/ZoomIn";
-import { LabeledGroup } from "@weng-lab/genomebrowser-ui";
-import { ControlAction, ControlStrip } from "../shared/ui/ControlStrip";
+import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
+import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
+import { brand, navigation } from "../composition/navigation";
 import { NavRail } from "../shared/ui/NavRail";
 import { StatusTag } from "../shared/ui/StatusTag";
+
+// A browser store for the toolbar preview, as in the UI package's ControlToolbar docs.
+const useBrowserStore = createBrowserStore({
+  assembly: hg38,
+  region: { chromosome: "chr12", start: 53_365_153, end: 53_405_654 },
+  trackWidth: 900,
+});
 
 /** Every shared/ui component, with the app theme, in the states screens use. */
 export function Gallery() {
@@ -33,22 +30,15 @@ export function Gallery() {
         <Box sx={{ display: "flex", height: 420, border: 1, borderColor: "divider" }}>
           <NavRail
             aria-label="Example"
-            brand={
-              <Box sx={{ width: 36, height: 36, my: 0.5, borderRadius: 1.5, bgcolor: "white" }} />
-            }
-            sections={[
-              [
-                {
-                  href: "#browser",
-                  label: "Browser",
-                  icon: <ViewTimelineOutlined />,
-                  current: "page",
-                },
-                { href: "#sessions", label: "Sessions", icon: <Schedule /> },
-              ],
-              [{ href: "#collections", label: "Collections", icon: <FolderOutlined /> }],
-            ]}
-            bottom={[{ href: "#settings", label: "Settings", icon: <SettingsOutlined /> }]}
+            brand={brand}
+            // The app's real links, with the first one current.
+            sections={navigation.sections.map((items, group) =>
+              items.map((item, index) => ({
+                ...item,
+                current: group === 0 && index === 0 ? ("page" as const) : undefined,
+              })),
+            )}
+            bottom={navigation.bottom}
           />
         </Box>
       </Section>
@@ -61,32 +51,30 @@ export function Gallery() {
           <StatusTag label="Unsaved" />
         </Row>
       </Section>
-      <Section title="ControlStrip and ControlAction" source="shared/ui/ControlStrip.tsx">
+      <Section
+        title="ControlToolbar"
+        source="@weng-lab/genomebrowser-ui, styled by shared/ui/theme.ts"
+      >
         <Box sx={{ bgcolor: "background.subtle", p: 2 }}>
-          <ControlStrip aria-label="Example controls">
-            <LabeledGroup title="Region">
-              <Row>
-                <Typography variant="body2">chr12:53,365,154-53,405,654</Typography>
-                <IconButton size="small" aria-label="Search">
-                  <Search fontSize="small" />
-                </IconButton>
-                <IconButton size="small" aria-label="Copy">
-                  <ContentCopy fontSize="small" />
-                </IconButton>
-              </Row>
-            </LabeledGroup>
-            <LabeledGroup title="Interaction">
-              <ModeToggle />
-            </LabeledGroup>
-            <LabeledGroup title="Manage">
-              <ControlAction icon={<Sort />} onClick={() => {}}>
-                Sort tracks
-              </ControlAction>
-              <ControlAction icon={<Download />} onClick={() => {}}>
-                Download
-              </ControlAction>
-            </LabeledGroup>
-          </ControlStrip>
+          <ControlToolbar
+            browserStore={useBrowserStore}
+            // Search needs the app's server; the rest of the toolbar works on its own.
+            search={{
+              assembly: "GRCh38",
+              graphqlUrl: "/api/screen-graphql",
+              queries: ["Coordinate"],
+            }}
+            managementActions={
+              <>
+                <Button size="small" startIcon={<Sort />}>
+                  Sort tracks
+                </Button>
+                <Button size="small" startIcon={<Download />}>
+                  Download
+                </Button>
+              </>
+            }
+          />
         </Box>
       </Section>
     </Box>
@@ -142,29 +130,6 @@ function Palette() {
         </Box>
       ))}
     </Section>
-  );
-}
-
-function ModeToggle() {
-  const [mode, setMode] = useState("pan");
-  return (
-    <ToggleButtonGroup
-      exclusive
-      size="small"
-      aria-label="Mode"
-      value={mode}
-      onChange={(_, value: string | null) => value && setMode(value)}
-    >
-      <ToggleButton value="pan" aria-label="Pan">
-        <PanTool fontSize="small" />
-      </ToggleButton>
-      <ToggleButton value="zoom" aria-label="Zoom">
-        <ZoomIn fontSize="small" />
-      </ToggleButton>
-      <ToggleButton value="highlight" aria-label="Highlight">
-        <Highlight fontSize="small" />
-      </ToggleButton>
-    </ToggleButtonGroup>
   );
 }
 

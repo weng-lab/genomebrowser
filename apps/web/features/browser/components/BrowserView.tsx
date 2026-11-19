@@ -3,21 +3,13 @@
 import { useState } from "react";
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { GenomeBrowser } from "@weng-lab/genomebrowser";
-import {
-  DownloadImageDialog,
-  InteractionControls,
-  ManagementControls,
-  NavigationControls,
-  RegionControls,
-  TrackSortDialog,
-} from "@weng-lab/genomebrowser-ui";
+import { ControlToolbar, DownloadImageDialog, TrackSortDialog } from "@weng-lab/genomebrowser-ui";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import DownloadIcon from "@mui/icons-material/Download";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import SortIcon from "@mui/icons-material/Sort";
-import { ControlAction, ControlStrip } from "../../../shared/ui/ControlStrip";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
@@ -106,34 +98,34 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
 
   return (
     <>
-      <ControlStrip aria-label="Genome browser controls" sx={{ mb: 2 }}>
-        <RegionControls
+      <Box sx={{ mb: 2 }}>
+        <ControlToolbar
           browserStore={useBrowserStore}
           search={{
             assembly: "GRCh38",
             graphqlUrl: "/api/screen-graphql",
             queries: ["Coordinate"],
           }}
-        />
-        <NavigationControls browserStore={useBrowserStore} />
-        <InteractionControls browserStore={useBrowserStore} />
-        <ManagementControls
           managementActions={
             <>
-              <ControlAction icon={<SortIcon />} onClick={openSort}>
+              <Button size="small" startIcon={<SortIcon />} onClick={openSort}>
                 Sort tracks
-              </ControlAction>
-              <ControlAction icon={<DownloadIcon />} onClick={() => setDownloadOpen(true)}>
+              </Button>
+              <Button
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={() => setDownloadOpen(true)}
+              >
                 Download
-              </ControlAction>
+              </Button>
               {/* A temporary placement (#368), until the collections design settles. */}
-              <ControlAction icon={<PlaylistAddIcon />} onClick={() => setAddOpen(true)}>
+              <Button size="small" startIcon={<PlaylistAddIcon />} onClick={() => setAddOpen(true)}>
                 Add tracks
-              </ControlAction>
+              </Button>
             </>
           }
         />
-      </ControlStrip>
+      </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} svgRef={svgRef} />
       <DownloadImageDialog
         browserStore={useBrowserStore}

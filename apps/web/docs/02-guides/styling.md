@@ -12,7 +12,7 @@ The palette sets a navy primary color, a cornflower blue secondary color, slate 
 
 Icons in `IconButton` and similar controls use a solid dark gray rather than MUI's default semi-transparent black.
 
-Labeled control groups, such as the browser toolbar's sections from `@weng-lab/genomebrowser-ui`, are paper cards with rounded corners, set through the theme's `GbLabeledGroup` entry. Buttons in a `ToggleButtonGroup`, such as the toolbar's interaction modes, have no borders or dividers; the selected one sits on a rounded tint.
+The browser toolbar, `ControlToolbar` from `@weng-lab/genomebrowser-ui`, centers sections that wrap onto a new line, set through the theme's `GbControlToolbar` entry. Labeled control groups, such as its sections, are paper cards with rounded corners, set through the theme's `GbLabeledGroup` entry. Buttons in a `ToggleButtonGroup`, such as the toolbar's interaction modes, have no borders or dividers; the selected one sits on a rounded tint.
 
 The frame uses the navy primary color for the side bar and the side panels' title rows, the paper color for the side panels' content, and the light blue `background.subtle` behind the center content. The current page's side bar icon sits on a lighter square. The right panel's button fills with the primary color while its panel is open. Spread the internal `primarySurfaceSx` onto other navy areas: MUI text, icon buttons, and inputs inside it switch to the light contrast text, while menus and dialogs opened from it stay light.
 
