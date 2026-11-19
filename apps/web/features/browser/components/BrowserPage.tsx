@@ -1,5 +1,5 @@
 import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
-import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
+import AutoAwesome from "@mui/icons-material/AutoAwesome";
 import type { ReactNode } from "react";
 import { AgentPanel } from "../../agent/components/AgentPanel";
 import { SaveStatus } from "../../sessions/components/SaveStatus";
@@ -19,7 +19,7 @@ export function BrowserPage({ children }: { children: ReactNode }) {
       heading={<SessionSwitcher />}
       actions={<SaveStatus />}
       left={{ title: "Genome Browser", children: <RegionsPanel /> }}
-      right={{ title: "Agent", icon: <AutoAwesomeOutlined />, children: <AgentPanel /> }}
+      right={{ title: "AI Assist", icon: <AutoAwesome />, children: <AgentPanel /> }}
     >
       {children}
     </WorkspacePage>

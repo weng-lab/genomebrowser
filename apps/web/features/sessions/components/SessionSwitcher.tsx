@@ -1,6 +1,6 @@
 "use client";
 
-import ArrowDropDown from "@mui/icons-material/ArrowDropDown";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
@@ -28,14 +28,15 @@ export function SessionSwitcher() {
       <SessionTitle />
       <IconButton
         size="small"
-        sx={{ flexShrink: 0 }}
+        color="primary"
+        sx={{ flexShrink: 0, ml: 1 }}
         aria-label="Sessions"
         aria-haspopup="dialog"
         aria-expanded={menuOpen}
         aria-controls={menuOpen ? menuId : undefined}
         onClick={() => setAnchor(title.current)}
       >
-        <ArrowDropDown fontSize="small" />
+        <ExpandMore fontSize="small" />
       </IconButton>
       <Popover
         id={menuId}

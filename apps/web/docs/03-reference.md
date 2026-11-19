@@ -25,7 +25,7 @@ type WorkspacePageProps = {
 };
 ```
 
-`title` names the center panel; `subtitle` adds optional title content. `heading` replaces the center title row's breadcrumbs at its left end and must render the page's own `h1`; the browser uses it for the session switcher, which stays there whether or not the left panel is open. `left` and `right` supply side-panel titles and elements. Each side panel shows its title in its navy title row; the browser's left panel is **Genome Browser** and lists saved regions under a **Regions** label. The right panel's title and `icon` label its button at the right end of the center title row; the browser's is **Agent** with a sparkle. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
+`title` names the center panel; `subtitle` adds optional title content. `heading` replaces the center title row's breadcrumbs at its left end and must render the page's own `h1`; the browser uses it for the session switcher, which stays there whether or not the left panel is open. `left` and `right` supply side-panel titles and elements. Each side panel shows its title in its navy title row; the browser's left panel is **Genome Browser** and lists saved regions under a **Regions** label. The right panel's title and `icon` label its button at the right end of the center title row; the browser's is **AI Assist** with a sparkle. When the page also supplies `actions`, a vertical line separates them from the button. Omit a side to remove its panel and toggle. `children` supplies center content. The generic shell determines layout, sizing, and animation.
 
 ## Side panel behavior
 

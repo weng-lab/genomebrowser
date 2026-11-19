@@ -89,7 +89,7 @@ Always set the publishable and secret keys from the same instance. Sessions belo
 
 ## Configure Redis
 
-Remote control and MCP need a Redis server that supports publish/subscribe and Lua scripts over a TCP connection, such as a Redis database added through the Vercel Marketplace. HTTP-only Redis APIs do not work. Set its connection URL as `REDIS_URL`, using `rediss://` when the provider requires TLS. Sessions load and save without Redis; without it, the Agent panel keeps reconnecting and MCP calls fail with `RELAY_UNAVAILABLE`.
+Remote control and MCP need a Redis server that supports publish/subscribe and Lua scripts over a TCP connection, such as a Redis database added through the Vercel Marketplace. HTTP-only Redis APIs do not work. Set its connection URL as `REDIS_URL`, using `rediss://` when the provider requires TLS. Sessions load and save without Redis; without it, the AI Assist panel keeps reconnecting and MCP calls fail with `RELAY_UNAVAILABLE`.
 
 The tab command stream route allows up to 300 seconds and ends each stream after four minutes, then the tab reconnects. Keep the project's maximum function duration at 300 seconds or more.
 
@@ -148,7 +148,7 @@ Run the migration and the insert in one transaction, as a user that owns the tab
 
 Open the deployment, sign in, create a session, change the region, then reload and reopen it. Deployments are behind Vercel Authentication, so viewers need a Vercel team login. If the app shows that saved sessions are unavailable, open the deployment's runtime logs in the Vercel dashboard and find the `Session request failed` errors for `/api/sessions`.
 
-To check remote control, open a session with remote control on and confirm the Agent panel shows Connected. If it keeps reconnecting, find `Remote control request failed` or `Command relay Redis error` in the runtime logs for `/api/sessions/<id>/commands`.
+To check remote control, open a session with remote control on and confirm the AI Assist panel shows Connected. If it keeps reconnecting, find `Remote control request failed` or `Command relay Redis error` in the runtime logs for `/api/sessions/<id>/commands`.
 
 | Error                                                             | Cause and fix                                                                                               |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |

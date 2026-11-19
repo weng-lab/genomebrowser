@@ -43,11 +43,12 @@ export function PanelButton({ title, icon, open, onToggle }: PanelButtonProps) {
 
 const buttonSx = {
   flexShrink: 0,
-  px: 1.25,
-  borderRadius: 2,
+  height: 34,
+  px: 1.75,
+  borderRadius: 1.5,
   textTransform: "none",
-  fontWeight: "fontWeightMedium",
-  "& .MuiButton-startIcon": { mr: 0.75 },
+  typography: "body1",
+  "& .MuiButton-startIcon": { mr: 1 },
 } as const;
 
 /** In a narrow title row, only the icon shows; the title stays the button's name. */

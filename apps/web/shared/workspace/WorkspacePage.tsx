@@ -1,6 +1,7 @@
 "use client";
 
 import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -80,6 +81,7 @@ export function WorkspacePage({
             (actions || right) && (
               <>
                 {actions}
+                {actions && right && <Divider orientation="vertical" sx={{ height: 32, mx: 1 }} />}
                 {right && (
                   <PanelButton
                     title={right.title}
