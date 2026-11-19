@@ -1,18 +1,18 @@
-import { renderToStaticMarkup } from "react-dom/server";
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTrackStore, hg38, type TrackResources } from "@weng-lab/genomebrowser";
 import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/ruler";
-import { TestBrowser } from "../testBrowser";
 import { tickStep } from "../../src/ruler/helpers";
+import { mountTrack } from "../mountTrack";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
-vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({
-  useRulerHoverHighlight: () => ({ hover: () => {}, clear: () => {} }),
-}));
+// Only the fetch cases reach the reader; rendering cases pass literal data.
 vi.mock("@weng-lab/genomic-reader", () => ({ createTwoBitFile: createFile }));
 const region = { chromosome: "chr1", start: 100, end: 110 };
 const input = { base: { id: "ruler", title: "Reference" }, config: {} };
 const url = "https://example.test/reference.2bit";
-afterEach(() => vi.resetAllMocks());
+afterEach(async () => {
+  vi.resetAllMocks();
+});
 function resources(): TrackResources {
   const map = new Map();
   return {
@@ -26,38 +26,25 @@ function resources(): TrackResources {
     clear: () => map.clear(),
   };
 }
-function render(
+/** The ruler's markup in a mounted browser whose span and width decide base-pair detail. */
+async function render(
   width: number,
   data: RulerData,
   sequenceUrl: string | null = url,
   viewportSpan = 10,
   distinguishMaskedBases = false,
 ) {
-  const track = rulerModule.create({
-    ...input,
-    config: {
-      sequenceUrl: sequenceUrl ?? undefined,
-      distinguishMaskedBases,
+  const view = await mountTrack({
+    module: rulerModule,
+    track: {
+      ...input,
+      config: { sequenceUrl: sequenceUrl ?? undefined, distinguishMaskedBases },
     },
+    data,
+    region: { ...region, end: region.start + viewportSpan },
+    width,
   });
-  const Renderer = rulerModule.render.full;
-  return renderToStaticMarkup(
-    <TestBrowser
-      basePairDetail
-      trackStore={createTrackStore({ modules: [rulerModule], tracks: [track] })}
-    >
-      <svg>
-        <Renderer
-          {...track.base}
-          config={track.config}
-          width={width}
-          region={{ ...region, end: region.start + viewportSpan }}
-          visibleRegion={{ ...region, end: region.start + viewportSpan }}
-          data={data}
-        />
-      </svg>
-    </TestBrowser>,
-  );
+  return view.content.innerHTML;
 }
 describe("ruler module", () => {
   it("creates, validates and mutates a normal track", () => {
@@ -77,15 +64,16 @@ describe("ruler module", () => {
     );
     expect(useTracks.getState().tracks[0]?.config.sequenceUrl).toBe(url);
   });
-  it("uses readable tick intervals at chromosome and base scale", () => {
+  it("uses readable tick intervals at chromosome and base scale", async () => {
     expect(tickStep(1000, 1000)).toBe(200);
     expect(tickStep(1, 1000)).toBe(1);
     expect(tickStep(250_000_000, 1000)).toBe(50_000_000);
-    expect(render(1000, { records: [] }, null)).toContain("100");
-    expect(render(1000, { records: [] }, null)).not.toContain("Zoom in");
+    const markup = await render(1000, { records: [] }, null);
+    expect(markup).toContain("100");
+    expect(markup).not.toContain("Zoom in");
   });
-  it("labels ticks with one-based positions over the centers of their bases", () => {
-    const markup = render(120, { records: [{ ...region, sequence: "ACGTNacgtn" }] });
+  it("labels ticks with one-based positions over the centers of their bases", async () => {
+    const markup = await render(120, { records: [{ ...region, sequence: "ACGTNacgtn" }] });
     const tickLabels = [...markup.matchAll(/<text x="([\d.]+)" y="9"[^>]*>([\d,]+)<\/text>/g)];
     // The 10-base view [100, 110) shows positions 101-110, so its only step-10 label is 110.
     expect(tickLabels.map(([, x, label]) => [label, x])).toEqual([["110", "114"]]);
@@ -94,16 +82,19 @@ describe("ruler module", () => {
     );
     expect(lastBase?.[1]).toBe("114");
   });
-  it("renders uppercase bases at equal resolution across viewport widths", () => {
+  it("renders uppercase bases at equal resolution across viewport widths", async () => {
     const data = { records: [{ ...region, sequence: "ACGTNacgtn" }] };
-    expect(render(120, data)).toContain('aria-label="chr1:101 A"');
-    expect(render(120, data)).toContain('aria-label="chr1:106 A"');
-    const masked = render(120, data, url, 10, true);
+    const plain = await render(120, data);
+    expect(plain).toContain('aria-label="chr1:101 A"');
+    expect(plain).toContain('aria-label="chr1:106 A"');
+    expect(plain).toContain('aria-label="chr1:110 N"');
+    const masked = await render(120, data, url, 10, true);
     expect(masked).toContain('aria-label="chr1:106 a"');
     expect(masked).toContain('aria-label="chr1:101 A"');
     expect(masked).toContain('fill="#228b22"');
-    expect(render(120, data)).toContain('aria-label="chr1:110 N"');
-    expect(render(120, { records: [], error: "CORS" })).toContain("Reference sequence unavailable");
+    expect(await render(120, { records: [], error: "CORS" })).toContain(
+      "Reference sequence unavailable",
+    );
   });
   it("avoids broad sequence reads, caches the reader and changes sources", async () => {
     const cached = resources();

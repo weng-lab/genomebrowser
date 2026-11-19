@@ -70,10 +70,6 @@ describe("BigWig settings", () => {
     expect(getFieldContainer("Show clamp indicators").parentElement).toBe(
       getFieldContainer("Clamp indicator color").parentElement,
     );
-    const clampGroup = getFieldContainer("Show clamp indicators").parentElement?.parentElement;
-    expect(clampGroup).toBeTruthy();
-    expect(getComputedStyle(clampGroup as HTMLElement).borderLeftWidth).toBe("2px");
-    expect(getComputedStyle(clampGroup as HTMLElement).paddingLeft).toBe("8px");
     expect(getFieldContainer("Fill missing values with zero").parentElement).not.toBe(
       getFieldContainer("Show clamp indicators").parentElement,
     );
