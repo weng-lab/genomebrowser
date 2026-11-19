@@ -8,10 +8,10 @@ import { usePathname } from "next/navigation";
 import { Fragment, type ReactNode } from "react";
 import { SIDE_BAR_WIDTH } from "./layout";
 import { primarySurfaceSx } from "../theme";
-import type { WorkspaceNavigationItem } from "../types";
+import type { WorkspaceNavigation, WorkspaceNavigationItem } from "../types";
 
 type SideBarProps = {
-  navigation: readonly WorkspaceNavigationItem[];
+  navigation: WorkspaceNavigation;
   brand?: ReactNode;
   footer?: ReactNode;
 };
@@ -35,14 +35,12 @@ export function SideBar({ navigation, brand, footer }: SideBarProps) {
       </Tooltip>
     );
   };
-  // Groups keep the order of their first entry. The brand, when given, is its own section.
-  const groups = Map.groupBy(
-    navigation.filter((item) => item.placement !== "bottom"),
-    (item) => item.group,
-  );
+  // The brand, when given, is its own section above the link groups.
   const sections = [
     ...(brand ? [{ key: "brand", content: brand }] : []),
-    ...[...groups.values()].map((items) => ({ key: items[0].href, content: items.map(pageLink) })),
+    ...navigation.sections
+      .filter((items) => items.length > 0)
+      .map((items) => ({ key: items[0].href, content: items.map(pageLink) })),
   ];
   return (
     <Box
@@ -68,7 +66,7 @@ export function SideBar({ navigation, brand, footer }: SideBarProps) {
         </Fragment>
       ))}
       <Box sx={{ flexGrow: 1 }} />
-      {navigation.filter((item) => item.placement === "bottom").map(pageLink)}
+      {navigation.bottom?.map(pageLink)}
       {footer}
     </Box>
   );
@@ -79,7 +77,13 @@ const linkSx = { borderRadius: 1.5 } as const;
 /** Spans the bar, inset from its edges, with room above and below. */
 const dividerSx = { alignSelf: "stretch", mx: 0.5, my: 0.5 } as const;
 
-/** The current page's link sits on a lighter square, since the primary color is the bar itself. */
+/**
+ * The current page's link sits on a lighter square, since the primary color is the bar itself.
+ * Hover and keyboard focus strengthen the square rather than fading it to the bar's hover tint.
+ */
 const currentLinkSx = {
   bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.16),
+  "&:hover, &.Mui-focusVisible": {
+    bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.24),
+  },
 } as const;

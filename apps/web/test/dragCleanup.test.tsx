@@ -32,7 +32,7 @@ function setup() {
   root = createRoot(container);
   act(() =>
     root?.render(
-      <Workspace navigation={[]}>
+      <Workspace navigation={{ sections: [] }}>
         <WorkspacePage title="Home" left={{ title: "Projects", children: <p>Projects</p> }}>
           <p>Home</p>
         </WorkspacePage>

@@ -18,7 +18,19 @@ const textPrimary = "#151822";
  */
 export const textBoxTrim = { textBox: "trim-both cap alphabetic" } as const;
 
-const onPrimaryHover = (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.12);
+/** The hover and keyboard-focus tint for a control on a navy surface. */
+const onPrimaryStateSx = {
+  bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.12),
+} as const;
+
+/**
+ * An icon button over a navy area it is not inside, such as the left panel's toggle in the
+ * floating header: a light icon with the navy surface's hover and focus tint.
+ */
+export const onPrimaryIconButtonSx = {
+  color: "primary.contrastText",
+  "&:hover, &.Mui-focusVisible": onPrimaryStateSx,
+} as const;
 
 /**
  * A navy surface, such as the side bar and the side panels' title rows. MUI text, icon
@@ -32,9 +44,9 @@ export const primarySurfaceSx = {
   "& .MuiDivider-root": {
     borderColor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.24),
   },
-  "& .MuiButtonBase-root:hover, & .MuiButtonBase-root.Mui-focusVisible": {
-    bgcolor: onPrimaryHover,
-  },
+  // Current links, such as the side bar's current page, keep their own stronger tint.
+  "& .MuiButtonBase-root:not([aria-current]):hover, & .MuiButtonBase-root:not([aria-current]).Mui-focusVisible":
+    onPrimaryStateSx,
 } as const;
 
 const separateToggleButton = ({ theme }: { theme: Theme }) => ({
