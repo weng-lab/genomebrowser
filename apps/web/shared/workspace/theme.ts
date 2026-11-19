@@ -37,6 +37,12 @@ export const primarySurfaceSx = {
   },
 } as const;
 
+const separateToggleButton = ({ theme }: { theme: Theme }) => ({
+  border: 0,
+  margin: 0,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
+});
+
 // Shared theme for the web application and workspace.
 export const theme = createTheme({
   palette: {
@@ -55,6 +61,27 @@ export const theme = createTheme({
     },
   },
   components: {
+    // Control groups, such as the browser toolbar sections, are paper cards.
+    GbLabeledGroup: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: Number(theme.shape.borderRadius) * 1.5,
+        }),
+      },
+    },
+    // Toggle groups, such as the browser's interaction modes, are separate borderless buttons.
+    // The selected one sits on a rounded tint.
+    MuiToggleButtonGroup: {
+      styleOverrides: {
+        root: { gap: 4 },
+        // MUI joins grouped buttons by squaring their inner corners and overlapping their
+        // borders on the first, middle, and last buttons, so each needs the separate look.
+        firstButton: separateToggleButton,
+        middleButton: separateToggleButton,
+        lastButton: separateToggleButton,
+      },
+    },
     // Workspace text goes through Typography, so trimming here covers titles, labels, and body text.
     MuiTypography: {
       styleOverrides: {

@@ -14,6 +14,8 @@ import {
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import DownloadIcon from "@mui/icons-material/Download";
+import SortIcon from "@mui/icons-material/Sort";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
@@ -103,7 +105,14 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
       <Box
         role="group"
         aria-label="Genome browser controls"
-        sx={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 1, mb: 2 }}
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          gap: 1,
+          mb: 2,
+        }}
       >
         <RegionControls
           browserStore={useBrowserStore}
@@ -115,7 +124,22 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         />
         <NavigationControls browserStore={useBrowserStore} />
         <InteractionControls browserStore={useBrowserStore} />
-        <ManagementControls onSortTracks={openSort} onDownloadImage={() => setDownloadOpen(true)} />
+        <ManagementControls
+          managementActions={
+            <>
+              <Button size="small" startIcon={<SortIcon />} onClick={openSort}>
+                Sort tracks
+              </Button>
+              <Button
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={() => setDownloadOpen(true)}
+              >
+                Download
+              </Button>
+            </>
+          }
+        />
       </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} svgRef={svgRef} />
       <DownloadImageDialog

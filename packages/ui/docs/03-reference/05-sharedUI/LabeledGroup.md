@@ -32,4 +32,24 @@ The group styles its frame and label. Arrange its children with your own layout 
 
 The outline, label, and spacing use the host's MUI theme. The fieldset and legend provide semantic grouping; children retain their own keyboard and focus behavior.
 
+## Theming
+
+Every `LabeledGroup`, including the ones inside the built-in control sections, reads styles from the `GbLabeledGroup` entry in the host theme's `components`. `styleOverrides.root` styles the fieldset and `styleOverrides.legend` styles the title. Each accepts a style object or a function of `{ theme }`. Importing the package adds this entry to MUI's `Components` type.
+
+```tsx
+import { createTheme } from "@mui/material/styles";
+
+const theme = createTheme({
+  components: {
+    GbLabeledGroup: {
+      styleOverrides: {
+        root: ({ theme }) => ({ backgroundColor: theme.palette.background.paper }),
+      },
+    },
+  },
+});
+```
+
+Theme styles apply after the default frame styles and before `sx`, so one group's `sx` still wins.
+
 Return to [Shared UI](README.md).
