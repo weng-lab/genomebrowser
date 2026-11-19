@@ -1,16 +1,21 @@
 import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { alpha, type Theme } from "@mui/material/styles";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { SIDE_BAR_WIDTH } from "./layout";
 import { primarySurfaceSx } from "../theme";
 import type { WorkspaceNavigationItem } from "../types";
 
-type SideBarProps = { navigation: readonly WorkspaceNavigationItem[]; footer?: ReactNode };
-export function SideBar({ navigation, footer }: SideBarProps) {
+type SideBarProps = {
+  navigation: readonly WorkspaceNavigationItem[];
+  brand?: ReactNode;
+  footer?: ReactNode;
+};
+export function SideBar({ navigation, brand, footer }: SideBarProps) {
   const pathname = usePathname();
   const pageLink = (item: WorkspaceNavigationItem) => {
     const exact = item.href === pathname;
@@ -30,6 +35,15 @@ export function SideBar({ navigation, footer }: SideBarProps) {
       </Tooltip>
     );
   };
+  // Groups keep the order of their first entry. The brand, when given, is its own section.
+  const groups = Map.groupBy(
+    navigation.filter((item) => item.placement !== "bottom"),
+    (item) => item.group,
+  );
+  const sections = [
+    ...(brand ? [{ key: "brand", content: brand }] : []),
+    ...[...groups.values()].map((items) => ({ key: items[0].href, content: items.map(pageLink) })),
+  ];
   return (
     <Box
       component="nav"
@@ -47,7 +61,12 @@ export function SideBar({ navigation, footer }: SideBarProps) {
         borderColor: (theme) => alpha(theme.palette.primary.contrastText, 0.12),
       }}
     >
-      {navigation.filter((item) => item.placement !== "bottom").map(pageLink)}
+      {sections.map(({ key, content }, index) => (
+        <Fragment key={key}>
+          {index > 0 && <Divider sx={dividerSx} />}
+          {content}
+        </Fragment>
+      ))}
       <Box sx={{ flexGrow: 1 }} />
       {navigation.filter((item) => item.placement === "bottom").map(pageLink)}
       {footer}
@@ -56,6 +75,9 @@ export function SideBar({ navigation, footer }: SideBarProps) {
 }
 
 const linkSx = { borderRadius: 1.5 } as const;
+
+/** Spans the bar, inset from its edges, with room above and below. */
+const dividerSx = { alignSelf: "stretch", mx: 0.5, my: 0.5 } as const;
 
 /** The current page's link sits on a lighter square, since the primary color is the bar itself. */
 const currentLinkSx = {

@@ -9,7 +9,6 @@ import { PageTitleRow } from "./frame/PageTitleRow";
 import { PanelButton } from "./panels/PanelButton";
 import { PanelToggleButton } from "./panels/PanelToggleButton";
 import { SidePanel } from "./panels/SidePanel";
-import { MovableSlot, useMovable } from "./movable";
 import { useTransitionEnabled } from "./useTransitionEnabled";
 import { usePanelState } from "./panels/panelState";
 import type { WorkspacePanel } from "./types";
@@ -17,11 +16,7 @@ import type { WorkspacePanel } from "./types";
 export type WorkspacePageProps = {
   title: string;
   subtitle?: ReactNode;
-  /**
-   * Replaces the title row's breadcrumbs. It renders the page's own `h1`. With a left
-   * panel, it sits in that panel's title row while the panel is open, so it stays at the
-   * top left. It moves without remounting, so it keeps its state.
-   */
+  /** Replaces the center title row's breadcrumbs, at its left end. It renders the page's own `h1`. */
   heading?: ReactNode;
   /** Shown at the title row's right end, before the right panel's button. */
   actions?: ReactNode;
@@ -44,10 +39,6 @@ export function WorkspacePage({
   const toggleLeft = () => toggle("left");
   const toggleRight = () => toggle("right");
   const transitionEnabled = useTransitionEnabled(usePathname());
-  // Only a page with a left panel moves its heading; others render it in place.
-  const movesHeading = left !== undefined && heading !== undefined;
-  const [movableHeading, headingPortal] = useMovable(movesHeading ? heading : null);
-  const headingInLeftPanel = movesHeading && leftOpen;
   useHotkey({ key: "B", ctrl: true }, toggleLeft, {
     enabled: left !== undefined,
     ignoreInputs: true,
@@ -79,29 +70,12 @@ export function WorkspacePage({
           )
         }
       />
-      {headingPortal}
-      <SidePanel
-        side="left"
-        panel={left}
-        open={leftOpen}
-        animate={transitionEnabled}
-        heading={
-          movesHeading ? (
-            <MovableSlot movable={movableHeading} active={headingInLeftPanel} />
-          ) : undefined
-        }
-      />
+      <SidePanel side="left" panel={left} open={leftOpen} animate={transitionEnabled} />
       <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
         <PageTitleRow
           label={title}
           title={subtitle}
-          heading={
-            movesHeading ? (
-              <MovableSlot movable={movableHeading} active={!headingInLeftPanel} />
-            ) : (
-              heading
-            )
-          }
+          heading={heading}
           actions={
             (actions || right) && (
               <>

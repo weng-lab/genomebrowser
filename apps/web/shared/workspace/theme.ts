@@ -29,6 +29,9 @@ export const primarySurfaceSx = {
   bgcolor: "primary.main",
   color: "primary.contrastText",
   "& .MuiTypography-root, & .MuiIconButton-root, & .MuiInputBase-root": { color: "inherit" },
+  "& .MuiDivider-root": {
+    borderColor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.24),
+  },
   "& .MuiButtonBase-root:hover, & .MuiButtonBase-root.Mui-focusVisible": {
     bgcolor: onPrimaryHover,
   },

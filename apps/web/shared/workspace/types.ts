@@ -6,6 +6,8 @@ export type WorkspaceNavigationItem = {
   label: string;
   icon: ReactNode;
   placement?: "top" | "bottom";
+  /** Entries that share a group sit together; the side bar separates groups with a line. */
+  group?: string;
 };
 export type WorkspacePanel = {
   title: string;

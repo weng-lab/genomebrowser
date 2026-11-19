@@ -9,7 +9,8 @@ import { RegionsPanel } from "../regions/components/RegionsPanel";
 /**
  * The browser's frame around `children`, the browser route's page. The browser layout
  * renders it, so the session switcher and its menu stay open while the URL moves
- * between sessions, such as when the open session is deleted.
+ * between sessions, such as when the open session is deleted. The left panel is named for
+ * the side bar's Browser page and holds its tools, starting with saved regions.
  */
 export function BrowserPage({ children }: { children: ReactNode }) {
   return (
@@ -17,7 +18,7 @@ export function BrowserPage({ children }: { children: ReactNode }) {
       title="Browser"
       heading={<SessionSwitcher />}
       actions={<SaveStatus />}
-      left={{ title: "Regions", children: <RegionsPanel /> }}
+      left={{ title: "Genome Browser", children: <RegionsPanel /> }}
       right={{ title: "Agent", icon: <AutoAwesomeOutlined />, children: <AgentPanel /> }}
     >
       {children}
