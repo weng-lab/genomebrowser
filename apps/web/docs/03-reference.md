@@ -8,7 +8,7 @@ Mounts `SessionProvider` and `RemoteControlProvider` for the signed-in account; 
 
 ## `Workspace`
 
-Renders the generic full-window frame, theme, sidebar navigation, and panel controls. It receives navigation entries, children, and optional `brand` and `footer` slots. The brand sits at the top of the side bar, above the navigation, with a line below it; composition supplies a logo placeholder there. Composition supplies account controls through the footer slot, keeping domain imports out of the workspace. Navigation entries contain `href`, `label`, `icon`, optional `placement` of `top` or `bottom`, and an optional `group`. Top entries with the same group sit together in the order of the group's first entry, and a line separates each group. They contain no domain components or panel metadata.
+Renders the generic full-window frame, theme, sidebar navigation, and panel controls. It receives navigation entries, children, and optional `brand` and `footer` slots. The brand sits at the top of the side bar, above the navigation, with a line below it; composition supplies a logo placeholder there. Composition supplies account controls through the footer slot, keeping domain imports out of the workspace. Navigation is `{ sections, bottom }`: `sections` lists groups of entries from the top, in order, with a line between groups, and the optional `bottom` lists entries at the bottom of the side bar. Each entry contains `href`, `label`, and `icon`, and no domain components or panel metadata.
 
 ## `WorkspacePage`
 

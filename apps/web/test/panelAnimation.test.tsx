@@ -58,7 +58,7 @@ function render(pageId = "home") {
   setTestPathname(`/${pageId}`);
   act(() =>
     root?.render(
-      <Workspace navigation={[]}>
+      <Workspace navigation={{ sections: [] }}>
         <WorkspacePage
           key={pageId}
           title={pageId}

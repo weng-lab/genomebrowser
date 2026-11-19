@@ -7,10 +7,10 @@ import type { ReactNode } from "react";
 import { SideBar } from "./frame/SideBar";
 import { PanelStateProvider } from "./panels/panelState";
 import { theme } from "./theme";
-import type { WorkspaceNavigationItem } from "./types";
+import type { WorkspaceNavigation } from "./types";
 
 export type WorkspaceProps = {
-  navigation: readonly WorkspaceNavigationItem[];
+  navigation: WorkspaceNavigation;
   children: ReactNode;
   /** Shown at the top of the side bar, above the navigation, such as the app's logo. */
   brand?: ReactNode;

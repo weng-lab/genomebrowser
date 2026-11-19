@@ -119,9 +119,10 @@ const nameRequired = "Enter a name, or press Escape to keep the current one.";
  * The name and its rename field share one fixed-size outlined box, so neither editing nor
  * switching sessions changes its size. Long names end in an ellipsis.
  */
+const nameBoxHeight = 34;
 const nameBoxSx = {
   boxSizing: "border-box",
-  height: 34,
+  height: nameBoxHeight,
   width: 200,
   maxWidth: "100%",
   px: 1.5,
@@ -131,25 +132,26 @@ const nameBoxSx = {
   bgcolor: "background.default",
 } as const;
 
-/** Holds the box's place while no session is open, so opening one does not move the controls. */
-const statusBoxSx = {
+/** One line of text filling the box, centered between its borders, cut off with an ellipsis. */
+const nameLineSx = {
   ...nameBoxSx,
   display: "block",
-  lineHeight: "32px",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-} as const;
-
-/** Reads as the session's name in a box, which darkens its border on hover to show it can be edited. */
-const nameButtonSx = {
-  ...nameBoxSx,
-  display: "block",
-  font: "inherit",
-  lineHeight: "32px",
-  textAlign: "left",
+  // The box's height less its 1px top and bottom borders.
+  lineHeight: `${nameBoxHeight - 2}px`,
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
+} as const;
+
+/** Holds the box's place while no session is open, so opening one does not move the controls. */
+const statusBoxSx = nameLineSx;
+
+/** Reads as the session's name in a box, which darkens its border on hover to show it can be edited. */
+const nameButtonSx = {
+  // The font shorthand resets line height, so the line styles come after it.
+  font: "inherit",
+  ...nameLineSx,
+  textAlign: "left",
   "&:hover": { borderColor: "text.secondary" },
   "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.main", outlineOffset: -1 },
 } as const;

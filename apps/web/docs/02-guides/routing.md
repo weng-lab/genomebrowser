@@ -6,7 +6,7 @@ Next.js owns URLs, route rendering, redirects, and 404s. The root route redirect
 
 The shared `app/(workspace)/layout.tsx` wraps children in `AppProviders`, then `Workspace` with the app's navigation list. Keep this composition above route pages so the open session, the command connection, and panel state survive client navigation.
 
-Navigation entries in `composition/navigation.tsx` contain `href`, `label`, `icon`, and optional `placement` and `group`. The generic sidebar uses Next.js links and the pathname to select the active entry. It does not choose page components or side panels. Each route uses `WorkspacePage` to supply its title, subtitle, panel elements, and center children.
+Navigation in `composition/navigation.tsx` lists groups of entries in `sections` and the bottom entries in `bottom`; each entry contains `href`, `label`, and `icon`. The generic sidebar uses Next.js links and the pathname to select the active entry. It does not choose page components or side panels. Each route uses `WorkspacePage` to supply its title, subtitle, panel elements, and center children.
 
 Pages are server components by default and can fetch data on the server. The `/browser` index is a client component so it can redirect to the session currently open in the workspace. Interactive domain components declare `"use client"`. Stores exist only in the browser, after a session loads, so the server renders the browser page without them. The browser view waits for the session to load and restore. With Clerk, the workspace shows `WorkspaceSkeleton` until Clerk reports the signed-in user.
 

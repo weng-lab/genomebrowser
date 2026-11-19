@@ -21,7 +21,7 @@ function setup() {
   root = createRoot(container);
   act(() =>
     root!.render(
-      <Workspace navigation={[{ href: "/home", label: "Home", icon: "H" }]}>
+      <Workspace navigation={{ sections: [[{ href: "/home", label: "Home", icon: "H" }]] }}>
         <WorkspacePage
           title="Home"
           subtitle="Overview"
@@ -77,10 +77,10 @@ it("renders page-supplied content without side panels and a sidebar footer", () 
   act(() =>
     root!.render(
       <Workspace
-        navigation={[
-          { href: "/home", label: "Home", icon: "H" },
-          { href: "/settings", label: "Settings", icon: "S", placement: "bottom" },
-        ]}
+        navigation={{
+          sections: [[{ href: "/home", label: "Home", icon: "H" }]],
+          bottom: [{ href: "/settings", label: "Settings", icon: "S" }],
+        }}
         footer={<button>Account</button>}
       >
         <WorkspacePage title="Settings">
@@ -103,7 +103,7 @@ it("selects nested navigation routes only at a path boundary", () => {
     setTestPathname(pathname);
     act(() =>
       root!.render(
-        <Workspace navigation={[{ href: "/browser", label: "Browser", icon: "B" }]}>
+        <Workspace navigation={{ sections: [[{ href: "/browser", label: "Browser", icon: "B" }]] }}>
           <WorkspacePage title="Browser">Content</WorkspacePage>
         </Workspace>,
       ),
