@@ -59,7 +59,15 @@ export function SidePanel({ side, panel, open, animate, onClose }: SidePanelProp
               pr: onClose ? 0.5 : 1.5,
             }}
           >
-            <Typography id={titleId} variant="subtitle2" component="h2" noWrap>
+            {panel.icon && (
+              <Box
+                aria-hidden
+                sx={{ display: "flex", flexShrink: 0, mr: 1, "& svg": { fontSize: 20 } }}
+              >
+                {panel.icon}
+              </Box>
+            )}
+            <Typography id={titleId} variant="h6" component="h2" noWrap>
               {panel.title}
             </Typography>
             {onClose && (
