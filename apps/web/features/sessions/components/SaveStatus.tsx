@@ -23,7 +23,7 @@ const looks = {
   { label: string; color?: "success" | "warning" | "error"; busy: boolean }
 >;
 
-/** A pill showing whether the open session's edits are saved. Nothing while no session is open. */
+/** A tag showing whether the open session's edits are saved. Nothing while no session is open. */
 export function SaveStatus() {
   const status = useSession((session) => session.saveStatus);
   if (!status) return null;
@@ -36,13 +36,19 @@ export function SaveStatus() {
         display: "flex",
         alignItems: "center",
         gap: 0.75,
+        boxSizing: "border-box",
         height: 28,
         px: 1.25,
-        borderRadius: 999,
+        border: 1,
+        borderRadius: 1.5,
         flexShrink: 0,
-        // Gray while saving; otherwise a light tint of the status color, with darker text.
+        // Gray while saving; otherwise a light tint of the status color, with darker text and
+        // a stronger tint for the border.
         color: color ? `${color}.dark` : "text.secondary",
-        bgcolor: color ? (theme: Theme) => alpha(theme.palette[color].main, 0.12) : "action.hover",
+        bgcolor: (theme: Theme) =>
+          alpha(color ? theme.palette[color].main : theme.palette.text.primary, 0.1),
+        borderColor: (theme: Theme) =>
+          alpha(color ? theme.palette[color].main : theme.palette.text.primary, 0.24),
         // Just the dot or spinner, so the session name keeps its room.
         [narrowTitleRow]: { px: 1 },
       }}
@@ -52,11 +58,7 @@ export function SaveStatus() {
       ) : (
         <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: `${color}.main` }} />
       )}
-      <Typography
-        variant="caption"
-        noWrap
-        sx={{ fontWeight: "fontWeightMedium", [narrowTitleRow]: visuallyHidden }}
-      >
+      <Typography variant="body2" noWrap sx={{ [narrowTitleRow]: visuallyHidden }}>
         {label}
       </Typography>
     </Box>

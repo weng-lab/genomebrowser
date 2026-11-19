@@ -1,7 +1,6 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
-import { alpha, type Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { narrowTitleRow, visuallyHidden } from "../frame/layout";
 
@@ -22,7 +21,6 @@ export function PanelButton({ title, icon, open, onToggle }: PanelButtonProps) {
     <Tooltip title={`${open ? "Hide" : "Show"} ${title} panel (Ctrl+Alt+B)`} placement="bottom">
       <Button
         variant="outlined"
-        color="inherit"
         size="small"
         startIcon={icon}
         aria-expanded={open}
@@ -45,12 +43,12 @@ export function PanelButton({ title, icon, open, onToggle }: PanelButtonProps) {
 
 const buttonSx = {
   flexShrink: 0,
-  px: 1.25,
-  borderRadius: 2,
-  borderColor: "divider",
+  height: 34,
+  px: 1.75,
+  borderRadius: 1.5,
   textTransform: "none",
-  fontWeight: "fontWeightMedium",
-  "& .MuiButton-startIcon": { mr: 0.75 },
+  typography: "body1",
+  "& .MuiButton-startIcon": { mr: 1 },
 } as const;
 
 /** In a narrow title row, only the icon shows; the title stays the button's name. */
@@ -58,9 +56,10 @@ const iconOnlyWhenNarrowSx = {
   [narrowTitleRow]: { minWidth: 0, px: 0.75, "& .MuiButton-startIcon": { mx: 0 } },
 } as const;
 
-/** A tint of the primary color while the panel is open. */
+/** Filled with the primary color while the panel is open, like the panel's title row. */
 const openSx = {
-  color: "primary.main",
+  color: "primary.contrastText",
   borderColor: "primary.main",
-  bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.08),
+  bgcolor: "primary.main",
+  "&:hover": { bgcolor: "primary.dark", borderColor: "primary.dark" },
 } as const;

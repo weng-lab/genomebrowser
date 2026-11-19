@@ -5,7 +5,11 @@ export type WorkspaceNavigationItem = {
   href: string;
   label: string;
   icon: ReactNode;
-  placement?: "top" | "bottom";
+};
+/** The side bar's links: groups from the top, separated by lines, then links at the bottom. */
+export type WorkspaceNavigation = {
+  sections: readonly (readonly WorkspaceNavigationItem[])[];
+  bottom?: readonly WorkspaceNavigationItem[];
 };
 export type WorkspacePanel = {
   title: string;

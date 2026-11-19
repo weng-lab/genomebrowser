@@ -97,6 +97,9 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
+      <Typography variant="subtitle2" component="h3" sx={{ px: 1.5, pt: 1.5 }}>
+        Regions
+      </Typography>
       <Box sx={{ p: 1 }}>
         <Button
           fullWidth

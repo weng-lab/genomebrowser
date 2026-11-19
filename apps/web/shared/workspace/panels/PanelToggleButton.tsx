@@ -1,6 +1,7 @@
 import IconButton from "@mui/material/IconButton";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import Tooltip from "@mui/material/Tooltip";
+import { onPrimaryIconButtonSx } from "../theme";
 
 type Side = "left" | "right";
 
@@ -29,6 +30,8 @@ export function PanelToggleButton({
         aria-controls={`${side}-panel`}
         aria-keyshortcuts={side === "left" ? "Control+b" : "Control+Alt+b"}
         onClick={onToggle}
+        // While the panel is open, the button sits over the panel's navy title row.
+        sx={open ? onPrimaryIconButtonSx : undefined}
       >
         <MenuOpenIcon sx={{ transform: pointsLeft ? "none" : "scaleX(-1)" }} />
       </IconButton>

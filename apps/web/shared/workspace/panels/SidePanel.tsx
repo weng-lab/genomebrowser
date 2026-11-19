@@ -2,8 +2,9 @@ import Close from "@mui/icons-material/Close";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import { useId, type ReactNode } from "react";
+import { useId } from "react";
 import { titleRowSx } from "../frame/layout";
+import { primarySurfaceSx } from "../theme";
 import { usePanelState } from "./panelState";
 import { Resizable } from "./Resizable";
 import type { Side, WorkspacePanel } from "../types";
@@ -19,14 +20,12 @@ type SidePanelProps = {
   panel: WorkspacePanel | undefined;
   open: boolean;
   animate: boolean;
-  /** Replaces the panel's title in its title row, such as with the page's heading. */
-  heading?: ReactNode;
   /** Adds a close button to the title row. */
   onClose?: () => void;
 };
 
 /** A workspace panel with persistent sizing, a title, and page-supplied content. */
-export function SidePanel({ side, panel, open, animate, heading, onClose }: SidePanelProps) {
+export function SidePanel({ side, panel, open, animate, onClose }: SidePanelProps) {
   const titleId = useId();
   const width = usePanelState((state) => (side === "left" ? state.leftWidth : state.rightWidth));
   const setWidth = usePanelState((state) => state.setWidth);
@@ -44,16 +43,25 @@ export function SidePanel({ side, panel, open, animate, heading, onClose }: Side
       {panel && (
         <Box
           component="aside"
-          aria-labelledby={heading === undefined ? titleId : undefined}
-          aria-label={heading === undefined ? undefined : panel.title}
-          sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}
+          aria-labelledby={titleId}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+            minHeight: 0,
+            bgcolor: "background.paper",
+          }}
         >
-          <Box sx={{ ...titleRowSx({ clearLeft: side === "left" }), pr: onClose ? 0.5 : 1.5 }}>
-            {heading ?? (
-              <Typography id={titleId} variant="subtitle2" component="h2" noWrap>
-                {panel.title}
-              </Typography>
-            )}
+          <Box
+            sx={{
+              ...titleRowSx({ clearLeft: side === "left" }),
+              ...primarySurfaceSx,
+              pr: onClose ? 0.5 : 1.5,
+            }}
+          >
+            <Typography id={titleId} variant="subtitle2" component="h2" noWrap>
+              {panel.title}
+            </Typography>
             {onClose && (
               <IconButton
                 size="small"

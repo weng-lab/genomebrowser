@@ -1,5 +1,6 @@
 "use client";
 
+import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import InputBase from "@mui/material/InputBase";
 import Tooltip from "@mui/material/Tooltip";
@@ -23,8 +24,10 @@ export function SessionTitle() {
 
   if (id === undefined || name === undefined)
     return (
-      <Typography variant="body2" component="h1" color="text.secondary" noWrap sx={{ px: 0.75 }}>
-        {opening ? "Opening session…" : "No session open"}
+      <Typography variant="body1" component="h1" color="text.secondary" noWrap sx={{ minWidth: 0 }}>
+        <Box component="span" sx={statusBoxSx}>
+          {opening ? "Opening session…" : "No session open"}
+        </Box>
       </Typography>
     );
   // Keyed by session, so opening another session ends an edit.
@@ -36,12 +39,12 @@ function SessionName({ name }: { name: string }) {
   const [editing, setEditing] = useState(false);
   if (editing)
     return (
-      <Typography variant="body2" component="h1" sx={{ minWidth: 0 }}>
+      <Typography variant="body1" component="h1" sx={{ minWidth: 0 }}>
         <RenameField initialName={name} onDone={() => setEditing(false)} />
       </Typography>
     );
   return (
-    <Typography variant="body2" component="h1" noWrap sx={{ minWidth: 0 }}>
+    <Typography variant="body1" component="h1" noWrap sx={{ minWidth: 0 }}>
       <ButtonBase title="Rename session" onClick={() => setEditing(true)} sx={nameButtonSx}>
         {name}
       </ButtonBase>
@@ -112,28 +115,52 @@ function RenameField({ initialName, onDone }: { initialName: string; onDone: () 
 
 const nameRequired = "Enter a name, or press Escape to keep the current one.";
 
-/** Reads as plain title text, highlighted on hover and focus to show it can be edited. */
-const nameButtonSx = {
-  display: "block",
+/**
+ * The name and its rename field share one fixed-size outlined box, so neither editing nor
+ * switching sessions changes its size. Long names end in an ellipsis.
+ */
+const nameBoxHeight = 34;
+const nameBoxSx = {
+  boxSizing: "border-box",
+  height: nameBoxHeight,
+  width: 200,
   maxWidth: "100%",
-  px: 0.75,
-  py: 0.5,
+  px: 1.5,
+  border: 1,
+  borderColor: "divider",
   borderRadius: 1,
-  font: "inherit",
+  bgcolor: "background.default",
+} as const;
+
+/** One line of text filling the box, centered between its borders, cut off with an ellipsis. */
+const nameLineSx = {
+  ...nameBoxSx,
+  display: "block",
+  // The box's height less its 1px top and bottom borders.
+  lineHeight: `${nameBoxHeight - 2}px`,
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
-  "&:hover, &.Mui-focusVisible": { bgcolor: "action.hover" },
+} as const;
+
+/** Holds the box's place while no session is open, so opening one does not move the controls. */
+const statusBoxSx = nameLineSx;
+
+/** Reads as the session's name in a box, which darkens its border on hover to show it can be edited. */
+const nameButtonSx = {
+  // The font shorthand resets line height, so the line styles come after it.
+  font: "inherit",
+  ...nameLineSx,
+  textAlign: "left",
+  "&:hover": { borderColor: "text.secondary" },
+  "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.main", outlineOffset: -1 },
 } as const;
 
 /** Sits where the name was, at the same size and padding. */
 const renameFieldSx = {
-  typography: "body2",
-  width: 240,
-  maxWidth: "100%",
-  px: 0.75,
-  borderRadius: 1,
-  bgcolor: "action.hover",
-  "& input": { py: 0.5, height: "auto" },
-  "&.Mui-error": { outline: 1, outlineColor: "error.main" },
+  ...nameBoxSx,
+  typography: "body1",
+  "&.Mui-focused": { borderColor: "primary.main" },
+  "& input": { p: 0, height: "auto" },
+  "&.Mui-error": { borderColor: "error.main" },
 } as const;
