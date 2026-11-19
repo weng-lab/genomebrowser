@@ -7,7 +7,7 @@ import {
   type RepeatMaskerData,
 } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { sources } from "../fixtures/repeatMasker";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 import { joinedRepeatColumns, serveBigRmsk, singleRepeatFile } from "../fixtures/bigRmsk";
 
 const region = { chromosome: "chr1", start: 8889, end: 35190 };
@@ -50,7 +50,6 @@ async function fetchView(context: TrackFetchContext<RepeatMaskerConfig>) {
   if (result.view !== "joined") throw new Error("Expected joined data");
   return result.data;
 }
-const mounted: MountedTrack[] = [];
 async function mount(
   data: JoinedData,
   display: "dense" | "pack" | "full",
@@ -58,21 +57,18 @@ async function mount(
   config: Partial<RepeatMaskerConfig> = {},
 ) {
   const track = createTrack();
-  const view = await mountTrack({
+  return mountTrack({
     module,
     track: { base: { ...track.base, display }, config: { ...track.config, ...config } },
     data: { view: "joined", url: track.config.sources.joined, data },
     region: testRegion,
   });
-  mounted.push(view);
-  return view;
 }
 async function markup(...args: Parameters<typeof mount>) {
   return (await mount(...args)).content;
 }
 
 afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
   vi.unstubAllGlobals();
 });
 

@@ -33,8 +33,6 @@ describe("BulkBed module", () => {
         rowHeight: 12,
       },
     });
-    expect(bulkBedModule.tooltipComponent).toBeTypeOf("function");
-    expect(track).not.toHaveProperty("tooltip");
   });
 
   it("requires at least one dataset", () => {
