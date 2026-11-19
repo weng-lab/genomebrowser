@@ -56,7 +56,7 @@ afterEach(() => {
 it("budgets content renders when resizing the left panel", async () => {
   setTestPathname("/browser");
   probe = await renderWithProbe(
-    <Workspace navigation={[]}>
+    <Workspace navigation={{ sections: [] }}>
       <WorkspacePage
         title="Browser"
         left={{ title: "Sessions", children: <LeftContent /> }}

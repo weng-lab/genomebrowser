@@ -92,9 +92,15 @@ const railSx = {
 
 const linkSx = { borderRadius: 1.5 } as const;
 
-/** The current link sits on a lighter square, since the primary color is the rail itself. */
+/**
+ * The current link sits on a lighter square, since the primary color is the rail itself.
+ * Hover and keyboard focus strengthen the square rather than fading it to the rail's hover tint.
+ */
 const currentLinkSx = {
   bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.16),
+  "&:hover, &.Mui-focusVisible": {
+    bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.24),
+  },
 } as const;
 
 /** Spans the rail, inset from its edges, with room above and below. */

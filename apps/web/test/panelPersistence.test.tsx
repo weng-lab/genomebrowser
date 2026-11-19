@@ -28,7 +28,7 @@ it("retains panel state across page remounts and resets them with the workspace"
     setTestPathname(`/${pageId}`);
     act(() =>
       root.render(
-        <Workspace key={key} navigation={[]}>
+        <Workspace key={key} navigation={{ sections: [] }}>
           <WorkspacePage
             key={pageId}
             title={pageId}
