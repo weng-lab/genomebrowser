@@ -419,6 +419,22 @@
       }
     },
     {
+      "files": ["packages/*/test/**", "apps/*/test/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^@weng-lab/[^/]+/(?:src|dist|test)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:core|create|reader|render-probe|tracks|ui)/(?:src|dist|test)(?:/|$)",
+                "message": "Tests reach other packages through their public exports, not their src, dist, or test directories."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": ["apps/web/features/**/server/**"],
       "rules": {
         "no-restricted-imports": [

@@ -1,79 +1,49 @@
 // @vitest-environment jsdom
-import { act, type ReactNode } from "react";
-import { createRoot } from "react-dom/client";
-import { expect, it, vi } from "vitest";
-import { createBrowserStore } from "@weng-lab/genomebrowser";
-import { TestBrowser } from "../testBrowser";
+import { expect, it } from "vitest";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
-import { RulerSettings } from "../../src/ruler/settings";
-(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
-  true;
-it("exposes config fields and preserves host ownership", () => {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
-  const useBrowserStore = createBrowserStore({
-    assembly: { id: "test", chromosomes: { chr1: 10000 } },
+import { mountTrack } from "../mountTrack";
+
+/** Mounts a ruler in a browser and opens its settings the way a user does. */
+async function openRulerSettings(source: "host" | "user") {
+  const view = await mountTrack({
+    module: rulerModule,
+    track: { base: { id: "ruler", title: "Reference" }, source, config: {} },
+    data: { records: [] },
     region: { chromosome: "chr1", start: 1000, end: 2000 },
-    trackWidth: 1000,
   });
-  const render = (children: ReactNode) =>
-    root.render(<TestBrowser browserStore={useBrowserStore}>{children}</TestBrowser>);
-  const updateTrack = vi.fn(() => ({ ok: true as const }));
-  try {
-    const track = rulerModule.create({
-      base: {
-        id: "ruler",
-        title: "Reference",
-      },
-      source: "host",
-      config: {},
-    });
-    act(() =>
-      render(
-        <RulerSettings
-          displayOptions={["full"]}
-          updateTracksOfType={() => ({ ok: true })}
-          track={track}
-          updateTrack={updateTrack}
-        />,
-      ),
+  const dialog = await view.openSettings();
+  const labels = Array.from(dialog.querySelectorAll("label"));
+  const input = (label: string) =>
+    dialog.querySelector<HTMLInputElement>(
+      `[id="${labels.find((item) => item.textContent?.startsWith(label))?.htmlFor}"]`,
+    )!;
+  const config = () => rulerModule.validate(view.trackStore.getState().getTrack("ruler")).config;
+  return { view, dialog, input, config };
+}
+
+it("exposes config fields and preserves host ownership", async () => {
+  const { view, dialog, input, config } = await openRulerSettings("host");
+  expect(input("2bit URL").disabled).toBe(true);
+  const color = input("Sequence highlight color");
+  expect(color.value.toLowerCase()).toBe("#64748b");
+  await view.settle(() => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(
+      color,
+      "#ff8800",
     );
-    const labels = Array.from(container.querySelectorAll("label"));
-    const input = (label: string) =>
-      container.querySelector<HTMLInputElement>(
-        `[id="${labels.find((item) => item.textContent?.startsWith(label))?.htmlFor}"]`,
-      )!;
-    expect(input("2bit URL").disabled).toBe(true);
-    const color = input("Sequence highlight color");
-    expect(color.value.toLowerCase()).toBe("#64748b");
-    act(() => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(
-        color,
-        "#ff8800",
-      );
-      color.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    act(() => color.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
-    expect(updateTrack).toHaveBeenLastCalledWith({ config: { sequenceHighlightColor: "#FF8800" } });
-    const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
-    expect(checkbox.checked).toBe(false);
-    act(() => checkbox.click());
-    expect(updateTrack).toHaveBeenLastCalledWith({ config: { distinguishMaskedBases: true } });
-    expect(container.textContent).not.toContain("Bases appear when each");
-    act(() =>
-      render(
-        <RulerSettings
-          displayOptions={["full"]}
-          updateTracksOfType={() => ({ ok: true })}
-          track={{ ...track, source: "user" }}
-          updateTrack={updateTrack}
-        />,
-      ),
-    );
-    expect(input("2bit URL").disabled).toBe(false);
-  } finally {
-    act(() => root.unmount());
-    container.remove();
-  }
+    color.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await view.settle(() =>
+    color.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
+  );
+  expect(config().sequenceHighlightColor).toBe("#FF8800");
+  const checkbox = dialog.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+  expect(checkbox.checked).toBe(false);
+  await view.settle(() => checkbox.click());
+  expect(config().distinguishMaskedBases).toBe(true);
+  expect(checkbox.checked).toBe(true);
+  expect(dialog.textContent).not.toContain("Bases appear when each");
+
+  const user = await openRulerSettings("user");
+  expect(user.input("2bit URL").disabled).toBe(false);
 });

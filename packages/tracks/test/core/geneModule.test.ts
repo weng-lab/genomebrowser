@@ -252,8 +252,6 @@ describe("Gene module", () => {
         rowHeight: 12,
       },
     });
-    expect(geneModule.settingsComponent).toBeTypeOf("function");
-    expect(geneModule.tooltipComponent).toBeTypeOf("function");
   });
 
   it("normalizes configured tag colors and keeps the first duplicate", () => {

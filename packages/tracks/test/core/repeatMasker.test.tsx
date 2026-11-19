@@ -11,7 +11,7 @@ import {
   type RepeatMaskerConfig,
   type RepeatMaskerData,
 } from "@weng-lab/genomebrowser-tracks/repeatmasker";
-import { mountTrack, type MountedTrack } from "../mountTrack";
+import { mountTrack } from "../mountTrack";
 import { standardRepeatFile } from "../fixtures/repeatMaskerStandard";
 import { exampleBigRmsk } from "../fixtures/bigRmsk";
 import { sources, serveRepeatMasker } from "../fixtures/repeatMasker";
@@ -50,7 +50,6 @@ function context(
     },
   };
 }
-const mounted: MountedTrack[] = [];
 async function markup(
   data: RepeatMaskerData,
   display: "full" | "pack" | "dense",
@@ -65,11 +64,9 @@ async function markup(
     data,
     region,
   });
-  mounted.push(view);
   return view.content;
 }
 afterEach(async () => {
-  for (const view of mounted.splice(0)) await view.unmount();
   vi.unstubAllGlobals();
 });
 

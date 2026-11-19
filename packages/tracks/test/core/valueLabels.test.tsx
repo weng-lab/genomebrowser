@@ -1,64 +1,77 @@
-import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
-import { FullBigWig, DenseBigWig } from "../../src/bigwig/render";
-import { bigWigModule } from "../../src/bigwig";
-import { ValueLabels } from "../../src/shared/ValueLabels";
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  TrackLabel: ({ children, y }: { children: string; y: number }) => <text y={y}>{children}</text>,
-  useInteraction: () => null,
-  useTooltip: () => ({ hide: vi.fn(), show: vi.fn() }),
-}));
+// @vitest-environment jsdom
+import { describe, expect, it } from "vitest";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 
 const region = { chromosome: "chr1", start: 0, end: 300 };
-const props = {
-  id: "signal",
-  color: "#2266aa",
-  height: 100,
-  region,
-  visibleRegion: { ...region, start: 100, end: 200 },
-  width: 900,
-  config: bigWigModule.create({
-    base: {
-      id: "signal",
-      title: "Signal",
+const config = bigWigModule.create({
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
+  config: { url: "YOUR_URL_HERE", yRange: { min: -2 } },
+}).config;
+const data = [
+  { kind: "value" as const, ...region, start: 0, end: 100, value: 1000 },
+  { kind: "value" as const, ...region, start: 100, end: 200, value: 5 },
+];
+
+/** Fixed labels the track draws in its plot overlay, leaving out the track title. */
+function labels(view: MountedTrack) {
+  return Array.from(view.container.querySelectorAll("[data-track-id] text")).filter(
+    (text) => !text.closest("[data-export-title]") && !view.content.contains(text),
+  );
+}
+
+async function mountSignal(display: "full" | "dense") {
+  return mountTrack({
+    module: bigWigModule,
+    track: {
+      base: { id: "signal", title: "Signal", color: "#2266aa", height: 100, display },
+      config,
     },
-    config: { url: "YOUR_URL_HERE", yRange: { min: -2 } },
-  }).config,
-  data: [
-    { kind: "value" as const, ...region, start: 0, end: 100, value: 1000 },
-    { kind: "value" as const, ...region, start: 100, end: 200, value: 5 },
-  ],
-};
+    data,
+    region,
+    visibleRegion: { ...region, start: 100, end: 200 },
+    width: 900,
+  });
+}
+
+/** A BigWig plot from -1 to 1 puts its zero tick midway between the endpoints. */
+async function mountSymmetric(height: number) {
+  return mountTrack({
+    module: bigWigModule,
+    track: {
+      base: { id: "signal", title: "Signal", color: "#2266aa", height },
+      config: { ...config, yRange: { min: -1, max: 1 } },
+    },
+    data,
+    region,
+    width: 900,
+  });
+}
 
 describe("renderer value labels", () => {
-  it("labels the effective viewport range rather than overscanned data", () => {
-    const markup = renderToStaticMarkup(<FullBigWig {...props} />);
-    expect(markup).toMatch(/>5<\/text>/);
-    expect(markup).toMatch(/>-2<\/text>/);
-    expect(markup).toMatch(/>0<\/text>/);
-    expect(markup).not.toMatch(/>1000<\/text>/);
+  it("labels the effective viewport range rather than overscanned data", async () => {
+    const text = labels(await mountSignal("full")).map((label) => label.textContent);
+    expect(text).toContain("5");
+    expect(text).toContain("-2");
+    expect(text).toContain("0");
+    expect(text).not.toContain("1000");
   });
 
-  it("omits vertical labels for an intensity display", () => {
-    expect(renderToStaticMarkup(<DenseBigWig {...props} />)).not.toContain("<text");
+  it("omits vertical labels for an intensity display", async () => {
+    expect(labels(await mountSignal("dense"))).toHaveLength(0);
   });
 
-  it("keeps endpoint labels inside short tracks and suppresses colliding middle labels", () => {
-    const markup = renderToStaticMarkup(
-      <ValueLabels
-        height={35}
-        ticks={[
-          { value: 1, y: 0 },
-          { value: 0, y: 35 },
-          { value: 0.5, y: 17.5 },
-        ]}
-      />,
-    );
-    expect(markup.match(/<text/g)).toHaveLength(2);
-    expect(markup).toContain('y="35"');
-    expect(markup).not.toMatch(/>0.5<\/text>/);
-    expect(renderToStaticMarkup(<ValueLabels height={10} ticks={[{ value: 1, y: 0 }]} />)).toBe("");
+  it("keeps endpoint labels inside short tracks and suppresses colliding middle labels", async () => {
+    const shown = labels(await mountSymmetric(35));
+    expect(shown.map((label) => label.textContent)).toEqual(["1", "-1"]);
+    // Each label sits on a 14 px box; the bottom one must end inside the 35 px track.
+    const box = shown[1]?.closest("g")?.querySelector("rect");
+    const top = Number(box?.getAttribute("y"));
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(top + Number(box?.getAttribute("height"))).toBeLessThanOrEqual(35);
+    expect(labels(await mountSymmetric(10))).toHaveLength(0);
   });
 });

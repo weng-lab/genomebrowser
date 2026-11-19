@@ -75,6 +75,12 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
       ["packages/tracks/src/probe.ts", "../../ui/src/index", false],
       ["packages/tracks/src/probe.ts", "@weng-lab/genomebrowser", true],
       ["packages/ui/src/probe.ts", "@weng-lab/genomebrowser-tracks", true],
+      ["packages/tracks/test/probe.ts", "../../core/src/browser/state/browserContextState", false],
+      ["packages/tracks/test/core/probe.ts", "../../../core/test/browser/idleDataSource", false],
+      ["packages/ui/test/probe.ts", "@weng-lab/genomebrowser/src/lib", false],
+      ["apps/web/test/probe.ts", "../../../packages/core/src/lib", false],
+      ["packages/tracks/test/core/probe.ts", "../../src/bam/tooltip", true],
+      ["packages/tracks/test/probe.ts", "@weng-lab/genomebrowser", true],
     ];
     for (const [path, imported, allowed] of cases) {
       write(path, `export { value } from ${JSON.stringify(imported)};\n`);
