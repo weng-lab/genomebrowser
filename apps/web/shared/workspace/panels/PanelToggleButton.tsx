@@ -1,7 +1,7 @@
 import IconButton from "@mui/material/IconButton";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import Tooltip from "@mui/material/Tooltip";
-import { onPrimaryIconButtonSx } from "../theme";
+import { onPrimaryIconButtonSx } from "../../ui/theme";
 
 type Side = "left" | "right";
 

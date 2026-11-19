@@ -3,23 +3,17 @@
 import { useState } from "react";
 import type { GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import { GenomeBrowser } from "@weng-lab/genomebrowser";
-import {
-  DownloadImageDialog,
-  InteractionControls,
-  ManagementControls,
-  NavigationControls,
-  RegionControls,
-  TrackSortDialog,
-} from "@weng-lab/genomebrowser-ui";
+import { ControlToolbar, DownloadImageDialog, TrackSortDialog } from "@weng-lab/genomebrowser-ui";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import DownloadIcon from "@mui/icons-material/Download";
+import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import SortIcon from "@mui/icons-material/Sort";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
-import { AddTracksButton, AddTracksDialog } from "./AddTracksDialog";
+import { AddTracksDialog } from "./AddTracksDialog";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
 export function BrowserView({ sessionId }: { sessionId?: string }) {
@@ -104,29 +98,14 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
 
   return (
     <>
-      <Box
-        role="group"
-        aria-label="Genome browser controls"
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          gap: 1,
-          mb: 2,
-        }}
-      >
-        <RegionControls
+      <Box sx={{ mb: 2 }}>
+        <ControlToolbar
           browserStore={useBrowserStore}
           search={{
             assembly: "GRCh38",
             graphqlUrl: "/api/screen-graphql",
             queries: ["Coordinate"],
           }}
-        />
-        <NavigationControls browserStore={useBrowserStore} />
-        <InteractionControls browserStore={useBrowserStore} />
-        <ManagementControls
           managementActions={
             <>
               <Button size="small" startIcon={<SortIcon />} onClick={openSort}>
@@ -140,7 +119,9 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
                 Download
               </Button>
               {/* A temporary placement (#368), until the collections design settles. */}
-              <AddTracksButton onClick={() => setAddOpen(true)} />
+              <Button size="small" startIcon={<PlaylistAddIcon />} onClick={() => setAddOpen(true)}>
+                Add tracks
+              </Button>
             </>
           }
         />

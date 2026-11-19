@@ -329,6 +329,45 @@
       }
     },
     {
+      "files": ["apps/web/shared/ui/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@weng-lab/*"],
+                "message": "Design-system components own presentation; product behavior belongs in features."
+              },
+              {
+                "regex": "(?:^|/)(?:workspace)(?:/|$)",
+                "message": "Design-system components sit below the workspace frame. Move what both need into shared/ui."
+              },
+              {
+                "regex": "(?:^|/)(?:features|app|composition|session|commands|server)(?:/|$)",
+                "message": "Keep design-system components independent of product features, routes, session state, and server code."
+              },
+              {
+                "group": [
+                  "drizzle-orm",
+                  "drizzle-orm/**",
+                  "drizzle-kit",
+                  "drizzle-kit/**",
+                  "pg",
+                  "pg/**"
+                ],
+                "message": "Database access belongs in feature server modules and server composition."
+              },
+              {
+                "group": ["redis", "redis/**"],
+                "message": "Redis connections belong in feature server modules and server composition."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": ["apps/web/{app,composition,features,shared}/**"],
       "rules": {
         "import/no-cycle": "error"

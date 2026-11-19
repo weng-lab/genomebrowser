@@ -6,7 +6,6 @@
 
 import Add from "@mui/icons-material/Add";
 import Close from "@mui/icons-material/Close";
-import PlaylistAdd from "@mui/icons-material/PlaylistAdd";
 import UploadFile from "@mui/icons-material/UploadFile";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -37,15 +36,6 @@ import {
   type TrackVisibility,
   type UrlTrackType,
 } from "../urlTrackTypes";
-
-/** Opens the Add tracks dialog. */
-export function AddTracksButton({ onClick }: { onClick: () => void }) {
-  return (
-    <Button size="small" startIcon={<PlaylistAdd />} onClick={onClick}>
-      Add tracks
-    </Button>
-  );
-}
 
 type AddTracksDialogProps = { trackStore: TrackStoreInstance; open: boolean; onClose: () => void };
 

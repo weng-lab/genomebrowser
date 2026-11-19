@@ -6,13 +6,13 @@ The workspace applies its own MUI theme and baseline styles inside `Workspace`. 
 
 ## The theme
 
-`Workspace` wraps its content in a `ThemeProvider` with its internal `theme` and renders MUI's `CssBaseline`. The baseline resets page margins and box sizing for the whole document, which suits the workspace's full-window layout. Shared product screens should use this internal theme.
+`Workspace` wraps its content in a `ThemeProvider` with the app's `theme` from `shared/ui/theme.ts` and renders MUI's `CssBaseline`. The baseline resets page margins and box sizing for the whole document, which suits the workspace's full-window layout. Shared product screens should use this internal theme. [Design system](designSystem.md) lists the shared components built on it.
 
 The palette sets a navy primary color, a cornflower blue secondary color, slate text and divider colors, a white page background, a faintly tinted paper surface, and a light blue `background.subtle` surface for areas set apart from both. Hover, selected, and focus backgrounds on neutral controls are tinted with the primary text color rather than black. Use palette keys such as `primary.main` and `text.secondary` instead of literal colors.
 
 Icons in `IconButton` and similar controls use a solid dark gray rather than MUI's default semi-transparent black.
 
-Labeled control groups, such as the browser toolbar's sections from `@weng-lab/genomebrowser-ui`, are paper cards with rounded corners, set through the theme's `GbLabeledGroup` entry. Buttons in a `ToggleButtonGroup`, such as the toolbar's interaction modes, have no borders or dividers; the selected one sits on a rounded tint.
+The browser toolbar, `ControlToolbar` from `@weng-lab/genomebrowser-ui`, centers sections that wrap onto a new line, set through the theme's `GbControlToolbar` entry. Labeled control groups, such as its sections, are paper cards with rounded corners, set through the theme's `GbLabeledGroup` entry. Buttons in a `ToggleButtonGroup`, such as the toolbar's interaction modes, have no borders or dividers; the selected one sits on a rounded tint.
 
 The frame uses the navy primary color for the side bar and the side panels' title rows, the paper color for the side panels' content, and the light blue `background.subtle` behind the center content. The current page's side bar icon sits on a lighter square. The right panel's button fills with the primary color while its panel is open. Spread the internal `primarySurfaceSx` onto other navy areas: MUI text, icon buttons, and inputs inside it switch to the light contrast text, while menus and dialogs opened from it stay light.
 
@@ -39,7 +39,7 @@ For text in other elements, spread the internal `textBoxTrim` style onto the ele
 ```tsx
 import Box from "@mui/material/Box";
 // Example from a module directly inside shared/workspace/.
-import { textBoxTrim } from "./theme";
+import { textBoxTrim } from "../ui/theme";
 
 <Box component="span" sx={{ ...textBoxTrim, display: "block" }}>
   3 selected

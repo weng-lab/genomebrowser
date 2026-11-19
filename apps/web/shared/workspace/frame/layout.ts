@@ -3,9 +3,6 @@ import type { Theme } from "@mui/material/styles";
 /** Height of the floating header and of every column's title row beneath it. */
 export const TITLE_ROW_HEIGHT = 48;
 
-/** The side bar's width: a 40px icon button, 4px padding on each side, and its border. */
-export const SIDE_BAR_WIDTH = 49;
-
 /** Padding that keeps a title row's content clear of the header's left panel toggle. */
 export const TOGGLE_CLEARANCE = 6.5;
 
@@ -14,19 +11,6 @@ export const TOGGLE_CLEARANCE = 6.5;
  * beside an open panel. Controls drop their labels so the page's heading stays usable.
  */
 export const narrowTitleRow = "@container title-row (max-width: 480px)";
-
-/** Hides text from view while screen readers still read it. */
-export const visuallyHidden = {
-  position: "absolute",
-  width: "1px",
-  height: "1px",
-  margin: "-1px",
-  padding: 0,
-  border: 0,
-  overflow: "hidden",
-  clip: "rect(0 0 0 0)",
-  whiteSpace: "nowrap",
-} as const;
 
 /**
  * The top row of each column. The rows line up so their bottom borders form one line.

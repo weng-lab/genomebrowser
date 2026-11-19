@@ -4,7 +4,7 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import { useId } from "react";
 import { titleRowSx } from "../frame/layout";
-import { primarySurfaceSx } from "../theme";
+import { primarySurfaceSx } from "../../ui/theme";
 import { usePanelState } from "./panelState";
 import { Resizable } from "./Resizable";
 import type { Side, WorkspacePanel } from "../types";

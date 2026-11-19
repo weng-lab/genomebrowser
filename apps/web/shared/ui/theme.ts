@@ -18,6 +18,19 @@ const textPrimary = "#151822";
  */
 export const textBoxTrim = { textBox: "trim-both cap alphabetic" } as const;
 
+/** Hides text from view while screen readers still read it. */
+export const visuallyHidden = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  margin: "-1px",
+  padding: 0,
+  border: 0,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+} as const;
+
 /** The hover and keyboard-focus tint for a control on a navy surface. */
 const onPrimaryStateSx = {
   bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.12),
@@ -70,6 +83,8 @@ export const theme = createTheme({
     },
   },
   components: {
+    // The browser toolbar centers sections that wrap onto a new line.
+    GbControlToolbar: { styleOverrides: { root: { justifyContent: "center" } } },
     // Control groups, such as the browser toolbar sections, are paper cards.
     GbLabeledGroup: {
       styleOverrides: {

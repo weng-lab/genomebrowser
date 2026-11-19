@@ -3,9 +3,10 @@
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import Skeleton from "@mui/material/Skeleton";
-import { ThemeProvider } from "@mui/material/styles";
-import { SIDE_BAR_WIDTH, titleRowSx } from "./frame/layout";
-import { theme } from "./theme";
+import { alpha, ThemeProvider, type Theme } from "@mui/material/styles";
+import { railSx } from "../ui/NavRail";
+import { titleRowSx } from "./frame/layout";
+import { theme } from "../ui/theme";
 
 /**
  * Placeholder in the workspace frame's shape, shown while the workspace loads. It renders
@@ -21,28 +22,16 @@ export function WorkspaceSkeleton() {
         aria-busy
         sx={{ display: "flex", height: "100dvh", overflow: "hidden" }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            flexShrink: 0,
-            alignItems: "center",
-            gap: 0.5,
-            width: SIDE_BAR_WIDTH,
-            p: 0.5,
-            borderRight: 1,
-            borderColor: "divider",
-          }}
-        >
+        <Box sx={railSx}>
           {/* Icon buttons are 40px with an 8px inset icon. */}
           {[0, 1].map((index) => (
             <Box key={index} sx={{ p: 1 }}>
-              <Skeleton variant="circular" width={24} height={24} />
+              <Skeleton variant="circular" width={24} height={24} sx={onRailSx} />
             </Box>
           ))}
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ p: 1 }}>
-            <Skeleton variant="circular" width={24} height={24} />
+            <Skeleton variant="circular" width={24} height={24} sx={onRailSx} />
           </Box>
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
@@ -58,3 +47,8 @@ export function WorkspaceSkeleton() {
     </ThemeProvider>
   );
 }
+
+/** A light tint, so the rail's placeholders show on navy. */
+const onRailSx = {
+  bgcolor: (theme: Theme) => alpha(theme.palette.primary.contrastText, 0.16),
+} as const;

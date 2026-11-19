@@ -128,11 +128,11 @@ Each tab opens an SSE stream at `/api/sessions/<id>/commands?tab=<tab ID>` and p
 ```text
 app/           # Next.js routes and layout composition
 features/      # Product UI, operations, schemas, and feature server code
-shared/        # Generic workspace shell, panels, and theme
+shared/        # Generic workspace shell and panels, and the theme and shared components in ui/
 composition/   # Concrete providers, navigation, and server dependencies
 ```
 
-Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns command definitions, the Effect remote-control connection, and the Redis relay; MCP owns the endpoint that publishes commands as tools. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features. See [feature placement](../../docs/feature-placement.md#web-app).
+Keep UI and domain logic with their feature. Sessions own live stores, metadata, persistence, and Effect autosave; account owns identity; agent owns command definitions, the Effect remote-control connection, and the Redis relay; MCP owns the endpoint that publishes commands as tools. Features can consume each other through focused interfaces, but must not import composition. Shared workspace code must not import features, and `shared/ui/`, the design system, must not import the workspace either; see [Design system](docs/02-guides/designSystem.md). See [feature placement](../../docs/feature-placement.md#web-app).
 
 The workspace layout mounts one session provider per account. Use `useSession` with focused selectors and call its complete operations; panels should not coordinate saving, cancellation, or navigation themselves. Keep providers above routes so navigation preserves their state. See [data flow](docs/02-guides/dataFlow.md) for lifetimes and [routing](docs/02-guides/routing.md) for URL behavior.
 

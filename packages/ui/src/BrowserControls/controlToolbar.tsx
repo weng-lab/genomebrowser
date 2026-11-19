@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { styled, type CSSInterpolation } from "@mui/material/styles";
 import { RegionControls, type RegionControlsProps } from "./regionControls";
 import { NavigationControls, type NavigationControlsProps } from "./navigationControls";
 import { InteractionControls } from "./interactionControls";
@@ -7,6 +7,25 @@ import { ManagementControls, type ManagementControlsProps } from "./managementCo
 export type ControlToolbarProps = RegionControlsProps &
   ManagementControlsProps &
   NavigationControlsProps;
+
+declare module "@mui/material/styles" {
+  interface Components<Theme = unknown> {
+    /** Theme styles for `ControlToolbar`. `root` is the row that holds the sections. */
+    GbControlToolbar?: {
+      styleOverrides?: {
+        root?: CSSInterpolation | ((props: { theme: Theme }) => CSSInterpolation);
+      };
+    };
+  }
+}
+
+// A named slot lets the host theme restyle the row, such as centering wrapped sections.
+const Root = styled("div", { name: "GbControlToolbar", slot: "Root" })(({ theme }) => ({
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "flex-start",
+  gap: theme.spacing(1),
+}));
 
 export function ControlToolbar({
   browserStore,
@@ -19,16 +38,7 @@ export function ControlToolbar({
   managementActions,
 }: ControlToolbarProps) {
   return (
-    <Box
-      aria-label="Genome browser controls"
-      role="group"
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "flex-start",
-        gap: 1,
-      }}
-    >
+    <Root aria-label="Genome browser controls" role="group">
       <RegionControls browserStore={browserStore} search={search} />
       <NavigationControls browserStore={browserStore} navigationActions={navigationActions} />
       <InteractionControls browserStore={browserStore} />
@@ -39,6 +49,6 @@ export function ControlToolbar({
         onDownloadImage={onDownloadImage}
         managementActions={managementActions}
       />
-    </Box>
+    </Root>
   );
 }

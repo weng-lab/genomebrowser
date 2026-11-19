@@ -142,6 +142,22 @@ Renders the Manage fieldset with application callbacks. It renders nothing when 
 
 Use `<ManagementControls onSelectTracks={() => setTracksOpen(true)} />` to expose only track management. The host owns dialog state and rendering.
 
+## Theming
+
+The toolbar's row reads styles from the `GbControlToolbar` entry in the host theme's `components`. `styleOverrides.root` styles the row that holds the sections, and accepts a style object or a function of `{ theme }`. Importing the package adds this entry to MUI's `Components` type. The row is a wrapping flex container, so a host can, for example, center sections that wrap onto a new line:
+
+```tsx
+import { createTheme } from "@mui/material/styles";
+
+const theme = createTheme({
+  components: {
+    GbControlToolbar: { styleOverrides: { root: { justifyContent: "center" } } },
+  },
+});
+```
+
+Theme styles apply after the default row styles. Each section is a [LabeledGroup](../05-sharedUI/LabeledGroup.md), which has its own `GbLabeledGroup` theme entry.
+
 ## Accessibility
 
 The controls form a named group with fieldset legends. Icon actions have accessible names. Navigate tooltips describe pan and zoom actions and their magnitude selectors; Interaction tooltips explain each drag mode. Manage actions are icon buttons named and tooltipped **Manage highlights**, **Manage tracks**, **Sort tracks**, and **Download image**. Magnitude tooltips hide while their dropdown is open so the options remain visible. The region display has a tooltip inviting you to search for a new region. Clicking the region opens an autofocus search input; Escape or Cancel closes it and restores focus to the region button. Rejected regions keep search open and display the store validation error without clearing the draft. Escape is intercepted only while search is open. A successful search also restores focus; clicking outside closes search without moving focus back. Pan and zoom each place their magnitude selector between two borderless action buttons. Vertical dividers separate pan, zoom, and any application navigation actions, and separate application management actions from the built-in ones. The region field grows up to 440px and contracts before groups wrap on narrow screens; long coordinates truncate in the display and remain available by opening search.
