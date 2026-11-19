@@ -1,76 +1,62 @@
-import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const layout = vi.hoisted(() => ({
-  useRowLayout: vi.fn(
-    (_trackId: string, rowCount = 0, config: { rowHeight: number } = { rowHeight: 1 }) => ({
-      rowHeight: config.rowHeight,
-      trackHeight: Math.max(1, rowCount) * config.rowHeight,
-    }),
-  ),
-}));
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useInteraction: () => null,
-  useTooltip: () => ({ hide: vi.fn(), show: vi.fn() }),
-}));
-
-vi.mock("../../src/shared/layout", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../src/shared/layout")>()),
-  useRowLayout: layout.useRowLayout,
-}));
-
-import { DenseBigBed, SquishBigBed } from "../../src/bigbed/render";
-import type { BigBedRow } from "../../src/bigbed/types";
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it } from "vitest";
+import { bigBedModule, type BigBedRow } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 
 const config = { url: "YOUR_URL_HERE", rowHeight: 7 };
 const data: BigBedRow[] = [
   { chromosome: "chr1", start: 0, end: 20, fields: [] },
   { chromosome: "chr1", start: 10, end: 30, fields: [] },
 ];
-const commonProps = {
-  id: "peaks",
-  color: "#4b9560",
-  height: 99,
-  config,
-  data,
-  visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
-  region: { chromosome: "chr1", start: 0, end: 100 },
-  width: 100,
-};
+const region = { chromosome: "chr1", start: 0, end: 100 };
 
-beforeEach(() => layout.useRowLayout.mockClear());
+const mounted: MountedTrack[] = [];
+afterEach(async () => {
+  for (const view of mounted.splice(0)) await view.unmount();
+});
 
-describe("BigBed row-layout wiring", () => {
-  it("uses one configured row for dense and packed row count for squish", () => {
-    const denseMarkup = renderToStaticMarkup(<DenseBigBed {...commonProps} />);
-    const squishMarkup = renderToStaticMarkup(<SquishBigBed {...commonProps} />);
+async function mount(display: "dense" | "squish", rows = data, visibleRegion = region) {
+  const view = await mountTrack({
+    module: bigBedModule,
+    track: { base: { id: "peaks", title: "Peaks", height: 99, display }, config },
+    data: rows,
+    region,
+    visibleRegion,
+    width: 100,
+  });
+  mounted.push(view);
+  return view;
+}
 
-    expect(layout.useRowLayout).toHaveBeenNthCalledWith(1, "peaks", 1, config);
-    expect(layout.useRowLayout).toHaveBeenNthCalledWith(2, "peaks", 2, config);
-    expect(denseMarkup).toContain('height="7"');
-    expect(denseMarkup).toContain('height="4.2"');
-    expect(squishMarkup).toContain('height="14"');
-    expect(squishMarkup).toContain('transform="translate(0,7)"');
+function trackHeight(view: MountedTrack) {
+  return view.trackStore.getState().getTrack("peaks")?.base.height;
+}
+
+describe("BigBed row layout", () => {
+  it("uses one configured row for dense and packed row count for squish", async () => {
+    const dense = await mount("dense");
+    const squish = await mount("squish");
+
+    expect(trackHeight(dense)).toBe(7);
+    expect(trackHeight(squish)).toBe(14);
+    expect(dense.content.innerHTML).toContain('height="7"');
+    expect(dense.content.innerHTML).toContain('height="4.2"');
+    expect(squish.content.innerHTML).toContain('height="14"');
+    expect(squish.content.innerHTML).toContain('transform="translate(0,7)"');
   });
 
-  it("counts only visible squish rows while rendering overscan rows", () => {
-    const overscannedData: BigBedRow[] = [
-      { chromosome: "chr1", start: 10, end: 30, fields: [] },
-      { chromosome: "chr1", start: 10, end: 30, fields: [] },
-      { chromosome: "chr1", start: 70, end: 80, fields: [] },
-    ];
-
-    const markup = renderToStaticMarkup(
-      <SquishBigBed
-        {...commonProps}
-        data={overscannedData}
-        visibleRegion={{ chromosome: "chr1", start: 60, end: 90 }}
-      />,
+  it("counts only visible squish rows while rendering overscan rows", async () => {
+    const view = await mount(
+      "squish",
+      [
+        { chromosome: "chr1", start: 10, end: 30, fields: [] },
+        { chromosome: "chr1", start: 10, end: 30, fields: [] },
+        { chromosome: "chr1", start: 70, end: 80, fields: [] },
+      ],
+      { chromosome: "chr1", start: 60, end: 90 },
     );
 
-    expect(layout.useRowLayout).toHaveBeenCalledWith("peaks", 1, config);
-    expect(markup).toContain('transform="translate(0,7)"');
+    expect(trackHeight(view)).toBe(7);
+    expect(view.content.innerHTML).toContain('transform="translate(0,7)"');
   });
 });

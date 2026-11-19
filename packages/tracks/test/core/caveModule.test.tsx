@@ -1,18 +1,18 @@
-import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
-import { caveModule } from "../../src/cave";
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useInteraction: () => null,
-  useTooltip: () => ({ hide: vi.fn(), show: vi.fn() }),
-}));
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it } from "vitest";
+import { caveModule } from "@weng-lab/genomebrowser-tracks/cave";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 
 const region = { chromosome: "chr1", start: 0, end: 1 };
 const data = {
   top: [{ kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 0.5 }],
   bottom: [{ kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 0.5 }],
 };
+
+const mounted: MountedTrack[] = [];
+afterEach(async () => {
+  for (const view of mounted.splice(0)) await view.unmount();
+});
 
 describe("CAVE module", () => {
   it("parses concrete top and bottom color defaults", () => {
@@ -27,10 +27,13 @@ describe("CAVE module", () => {
     expect(caveModule.settingsComponent).toBeTypeOf("function");
   });
 
-  it("renders concrete config colors directly", () => {
-    const defaultMarkup = renderFull(createTrack().config, "#123456");
-    const bottomOnlyMarkup = renderFull(createTrack({ bottomColor: "#654321" }).config, "#123456");
-    const configuredMarkup = renderFull(
+  it("renders concrete config colors directly", async () => {
+    const defaultMarkup = await renderFull(createTrack().config, "#123456");
+    const bottomOnlyMarkup = await renderFull(
+      createTrack({ bottomColor: "#654321" }).config,
+      "#123456",
+    );
+    const configuredMarkup = await renderFull(
       createTrack({ topColor: "#112233", bottomColor: "#445566" }).config,
       "#123456",
     );
@@ -43,8 +46,8 @@ describe("CAVE module", () => {
     expect(configuredMarkup).toContain('fill="#445566"');
   });
 
-  it("does not alter configured colors with opacity", () => {
-    const markup = renderFull(
+  it("does not alter configured colors with opacity", async () => {
+    const markup = await renderFull(
       createTrack({ topColor: "#112233", bottomColor: "#445566" }).config,
       "#123456",
     );
@@ -72,18 +75,14 @@ function createTrack(colors: { topColor?: string; bottomColor?: string } = {}) {
   });
 }
 
-function renderFull(config: ReturnType<typeof createTrack>["config"], color: string) {
-  const FullRenderer = caveModule.render.full;
-  return renderToStaticMarkup(
-    <FullRenderer
-      id="cave"
-      config={config}
-      color={color}
-      data={data}
-      visibleRegion={region}
-      region={region}
-      width={1}
-      height={35}
-    />,
-  );
+async function renderFull(config: ReturnType<typeof createTrack>["config"], color: string) {
+  const view = await mountTrack({
+    module: caveModule,
+    track: { base: { id: "cave", title: "CAVE", color, height: 35 }, config },
+    data,
+    region,
+    width: 1,
+  });
+  mounted.push(view);
+  return view.content.innerHTML;
 }

@@ -1,29 +1,11 @@
-import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const layout = vi.hoisted(() => ({
-  useRowLayout: vi.fn(
-    (_trackId: string, rowCount = 0, config: { rowHeight: number } = { rowHeight: 1 }) => ({
-      rowHeight: config.rowHeight,
-      trackHeight: Math.max(1, rowCount) * config.rowHeight,
-    }),
-  ),
-}));
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useInteraction: () => null,
-  useTooltip: () => ({ hide: vi.fn(), show: vi.fn() }),
-}));
-
-vi.mock("../../src/shared/layout", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../src/shared/layout")>()),
-  useRowLayout: layout.useRowLayout,
-}));
-
-import { FullBulkBed } from "../../src/bulkbed/render";
-import type { BulkBedData } from "../../src/bulkbed/types";
-import type { BulkBedConfig } from "../../src/bulkbed/schema";
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it } from "vitest";
+import {
+  bulkBedModule,
+  type BulkBedConfig,
+  type BulkBedData,
+} from "@weng-lab/genomebrowser-tracks/bulkbed";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 
 const data: BulkBedData = [
   [{ chromosome: "chr1", start: 0, end: 20, fields: [], datasetName: "Dataset A" }],
@@ -31,21 +13,24 @@ const data: BulkBedData = [
 ];
 const fullRegion = { chromosome: "chr1", start: 0, end: 100 };
 
-beforeEach(() => layout.useRowLayout.mockClear());
+const mounted: MountedTrack[] = [];
+afterEach(async () => {
+  for (const view of mounted.splice(0)) await view.unmount();
+});
 
 describe("BulkBed row rendering", () => {
-  it("passes dataset count and configured row height to the shared layout hook", () => {
-    const config = bulkBedConfig({ rowHeight: 10, gap: 3 });
-    const markup = render(config);
+  it("gives each dataset one configured row", async () => {
+    const view = await render(bulkBedConfig({ rowHeight: 10, gap: 3 }));
+    const markup = view.content.innerHTML;
 
-    expect(layout.useRowLayout).toHaveBeenCalledWith("bulk-peaks", 2, config);
+    expect(trackHeight(view)).toBe(20);
     expect(markup).toContain('height="20"');
     expect(markup).toContain('height="7"');
     expect(markup).toContain('transform="translate(0,0)"');
     expect(markup).toContain('transform="translate(0,10)"');
   });
 
-  it("renders each interval color and uses the track color for uncolored intervals", () => {
+  it("renders each interval color and uses the track color for uncolored intervals", async () => {
     const rows = [
       [
         { chromosome: "chr1", start: 0, end: 10, fields: [], color: "rgb(255,0,0)" },
@@ -53,25 +38,30 @@ describe("BulkBed row rendering", () => {
         { chromosome: "chr1", start: 20, end: 30, fields: [] },
       ],
     ];
-    const markup = render(bulkBedConfig({ rowHeight: 10, gap: 2 }), fullRegion, rows);
+    const view = await render(bulkBedConfig({ rowHeight: 10, gap: 2 }), fullRegion, rows);
+    const markup = view.content.innerHTML;
     expect(markup).toContain('fill="rgb(255,0,0)"');
     expect(markup).toContain('fill="rgb(0,255,0)"');
     expect(markup).toContain('fill="#4b9560"');
   });
 
-  it("keeps content height non-negative when gap exceeds a small row slot", () => {
-    const markup = render(bulkBedConfig({ rowHeight: 1, gap: 2 }));
+  it("keeps content height non-negative when gap exceeds a small row slot", async () => {
+    const markup = (await render(bulkBedConfig({ rowHeight: 1, gap: 2 }))).content.innerHTML;
 
     expect(markup).toContain('height="2"');
     expect(markup).toContain('height="0"');
     expect(markup).toContain('transform="translate(0,1)"');
   });
 
-  it("counts datasets with visible features while rendering overscan datasets", () => {
-    const config = bulkBedConfig({ rowHeight: 10, gap: 3 });
-    const markup = render(config, { chromosome: "chr1", start: 25, end: 60 });
+  it("counts datasets with visible features while rendering overscan datasets", async () => {
+    const view = await render(bulkBedConfig({ rowHeight: 10, gap: 3 }), {
+      chromosome: "chr1",
+      start: 25,
+      end: 60,
+    });
+    const markup = view.content.innerHTML;
 
-    expect(layout.useRowLayout).toHaveBeenCalledWith("bulk-peaks", 1, config);
+    expect(trackHeight(view)).toBe(10);
     expect(markup).toContain('height="10"');
     expect(markup).toContain('transform="translate(0,10)"');
   });
@@ -87,17 +77,22 @@ function bulkBedConfig(options: { rowHeight: number; gap: number }): BulkBedConf
   };
 }
 
-function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = data) {
-  return renderToStaticMarkup(
-    <FullBulkBed
-      id="bulk-peaks"
-      color="#4b9560"
-      config={config}
-      data={rows}
-      visibleRegion={visibleRegion}
-      region={{ chromosome: "chr1", start: 0, end: 100 }}
-      width={100}
-      height={80}
-    />,
-  );
+async function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = data) {
+  const view = await mountTrack({
+    module: bulkBedModule,
+    track: {
+      base: { id: "bulk-peaks", title: "Bulk peaks", color: "#4b9560", height: 80 },
+      config,
+    },
+    data: rows,
+    region: { chromosome: "chr1", start: 0, end: 100 },
+    visibleRegion,
+    width: 100,
+  });
+  mounted.push(view);
+  return view;
+}
+
+function trackHeight(view: MountedTrack) {
+  return view.trackStore.getState().getTrack("bulk-peaks")?.base.height;
 }

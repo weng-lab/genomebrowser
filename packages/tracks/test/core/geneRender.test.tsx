@@ -1,62 +1,14 @@
 // @vitest-environment jsdom
 
-import { act, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const runtime = vi.hoisted(() => ({
-  onClick: vi.fn(),
-  onHover: vi.fn(),
-  onLeave: vi.fn(),
-  tooltipShow: vi.fn(),
-  tooltipHide: vi.fn(),
-  createCompositeGeneGeometry: vi.fn(),
-  createGeneTranscriptGeometry: vi.fn(),
-  useRowLayout: vi.fn((_trackId: string, rowCount: number, config: { rowHeight: number }) => ({
-    rowHeight: config.rowHeight,
-    trackHeight: Math.max(1, rowCount) * config.rowHeight,
-  })),
-}));
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useInteraction: () => ({
-    onClick: runtime.onClick,
-    onHover: runtime.onHover,
-    onLeave: runtime.onLeave,
-  }),
-  useTooltip: () => ({ hide: runtime.tooltipHide, show: runtime.tooltipShow }),
-}));
-
-vi.mock("../../src/shared/layout", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../src/shared/layout")>()),
-  useRowLayout: runtime.useRowLayout,
-}));
-
-vi.mock("../../src/gene/render/glyph/geometry", async (importOriginal) => {
-  const geometry = await importOriginal<typeof import("../../src/gene/render/glyph/geometry")>();
-  return {
-    ...geometry,
-    createCompositeGeneGeometry: (
-      gene: Parameters<typeof geometry.createCompositeGeneGeometry>[0],
-    ) => {
-      runtime.createCompositeGeneGeometry(gene);
-      return geometry.createCompositeGeneGeometry(gene);
-    },
-    createGeneTranscriptGeometry: (
-      transcript: Parameters<typeof geometry.createGeneTranscriptGeometry>[0],
-    ) => {
-      runtime.createGeneTranscriptGeometry(transcript);
-      return geometry.createGeneTranscriptGeometry(transcript);
-    },
-  };
-});
-
-import { FullGene, MergedGene, TaggedGene } from "../../src/gene/render/renderers";
-import type { GeneData, GeneTranscript } from "../../src/gene/types";
-
-(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
-  true;
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  geneModule,
+  type GeneCreateInput,
+  type GeneData,
+  type GeneInteractionTarget,
+  type GeneTranscript,
+} from "@weng-lab/genomebrowser-tracks/gene";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 
 const firstTranscript = transcript("tx1", "gene1", 100, 180, {
   tags: ["MANE_Select"],
@@ -82,47 +34,35 @@ const data: GeneData = [
     ],
   }),
 ];
-const props = {
-  id: "genes",
-  color: "#4b9560",
-  height: 16,
-  config: {
-    url: "YOUR_URL_HERE",
-    tagColors: [{ tag: "MANE_Select", color: "#d45c2f" }],
-    highlightColor: "#000000",
-    rowHeight: 16,
-  },
-  data,
-  visibleRegion: { chromosome: "chr1", start: 0, end: 500 },
-  region: { chromosome: "chr1", start: 0, end: 500 },
-  width: 500,
+const color = "#4b9560";
+const config = {
+  url: "YOUR_URL_HERE",
+  tagColors: [{ tag: "MANE_Select", color: "#d45c2f" }],
+  highlightColor: "#000000",
+  rowHeight: 16,
 };
+const region = { chromosome: "chr1", start: 0, end: 500 };
+const interaction = {
+  onClick: vi.fn<(item: GeneInteractionTarget) => void>(),
+  onHover: vi.fn<(item: GeneInteractionTarget) => void>(),
+  onLeave: vi.fn<(item: GeneInteractionTarget) => void>(),
+};
+/** Callbacks receive the track the item belongs to after the item. */
+const geneTrack = expect.objectContaining({ base: expect.objectContaining({ id: "genes" }) });
 
-let container: HTMLDivElement;
-let root: Root;
-
-beforeEach(() => {
-  runtime.onClick.mockClear();
-  runtime.onHover.mockClear();
-  runtime.onLeave.mockClear();
-  runtime.tooltipShow.mockClear();
-  runtime.tooltipHide.mockClear();
-  runtime.createCompositeGeneGeometry.mockClear();
-  runtime.createGeneTranscriptGeometry.mockClear();
-  runtime.useRowLayout.mockClear();
-  container = document.createElement("div");
-  document.body.append(container);
-  root = createRoot(container);
-});
-
-afterEach(() => {
-  act(() => root.unmount());
-  container.remove();
+let view: MountedTrack | undefined;
+let container: Element;
+afterEach(async () => {
+  interaction.onClick.mockClear();
+  interaction.onHover.mockClear();
+  interaction.onLeave.mockClear();
+  await view?.unmount();
+  view = undefined;
 });
 
 describe("Gene rendering", () => {
-  it("renders distinct transcript parts with transcript labels", () => {
-    render(<FullGene {...props} />);
+  it("renders distinct transcript parts with transcript labels", async () => {
+    await render("full");
 
     expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
@@ -154,8 +94,8 @@ describe("Gene rendering", () => {
     ).toEqual(["tx1", "tx2", "tx3"]);
   });
 
-  it("uses separate generous transcript part targets for click, hover, tooltip, and leave", () => {
-    render(<FullGene {...props} />);
+  it("uses separate generous transcript part targets for click, hover, tooltip, and leave", async () => {
+    const mounted = await render("full");
 
     const part = container.querySelector('[data-gene-part="cds"]')!;
     const directionMark = container.querySelector("[data-intron-direction-mark]")!;
@@ -169,44 +109,47 @@ describe("Gene rendering", () => {
     expect(hitTarget.getAttribute("height")).toBe("16");
     expect(hitTarget.getAttribute("fill")).toBe("transparent");
 
-    act(() => part.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    act(() => directionMark.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    expect(runtime.onClick).not.toHaveBeenCalled();
+    await mounted.click(part);
+    await mounted.click(directionMark);
+    expect(interaction.onClick).not.toHaveBeenCalled();
     expect(partHitTarget.getAttribute("x")).toBe("110");
     expect(partHitTarget.getAttribute("width")).toBe("10");
     expect(partHitTarget.getAttribute("height")).toBe("16");
-    act(() => partHitTarget.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    expect(runtime.onClick).toHaveBeenCalledWith({
-      kind: "part",
-      feature: firstTranscript,
-      part: expect.objectContaining({
-        kind: "cds",
-        start: 110,
-        end: 120,
-        source: "transcript",
-      }),
-    });
+    await mounted.click(partHitTarget);
+    expect(interaction.onClick).toHaveBeenCalledWith(
+      {
+        kind: "part",
+        feature: firstTranscript,
+        part: expect.objectContaining({
+          kind: "cds",
+          start: 110,
+          end: 120,
+          source: "transcript",
+        }),
+      },
+      geneTrack,
+    );
 
-    act(() => partHitTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
-    expect(runtime.onHover).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "part", feature: firstTranscript }),
+    // tx1 is on the minus strand, so its 100-120 exon is the second one transcribed.
+    expect(await mounted.hover(partHitTarget)).toContain(
+      "gene1PartCDSLocationchr1:111–120Length10 bpTranscript Nametx1Transcript IDtx1Exon2 of 2",
     );
-    expect(runtime.tooltipShow).toHaveBeenCalledWith(
+    expect(interaction.onHover).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "part", feature: firstTranscript }),
-      expect.anything(),
+      geneTrack,
     );
-    act(() => partHitTarget.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-    expect(runtime.onLeave).toHaveBeenCalledWith(
+    expect(await leave(mounted, partHitTarget)).toBe("");
+    expect(interaction.onLeave).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "part", feature: firstTranscript }),
+      geneTrack,
     );
-    expect(runtime.tooltipHide).toHaveBeenCalledOnce();
   });
 
-  it("renders grouped genes as composite structures in shared rows", () => {
-    render(<MergedGene {...props} />);
+  it("renders grouped genes as composite structures in shared rows", async () => {
+    const mounted = await render("merged");
 
     expect(container.querySelectorAll("[data-gene-hit-target]")).toHaveLength(2);
-    expect(runtime.useRowLayout).toHaveBeenCalledWith("genes", 1, props.config);
+    expect(trackHeight(mounted)).toBe(16);
     expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-gene-part="cds"]')).toHaveLength(4);
@@ -226,20 +169,19 @@ describe("Gene rendering", () => {
     ).toEqual(["gene1", "gene2"]);
   });
 
-  it("derives row count from visible genes while retaining render-window genes", () => {
-    render(<FullGene {...props} visibleRegion={{ chromosome: "chr1", start: 250, end: 400 }} />);
+  it("derives row count from visible genes while retaining render-window genes", async () => {
+    const mounted = await render("full", {
+      visibleRegion: { chromosome: "chr1", start: 250, end: 400 },
+    });
 
-    expect(runtime.useRowLayout).toHaveBeenCalledWith("genes", 1, props.config);
+    expect(trackHeight(mounted)).toBe(16);
     expect(container.querySelectorAll("[data-gene-label]")).toHaveLength(3);
   });
 
-  it("highlights matching genes and their labels case-insensitively", () => {
-    render(
-      <FullGene
-        {...props}
-        config={{ ...props.config, geneName: "GENE1", highlightColor: "#123456" }}
-      />,
-    );
+  it("highlights matching genes and their labels case-insensitively", async () => {
+    await render("full", {
+      config: { ...config, geneName: "GENE1", highlightColor: "#123456" },
+    });
 
     const labels = Array.from(container.querySelectorAll<SVGTextElement>("[data-gene-label]"));
     expect(
@@ -249,13 +191,13 @@ describe("Gene rendering", () => {
     ).toEqual([
       ["tx1", "#123456"],
       ["tx2", "#123456"],
-      ["tx3", props.color],
+      ["tx3", color],
     ]);
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 
-  it("uses typed merged part targets while retaining a gene-level target for gaps", () => {
-    render(<MergedGene {...props} />);
+  it("uses typed merged part targets while retaining a gene-level target for gaps", async () => {
+    const mounted = await render("merged");
 
     const piece = container.querySelector('[data-gene-part="noncoding-exon"]')!;
     const hitTarget = container.querySelector<SVGRectElement>("[data-gene-hit-target]")!;
@@ -266,10 +208,10 @@ describe("Gene rendering", () => {
     expect(hitTarget.getAttribute("height")).toBe("16");
     expect(hitTarget.getAttribute("fill")).toBe("transparent");
 
-    act(() => piece.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    expect(runtime.onClick).not.toHaveBeenCalled();
-    act(() => hitTarget.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    expect(runtime.onClick).toHaveBeenCalledWith(
+    await mounted.click(piece);
+    expect(interaction.onClick).not.toHaveBeenCalled();
+    await mounted.click(hitTarget);
+    expect(interaction.onClick).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: "gene",
         feature: expect.objectContaining({
@@ -279,61 +221,50 @@ describe("Gene rendering", () => {
           transcripts: [firstTranscript, data[1]],
         }),
       }),
+      geneTrack,
     );
 
-    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
-    expect(runtime.onHover).toHaveBeenCalledWith(
+    expect(await mounted.hover(hitTarget)).toBe("gene1Locationchr1:101–200Strand-Transcripts2");
+    expect(interaction.onHover).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
+      geneTrack,
     );
-    expect(runtime.tooltipShow).toHaveBeenCalledWith(
+    expect(await leave(mounted, hitTarget)).toBe("");
+    expect(interaction.onLeave).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
-      expect.anything(),
+      geneTrack,
     );
-    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-    expect(runtime.onLeave).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
-    );
-    expect(runtime.tooltipHide).toHaveBeenCalledOnce();
   });
 
-  it("reuses composite geometry when ordinary rerenders keep the same data", () => {
-    render(<MergedGene {...props} />);
-    expect(runtime.createCompositeGeneGeometry).toHaveBeenCalledTimes(2);
+  it("repaints composite genes in a new track color", async () => {
+    const mounted = await render("merged");
 
-    render(<MergedGene {...props} color="#123456" />);
-    expect(runtime.createCompositeGeneGeometry).toHaveBeenCalledTimes(2);
+    await recolor(mounted, "#123456");
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 
-  it("reuses transcript geometry when ordinary rerenders keep the same data", () => {
-    render(<FullGene {...props} />);
-    expect(runtime.createGeneTranscriptGeometry).toHaveBeenCalledTimes(3);
+  it("keeps the tag color on transcripts when the track color changes", async () => {
+    const mounted = await render("full");
 
-    render(<FullGene {...props} color="#123456" />);
-    expect(runtime.createGeneTranscriptGeometry).toHaveBeenCalledTimes(3);
-    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe(
-      props.config.tagColors[0]?.color,
-    );
+    await recolor(mounted, "#123456");
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#d45c2f");
   });
 
-  it("filters by configured tags and uses the first matching tag color", () => {
+  it("filters by configured tags and uses the first matching tag color", async () => {
     const nearMatch = transcript("tx4", "gene3", 400, 450, { tags: ["MANE_Select_v2"] });
     const ensemblCanonical = transcript("tx5", "gene4", 410, 460, {
       tags: ["Ensembl_canonical", "basic"],
     });
-    render(
-      <TaggedGene
-        {...props}
-        config={{
-          ...props.config,
-          tagColors: [
-            { tag: "basic", color: "#112233" },
-            { tag: "Ensembl_canonical", color: "#445566" },
-          ],
-        }}
-        data={[...data, nearMatch, ensemblCanonical]}
-      />,
-    );
+    await render("tagged", {
+      config: {
+        ...config,
+        tagColors: [
+          { tag: "basic", color: "#112233" },
+          { tag: "Ensembl_canonical", color: "#445566" },
+        ],
+      },
+      data: [...data, nearMatch, ensemblCanonical],
+    });
 
     expect(
       Array.from(container.querySelectorAll("[data-gene-label]")).map((label) => label.textContent),
@@ -341,16 +272,54 @@ describe("Gene rendering", () => {
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#112233");
   });
 
-  it("renders no tagged transcripts when no tags are configured", () => {
-    render(<TaggedGene {...props} config={{ ...props.config, tagColors: [] }} />);
+  it("renders no tagged transcripts when no tags are configured", async () => {
+    await render("tagged", { config: { ...config, tagColors: [] } });
 
     expect(container.querySelectorAll("[data-gene-label]")).toHaveLength(0);
     expect(container.querySelectorAll("[data-transcript-hit-target]")).toHaveLength(0);
   });
 });
 
-function render(node: ReactNode) {
-  act(() => root.render(<svg>{node}</svg>));
+async function render(
+  display: "full" | "merged" | "tagged",
+  options: {
+    config?: GeneCreateInput["config"];
+    data?: GeneData;
+    visibleRegion?: { chromosome: string; start: number; end: number };
+  } = {},
+) {
+  view = await mountTrack({
+    module: geneModule,
+    track: {
+      // Starts off the laid-out height, so the height checks need the row layout to run.
+      base: { id: "genes", title: "Genes", color, height: 99, display },
+      config: options.config ?? config,
+    },
+    interaction,
+    data: options.data ?? data,
+    region,
+    visibleRegion: options.visibleRegion,
+    width: 500,
+  });
+  container = view.content;
+  return view;
+}
+
+function trackHeight(mounted: MountedTrack) {
+  return mounted.trackStore.getState().getTrack("genes")?.base.height;
+}
+
+async function recolor(mounted: MountedTrack, next: string) {
+  await mounted.settle(() =>
+    mounted.trackStore.getState().updateTrack("genes", { base: { color: next } }),
+  );
+  container = mounted.content;
+}
+
+/** Moves the pointer off a target and returns the tooltip text left showing. */
+async function leave(mounted: MountedTrack, target: Element) {
+  await mounted.settle(() => target.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+  return document.querySelector("[data-genomebrowser-tooltip-overlay]")?.textContent ?? "";
 }
 
 function transcript(
