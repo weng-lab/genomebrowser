@@ -49,11 +49,8 @@ export const primarySurfaceSx = {
     onPrimaryStateSx,
 } as const;
 
-const separateToggleButton = ({ theme }: { theme: Theme }) => ({
-  border: 0,
-  margin: 0,
-  borderRadius: Number(theme.shape.borderRadius) * 1.5,
-});
+/** The corner radius of control cards and the buttons inside them, so the two match. */
+const controlRadius = (theme: Theme) => Number(theme.shape.borderRadius) * 1.5;
 
 // Shared theme for the web application and workspace.
 export const theme = createTheme({
@@ -78,7 +75,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor: theme.palette.background.paper,
-          borderRadius: Number(theme.shape.borderRadius) * 1.5,
+          borderRadius: controlRadius(theme),
         }),
       },
     },
@@ -87,11 +84,8 @@ export const theme = createTheme({
     MuiToggleButtonGroup: {
       styleOverrides: {
         root: { gap: 4 },
-        // MUI joins grouped buttons by squaring their inner corners and overlapping their
-        // borders on the first, middle, and last buttons, so each needs the separate look.
-        firstButton: separateToggleButton,
-        middleButton: separateToggleButton,
-        lastButton: separateToggleButton,
+        // Theme overrides follow MUI's rules that join grouped buttons, so this one wins.
+        grouped: ({ theme }) => ({ border: 0, margin: 0, borderRadius: controlRadius(theme) }),
       },
     },
     // Workspace text goes through Typography, so trimming here covers titles, labels, and body text.
