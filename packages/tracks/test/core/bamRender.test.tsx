@@ -1,31 +1,14 @@
 // @vitest-environment jsdom
-import { act } from "react";
-import { createRoot } from "react-dom/client";
-import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { bamModule, type BamRecord, type BamData } from "@weng-lab/genomebrowser-tracks/bam";
-import { BamTooltip } from "../../src/bam/tooltip";
-import { TestBrowser } from "../testBrowser";
+import type { ComponentProps } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  bamModule,
+  type BamData,
+  type BamDisplay,
+  type BamRecord,
+} from "@weng-lab/genomebrowser-tracks/bam";
+import { mountTrack, type MountedTrack } from "../mountTrack";
 
-const hooks = vi.hoisted(() => ({
-  click: vi.fn(),
-  hover: vi.fn(),
-  leave: vi.fn(),
-  show: vi.fn(),
-  hide: vi.fn(),
-  height: vi.fn((_id: string, _height: number) => {}),
-}));
-vi.mock("@weng-lab/genomebrowser", async (original) => ({
-  ...(await original<typeof import("@weng-lab/genomebrowser")>()),
-  useInteraction: () => ({ onClick: hooks.click, onHover: hooks.hover, onLeave: hooks.leave }),
-  useTooltip: () => ({ show: hooks.show, hide: hooks.hide }),
-}));
-vi.mock("../../src/shared/layout", async (original) => ({
-  ...(await original<typeof import("../../src/shared/layout")>()),
-  useTrackHeight: hooks.height,
-}));
-(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
-  true;
 function read(overrides: Partial<BamRecord> = {}): BamRecord {
   return {
     chromosome: "chr1",
@@ -48,34 +31,78 @@ const track = bamModule.create({
   base: { id: "bam", title: "Alignments" },
   config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", coverage: { show: false } },
 });
+type BamConfig = typeof track.config;
 const props = {
-  ...track.base,
   config: track.config,
   width: 1500,
   region: { chromosome: "chr1", start: 0, end: 100 },
   visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
 };
-function markup(
-  display: string,
+type Interaction = {
+  onClick?: (record: BamRecord) => void;
+  onHover?: (record: BamRecord) => void;
+  onLeave?: (record: BamRecord) => void;
+};
+const mounted: MountedTrack[] = [];
+afterEach(async () => {
+  for (const view of mounted.splice(0)) await view.unmount();
+});
+/** Mounts the BAM track in a browser whose span and width decide base-pair detail. */
+async function mount(
+  display: BamDisplay,
   data: BamData,
   overrides: Partial<typeof props> = {},
-  basePairDetail = true,
+  interaction?: Interaction,
 ) {
-  const Renderer = bamModule.render[display];
-  const element = document.createElement("div");
-  element.innerHTML = renderToStaticMarkup(
-    <TestBrowser basePairDetail={basePairDetail}>
-      <svg>
-        <Renderer {...props} {...overrides} data={data} />
-      </svg>
-    </TestBrowser>,
-  );
-  return element;
+  const { config, width, region, visibleRegion } = { ...props, ...overrides };
+  const view = await mountTrack({
+    module: bamModule,
+    track: { base: { ...track.base, display }, config },
+    interaction,
+    data,
+    region,
+    visibleRegion,
+    width,
+  });
+  mounted.push(view);
+  return view;
 }
-beforeEach(() => vi.clearAllMocks());
-const letters = (element: HTMLElement, op = "M") =>
+async function markup(display: BamDisplay, data: BamData, overrides: Partial<typeof props> = {}) {
+  return (await mount(display, data, overrides)).content;
+}
+/** The track height the browser stores and lays the track out with. */
+const heightOf = (view: MountedTrack) => view.trackStore.getState().getTrack("bam")?.base.height;
+/** Applies a config change the way settings do, through the browser's track store. */
+const configure = (view: MountedTrack, config: BamConfig) =>
+  view.settle(() => view.trackStore.getState().updateTrack("bam", { config }));
+const tooltip = () => document.querySelector("[data-genomebrowser-tooltip-overlay]");
+const tooltipText = () => tooltip()?.textContent ?? "";
+/** Moves the pointer over an element and returns the tooltip text the browser shows. */
+async function move(
+  view: MountedTrack,
+  target: Element,
+  point: { clientX: number; clientY: number },
+) {
+  await view.settle(() =>
+    target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point })),
+  );
+  return tooltipText();
+}
+/** The text cells of the tooltip a hovered element shows, in reading order. */
+async function hoverTooltip(view: MountedTrack, target: Element) {
+  await view.hover(target);
+  const cells = (selector: string) =>
+    [...(tooltip()?.querySelectorAll(selector) ?? [])].map((node) => node.textContent ?? "");
+  return {
+    text: tooltipText(),
+    texts: cells("text"),
+    labels: cells('text[x="0"]'),
+    values: cells('text[x="84"]'),
+  };
+}
+const letters = (element: Element, op = "M") =>
   [...element.querySelectorAll(`[data-bases="${op}"]`)].map((node) => node.textContent).join("");
-const rowCount = (element: HTMLElement) =>
+const rowCount = (element: Element) =>
   new Set(
     [...element.querySelectorAll("[data-bam-row]")].map((node) =>
       node.getAttribute("data-bam-row"),
@@ -93,29 +120,24 @@ function junctionPoint(arc: Element, x?: number) {
     clientY: (1 - t) ** 2 * y1 + 2 * (1 - t) * t * controlY + t ** 2 * y2,
   };
 }
+// jsdom has no SVG geometry; place the junction group at the pointer's origin.
 function stubJunctionCoordinates(group: SVGGElement) {
   group.getScreenCTM = () =>
     ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) }) as DOMMatrix;
 }
 describe("BAM displays", () => {
-  it("uses the visible span for the exclusive configurable zoom limit in every display", () => {
+  it("uses the visible span for the exclusive configurable zoom limit in every display", async () => {
     const data = { records: [read()], reference: [] };
     const region = { chromosome: "chr1", start: 0, end: 150000 };
     for (const display of bamModule.displays) {
-      for (const end of [50000, 50001]) {
-        const result = markup(display, data, { region, visibleRegion: { ...region, end } });
-        expect(result.querySelectorAll("[data-bam-read]")).toHaveLength(0);
-      }
-      const visibleRegion = { ...region, end: 49999 };
-      expect(
-        markup(display, data, { region, visibleRegion }).querySelectorAll("[data-bam-read]"),
-      ).toHaveLength(1);
-      const result = markup(display, data, {
-        region,
-        visibleRegion,
-        config: { ...props.config, maxWindow: 40000 },
-      });
-      expect(result.querySelectorAll("[data-bam-read]")).toHaveLength(0);
+      const view = await mount(display, data, { region, visibleRegion: { ...region, end: 50000 } });
+      expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(0);
+      await view.setView({ visibleRegion: { ...region, end: 50001 } });
+      expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(0);
+      await view.setView({ visibleRegion: { ...region, end: 49999 } });
+      expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(1);
+      await configure(view, { ...props.config, maxWindow: 40000 });
+      expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(0);
     }
   });
 
@@ -124,22 +146,28 @@ describe("BAM displays", () => {
     read({ start: 15, end: 25, readName: "b", strand: "-", flags: 16 }),
     read({ start: 50, end: 60, readName: "c" }),
   ];
-  it("draws dense in one row, packs squish/pack, and gives full reads separate rows", () => {
+  it("draws dense in one row, packs squish/pack, and gives full reads separate rows", async () => {
     const data = { records, reference: [] };
+    const view = await mount("full", data);
+    // Switch displays as a user would, so each height is a change the browser stores.
     for (const [display, rows, height] of [
-      ["dense", 1, 14],
-      ["squish", 2, 14],
-      ["pack", 2, 28],
       ["full", 3, 42],
+      ["pack", 2, 28],
+      ["squish", 2, 14],
+      ["dense", 1, 14],
     ] as const) {
-      expect(rowCount(markup(display, data))).toBe(rows);
-      expect(hooks.height).toHaveBeenLastCalledWith("bam", height);
+      await view.settle(() => view.trackStore.getState().updateTrack("bam", { base: { display } }));
+      expect(
+        view.content.querySelector("[data-bam-display]")?.getAttribute("data-bam-display"),
+      ).toBe(display);
+      expect(rowCount(view.content)).toBe(rows);
+      expect(heightOf(view)).toBe(height);
     }
-    expect(markup("squish", data).querySelectorAll("text")).toHaveLength(0);
-    expect(markup("pack", data).textContent).toContain("a");
+    expect((await markup("squish", data)).querySelectorAll("text")).toHaveLength(0);
+    expect((await markup("pack", data)).textContent).toContain("a");
   });
-  it("uses blue/red strand outlines and darker aligned blocks", () => {
-    const element = markup("pack", { records, reference: [] });
+  it("uses blue/red strand outlines and darker aligned blocks", async () => {
+    const element = await markup("pack", { records, reference: [] });
     expect(
       element.querySelector('[data-bam-read="a"] [data-cigar="M"]')?.getAttribute("fill"),
     ).toBe("#1f3d7a");
@@ -153,7 +181,7 @@ describe("BAM displays", () => {
       element.querySelector('[data-bam-read="b"] [data-cigar="M"]')?.getAttribute("stroke"),
     ).toBe("#cc3333");
   });
-  it("draws CIGAR gaps and insertions at reference offsets and compares bases after gaps", () => {
+  it("draws CIGAR gaps and insertions at reference offsets and compares bases after gaps", async () => {
     const record = read({
       start: 10,
       end: 22,
@@ -166,7 +194,7 @@ describe("BAM displays", () => {
         { op: "M", length: 1, sequenceOffset: 3, referenceOffset: 11 },
       ],
     });
-    const element = markup("pack", {
+    const element = await markup("pack", {
       records: [record],
       reference: [{ chromosome: "chr1", start: 0, end: 100, sequence: "A".repeat(100) }],
     });
@@ -178,52 +206,45 @@ describe("BAM displays", () => {
     expect(element.querySelector('[data-mismatch="true"] text')?.textContent).toBe("T");
     expect(element.querySelector('[data-mismatch="true"] rect')?.getAttribute("x")).toBe("315");
     expect(
-      markup("pack", { records: [record], reference: [] }).querySelectorAll(
+      (await markup("pack", { records: [record], reference: [] })).querySelectorAll(
         '[data-mismatch="true"]',
       ),
     ).toHaveLength(0);
   });
-  it("outlines the span of reads without CIGAR detail and labels it unavailable", () => {
+  it("outlines the span of reads without CIGAR detail and labels it unavailable", async () => {
     const record = read({ start: 10, end: 30, cigar: [] });
-    const outline = markup("pack", { records: [record], reference: [] }).querySelector(
-      "[data-cigar-unavailable]",
-    );
+    const view = await mount("pack", { records: [record], reference: [] });
+    const outline = view.content.querySelector("[data-cigar-unavailable]");
     expect(outline?.getAttribute("x")).toBe("150");
     expect(outline?.getAttribute("width")).toBe("300");
     expect(outline?.getAttribute("fill")).toBe("none");
     expect(
-      markup("pack", { records: [read()], reference: [] }).querySelector(
+      (await markup("pack", { records: [read()], reference: [] })).querySelector(
         "[data-cigar-unavailable]",
       ),
     ).toBeNull();
-    const tooltip = document.createElement("div");
-    tooltip.innerHTML = renderToStaticMarkup(
-      <svg>
-        <BamTooltip item={record} />
-      </svg>,
-    );
-    const values = [...tooltip.querySelectorAll("text")].map((text) => text.textContent);
-    expect(values[values.indexOf("CIGAR") + 1]).toBe("Unavailable");
+    const { texts } = await hoverTooltip(view, view.content.querySelector('[data-bam-read="a"]')!);
+    expect(texts[texts.indexOf("CIGAR") + 1]).toBe("Unavailable");
   });
-  it("uses CIGAR X without reference, preserves stored reverse sequence, and respects the shared detail decision", () => {
+  it("uses CIGAR X without reference, preserves stored reverse sequence, and respects the shared detail decision", async () => {
     const record = read({
       strand: "-",
       sequence: "ACGTAAAAAA",
       cigar: [{ op: "X", length: 10, sequenceOffset: 0, referenceOffset: 0 }],
     });
-    const element = markup("full", { records: [record], reference: [] });
+    const element = await markup("full", { records: [record], reference: [] });
     expect(letters(element, "X")).toBe("ACGTAAAAAA");
     expect(element.querySelectorAll('[data-mismatch="true"]')).toHaveLength(10);
-    const zoomedOut = markup(
+    // 101 visible bases exceed the browser's default 100-base detail limit.
+    const zoomedOut = await markup(
       "full",
       { records: [record], reference: [] },
       { visibleRegion: { chromosome: "chr1", start: 0, end: 101 } },
-      false,
     );
     expect(letters(zoomedOut, "X")).toBe("");
     expect(zoomedOut.querySelector('[data-cigar="X"]')?.getAttribute("fill")).toBe("#ef4444");
   });
-  it("filters duplicates and unknown MAPQ locally and ignores other chromosomes", () => {
+  it("filters duplicates and unknown MAPQ locally and ignores other chromosomes", async () => {
     const data = {
       records: [
         read(),
@@ -234,62 +255,79 @@ describe("BAM displays", () => {
       reference: [],
     };
     expect(
-      markup("pack", data, {
-        config: {
-          ...track.config,
-          filters: { includeDuplicates: false, minimumMappingQuality: 20 },
-        },
-      }).querySelectorAll("[data-bam-read]"),
+      (
+        await markup("pack", data, {
+          config: {
+            ...track.config,
+            filters: { includeDuplicates: false, minimumMappingQuality: 20 },
+          },
+        })
+      ).querySelectorAll("[data-bam-read]"),
     ).toHaveLength(1);
   });
-  it("sizes only visible rows, keeps overscan reads, and reserves label bounds when packing", () => {
+  it("sizes only visible rows, keeps overscan reads, and reserves label bounds when packing", async () => {
     const data = { records: [read(), read(), read({ start: 70, end: 80 })], reference: [] };
-    markup("full", data, { visibleRegion: { chromosome: "chr1", start: 60, end: 90 } });
-    expect(hooks.height).toHaveBeenLastCalledWith("bam", 14);
+    const view = await mount("full", data);
+    expect(heightOf(view)).toBe(42);
+    await view.setView({ visibleRegion: { chromosome: "chr1", start: 60, end: 90 } });
+    expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(3);
+    expect(heightOf(view)).toBe(14);
     const labels = {
       records: [read({ readName: "read_with_a_long_name" }), read({ start: 23, end: 33 })],
       reference: [],
     };
-    expect(rowCount(markup("squish", labels))).toBe(1);
-    expect(rowCount(markup("pack", labels))).toBe(2);
+    expect(rowCount(await markup("squish", labels))).toBe(1);
+    expect(rowCount(await markup("pack", labels))).toBe(2);
   });
-  it("reserves space for a reference warning without hiding alignments", () => {
-    const element = markup("squish", { records: [read()], reference: [], referenceError: "CORS" });
+  it("reserves space for a reference warning without hiding alignments", async () => {
+    const element = await markup("squish", {
+      records: [read()],
+      reference: [],
+      referenceError: "CORS",
+    });
     expect(element.querySelector('[data-bam-row="0"]')?.getAttribute("transform")).toBe(
       "translate(0,14)",
     );
   });
-  it("passes the complete alignment to click, hover, leave, and tooltip handlers", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
+  it("passes the complete alignment to click, hover, leave, and tooltip handlers", async () => {
+    const interaction = { onClick: vi.fn(), onHover: vi.fn(), onLeave: vi.fn() };
     const record = read();
-    const Renderer = bamModule.render.pack;
-    try {
-      act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer {...props} data={{ records: [record], reference: [] }} />
-            </svg>
-          </TestBrowser>,
-        ),
-      );
-      const glyph = element.querySelector("[data-bam-read]")!;
-      act(() => {
-        glyph.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-        glyph.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-        glyph.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-      });
-      expect(hooks.click).toHaveBeenCalledWith(record);
-      expect(hooks.hover).toHaveBeenCalledWith(record);
-      expect(hooks.leave).toHaveBeenCalledWith(record);
-      expect(hooks.show.mock.calls[0][0]).toBe(record);
-      expect(hooks.hide).toHaveBeenCalled();
-    } finally {
-      act(() => root.unmount());
-    }
+    // Core passes the hovered item and the read-only track to interaction callbacks.
+    const bamTrack = expect.objectContaining({
+      type: "bam",
+      base: expect.objectContaining({ id: "bam" }),
+    });
+    // A consumer tooltip receives the item as given, so every field of it is contract.
+    const shown = vi.fn<(item: unknown) => void>();
+    const Tooltip = bamModule.tooltipComponent!;
+    const view = await mountTrack({
+      module: {
+        ...bamModule,
+        tooltipComponent: (tooltipProps: ComponentProps<typeof Tooltip>) => {
+          shown(tooltipProps.item);
+          return <Tooltip {...tooltipProps} />;
+        },
+      },
+      track: { base: { ...track.base, display: "pack" }, config: props.config },
+      interaction,
+      data: { records: [record], reference: [] },
+      region: props.region,
+      width: props.width,
+    });
+    mounted.push(view);
+    const glyph = view.content.querySelector("[data-bam-read]")!;
+    const tip = await view.hover(glyph);
+    expect(shown).toHaveBeenLastCalledWith(record);
+    expect(interaction.onHover).toHaveBeenCalledWith(record, bamTrack);
+    for (const text of ["a", "Locationchr1:11–20", "CIGAR10M", "SequenceAAAAAAAAAA"])
+      expect(tip).toContain(text);
+    await view.click(glyph);
+    expect(interaction.onClick).toHaveBeenCalledWith(record, bamTrack);
+    await view.settle(() => glyph.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(interaction.onLeave).toHaveBeenCalledWith(record, bamTrack);
+    expect(tooltip()).toBeNull();
   });
-  it("wraps long tooltip values into aligned continuation rows", () => {
+  it("wraps long tooltip values into aligned continuation rows", async () => {
     const sequence = "ACGT".repeat(20);
     const cigar = Array.from({ length: 20 }, (_, index) => ({
       op: "M" as const,
@@ -297,39 +335,34 @@ describe("BAM displays", () => {
       referenceOffset: index * 123,
       sequenceOffset: index * 123,
     }));
-    const element = document.createElement("div");
-    element.innerHTML = renderToStaticMarkup(
-      <svg>
-        <BamTooltip item={read({ sequence, cigar })} />
-      </svg>,
-    );
-    const values = [...element.querySelectorAll('text[x="84"]')].map(
-      (node) => node.textContent ?? "",
+    const view = await mount("pack", { records: [read({ sequence, cigar })], reference: [] });
+    const { labels, values } = await hoverTooltip(
+      view,
+      view.content.querySelector("[data-bam-read]")!,
     );
     expect(values.every((value) => value.length <= 32)).toBe(true);
     expect(values).toContain(sequence.slice(0, 32));
     expect(values).toContain(sequence.slice(64));
-    const labels = [...element.querySelectorAll('text[x="0"]')].map((node) => node.textContent);
     expect(labels.filter((label) => label === "CIGAR")).toHaveLength(1);
     expect(labels.filter((label) => label === "Sequence")).toHaveLength(1);
     const cigarStart = values.indexOf("123M".repeat(8));
     expect(values.slice(cigarStart, cigarStart + 3).join("")).toBe("123M".repeat(20));
   });
-  it("shows alignment metadata and distinguishes unavailable values in tooltips", () => {
-    const html = renderToStaticMarkup(
-      <svg>
-        <BamTooltip
-          item={read({
-            flags: 1123,
-            mappingQuality: 255,
-            mate: { chromosome: "chr2", start: 123, strand: "-", unmapped: false },
-            templateLength: -400,
-            phredQualities: null,
-          })}
-        />
-      </svg>,
-    );
-    for (const text of [
+  it("shows alignment metadata and distinguishes unavailable values in tooltips", async () => {
+    const view = await mount("pack", {
+      records: [
+        read({
+          flags: 1123,
+          mappingQuality: 255,
+          mate: { chromosome: "chr2", start: 123, strand: "-", unmapped: false },
+          templateLength: -400,
+          phredQualities: null,
+        }),
+      ],
+      reference: [],
+    });
+    const { text } = await hoverTooltip(view, view.content.querySelector("[data-bam-read]")!);
+    for (const value of [
       "chr1:11–20",
       "10M",
       "Unavailable",
@@ -339,7 +372,7 @@ describe("BAM displays", () => {
       "-400",
       "AAAAAAAAAA",
     ])
-      expect(html).toContain(text);
+      expect(text).toContain(value);
   });
 });
 
@@ -368,67 +401,85 @@ describe("BAM sections", () => {
     junctions: { ...defaults.junctions, show: sections.junctions ?? false },
     alignments: { ...defaults.alignments, show: sections.alignments ?? false },
   });
-  const sectionTops = (element: HTMLElement) =>
+  const sectionTops = (element: Element) =>
     [...element.querySelectorAll("[data-bam-section]")].map((section) => [
       section.getAttribute("data-bam-section"),
       section.getAttribute("transform") ??
         section.querySelector("[data-bam-row]")?.getAttribute("transform"),
     ]);
+  const junctionTip = (strand: "+" | "-", support: number) =>
+    expect.stringMatching(
+      new RegExp(
+        `^Splice junction.*Strand${strand === "+" ? "\\+ \\(forward\\)" : "- \\(reverse\\)"}.*Support${support} alignments$`,
+      ),
+    );
+  const withReverse = {
+    ...data,
+    records: [...data.records, { ...spliced, readName: "reverse", strand: "-" as const }],
+  };
 
-  it("defaults to coverage above alignments and stacks sections in a fixed order", () => {
-    expect(sectionTops(markup("pack", data, { config: defaults }))).toEqual([
+  it("defaults to coverage above alignments and stacks sections in a fixed order", async () => {
+    const view = await mount("pack", data, { config: defaults });
+    expect(sectionTops(view.content)).toEqual([
       ["coverage", "translate(0,0)"],
       ["alignments", "translate(0,64)"],
     ]);
-    expect(hooks.height).toHaveBeenLastCalledWith("bam", 60 + 4 + 2 * 14);
+    expect(heightOf(view)).toBe(60 + 4 + 2 * 14);
     const all = withSections({ coverage: true, junctions: true, alignments: true });
-    expect(sectionTops(markup("full", data, { config: all }))).toEqual([
+    expect(sectionTops(await markup("full", data, { config: all }))).toEqual([
       ["coverage", "translate(0,0)"],
       ["junctions", "translate(0,64)"],
       ["alignments", "translate(0,168)"],
     ]);
   });
-  it("gives hidden sections no space and keeps the read layout when alignments are hidden", () => {
+  it("gives hidden sections no space and keeps the read layout when alignments are hidden", async () => {
+    const view = await mount("squish", data, { config: withSections({ coverage: true }) });
     for (const [sections, height] of [
       [{ coverage: true }, 60],
       [{ junctions: true }, 100],
       [{ coverage: true, junctions: true }, 164],
       [{ alignments: true }, 14],
     ] as const) {
-      const element = markup("squish", data, { config: withSections(sections) });
-      expect(element.querySelector("[data-bam-display]")?.getAttribute("data-bam-display")).toBe(
-        "squish",
-      );
-      expect(hooks.height).toHaveBeenLastCalledWith("bam", height);
+      await configure(view, withSections(sections));
+      expect(
+        view.content.querySelector("[data-bam-display]")?.getAttribute("data-bam-display"),
+      ).toBe("squish");
+      expect(heightOf(view)).toBe(height);
     }
   });
-  it("draws one arc per junction with its support and skips aggregates while zoomed out", () => {
+  it("draws one arc per junction with its support and skips aggregates while zoomed out", async () => {
     const config = withSections({ coverage: true, junctions: true });
-    const junction = markup("pack", data, { config }).querySelector("[data-junction]");
+    const junction = (await markup("pack", data, { config })).querySelector("[data-junction]");
     expect(junction?.getAttribute("data-junction")).toBe("15-35");
     expect(junction?.getAttribute("data-support")).toBe("2");
     expect(junction?.textContent).toBe("2");
     const minimumSupport = { ...config, junctions: { ...config.junctions, minimumSupport: 3 } };
-    expect(markup("pack", data, { config: minimumSupport }).querySelector("[data-junction]")).toBe(
-      null,
-    );
-    const zoomedOut = markup("pack", data, {
+    expect(
+      (await markup("pack", data, { config: minimumSupport })).querySelector("[data-junction]"),
+    ).toBe(null);
+    const zoomedOut = await markup("pack", data, {
       config,
       visibleRegion: { chromosome: "chr1", start: 0, end: 60_000 },
     });
     expect(zoomedOut.querySelector("[data-bam-section]")).toBeNull();
   });
-  it("scales coverage to the visible region, ignoring overscan", () => {
+  it("scales coverage to the visible region, ignoring overscan", async () => {
     const deep = Array.from({ length: 5 }, (_, index) =>
       read({ start: 80, end: 90, readName: `deep${index}`, strand: "-" }),
     );
     const config = withSections({ coverage: true });
-    const scaleMax = (visibleRegion: typeof props.visibleRegion) =>
-      markup("pack", { records: [read(), ...deep], reference: [] }, { config, visibleRegion })
+    const scaleMax = (element: Element) =>
+      element
         .querySelector('[data-bam-section="coverage"]')
         ?.getAttribute("data-scale-forward-max");
-    expect(scaleMax({ chromosome: "chr1", start: 0, end: 50 })).toBe("1");
-    expect(scaleMax({ chromosome: "chr1", start: 0, end: 100 })).toBe("5");
+    const view = await mount(
+      "pack",
+      { records: [read(), ...deep], reference: [] },
+      { config, visibleRegion: { chromosome: "chr1", start: 0, end: 50 } },
+    );
+    expect(scaleMax(view.content)).toBe("1");
+    await view.setView({ visibleRegion: { chromosome: "chr1", start: 0, end: 100 } });
+    expect(scaleMax(view.content)).toBe("5");
     const fixed = {
       ...config,
       coverage: {
@@ -437,21 +488,19 @@ describe("BAM sections", () => {
       },
     };
     expect(
-      markup("pack", { records: deep, reference: [] }, { config: fixed })
-        .querySelector('[data-bam-section="coverage"]')
-        ?.getAttribute("data-scale-forward-max"),
+      scaleMax(await markup("pack", { records: deep, reference: [] }, { config: fixed })),
     ).toBe("3");
   });
   it.each(["bars", "line"] as const)(
     "draws %s coverage on a symmetric strand scale and clips both sides equally",
-    (graph) => {
+    async (graph) => {
       const config = withSections({ coverage: true });
       config.coverage.graph = graph;
       const mixed = {
         records: [read(), read({ readName: "b" }), read({ readName: "reverse", strand: "-" })],
         reference: [],
       };
-      const depthYs = (element: HTMLElement, strand: "+" | "-") => {
+      const depthYs = (element: Element, strand: "+" | "-") => {
         const path = element
           .querySelector(`[data-bam-section="coverage"] path[data-strand="${strand}"]`)!
           .getAttribute("d")!;
@@ -459,29 +508,27 @@ describe("BAM sections", () => {
           ? [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]))
           : [...path.matchAll(/[ML] [\d.]+ ([\d.]+)/g)].map((match) => Number(match[1]));
       };
-      const auto = markup("pack", mixed, { config, width: 100 });
-      const coverage = auto.querySelector('[data-bam-section="coverage"]')!;
+      const view = await mount("pack", mixed, { config, width: 100 });
+      const coverage = view.content.querySelector('[data-bam-section="coverage"]')!;
       expect(coverage.getAttribute("data-scale-forward-max")).toBe("2");
       expect(coverage.querySelector("line")?.getAttribute("y1")).toBe("30");
-      expect(Math.min(...depthYs(auto, "+"))).toBe(0);
-      expect(Math.max(...depthYs(auto, "-"))).toBe(45);
-      const fixed = markup("pack", mixed, {
-        config: {
-          ...config,
-          coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 } },
-        },
-        width: 100,
+      expect(Math.min(...depthYs(view.content, "+"))).toBe(0);
+      expect(Math.max(...depthYs(view.content, "-"))).toBe(45);
+      await configure(view, {
+        ...config,
+        coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 } },
       });
-      expect(Math.min(...depthYs(fixed, "+"))).toBe(0);
-      expect(Math.max(...depthYs(fixed, "-"))).toBe(60);
-      const empty = markup("pack", { records: [], reference: [] }, { config, width: 100 });
-      expect(new Set(depthYs(empty, "+"))).toEqual(new Set([30]));
-      expect(new Set(depthYs(empty, "-"))).toEqual(new Set([30]));
+      expect(Math.min(...depthYs(view.content, "+"))).toBe(0);
+      expect(Math.max(...depthYs(view.content, "-"))).toBe(60);
+      await configure(view, config);
+      await view.setView({ data: { records: [], reference: [] } });
+      expect(new Set(depthYs(view.content, "+"))).toEqual(new Set([30]));
+      expect(new Set(depthYs(view.content, "-"))).toEqual(new Set([30]));
     },
   );
   it.each(["bars", "line"] as const)(
     "marks only overflowing %s coverage bins at both strand limits",
-    (graph) => {
+    async (graph) => {
       const config = withSections({ coverage: true });
       const mixed = {
         records: [
@@ -502,7 +549,8 @@ describe("BAM sections", () => {
           scale: { mode: "fixed" as const, forwardMax: 1, reverseMax: 1 },
         },
       };
-      const result = markup("pack", mixed, { config: fixed, width: 100 });
+      const view = await mount("pack", mixed, { config: fixed, width: 100 });
+      const result = view.content;
       expect(result.querySelectorAll('[data-bam-clamp="true"]')).toHaveLength(2);
       for (const [strand, edge, inward] of [
         ["+", 0, 2],
@@ -519,77 +567,75 @@ describe("BAM sections", () => {
           Array.from({ length: 10 }, (_, index) => [10.5 + index, edge, inward]),
         );
       }
-      expect(
-        markup("pack", mixed, { config, width: 100 }).querySelector('[data-bam-clamp="true"]'),
-      ).toBeNull();
-      const hidden = { ...fixed, coverage: { ...fixed.coverage, showClampIndicators: false } };
-      expect(
-        markup("pack", mixed, { config: hidden, width: 100 }).querySelector(
-          '[data-bam-clamp="true"]',
-        ),
-      ).toBeNull();
-      const custom = { ...fixed, coverage: { ...fixed.coverage, clampIndicatorColor: "#123456" } };
-      const customIndicators = markup("pack", mixed, {
-        config: custom,
-        width: 100,
-      }).querySelectorAll('[data-bam-clamp="true"]');
+      await configure(view, config);
+      expect(view.content.querySelector('[data-bam-clamp="true"]')).toBeNull();
+      await configure(view, {
+        ...fixed,
+        coverage: { ...fixed.coverage, showClampIndicators: false },
+      });
+      expect(view.content.querySelector('[data-bam-clamp="true"]')).toBeNull();
+      await configure(view, {
+        ...fixed,
+        coverage: { ...fixed.coverage, clampIndicatorColor: "#123456" },
+      });
+      const customIndicators = view.content.querySelectorAll('[data-bam-clamp="true"]');
       expect([...customIndicators].map((indicator) => indicator.getAttribute("stroke"))).toEqual([
         "#123456",
         "#123456",
       ]);
     },
   );
-  it.each(["bars", "line"] as const)("scales %s coverage independently by strand", (graph) => {
-    const config = withSections({ coverage: true });
-    const mixed = {
-      records: [
-        read(),
-        read({ readName: "forward2" }),
-        read({ readName: "reverse1", strand: "-" }),
-        read({ readName: "reverse2", strand: "-" }),
-      ],
-      reference: [],
-    };
-    const draw = (reverseMax?: number) =>
-      markup("pack", mixed, {
-        width: 100,
-        config: {
-          ...config,
-          coverage: {
-            ...config.coverage,
-            graph,
-            scale: {
-              mode: "fixed",
-              forwardMax: 1,
-              ...(reverseMax === undefined ? {} : { reverseMax }),
-            },
+  it.each(["bars", "line"] as const)(
+    "scales %s coverage independently by strand",
+    async (graph) => {
+      const config = withSections({ coverage: true });
+      const mixed = {
+        records: [
+          read(),
+          read({ readName: "forward2" }),
+          read({ readName: "reverse1", strand: "-" }),
+          read({ readName: "reverse2", strand: "-" }),
+        ],
+        reference: [],
+      };
+      const withScale = (reverseMax?: number) => ({
+        ...config,
+        coverage: {
+          ...config.coverage,
+          graph,
+          scale: {
+            mode: "fixed" as const,
+            forwardMax: 1,
+            ...(reverseMax === undefined ? {} : { reverseMax }),
           },
         },
       });
-    const result = draw(4);
-    const coverage = result.querySelector('[data-bam-section="coverage"]')!;
-    expect(coverage.getAttribute("data-scale-forward-max")).toBe("1");
-    expect(coverage.getAttribute("data-scale-reverse-max")).toBe("4");
-    const depths = (strand: "+" | "-") => {
-      const path = coverage
-        .querySelector(`path[data-strand="${strand}"]:not([data-bam-clamp])`)!
-        .getAttribute("d")!;
-      return graph === "bars"
-        ? [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]))
-        : [...path.matchAll(/[ML] [\d.]+ ([\d.]+)/g)].map((match) => Number(match[1]));
-    };
-    expect(Math.min(...depths("+"))).toBe(0);
-    expect(Math.max(...depths("-"))).toBe(45);
-    expect(coverage.querySelectorAll('[data-bam-clamp="true"]')).toHaveLength(1);
-    expect(coverage.querySelector('[data-bam-clamp="true"]')?.getAttribute("data-strand")).toBe(
-      "+",
-    );
-    const automaticReverse = draw().querySelector('[data-bam-section="coverage"]')!;
-    expect(automaticReverse.getAttribute("data-scale-forward-max")).toBe("1");
-    expect(automaticReverse.getAttribute("data-scale-reverse-max")).toBe("2");
-    expect(automaticReverse.querySelector('[data-bam-clamp="true"][data-strand="-"]')).toBeNull();
-  });
-  it("uses the selected coverage summary when deciding whether a bin is clamped", () => {
+      const view = await mount("pack", mixed, { width: 100, config: withScale(4) });
+      const coverage = view.content.querySelector('[data-bam-section="coverage"]')!;
+      expect(coverage.getAttribute("data-scale-forward-max")).toBe("1");
+      expect(coverage.getAttribute("data-scale-reverse-max")).toBe("4");
+      const depths = (strand: "+" | "-") => {
+        const path = coverage
+          .querySelector(`path[data-strand="${strand}"]:not([data-bam-clamp])`)!
+          .getAttribute("d")!;
+        return graph === "bars"
+          ? [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]))
+          : [...path.matchAll(/[ML] [\d.]+ ([\d.]+)/g)].map((match) => Number(match[1]));
+      };
+      expect(Math.min(...depths("+"))).toBe(0);
+      expect(Math.max(...depths("-"))).toBe(45);
+      expect(coverage.querySelectorAll('[data-bam-clamp="true"]')).toHaveLength(1);
+      expect(coverage.querySelector('[data-bam-clamp="true"]')?.getAttribute("data-strand")).toBe(
+        "+",
+      );
+      await configure(view, withScale());
+      const automaticReverse = view.content.querySelector('[data-bam-section="coverage"]')!;
+      expect(automaticReverse.getAttribute("data-scale-forward-max")).toBe("1");
+      expect(automaticReverse.getAttribute("data-scale-reverse-max")).toBe("2");
+      expect(automaticReverse.querySelector('[data-bam-clamp="true"][data-strand="-"]')).toBeNull();
+    },
+  );
+  it("uses the selected coverage summary when deciding whether a bin is clamped", async () => {
     const config = withSections({ coverage: true });
     const summarized = {
       records: [
@@ -607,21 +653,19 @@ describe("BAM sections", () => {
       ],
       reference: [],
     };
-    const draw = (aggregation: "mean" | "max") =>
-      markup("pack", summarized, {
-        width: 10,
-        config: {
-          ...config,
-          coverage: {
-            ...config.coverage,
-            aggregation,
-            scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 },
-          },
-        },
-      });
+    const summary = (aggregation: "mean" | "max") => ({
+      ...config,
+      coverage: {
+        ...config.coverage,
+        aggregation,
+        scale: { mode: "fixed" as const, forwardMax: 1, reverseMax: 1 },
+      },
+    });
     // The [10,20) bin has mean depth 1 and maximum depth 2.
-    expect(draw("mean").querySelector('[data-bam-clamp="true"]')).toBeNull();
-    const indicator = draw("max").querySelector('[data-bam-clamp="true"]')!;
+    const view = await mount("pack", summarized, { width: 10, config: summary("mean") });
+    expect(view.content.querySelector('[data-bam-clamp="true"]')).toBeNull();
+    await configure(view, summary("max"));
+    const indicator = view.content.querySelector('[data-bam-clamp="true"]')!;
     expect(indicator.getAttribute("data-strand")).toBe("+");
     expect(
       indicator
@@ -630,14 +674,13 @@ describe("BAM sections", () => {
         .map(Number),
     ).toEqual([1.5, 0, 0, 2]);
   });
-  it("shares strand colors across sections and keeps coincident junction support separate", () => {
+  it("shares strand colors across sections and keeps coincident junction support separate", async () => {
     const config = {
       ...withSections({ coverage: true, junctions: true, alignments: true }),
       strandColors: { forward: "#228844", reverse: "#8844cc" },
     };
-    const reverse = { ...spliced, readName: "reverse", strand: "-" as const };
-    const mixed = { ...data, records: [...data.records, reverse] };
-    const element = markup("pack", mixed, { config });
+    const view = await mount("pack", withReverse, { config });
+    const element = view.content;
     for (const [strand, color, support, name] of [
       ["+", "#228844", "2", "a"],
       ["-", "#8844cc", "1", "reverse"],
@@ -663,150 +706,86 @@ describe("BAM sections", () => {
       (label) => `${label.getAttribute("x")},${label.getAttribute("y")}`,
     );
     expect(new Set(labels).size).toBe(2);
-    const threshold = markup("pack", mixed, {
-      config: { ...config, junctions: { ...config.junctions, minimumSupport: 2 } },
-    });
-    expect(threshold.querySelectorAll("[data-junction]")).toHaveLength(1);
-    expect(threshold.querySelector("[data-junction]")?.getAttribute("data-strand")).toBe("+");
+    await configure(view, { ...config, junctions: { ...config.junctions, minimumSupport: 2 } });
+    expect(view.content.querySelectorAll("[data-junction]")).toHaveLength(1);
+    expect(view.content.querySelector("[data-junction]")?.getAttribute("data-strand")).toBe("+");
   });
-  it("clears a hovered junction when its strand falls below minimum support", () => {
+  it("clears a hovered junction when its strand falls below minimum support", async () => {
     const config = withSections({ junctions: true });
-    const mixed = {
-      ...data,
-      records: [...data.records, { ...spliced, readName: "reverse", strand: "-" as const }],
-    };
-    const element = document.createElement("div");
-    const root = createRoot(element);
-    const Renderer = bamModule.render.pack;
-    const draw = (minimumSupport: number) =>
-      act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                config={{ ...config, junctions: { ...config.junctions, minimumSupport } }}
-                data={mixed}
-              />
-            </svg>
-          </TestBrowser>,
-        ),
-      );
-    try {
-      draw(1);
-      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-      stubJunctionCoordinates(group);
-      const reverse = group.querySelector('[data-strand="-"]')!;
-      const reverseColor = reverse.querySelector("path")!.getAttribute("stroke");
-      act(() =>
-        reverse
-          .querySelector('path[pointer-events="stroke"]')!
-          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(reverse) })),
-      );
-      expect(hooks.show).toHaveBeenLastCalledWith(
-        expect.objectContaining({ kind: "junction", strand: "-", support: 1 }),
-        expect.anything(),
-      );
-      expect(reverse.querySelector("path")!.getAttribute("stroke")).not.toBe(reverseColor);
-      hooks.show.mockClear();
-      hooks.hide.mockClear();
+    const withMinimum = (minimumSupport: number) => ({
+      ...config,
+      junctions: { ...config.junctions, minimumSupport },
+    });
+    const view = await mount("pack", withReverse, { config: withMinimum(1) });
+    const group = view.content.querySelector<SVGGElement>("[data-junction-group]")!;
+    stubJunctionCoordinates(group);
+    const reverse = group.querySelector('[data-strand="-"]')!;
+    const reverseColor = reverse.querySelector("path")!.getAttribute("stroke");
+    expect(
+      await move(
+        view,
+        reverse.querySelector('path[pointer-events="stroke"]')!,
+        junctionPoint(reverse),
+      ),
+    ).toEqual(junctionTip("-", 1));
+    expect(reverse.querySelector("path")!.getAttribute("stroke")).not.toBe(reverseColor);
 
-      // The forward arc keeps the same group mounted while the pointer stays still.
-      draw(2);
-      expect(element.querySelector("[data-junction-group]")).toBe(group);
-      expect(group.querySelector('[data-strand="-"]')).toBeNull();
-      expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
-      expect(hooks.hide).toHaveBeenCalledTimes(1);
-      expect(hooks.show).not.toHaveBeenCalled();
+    // The forward arc keeps the same group mounted while the pointer stays still.
+    await configure(view, withMinimum(2));
+    expect(view.content.querySelector("[data-junction-group]")).toBe(group);
+    expect(group.querySelector('[data-strand="-"]')).toBeNull();
+    expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
+    expect(tooltip()).toBeNull();
 
-      // Restoring the strand must not restore its old hover selection.
-      draw(1);
-      expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
-        reverseColor,
-      );
-      expect(hooks.show).not.toHaveBeenCalled();
+    // Restoring the strand must not restore its old hover selection.
+    await configure(view, withMinimum(1));
+    expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
+      reverseColor,
+    );
+    expect(tooltip()).toBeNull();
 
-      draw(2);
-      const forward = group.querySelector('[data-strand="+"]')!;
-      act(() =>
-        forward
-          .querySelector('path[pointer-events="stroke"]')!
-          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(forward) })),
-      );
-      expect(hooks.show).toHaveBeenLastCalledWith(
-        expect.objectContaining({ kind: "junction", strand: "+", support: 2 }),
-        expect.anything(),
-      );
-    } finally {
-      act(() => root.unmount());
-    }
+    await configure(view, withMinimum(2));
+    const forward = group.querySelector('[data-strand="+"]')!;
+    expect(
+      await move(
+        view,
+        forward.querySelector('path[pointer-events="stroke"]')!,
+        junctionPoint(forward),
+      ),
+    ).toEqual(junctionTip("+", 2));
   });
   it.each([10, 23, 100])(
     "selects the nearer coincident junction at height %i regardless of the hit target",
-    (height) => {
+    async (height) => {
       const config = withSections({ junctions: true });
       config.junctions.height = height;
-      const element = document.createElement("div");
-      const root = createRoot(element);
-      const Renderer = bamModule.render.pack;
-      const draw = (currentConfig = config) =>
-        act(() =>
-          root.render(
-            <TestBrowser basePairDetail>
-              <svg>
-                <Renderer
-                  {...props}
-                  config={currentConfig}
-                  data={{
-                    ...data,
-                    records: [...data.records, { ...spliced, readName: "reverse", strand: "-" }],
-                  }}
-                />
-              </svg>
-            </TestBrowser>,
-          ),
+      const view = await mount("pack", withReverse, { config });
+      const group = view.content.querySelector<SVGGElement>("[data-junction-group]")!;
+      stubJunctionCoordinates(group);
+      for (const strand of ["+", "-"] as const) {
+        const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+        // Either overlapping hit path can receive the event. Its strand must
+        // not override the curve nearest the actual pointer coordinates.
+        const other = group.querySelector(
+          `[data-strand="${strand === "+" ? "-" : "+"}"] path[pointer-events="stroke"]`,
+        )!;
+        expect(await move(view, other, junctionPoint(arc))).toEqual(
+          junctionTip(strand, strand === "+" ? 2 : 1),
         );
-      try {
-        draw();
-        const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-        stubJunctionCoordinates(group);
-        for (const strand of ["+", "-"]) {
-          const arc = group.querySelector(`[data-strand="${strand}"]`)!;
-          // Either overlapping hit path can receive the event. Its strand must
-          // not override the curve nearest the actual pointer coordinates.
-          const other = group.querySelector(
-            `[data-strand="${strand === "+" ? "-" : "+"}"] path[pointer-events="stroke"]`,
-          )!;
-          act(() =>
-            other.dispatchEvent(
-              new MouseEvent("mousemove", {
-                bubbles: true,
-                ...junctionPoint(arc),
-              }),
-            ),
-          );
-          expect(hooks.show).toHaveBeenLastCalledWith(
-            expect.objectContaining({ kind: "junction", strand, support: strand === "+" ? 2 : 1 }),
-            expect.anything(),
-          );
-        }
-        // Rebuilding the arc geometry on a palette update must retain the
-        // stationary pointer's chosen strand highlight.
-        const palette = { ...config, strandColors: { ...config.strandColors, reverse: "#3366cc" } };
-        draw(palette);
-        const reversePath = group.querySelector('[data-strand="-"] path')!;
-        expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
-        act(() => group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-        expect(hooks.hide).toHaveBeenCalled();
-      } finally {
-        act(() => root.unmount());
       }
+      // Rebuilding the arc geometry on a palette update must retain the
+      // stationary pointer's chosen strand highlight.
+      await configure(view, {
+        ...config,
+        strandColors: { ...config.strandColors, reverse: "#3366cc" },
+      });
+      const reversePath = group.querySelector('[data-strand="-"] path')!;
+      expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
+      await view.settle(() => group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+      expect(tooltip()).toBeNull();
     },
   );
-  it("selects visible curves whose peaks are offscreen and prefers forward at the shared endpoint", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
-    const Renderer = bamModule.render.pack;
+  it("selects visible curves whose peaks are offscreen and prefers forward at the shared endpoint", async () => {
     const long = read({
       start: 0,
       end: 10010,
@@ -817,120 +796,72 @@ describe("BAM sections", () => {
       ],
     });
     const region = { chromosome: "chr1", start: 5, end: 105 };
-    try {
-      act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                region={region}
-                visibleRegion={region}
-                width={1000}
-                config={withSections({ junctions: true })}
-                data={{
-                  records: [long, { ...long, readName: "reverse", strand: "-" }],
-                  reference: [],
-                }}
-              />
-            </svg>
-          </TestBrowser>,
-        ),
+    const view = await mount(
+      "pack",
+      { records: [long, { ...long, readName: "reverse", strand: "-" }], reference: [] },
+      { region, visibleRegion: region, width: 1000, config: withSections({ junctions: true }) },
+    );
+    const group = view.content.querySelector<SVGGElement>("[data-junction-group]")!;
+    stubJunctionCoordinates(group);
+    const forward = group.querySelector('[data-strand="+"]')!;
+    const reverse = group.querySelector('[data-strand="-"]')!;
+    const forwardPoint = junctionPoint(forward, 500);
+    const reversePoint = junctionPoint(reverse, 500);
+    // Their peaks are far outside the viewport; at the visible midpoint
+    // these curves are less than one pixel apart and their hit areas overlap.
+    expect(Math.abs(forwardPoint.clientY - reversePoint.clientY)).toBeLessThan(1);
+    for (const [arc, point, strand] of [
+      [reverse, forwardPoint, "+"],
+      [forward, reversePoint, "-"],
+      [reverse, { clientX: 500, clientY: (forwardPoint.clientY + reversePoint.clientY) / 2 }, "+"],
+      [reverse, { clientX: 0, clientY: 99 }, "+"],
+    ] as const) {
+      expect(await move(view, arc.querySelector('path[pointer-events="stroke"]')!, point)).toEqual(
+        junctionTip(strand, 1),
       );
-      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-      stubJunctionCoordinates(group);
-      const forward = group.querySelector('[data-strand="+"]')!;
-      const reverse = group.querySelector('[data-strand="-"]')!;
-      const forwardPoint = junctionPoint(forward, 500);
-      const reversePoint = junctionPoint(reverse, 500);
-      // Their peaks are far outside the viewport; at the visible midpoint
-      // these curves are less than one pixel apart and their hit areas overlap.
-      expect(Math.abs(forwardPoint.clientY - reversePoint.clientY)).toBeLessThan(1);
-      for (const [arc, point, strand] of [
-        [reverse, forwardPoint, "+"],
-        [forward, reversePoint, "-"],
-        [
-          reverse,
-          { clientX: 500, clientY: (forwardPoint.clientY + reversePoint.clientY) / 2 },
-          "+",
-        ],
-        [reverse, { clientX: 0, clientY: 99 }, "+"],
-      ] as const) {
-        act(() =>
-          arc
-            .querySelector('path[pointer-events="stroke"]')!
-            .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point })),
-        );
-        expect(hooks.show).toHaveBeenLastCalledWith(
-          expect.objectContaining({ kind: "junction", strand, support: 1 }),
-          expect.anything(),
-        );
-      }
-    } finally {
-      act(() => root.unmount());
     }
   });
-  it("keeps packed reads on their rows while panning and when new data loads", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
-    const Renderer = bamModule.render.pack;
+  it("keeps packed reads on their rows while panning and when new data loads", async () => {
+    const config = withSections({ alignments: true });
+    const first = {
+      records: [
+        read({ readName: "left", start: 10, end: 60 }),
+        read({ readName: "long", start: 20, end: 280 }),
+        read({ readName: "right", start: 200, end: 250 }),
+      ],
+      reference: [],
+    };
+    const view = await mount("pack", first, {
+      config,
+      region: { chromosome: "chr1", start: 0, end: 300 },
+      visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
+    });
     const rowOf = () =>
       Object.fromEntries(
-        [...element.querySelectorAll("[data-bam-read]")].map((node) => [
+        [...view.content.querySelectorAll("[data-bam-read]")].map((node) => [
           node.getAttribute("data-bam-read"),
           node.getAttribute("data-bam-row"),
         ]),
       );
-    const config = withSections({ alignments: true });
-    const draw = (data: BamData, visibleStart: number) =>
-      act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                config={config}
-                region={{ chromosome: "chr1", start: 0, end: 300 }}
-                visibleRegion={{ chromosome: "chr1", start: visibleStart, end: visibleStart + 100 }}
-                data={data}
-              />
-            </svg>
-          </TestBrowser>,
-        ),
-      );
-    try {
-      const first = {
+    const before = rowOf();
+    await view.setView({ visibleRegion: { chromosome: "chr1", start: 180, end: 280 } });
+    expect(rowOf()).toEqual(before);
+    // New data drops "left" and adds a read that would otherwise take its row.
+    await view.setView({
+      data: {
         records: [
-          read({ readName: "left", start: 10, end: 60 }),
           read({ readName: "long", start: 20, end: 280 }),
           read({ readName: "right", start: 200, end: 250 }),
+          read({ readName: "new", start: 5, end: 15 }),
         ],
         reference: [],
-      };
-      draw(first, 0);
-      const before = rowOf();
-      draw(first, 180);
-      expect(rowOf()).toEqual(before);
-      // New data drops "left" and adds a read that would otherwise take its row.
-      draw(
-        {
-          records: [
-            read({ readName: "long", start: 20, end: 280 }),
-            read({ readName: "right", start: 200, end: 250 }),
-            read({ readName: "new", start: 5, end: 15 }),
-          ],
-          reference: [],
-        },
-        180,
-      );
-      expect(rowOf()).toMatchObject({ long: before.long, right: before.right });
-    } finally {
-      act(() => root.unmount());
-    }
+      },
+    });
+    expect(rowOf()).toMatchObject({ long: before.long, right: before.right });
   });
   it.each(["mean", "max"] as const)(
     "excludes partial off-screen bins from %s autoscaling",
-    (aggregation) => {
+    async (aggregation) => {
       const config = withSections({ coverage: true });
       config.coverage.aggregation = aggregation;
       const records = [
@@ -947,201 +878,173 @@ describe("BAM sections", () => {
           }),
         ),
       ];
-      const data = { records, reference: [] };
-      const draw = (start: number, scale = config.coverage.scale) =>
-        markup("pack", data, {
-          config: { ...config, coverage: { ...config.coverage, scale } },
-          width: 10,
-          visibleRegion: { chromosome: "chr1", start, end: start + 70 },
-        });
+      const scaleMax = () =>
+        view.content
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-forward-max");
+      const visible = (start: number) => ({ chromosome: "chr1", start, end: start + 70 });
       // The render bin [10,20) straddles the viewport edge at 15. Its hidden peak
       // must not raise the scale, even though overscan remains ready for panning.
-      expect(
-        draw(15)
-          .querySelector('[data-bam-section="coverage"]')
-          ?.getAttribute("data-scale-forward-max"),
-      ).toBe("1");
-      expect(
-        draw(5)
-          .querySelector('[data-bam-section="coverage"]')
-          ?.getAttribute("data-scale-forward-max"),
-      ).toBe("10");
-      expect(
-        draw(15, { mode: "fixed", forwardMax: 3, reverseMax: 3 })
-          .querySelector('[data-bam-section="coverage"]')
-          ?.getAttribute("data-scale-forward-max"),
-      ).toBe("3");
-      expect(hooks.height).toHaveBeenLastCalledWith("bam", 60);
+      const view = await mount(
+        "pack",
+        { records, reference: [] },
+        { config, width: 10, visibleRegion: visible(15) },
+      );
+      expect(scaleMax()).toBe("1");
+      await view.setView({ visibleRegion: visible(5) });
+      expect(scaleMax()).toBe("10");
+      await view.setView({ visibleRegion: visible(15) });
+      await configure(view, {
+        ...config,
+        coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 3, reverseMax: 3 } },
+      });
+      expect(scaleMax()).toBe("3");
+      expect(heightOf(view)).toBe(60);
     },
   );
-  it("repacks colliding labels after resize and respects a reduced row limit", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
-    const Renderer = bamModule.render.pack;
+  it("repacks colliding labels after resize and respects a reduced row limit", async () => {
     const config = withSections({ alignments: true });
-    const data = {
-      records: [
-        read({ readName: "long_read_name", start: 10, end: 20 }),
-        read({ readName: "next_read", start: 40, end: 50 }),
-      ],
-      reference: [],
-    };
-    const draw = (width: number, currentConfig = config) =>
-      act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer {...props} config={currentConfig} width={width} data={data} />
-            </svg>
-          </TestBrowser>,
-        ),
-      );
-    try {
-      draw(1500);
-      expect(rowCount(element)).toBe(1);
-      // Keep data and config identities stable while labels outgrow the gap.
-      draw(200);
-      expect(rowCount(element)).toBe(2);
-      expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(2);
-      draw(200, { ...config, alignments: { ...config.alignments, maxRows: 1 } });
-      expect(rowCount(element)).toBe(1);
-      expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(1);
-    } finally {
-      act(() => root.unmount());
-    }
+    const view = await mount(
+      "pack",
+      {
+        records: [
+          read({ readName: "long_read_name", start: 10, end: 20 }),
+          read({ readName: "next_read", start: 40, end: 50 }),
+        ],
+        reference: [],
+      },
+      { config, width: 1500 },
+    );
+    expect(rowCount(view.content)).toBe(1);
+    // Keep data and config identities stable while labels outgrow the gap.
+    await view.setView({ width: 200 });
+    expect(rowCount(view.content)).toBe(2);
+    expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(2);
+    await configure(view, { ...config, alignments: { ...config.alignments, maxRows: 1 } });
+    expect(rowCount(view.content)).toBe(1);
+    expect(view.content.querySelectorAll("[data-bam-read]")).toHaveLength(1);
   });
-  it("draws at most maxRows alignment rows and discloses the rest while counting them", () => {
+  it("draws at most maxRows alignment rows and discloses the rest while counting them", async () => {
     const stacked = Array.from({ length: 5 }, (_, index) => read({ readName: `r${index}` }));
     const config = {
       ...withSections({ coverage: true, alignments: true }),
       alignments: { ...defaults.alignments, maxRows: 2 },
     };
-    for (const display of ["pack", "full"]) {
-      const element = markup(display, { records: stacked, reference: [] }, { config });
-      expect(rowCount(element)).toBe(2);
-      expect(hooks.height).toHaveBeenLastCalledWith("bam", 60 + 4 + 2 * 14 + 14);
+    for (const display of ["pack", "full"] as const) {
+      const view = await mount(display, { records: stacked, reference: [] }, { config });
+      expect(rowCount(view.content)).toBe(2);
+      expect(heightOf(view)).toBe(60 + 4 + 2 * 14 + 14);
       expect(
-        element
+        view.content
           .querySelector('[data-bam-section="coverage"]')
           ?.getAttribute("data-scale-forward-max"),
       ).toBe("5");
     }
   });
-  it("sends coverage bins and junctions to the tooltip without calling read interactions", () => {
-    const element = document.createElement("div");
-    const root = createRoot(element);
-    const Renderer = bamModule.render.pack;
-    try {
-      act(() =>
-        root.render(
-          <TestBrowser basePairDetail>
-            <svg>
-              <Renderer
-                {...props}
-                config={withSections({ coverage: true, junctions: true })}
-                data={{
-                  ...data,
-                  records: [...data.records, { ...spliced, strand: "-", readName: "reverse" }],
-                }}
-              />
-            </svg>
-          </TestBrowser>,
-        ),
-      );
-      const overlays = [
-        ...element.querySelectorAll<SVGRectElement>(
-          '[data-bam-section="coverage"] rect[pointer-events="all"]',
-        ),
-      ];
+  it("sends coverage bins and junctions to the tooltip without calling read interactions", async () => {
+    const interaction = { onClick: vi.fn(), onHover: vi.fn(), onLeave: vi.fn() };
+    const view = await mount(
+      "pack",
+      withReverse,
+      { config: withSections({ coverage: true, junctions: true }) },
+      interaction,
+    );
+    const overlays = [
+      ...view.content.querySelectorAll<SVGRectElement>(
+        '[data-bam-section="coverage"] rect[pointer-events="all"]',
+      ),
+    ];
+    for (const overlay of overlays)
+      overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
+    const [forwardCoverage, reverseCoverage] = await (async () => {
+      const texts = [];
       for (const overlay of overlays)
-        overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
-      act(() => {
-        for (const overlay of overlays)
-          overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
-      });
-      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
-      // The junction section starts below the coverage section. The inverse
-      // screen transform converts pointer coordinates into its local space.
-      group.getScreenCTM = () =>
-        ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: -64 }) }) as DOMMatrix;
-      for (const strand of ["+", "-"]) {
-        const arc = group.querySelector(`[data-strand="${strand}"]`)!;
-        const point = junctionPoint(arc);
-        act(() =>
-          arc.querySelector('path[pointer-events="stroke"]')!.dispatchEvent(
-            new MouseEvent("mousemove", {
-              bubbles: true,
-              clientX: point.clientX,
-              clientY: point.clientY + 64,
-            }),
-          ),
-        );
-      }
-      expect(hooks.show.mock.calls[0][0]).toMatchObject({
-        kind: "coverage",
-        strand: "+",
-        start: 10,
-        end: 11,
-        max: 2,
-      });
-      expect(hooks.show.mock.calls[1][0]).toMatchObject({ kind: "coverage", strand: "-", max: 1 });
-      expect(hooks.show.mock.calls[2][0]).toMatchObject({
-        kind: "junction",
-        strand: "+",
-        support: 2,
-      });
-      expect(hooks.show.mock.calls[3][0]).toMatchObject({
-        kind: "junction",
-        strand: "-",
-        support: 1,
-      });
-      expect(hooks.hover).not.toHaveBeenCalled();
-    } finally {
-      act(() => root.unmount());
+        texts.push(await move(view, overlay, { clientX: 160, clientY: 0 }));
+      return texts;
+    })();
+    expect(forwardCoverage).toBe("CoverageLocationchr1:11–11Strand+ (forward)Depth2 alignments");
+    expect(reverseCoverage).toContain("Strand- (reverse)Depth1 alignments");
+    const group = view.content.querySelector<SVGGElement>("[data-junction-group]")!;
+    // The junction section starts below the coverage section. The inverse
+    // screen transform converts pointer coordinates into its local space.
+    group.getScreenCTM = () =>
+      ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: -64 }) }) as DOMMatrix;
+    for (const [strand, support] of [
+      ["+", 2],
+      ["-", 1],
+    ] as const) {
+      const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+      const point = junctionPoint(arc);
+      expect(
+        await move(view, arc.querySelector('path[pointer-events="stroke"]')!, {
+          clientX: point.clientX,
+          clientY: point.clientY + 64,
+        }),
+      ).toEqual(junctionTip(strand, support));
     }
+    expect(interaction.onHover).not.toHaveBeenCalled();
   });
-  it("labels per-base depth separately from summarized coverage in tooltips", () => {
-    const tooltip = (item: Parameters<typeof BamTooltip>[0]["item"]) =>
-      renderToStaticMarkup(
-        <svg>
-          <BamTooltip item={item} />
-        </svg>,
-      );
-    const base = {
-      kind: "coverage",
-      strand: "+",
-      chromosome: "chr1",
-      start: 10,
-      mean: 2,
-      max: 2,
-    } as const;
-    expect(tooltip({ ...base, end: 11 })).toContain("Depth");
-    expect(tooltip({ ...base, end: 11 })).toContain("+ (forward)");
-    expect(tooltip({ ...base, end: 11, strand: "-" })).toContain("- (reverse)");
-    expect(
-      tooltip({
-        kind: "junction",
-        strand: "-",
-        chromosome: "chr1",
-        start: 15,
-        end: 35,
-        support: 1,
-      }),
-    ).toContain("- (reverse)");
-    expect(tooltip({ ...base, end: 11 })).not.toContain("Mean depth");
-    const summary = tooltip({ ...base, end: 20, mean: 1.25 });
-    expect(summary).toContain("Coverage across 10 bases");
+  it("labels per-base depth separately from summarized coverage in tooltips", async () => {
+    const config = withSections({ coverage: true, junctions: true });
+    const view = await mount("pack", withReverse, { config });
+    const coverageAt = async (strand: "+" | "-", clientX: number) => {
+      const overlay = view.content.querySelectorAll<SVGRectElement>(
+        '[data-bam-section="coverage"] rect[pointer-events="all"]',
+      )[strand === "+" ? 0 : 1];
+      overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
+      return move(view, overlay, { clientX, clientY: 0 });
+    };
+    // One-base bins at 15 pixels per base.
+    const perBase = await coverageAt("+", 160);
+    expect(perBase).toContain("Depth");
+    expect(perBase).toContain("+ (forward)");
+    expect(perBase).not.toContain("Mean depth");
+    expect(await coverageAt("-", 160)).toContain("- (reverse)");
+    const group = view.content.querySelector<SVGGElement>("[data-junction-group]")!;
+    group.getScreenCTM = () =>
+      ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: -64 }) }) as DOMMatrix;
+    for (const [strand, text] of [
+      ["-", "- (reverse)"],
+      ["+", "2 alignments"],
+    ] as const) {
+      const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+      const point = junctionPoint(arc);
+      expect(
+        await move(view, arc.querySelector('path[pointer-events="stroke"]')!, {
+          clientX: point.clientX,
+          clientY: point.clientY + 64,
+        }),
+      ).toContain(text);
+    }
+    // Twenty-base bins: [0,20) holds 20 bases of depth 1 and 5 of depth 2, a mean of 1.25.
+    await view.unmount();
+    const summarized = await mount(
+      "pack",
+      {
+        records: [
+          read({
+            start: 0,
+            end: 20,
+            cigar: [{ op: "M", length: 20, sequenceOffset: 0, referenceOffset: 0 }],
+          }),
+          read({
+            readName: "short",
+            start: 5,
+            end: 10,
+            cigar: [{ op: "M", length: 5, sequenceOffset: 0, referenceOffset: 0 }],
+          }),
+        ],
+        reference: [],
+      },
+      { config: withSections({ coverage: true }), width: 5 },
+    );
+    const overlay = summarized.content.querySelector<SVGRectElement>(
+      '[data-bam-section="coverage"] rect[pointer-events="all"]',
+    )!;
+    overlay.getBoundingClientRect = () => ({ left: 0, width: 5 }) as DOMRect;
+    const summary = await move(summarized, overlay, { clientX: 0.5, clientY: 0 });
+    expect(summary).toContain("Coverage across 20 bases");
     expect(summary).toContain("Mean depth");
     expect(summary).toContain("1.25");
-    expect(
-      tooltip({
-        kind: "junction",
-        strand: "+",
-        chromosome: "chr1",
-        start: 15,
-        end: 35,
-        support: 2,
-      }),
-    ).toContain("2 alignments");
   });
 });
