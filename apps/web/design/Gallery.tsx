@@ -3,12 +3,16 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useTheme, type PaletteColor } from "@mui/material/styles";
+import Add from "@mui/icons-material/Add";
+import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
 import Download from "@mui/icons-material/Download";
 import Sort from "@mui/icons-material/Sort";
 import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
 import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
 import { brand, navigation } from "../composition/navigation";
+import { EmptyState } from "../shared/ui/EmptyState";
 import { NavRail } from "../shared/ui/NavRail";
+import { SectionHeader } from "../shared/ui/SectionHeader";
 import { StatusTag } from "../shared/ui/StatusTag";
 
 // A browser store for the toolbar preview, as in the UI package's ControlToolbar docs.
@@ -50,6 +54,28 @@ export function Gallery() {
           <StatusTag label="Not saved" tone="error" />
           <StatusTag label="Unsaved" />
         </Row>
+      </Section>
+      <Section title="SectionHeader" source="shared/ui/SectionHeader.tsx">
+        {/* Closed, then with the first action's part open. */}
+        {[false, true].map((expanded) => (
+          <Box key={String(expanded)} sx={{ width: 280, p: 1.5, bgcolor: "background.paper" }}>
+            <SectionHeader
+              title="Regions"
+              actions={[
+                { label: "Add region", icon: <Add />, expanded },
+                { label: "Add group", icon: <CreateNewFolder /> },
+              ]}
+            />
+          </Box>
+        ))}
+      </Section>
+      <Section title="EmptyState" source="shared/ui/EmptyState.tsx">
+        <Box sx={{ width: 280, p: 1.5, bgcolor: "background.paper" }}>
+          <EmptyState
+            title="No regions yet"
+            description="Add the current view, or enter coordinates, to save a region."
+          />
+        </Box>
       </Section>
       <Section
         title="ControlToolbar"

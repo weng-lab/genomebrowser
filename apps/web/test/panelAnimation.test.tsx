@@ -101,7 +101,7 @@ it("makes navigation instant during a toggle and restores CSS motion after paint
   expect(transition()).toBe("none");
   paintFrame();
   expect(transition()).toContain("width");
-  expect(getComputedStyle(container!.querySelector("#left-panel")!).width).toBe("240px");
+  expect(getComputedStyle(container!.querySelector("#left-panel")!).width).toBe("300px");
 });
 
 it("keeps resizing instant and restores motion for later toggles", () => {
@@ -123,7 +123,7 @@ it("keeps resizing instant and restores motion for later toggles", () => {
   act(() => {
     handle.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
   });
-  expect(handle.getAttribute("aria-valuenow")).toBe("240");
+  expect(handle.getAttribute("aria-valuenow")).toBe("300");
   expect(transition()).toBe("none");
 });
 

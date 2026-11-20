@@ -1,6 +1,7 @@
 "use client";
 
 import Add from "@mui/icons-material/Add";
+import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
 import CreateNewFolderOutlined from "@mui/icons-material/CreateNewFolderOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import EditOutlined from "@mui/icons-material/EditOutlined";
@@ -27,18 +28,28 @@ import {
   type BrowserStoreInstance,
   type Highlight,
 } from "@weng-lab/genomebrowser";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useSession } from "../../../sessions/SessionProvider";
 import type { RegionGroup } from "../regionGroupSchema";
 import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
-import { regionName, regionOf, sameRegion, saveRegion, setRegionsHidden } from "../regions";
+import { EmptyState } from "../../../../shared/ui/EmptyState";
+import { SectionHeader } from "../../../../shared/ui/SectionHeader";
+import {
+  nextRegionName,
+  regionName,
+  regionOf,
+  sameRegion,
+  saveRegion,
+  setRegionsHidden,
+} from "../regions";
+import { AddRegionForm } from "./AddRegionForm";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { GroupDialog } from "./GroupDialog";
 import { listSx, RegionGroupSection } from "./RegionGroup";
 import { RegionDialog } from "./RegionDialog";
 
 /**
- * The open session's saved regions: save the current view, go to, edit, hide, group, or
+ * The open session's saved regions: add the current view, go to, edit, hide, group, or
  * delete one, and delete them all. Groups collapse and expand.
  */
 export function RegionsPanel() {
@@ -94,29 +105,55 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const highlights = useBrowserStore((state) => state.highlights);
   const groups = useRegionGroupStore((state) => state.groups);
   const stores = { browserStore, regionGroupStore };
+  const [adding, setAdding] = useState(false);
+  const addButton = useRef<HTMLButtonElement>(null);
+  const formId = useId();
+  // Returns focus to the button that opened the form, which would otherwise be lost with it.
+  const closeForm = () => {
+    setAdding(false);
+    addButton.current?.focus();
+  };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
-      <Typography variant="subtitle2" component="h3" sx={{ px: 1.5, pt: 1.5 }}>
-        Regions
-      </Typography>
-      <Box sx={{ p: 1 }}>
-        <Button
-          fullWidth
-          variant="outlined"
-          color="inherit"
-          startIcon={<Add />}
-          onClick={() => saveRegion(browserStore, browserStore.getState().region)}
-          sx={panelButtonSx}
-        >
-          Save current region
-        </Button>
+      <Box sx={{ px: 1.5, pt: 1.5, pb: 1 }}>
+        <SectionHeader
+          title="Regions"
+          actions={[
+            {
+              label: "Add region",
+              icon: <Add />,
+              onClick: () => setAdding(!adding),
+              expanded: adding,
+              controls: formId,
+              ref: addButton,
+            },
+            // Adding a group from here comes with its own design.
+            { label: "Add group", icon: <CreateNewFolder /> },
+          ]}
+        />
       </Box>
+      {adding && (
+        <Box sx={{ px: 1.5, pb: 1.5 }}>
+          <AddRegionForm
+            id={formId}
+            defaultName={nextRegionName(highlights)}
+            onAdd={(name) => {
+              saveRegion(browserStore, browserStore.getState().region, name);
+              closeForm();
+            }}
+            onCancel={closeForm}
+          />
+        </Box>
+      )}
       <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", px: 1 }}>
         {highlights.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ px: 0.5, py: 1 }}>
-            No saved regions yet.
-          </Typography>
+          <Box sx={{ px: 1 }}>
+            <EmptyState
+              title="No regions yet"
+              description="Add the current view, or enter coordinates, to save a region."
+            />
+          </Box>
         ) : (
           <List aria-label="Saved regions" disablePadding sx={listSx}>
             {rowsOf(highlights, groups).map((row) =>
@@ -133,12 +170,9 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
           </List>
         )}
       </Box>
-      <Box sx={{ px: 1, pt: 1 }}>
+      <Box sx={{ p: 1, pb: 1.5 }}>
         <DeleteAllButton browserStore={browserStore} disabled={highlights.length === 0} />
       </Box>
-      <Typography variant="caption" color="text.secondary" sx={{ px: 1.5, py: 1.25 }}>
-        Regions save with this session.
-      </Typography>
     </Box>
   );
 }

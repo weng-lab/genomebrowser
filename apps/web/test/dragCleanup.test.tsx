@@ -101,7 +101,7 @@ it.each(["pointerup", "pointercancel", "lostpointercapture", "blur", "unmount"])
     expect(document.body.style.userSelect).toBe("none");
     pointer(handle, "pointermove", 320);
     const dragFrame = nextFrame;
-    expect(handle.getAttribute("aria-valuenow")).toBe("240");
+    expect(handle.getAttribute("aria-valuenow")).toBe("300");
 
     if (ending === "unmount") {
       act(() => root?.unmount());
@@ -122,7 +122,7 @@ it.each(["pointerup", "pointercancel", "lostpointercapture", "blur", "unmount"])
     expect(document.body.style.getPropertyPriority("cursor")).toBe("important");
     expect(document.body.style.getPropertyValue("user-select")).toBe("text");
     expect(document.body.style.getPropertyPriority("user-select")).toBe("important");
-    expect(handle.getAttribute("aria-valuenow")).toBe(ending === "pointerup" ? "300" : "240");
+    expect(handle.getAttribute("aria-valuenow")).toBe(ending === "pointerup" ? "360" : "300");
     if (ending !== "unmount") pointer(handle, "pointermove", 400);
     expect(frames.size).toBe(0);
   },

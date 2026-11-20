@@ -1,5 +1,4 @@
 import {
-  createHighlightId,
   type BrowserHighlightMutationResult,
   type BrowserStoreInstance,
   type GenomicRegion,
@@ -16,12 +15,24 @@ import {
 /** Colors new regions take in turn. */
 const regionColors = ["#1976d2", "#f59e0b", "#2e7d32", "#9c27b0", "#d32f2f", "#00838f"];
 
-/** Saves `region` as a new region named by its coordinates, with the next color in turn. */
-export function saveRegion(browserStore: BrowserStoreInstance, region: GenomicRegion) {
+/**
+ * The name a new region takes when it is not given one: “Region” and the number after the
+ * highest one taken, so it never repeats a name in that form.
+ */
+export function nextRegionName(highlights: readonly Highlight[]) {
+  const taken = highlights.map((highlight) => /^Region (\d+)$/.exec(regionName(highlight)));
+  return `Region ${Math.max(0, ...taken.map((match) => (match ? Number(match[1]) : 0))) + 1}`;
+}
+
+/**
+ * Saves `region` as a new region named `name`, or `nextRegionName` when it is blank, with the
+ * next color in turn.
+ */
+export function saveRegion(browserStore: BrowserStoreInstance, region: GenomicRegion, name = "") {
   const { highlights, addHighlight } = browserStore.getState();
   addHighlight({
     id: crypto.randomUUID(),
-    name: createHighlightId(region, highlights),
+    name: name.trim() || nextRegionName(highlights),
     region,
     color: regionColors[highlights.length % regionColors.length],
     type: "filled",

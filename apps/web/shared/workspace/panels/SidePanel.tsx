@@ -5,14 +5,9 @@ import Typography from "@mui/material/Typography";
 import { useId } from "react";
 import { titleRowSx } from "../frame/layout";
 import { primarySurfaceSx } from "../../ui/theme";
-import { usePanelState } from "./panelState";
+import { sidePanelSizes, usePanelState } from "./panelState";
 import { Resizable } from "./Resizable";
 import type { Side, WorkspacePanel } from "../types";
-
-const sidePanelSizes = {
-  left: { defaultWidth: 240, minWidth: 180, maxWidth: 480 },
-  right: { defaultWidth: 360, minWidth: 280, maxWidth: 720 },
-} satisfies Record<Side, { defaultWidth: number; minWidth: number; maxWidth: number }>;
 
 type SidePanelProps = {
   side: Side;

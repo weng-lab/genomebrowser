@@ -41,6 +41,22 @@ afterEach(() => {
 
 const saved = () => server.stored.get(id)!.snapshot.browser;
 const cards = () => [...container!.querySelectorAll('[aria-label="Saved regions"] li')];
+const first = "chr11:5,225,001-5,305,000";
+const second = `${first} (2)`;
+const regionAt = (id: string, name: string, color: string) =>
+  ({ id, name, region: start, color, type: "filled" }) as const;
+
+/** Open a session saved with `highlights`, at `start`, and wait for its regions to show. */
+async function openWithRegions(...highlights: ReturnType<typeof regionAt>[]) {
+  const defaults = snapshot(createStores("hg38")!);
+  id = server.add("Regions", {
+    ...defaults,
+    browser: { ...defaults.browser, region: start, highlights },
+  });
+  route.reset(`/browser/${id}`);
+  await act(async () => root!.render(<WorkspaceApp />));
+  await vi.waitFor(() => expect(cards()).toHaveLength(highlights.length));
+}
 
 async function click(element: Element | null | undefined) {
   await act(async () => (element as HTMLElement).click());
@@ -60,27 +76,11 @@ async function chooseAction(region: string, action: string) {
   );
 }
 
-it("saves, edits, hides, visits, and deletes regions, saving them with the session", async () => {
-  await act(async () => root!.render(<WorkspaceApp />));
-  const save = await vi.waitFor(() => {
-    const button = [...container!.querySelectorAll("#left-panel button")].find(
-      (button) => button.textContent === "Save current region",
-    );
-    expect(button).toBeDefined();
-    return button;
-  });
-
-  await click(save);
-  expect(cards().map((card) => card.textContent)).toEqual([
-    "chr11:5,225,001-5,305,000chr11:5,225,001-5,305,000",
-  ]);
+it("edits, hides, visits, and deletes regions, saving them with the session", async () => {
+  await openWithRegions(regionAt("r1", first, "#1976d2"));
+  expect(cards().map((card) => card.textContent)).toEqual([first + first]);
   expect(cards()[0].querySelector('[aria-current="location"]')).not.toBeNull();
-  await vi.waitFor(() =>
-    expect(saved().highlights).toEqual([
-      expect.objectContaining({ name: "chr11:5,225,001-5,305,000", region: start, type: "filled" }),
-    ]),
-  );
-  const regionId = saved().highlights[0].id;
+  const regionId = "r1";
 
   await chooseAction("chr11:5,225,001-5,305,000", "Edit region");
   const field = (label: string) =>
@@ -134,11 +134,49 @@ it("saves, edits, hides, visits, and deletes regions, saving them with the sessi
 
   await chooseAction("HS2", "Delete");
   expect(cards()).toEqual([]);
+  expect(container!.textContent).toContain("No regions yet");
   await vi.waitFor(() => expect(saved().highlights).toEqual([]));
+});
 
-  await click(save);
-  await click(save);
-  await vi.waitFor(() => expect(saved().highlights).toHaveLength(2));
+it("adds the current view as a region, named Region and a number unless named", async () => {
+  await act(async () => root!.render(<WorkspaceApp />));
+  const add = await vi.waitFor(() => {
+    const found = container!.querySelector<HTMLButtonElement>('button[aria-label="Add region"]');
+    expect(found).not.toBeNull();
+    return found!;
+  });
+  const form = () => container!.querySelector<HTMLFormElement>('form[aria-label="Add region"]');
+  const nameField = () => form()!.querySelector("input")!;
+  const names = () => saved().highlights.map((highlight) => highlight.name);
+
+  await click(add);
+  expect(add.getAttribute("aria-expanded")).toBe("true");
+  expect(nameField().placeholder).toBe("Region 1");
+  await click(button(form()!, "Add current region"));
+  expect(form()).toBeNull();
+  expect(cards().map((card) => card.textContent)).toEqual([`Region 1${first}`]);
+  await vi.waitFor(() =>
+    expect(saved().highlights).toEqual([
+      expect.objectContaining({ name: "Region 1", region: start, type: "filled" }),
+    ]),
+  );
+
+  await click(add);
+  expect(nameField().placeholder).toBe("Region 2");
+  await type(nameField(), "HS2");
+  await act(async () => form()!.requestSubmit());
+  await vi.waitFor(() => expect(names()).toEqual(["Region 1", "HS2"]));
+
+  await click(add);
+  expect(nameField().placeholder).toBe("Region 2");
+  await click(button(form()!, "Cancel"));
+  expect(form()).toBeNull();
+  expect(add.getAttribute("aria-expanded")).toBe("false");
+  expect(cards()).toHaveLength(2);
+});
+
+it("deletes every region after asking", async () => {
+  await openWithRegions(regionAt("r1", first, "#1976d2"), regionAt("r2", second, "#f59e0b"));
   await click(button(container!, "Delete all regions"));
   await click(button(document.querySelector('[role="dialog"]')!, "Delete all"));
   expect(cards()).toEqual([]);
@@ -150,19 +188,9 @@ function button(within: ParentNode, label: string) {
 }
 
 it("groups regions, collapses and edits a group, and saves groups with the session", async () => {
-  await act(async () => root!.render(<WorkspaceApp />));
-  const save = await vi.waitFor(() => {
-    const found = button(container!, "Save current region");
-    expect(found).toBeDefined();
-    return found;
-  });
-  await click(save);
-  await click(save);
-  const first = "chr11:5,225,001-5,305,000";
-  const second = `${first} (2)`;
+  await openWithRegions(regionAt("r1", first, "#1976d2"), regionAt("r2", second, "#f59e0b"));
   const groups = () => server.stored.get(id)!.snapshot.regionGroups;
-  await vi.waitFor(() => expect(saved().highlights).toHaveLength(2));
-  const [firstId, secondId] = saved().highlights.map((highlight) => highlight.id);
+  const [firstId, secondId] = ["r1", "r2"];
   const header = () => container!.querySelector('[aria-label="Saved regions"] [aria-expanded]');
   const members = (name: string) =>
     [...container!.querySelectorAll(`[aria-label="${name}"] li`)].map(
@@ -238,16 +266,7 @@ async function chooseGroupAction(group: string, action: string) {
 }
 
 it("recolors every highlight in a group, keeping each one's other settings", async () => {
-  await act(async () => root!.render(<WorkspaceApp />));
-  const save = await vi.waitFor(() => {
-    const found = button(container!, "Save current region");
-    expect(found).toBeDefined();
-    return found;
-  });
-  await click(save);
-  await click(save);
-  const first = "chr11:5,225,001-5,305,000";
-  const second = `${first} (2)`;
+  await openWithRegions(regionAt("r1", first, "#1976d2"), regionAt("r2", second, "#f59e0b"));
   await chooseAction(first, "Add to new group");
   await click(button(document.querySelector('[role="dialog"]')!, "Create group"));
   await chooseAction(second, "Group 1");
