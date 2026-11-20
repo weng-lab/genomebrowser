@@ -48,27 +48,36 @@ afterEach(() => {
 });
 
 describe("TrackSortDialog", () => {
-  it("sorts tracks by option priority, keeps pinned tracks in place, and puts tracks without values last", () => {
+  it("starts empty and sorts by the added options in priority order, each in its own direction", () => {
     const trackStore = createStore();
     const onClose = vi.fn<() => void>();
     mount(<TrackSortDialog trackStore={trackStore} open onClose={onClose} options={options} />);
 
+    expect(priorityLabels()).toEqual([]);
+    expect(applyButton().disabled).toBe(true);
+    expect(pickerOptions()).toEqual(["Sample", "Assay"]);
+    addOption("Sample");
+    addOption("Assay");
     expect(priorityLabels()).toEqual(["Sample", "Assay"]);
+    expect(picker().value).toBe("");
+    expect(direction("Sample")).toBe("Ascending");
+    setDirection("Sample", "Descending");
     clickButton("Apply order");
 
+    // Pinned tracks keep their positions, and tracks without values go last.
     expect(trackStore.getState().order).toEqual([
       "pinned-s2-atac",
-      "s1-atac",
-      "s1-rna",
       "s2-atac",
       "s2-rna",
+      "s1-atac",
+      "s1-rna",
       "genes",
       "other",
     ]);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("drops excluded options and re-adds included ones as the lowest-priority tiebreaker", () => {
+  it("removes options from the sort and offers them in the picker again", () => {
     const trackStore = createStore();
     mount(
       <TrackSortDialog
@@ -79,98 +88,66 @@ describe("TrackSortDialog", () => {
       />,
     );
 
-    clickButton("Sample");
-    expect(chip("Sample").getAttribute("aria-pressed")).toBe("false");
+    addOption("Sample");
+    addOption("Assay");
+    expect(pickerOptions()).toEqual([]);
+    removeOption("Sample");
     expect(priorityLabels()).toEqual(["Assay"]);
+    expect(pickerOptions()).toEqual(["Sample"]);
     clickButton("Apply order");
     // Ties on assay keep the current order.
     expect(sortableOrder(trackStore)).toEqual(["s2-atac", "s1-atac", "s2-rna", "s1-rna"]);
-
-    clickButton("Sample");
-    expect(priorityLabels()).toEqual(["Assay", "Sample"]);
-    clickButton("Apply order");
-    expect(sortableOrder(trackStore)).toEqual(["s1-atac", "s2-atac", "s1-rna", "s2-rna"]);
   });
 
-  it("replaces chips with an add picker and remove buttons when there are more than five options", () => {
-    const trackStore = createStore();
-    const noOpOptions = ["Lab", "Tissue", "Donor", "Platform"].map(
-      (label): TrackSortOption => ({ id: label, label, value: () => undefined }),
-    );
-    mount(
-      <TrackSortDialog
-        trackStore={trackStore}
-        open
-        onClose={vi.fn<() => void>()}
-        options={[...options, ...noOpOptions]}
-      />,
-    );
-
-    expect(document.body.querySelector("[aria-pressed]")).toBeNull();
-    removeOption("Sample");
-    // Leave a second option available so the picker stays enabled after the pick.
-    removeOption("Lab");
-    expect(priorityLabels()).toEqual(["Assay", "Tissue", "Donor", "Platform"]);
-
-    const picker = document.body.querySelector<HTMLInputElement>('input[role="combobox"]')!;
-    act(() => picker.focus());
-    act(() => {
-      picker.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
-    });
-    const available = Array.from(document.body.querySelectorAll('[role="option"]'));
-    expect(available.map((option) => option.textContent)).toEqual(["Sample", "Lab"]);
-    act(() => (available[0] as HTMLElement).click());
-    expect(priorityLabels()).toEqual(["Assay", "Tissue", "Donor", "Platform", "Sample"]);
-    expect(picker.value).toBe("");
-
-    clickButton("Apply order");
-    expect(sortableOrder(trackStore)).toEqual(["s1-atac", "s2-atac", "s1-rna", "s2-rna"]);
-  });
-
-  it("discards cancelled drafts and reopens with the last applied priority", () => {
+  it("discards cancelled drafts and reopens with the last applied sort", () => {
     vi.useFakeTimers();
     const trackStore = createStore();
     mount(<DialogHost trackStore={trackStore} />);
 
     clickButton("Open sort");
-    clickButton("Sample");
+    addOption("Assay");
+    setDirection("Assay", "Descending");
     clickButton("Apply order");
     closeTransition();
     const appliedOrder = trackStore.getState().order;
 
     clickButton("Open sort");
     expect(priorityLabels()).toEqual(["Assay"]);
-    clickButton("Sample");
-    expect(priorityLabels()).toEqual(["Assay", "Sample"]);
+    expect(direction("Assay")).toBe("Descending");
+    addOption("Sample");
+    setDirection("Assay", "Ascending");
     clickButton("Cancel");
     closeTransition();
     expect(trackStore.getState().order).toBe(appliedOrder);
 
     clickButton("Open sort");
     expect(priorityLabels()).toEqual(["Assay"]);
-    expect(chip("Sample").getAttribute("aria-pressed")).toBe("false");
+    expect(direction("Assay")).toBe("Descending");
   });
 
-  it("includes options added before the first sort and excludes those added after it", () => {
+  it("drops applied options that are no longer offered", () => {
     vi.useFakeTimers();
     const trackStore = createStore();
     const [sample, assay] = options;
-    mount(<DialogHost trackStore={trackStore} options={[sample]} />);
-    act(() => root!.render(<DialogHost trackStore={trackStore} options={[sample, assay]} />));
+    mount(<DialogHost trackStore={trackStore} />);
 
     clickButton("Open sort");
-    expect(priorityLabels()).toEqual(["Sample", "Assay"]);
-    clickButton("Assay");
+    addOption("Sample");
     clickButton("Apply order");
     closeTransition();
 
-    const tissue: TrackSortOption = { id: "tissue", label: "Tissue", value: () => undefined };
-    act(() =>
-      root!.render(<DialogHost trackStore={trackStore} options={[sample, assay, tissue]} />),
-    );
+    act(() => root!.render(<DialogHost trackStore={trackStore} options={[assay]} />));
     clickButton("Open sort");
-    expect(priorityLabels()).toEqual(["Sample"]);
-    expect(chip("Tissue").getAttribute("aria-pressed")).toBe("false");
+    expect(priorityLabels()).toEqual([]);
+    expect(applyButton().disabled).toBe(true);
+    addOption("Assay");
+    clickButton("Apply order");
+    closeTransition();
+
+    // Applying forgets the option, so it stays out when it's offered again.
+    act(() => root!.render(<DialogHost trackStore={trackStore} options={[sample, assay]} />));
+    clickButton("Open sort");
+    expect(priorityLabels()).toEqual(["Assay"]);
   });
 });
 
@@ -235,12 +212,55 @@ function removeOption(label: string) {
   act(() => button!.click());
 }
 
-function chip(label: string) {
-  const element = Array.from(document.body.querySelectorAll('[role="button"]')).find(
-    (candidate) => candidate.textContent === label && candidate.hasAttribute("aria-pressed"),
+function picker() {
+  const input = document.body.querySelector<HTMLInputElement>('input[role="combobox"]');
+  expect(input).not.toBeNull();
+  return input!;
+}
+
+function openPicker() {
+  const input = picker();
+  act(() => input.focus());
+  act(() => {
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+  });
+  return Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]'));
+}
+
+function pickerOptions() {
+  return picker().disabled ? [] : openPicker().map((option) => option.textContent);
+}
+
+function addOption(label: string) {
+  const option = openPicker().find((candidate) => candidate.textContent === label);
+  expect(option).toBeDefined();
+  act(() => option!.click());
+}
+
+function directionGroup(label: string) {
+  const group = document.body.querySelector(`[aria-label="${label} sort direction"]`);
+  expect(group).not.toBeNull();
+  return group!;
+}
+
+function direction(label: string) {
+  return directionGroup(label).querySelector('[aria-pressed="true"]')?.textContent;
+}
+
+function setDirection(label: string, text: string) {
+  const button = Array.from(directionGroup(label).querySelectorAll<HTMLElement>("button")).find(
+    (candidate) => candidate.textContent === text,
   );
-  expect(element).toBeDefined();
-  return element!;
+  expect(button).toBeDefined();
+  act(() => button!.click());
+}
+
+function applyButton() {
+  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
+    (candidate) => candidate.textContent === "Apply order",
+  );
+  expect(button).toBeDefined();
+  return button!;
 }
 
 function priorityLabels() {

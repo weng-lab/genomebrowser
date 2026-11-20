@@ -10,19 +10,18 @@ import {
 } from "@mui/material";
 import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { useState } from "react";
-import { TrackSortOptionChips } from "./trackSortOptionChips";
 import { TrackSortOptionPicker } from "./trackSortOptionPicker";
-import { applyTrackSort, type TrackSortOption } from "./trackSortOrder";
+import { applyTrackSort, type TrackSortDirection, type TrackSortOption } from "./trackSortOrder";
 import { TrackSortPriorityList } from "./trackSortPriorityList";
 
-// Beyond this many options, chips wrap onto several lines, so a single-line picker replaces them.
-const MAX_CHIP_OPTIONS = 5;
+/** One level of the dialog's sort, by option ID. */
+type SortLevel = { id: string; direction: TrackSortDirection };
 
 export type TrackSortDialogProps = {
   trackStore: TrackStoreInstance;
   open: boolean;
   onClose: () => void;
-  /** Sort criteria, initially all included in this priority order. */
+  /** The options people can add to the sort, listed in this order. */
   options: readonly TrackSortOption[];
   title?: string;
 };
@@ -34,23 +33,22 @@ export function TrackSortDialog({
   options,
   title = "Sort Tracks",
 }: TrackSortDialogProps) {
-  // The priority last applied to the track store. Each opening drafts from it,
-  // so Cancel discards an unfinished arrangement. Until a sort is applied, every
-  // current option is included, so options that change before then all start included.
-  const [appliedIds, setAppliedIds] = useState<readonly string[]>();
+  // The sort last applied to the track store, empty until the first Apply. Each opening
+  // drafts from it, so Cancel discards an unfinished arrangement.
+  const [applied, setApplied] = useState<readonly SortLevel[]>([]);
   // MUI handles Escape before it reaches the drag sensors, so disable dialog
   // closing on Escape while a row is moving; Escape then cancels the move.
   const [moving, setMoving] = useState(false);
 
-  const applySort = (includedIds: readonly string[]) => {
-    const rules = includedIds.flatMap((id) => {
+  const applySort = (levels: readonly SortLevel[]) => {
+    const rules = levels.flatMap(({ id, direction }) => {
       const option = options.find((candidate) => candidate.id === id);
-      return option ? [{ option, direction: "ascending" as const }] : [];
+      return option ? [{ option, direction }] : [];
     });
     // The store is read at apply time rather than subscribed to, so track changes do not
     // re-render the dialog.
     applyTrackSort(trackStore, rules);
-    setAppliedIds(includedIds);
+    setApplied(rules.map(({ option, direction }) => ({ id: option.id, direction })));
     onClose();
   };
 
@@ -91,7 +89,7 @@ export function TrackSortDialog({
       {/* The dialog unmounts its content when closed, resetting the draft for the next opening. */}
       <TrackSortDialogContent
         options={options}
-        initialIds={appliedIds ?? options.map(({ id }) => id)}
+        initialLevels={applied}
         onCancel={onClose}
         onApply={applySort}
         onMovingChange={setMoving}
@@ -102,59 +100,58 @@ export function TrackSortDialog({
 
 function TrackSortDialogContent({
   options,
-  initialIds,
+  initialLevels,
   onCancel,
   onApply,
   onMovingChange,
 }: {
   options: readonly { id: string; label: string }[];
-  initialIds: readonly string[];
+  initialLevels: readonly SortLevel[];
   onCancel: () => void;
-  onApply: (includedIds: readonly string[]) => void;
+  onApply: (levels: readonly SortLevel[]) => void;
   onMovingChange: (moving: boolean) => void;
 }) {
-  const [includedIds, setIncludedIds] = useState(initialIds);
-  const includedOptions = includedIds.flatMap(
-    (id) => options.find((option) => option.id === id) ?? [],
+  // Options no longer offered, such as a field whose tracks were removed, drop out.
+  const [levels, setLevels] = useState(() =>
+    initialLevels.filter(({ id }) => options.some((option) => option.id === id)),
   );
+  const rows = levels.flatMap(({ id, direction }) => {
+    const option = options.find((candidate) => candidate.id === id);
+    return option ? [{ ...option, direction }] : [];
+  });
 
-  const showChips = options.length <= MAX_CHIP_OPTIONS;
-
-  const toggleOption = (id: string) => {
-    setIncludedIds((current) =>
-      current.includes(id) ? current.filter((includedId) => includedId !== id) : [...current, id],
+  const add = (id: string) => setLevels((current) => [...current, { id, direction: "ascending" }]);
+  const remove = (id: string) => setLevels((current) => current.filter((level) => level.id !== id));
+  const reorder = (ids: readonly string[]) =>
+    setLevels((current) => ids.flatMap((id) => current.find((level) => level.id === id) ?? []));
+  const setDirection = (id: string, direction: TrackSortDirection) =>
+    setLevels((current) =>
+      current.map((level) => (level.id === id ? { ...level, direction } : level)),
     );
-  };
 
   return (
     <>
       <DialogContent sx={{ p: { xs: 1.5, sm: 2 } }}>
         <Typography variant="body2" color="text.secondary" sx={{ my: 1.5 }}>
-          {showChips
-            ? "Click an option to leave it out of the sort. "
-            : "Add the options to sort by, and remove any you do not need. "}
-          Drag them to set their priority — tracks group by the top option first, breaking ties with
-          the option below it.
+          Add the options to sort by, then drag them to set their priority — tracks group by the top
+          option first, breaking ties with the option below it.
         </Typography>
-        {showChips ? (
-          <TrackSortOptionChips
-            options={options}
-            includedIds={includedIds}
-            onToggle={toggleOption}
-          />
-        ) : (
-          <TrackSortOptionPicker options={options} includedIds={includedIds} onAdd={toggleOption} />
-        )}
+        <TrackSortOptionPicker
+          options={options}
+          includedIds={levels.map(({ id }) => id)}
+          onAdd={add}
+        />
         <TrackSortPriorityList
-          options={includedOptions}
-          onReorder={setIncludedIds}
-          onRemove={showChips ? undefined : toggleOption}
+          options={rows}
+          onReorder={reorder}
+          onDirectionChange={setDirection}
+          onRemove={remove}
           onMovingChange={onMovingChange}
         />
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel}>Cancel</Button>
-        <Button variant="contained" onClick={() => onApply(includedIds)}>
+        <Button variant="contained" disabled={levels.length === 0} onClick={() => onApply(levels)}>
           Apply order
         </Button>
       </DialogActions>
