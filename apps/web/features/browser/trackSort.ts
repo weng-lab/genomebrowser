@@ -3,6 +3,7 @@ import {
   applyTrackSort,
   type TrackSortDirection,
   type TrackSortOption,
+  type TrackSortRule,
 } from "@weng-lab/genomebrowser-ui";
 
 const titleField: TrackSortOption = {
@@ -44,15 +45,17 @@ export function sortTracks(
   trackStore: TrackStoreInstance,
   sort: readonly TrackSortRequest[],
 ): SortOutcome {
-  const fields = sort.map(({ field }) => trackSortFields.find((option) => option.id === field));
-  const unknown = sort.filter((_, index) => !fields[index]).map(({ field }) => field);
+  const rules: TrackSortRule[] = [];
+  const unknown: string[] = [];
+  for (const { field, direction = "ascending" } of sort) {
+    const option = trackSortFields.find(({ id }) => id === field);
+    if (option) rules.push({ option, direction });
+    else unknown.push(`"${field}"`);
+  }
   if (unknown.length > 0) {
     const available = trackSortFields.map(({ id }) => `"${id}"`).join(", ");
-    const error = `Unknown sort field ${unknown.map((id) => `"${id}"`).join(", ")}. Available fields: ${available}`;
+    const error = `Unknown sort field ${unknown.join(", ")}. Available fields: ${available}`;
     return { ok: false, code: "UNKNOWN_SORT_FIELD", error };
   }
-  return applyTrackSort(
-    trackStore,
-    sort.map(({ direction = "ascending" }, index) => ({ option: fields[index]!, direction })),
-  );
+  return applyTrackSort(trackStore, rules);
 }
