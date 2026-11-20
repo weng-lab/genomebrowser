@@ -29,9 +29,15 @@ import {
   Typography,
 } from "@mui/material";
 import type { KeyboardEvent, PointerEvent } from "react";
-import type { TrackSortDirection } from "./trackSortOrder";
+import { directionLabels, valueTypeLabel } from "./trackSortLabels";
+import type { TrackSortDirection, TrackSortValueType } from "./trackSortOrder";
 
-type PriorityOption = { id: string; label: string; direction: TrackSortDirection };
+type PriorityOption = {
+  id: string;
+  label: string;
+  types: readonly TrackSortValueType[];
+  direction: TrackSortDirection;
+};
 
 // A dragged row's transform counts toward the dialog's scroll height, so an
 // unbounded drag grows the content and auto-scroll chases it indefinitely.
@@ -120,6 +126,9 @@ function PriorityRow({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: option.id,
   });
+  const valueType = valueTypeLabel(option.types);
+  const directions = directionLabels(option.types);
+  const priority = primary ? "Primary sort" : "Tiebreaker";
 
   return (
     <ListItem
@@ -154,7 +163,7 @@ function PriorityRow({
       </ListItemIcon>
       <ListItemText
         primary={option.label}
-        secondary={primary ? "Primary sort" : "Tiebreaker"}
+        secondary={valueType ? `${valueType} · ${priority}` : priority}
         sx={{ flex: "1 1 8rem" }}
       />
       <ToggleButtonGroup
@@ -169,8 +178,8 @@ function PriorityRow({
           if (direction) onDirectionChange(option.id, direction);
         }}
       >
-        <ToggleButton value="ascending">Ascending</ToggleButton>
-        <ToggleButton value="descending">Descending</ToggleButton>
+        <ToggleButton value="ascending">{directions.ascending}</ToggleButton>
+        <ToggleButton value="descending">{directions.descending}</ToggleButton>
       </ToggleButtonGroup>
       <IconButton
         edge="end"

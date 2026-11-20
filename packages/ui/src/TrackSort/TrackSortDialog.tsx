@@ -11,7 +11,12 @@ import {
 import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { useState } from "react";
 import { TrackSortOptionPicker } from "./trackSortOptionPicker";
-import { applyTrackSort, type TrackSortDirection, type TrackSortOption } from "./trackSortOrder";
+import {
+  applyTrackSort,
+  trackSortValueTypes,
+  type TrackSortDirection,
+  type TrackSortOption,
+} from "./trackSortOrder";
 import { TrackSortPriorityList } from "./trackSortPriorityList";
 
 /** One level of the dialog's sort, by option ID. */
@@ -88,6 +93,7 @@ export function TrackSortDialog({
       </DialogTitle>
       {/* The dialog unmounts its content when closed, resetting the draft for the next opening. */}
       <TrackSortDialogContent
+        trackStore={trackStore}
         options={options}
         initialLevels={applied}
         onCancel={onClose}
@@ -99,13 +105,15 @@ export function TrackSortDialog({
 }
 
 function TrackSortDialogContent({
+  trackStore,
   options,
   initialLevels,
   onCancel,
   onApply,
   onMovingChange,
 }: {
-  options: readonly { id: string; label: string }[];
+  trackStore: TrackStoreInstance;
+  options: readonly TrackSortOption[];
   initialLevels: readonly SortLevel[];
   onCancel: () => void;
   onApply: (levels: readonly SortLevel[]) => void;
@@ -115,8 +123,15 @@ function TrackSortDialogContent({
   const [levels, setLevels] = useState(() =>
     initialLevels.filter(({ id }) => options.some((option) => option.id === id)),
   );
+  // The kinds of value each option holds, read once as the dialog opens, like the options.
+  const [valueTypes] = useState(() => trackSortValueTypes(trackStore, options));
+  const described = options.map(({ id, label }) => ({
+    id,
+    label,
+    types: valueTypes.get(id) ?? [],
+  }));
   const rows = levels.flatMap(({ id, direction }) => {
-    const option = options.find((candidate) => candidate.id === id);
+    const option = described.find((candidate) => candidate.id === id);
     return option ? [{ ...option, direction }] : [];
   });
 
@@ -134,10 +149,10 @@ function TrackSortDialogContent({
       <DialogContent sx={{ p: { xs: 1.5, sm: 2 } }}>
         <Typography variant="body2" color="text.secondary" sx={{ my: 1.5 }}>
           Add the options to sort by, then drag them to set their priority — tracks group by the top
-          option first, breaking ties with the option below it.
+          option first, breaking ties with the option below it. Tracks without a value go last.
         </Typography>
         <TrackSortOptionPicker
-          options={options}
+          options={described}
           includedIds={levels.map(({ id }) => id)}
           onAdd={add}
         />

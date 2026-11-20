@@ -9,7 +9,7 @@ import { act, useState, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { TrackSortDialog, type TrackSortOption } from "../src/lib";
+import { TrackSortDialog, type TrackSortOption, type TrackSortValue } from "../src/lib";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -60,8 +60,8 @@ describe("TrackSortDialog", () => {
     addOption("Assay");
     expect(priorityLabels()).toEqual(["Sample", "Assay"]);
     expect(picker().value).toBe("");
-    expect(direction("Sample")).toBe("Ascending");
-    setDirection("Sample", "Descending");
+    expect(direction("Sample")).toBe("A to Z");
+    setDirection("Sample", "Z to A");
     clickButton("Apply order");
 
     // Pinned tracks keep their positions, and tracks without values go last.
@@ -106,23 +106,82 @@ describe("TrackSortDialog", () => {
 
     clickButton("Open sort");
     addOption("Assay");
-    setDirection("Assay", "Descending");
+    setDirection("Assay", "Z to A");
     clickButton("Apply order");
     closeTransition();
     const appliedOrder = trackStore.getState().order;
 
     clickButton("Open sort");
     expect(priorityLabels()).toEqual(["Assay"]);
-    expect(direction("Assay")).toBe("Descending");
+    expect(direction("Assay")).toBe("Z to A");
     addOption("Sample");
-    setDirection("Assay", "Ascending");
+    setDirection("Assay", "A to Z");
     clickButton("Cancel");
     closeTransition();
     expect(trackStore.getState().order).toBe(appliedOrder);
 
     clickButton("Open sort");
     expect(priorityLabels()).toEqual(["Assay"]);
-    expect(direction("Assay")).toBe("Descending");
+    expect(direction("Assay")).toBe("Z to A");
+  });
+
+  it("shows the kind of value each option holds and names its directions by it", () => {
+    // The pinned track isn't sorted, so its text doesn't make Replicate a mixed field.
+    const values = new Map<string, Record<string, TrackSortValue>>([
+      ["pinned", { replicate: "two" }],
+      ["a", { replicate: 2, interesting: true, batch: 1 }],
+      ["b", { replicate: 10, batch: "B" }],
+      ["c", {}],
+    ]);
+    const read =
+      (field: string): TrackSortOption["value"] =>
+      (track) =>
+        values.get(track.base.id)?.[field];
+    const typedOptions: TrackSortOption[] = [
+      { id: "title", label: "Title", value: (track) => track.base.title },
+      { id: "replicate", label: "Replicate", value: read("replicate") },
+      { id: "interesting", label: "Interesting", value: read("interesting") },
+      { id: "batch", label: "Batch", value: read("batch") },
+      { id: "unused", label: "Unused", value: read("unused") },
+    ];
+    const trackStore = createTrackStore({
+      modules: [signalModule],
+      tracks: [...values.keys()].map((id) =>
+        signalModule.create({ base: { id, title: id }, config: { url: id } }),
+      ),
+      pinnedTrackIds: ["pinned"],
+    });
+    mount(
+      <TrackSortDialog
+        trackStore={trackStore}
+        open
+        onClose={vi.fn<() => void>()}
+        options={typedOptions}
+      />,
+    );
+
+    expect(pickerValueTypes()).toEqual([
+      "Text",
+      "Number",
+      "True or false",
+      "Mixed: number and text",
+      undefined,
+    ]);
+    for (const { label } of typedOptions) addOption(label);
+    expect(priorityDescriptions()).toEqual([
+      "Text · Primary sort",
+      "Number · Tiebreaker",
+      "True or false · Tiebreaker",
+      "Mixed: number and text · Tiebreaker",
+      "Tiebreaker",
+    ]);
+    expect(typedOptions.map(({ label }) => directionChoices(label))).toEqual([
+      ["A to Z", "Z to A"],
+      ["Low to high", "High to low"],
+      ["False first", "True first"],
+      ["Ascending", "Descending"],
+      ["Ascending", "Descending"],
+    ]);
   });
 
   it("drops applied options that are no longer offered", () => {
@@ -227,12 +286,19 @@ function openPicker() {
   return Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]'));
 }
 
+/** Each option shows its label, then the kind of value it holds, if any. */
+const optionLabel = (option: HTMLElement) => option.children[0]?.textContent;
+
 function pickerOptions() {
-  return picker().disabled ? [] : openPicker().map((option) => option.textContent);
+  return picker().disabled ? [] : openPicker().map(optionLabel);
+}
+
+function pickerValueTypes() {
+  return openPicker().map((option) => option.children[1]?.textContent);
 }
 
 function addOption(label: string) {
-  const option = openPicker().find((candidate) => candidate.textContent === label);
+  const option = openPicker().find((candidate) => optionLabel(candidate) === label);
   expect(option).toBeDefined();
   act(() => option!.click());
 }
@@ -245,6 +311,12 @@ function directionGroup(label: string) {
 
 function direction(label: string) {
   return directionGroup(label).querySelector('[aria-pressed="true"]')?.textContent;
+}
+
+function directionChoices(label: string) {
+  return Array.from(directionGroup(label).querySelectorAll("button")).map(
+    (button) => button.textContent,
+  );
 }
 
 function setDirection(label: string, text: string) {
@@ -263,9 +335,17 @@ function applyButton() {
   return button!;
 }
 
-function priorityLabels() {
+function priorityText(part: "primary" | "secondary") {
   const list = document.body.querySelector('[aria-label="Sort priority"]');
   return Array.from(list?.querySelectorAll("li") ?? []).map(
-    (item) => item.querySelector(".MuiListItemText-primary")?.textContent,
+    (item) => item.querySelector(`.MuiListItemText-${part}`)?.textContent,
   );
+}
+
+function priorityLabels() {
+  return priorityText("primary");
+}
+
+function priorityDescriptions() {
+  return priorityText("secondary");
 }
