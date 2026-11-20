@@ -89,10 +89,10 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   // Read the tracks when Sort is clicked rather than subscribing, so track changes
   // do not re-render the controls. A sort is a one-time operation.
   const [sortOptions, setSortOptions] = useState(() =>
-    getTrackSortOptions(useTrackStore.getState().tracks),
+    getTrackSortOptions(useTrackStore.getState()),
   );
   const openSort = () => {
-    setSortOptions(getTrackSortOptions(useTrackStore.getState().tracks));
+    setSortOptions(getTrackSortOptions(useTrackStore.getState()));
     setSortOpen(true);
   };
 

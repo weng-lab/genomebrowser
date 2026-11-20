@@ -592,12 +592,15 @@ it("keeps conflict recovery after another session is deleted", async () => {
   expect(server.stored.get(alpha)!.revision).toBe(4);
 });
 
-it("sorts the open session's tracks and saves the order", async () => {
+it("sorts the open session's tracks by a metadata field and saves the order", async () => {
   const saved = defaults();
   // Unpinned, so the sort rather than the ruler's pin puts Coordinates first.
   const id = server.add("Alpha", {
     ...saved,
-    tracks: saved.tracks.toReversed(),
+    tracks: saved.tracks.toReversed().map((track, index) => ({
+      ...track,
+      metadata: { Replicate: 3 - index },
+    })),
     pinnedTrackIds: [],
   });
   await visit(`/browser/${id}`);
@@ -614,11 +617,13 @@ it("sorts the open session's tracks and saves the order", async () => {
     picker.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
   });
   // Each option shows its label, then the kind of value it holds.
-  await click(
-    [...document.querySelectorAll('[role="option"]')].find(
-      ({ children }) => children[0]?.textContent === "Title",
-    ),
-  );
+  const offered = [...document.querySelectorAll('[role="option"]')];
+  expect(offered.map(({ children }) => [...children].map((part) => part.textContent))).toEqual([
+    ["Title", "Text"],
+    ["Track type", "Text"],
+    ["Replicate", "Number"],
+  ]);
+  await click(offered[2]);
   await click(withText("button", "Apply order"));
   await vi.waitFor(() => expect(closeTab()).toBe(false));
   expect(titles()).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);
