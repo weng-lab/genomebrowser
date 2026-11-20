@@ -4,7 +4,6 @@
 // design settles. The review flow is expected to move into that design, so keep it independent of
 // the dialog and of the session, which it reaches only through `addTracksFromUrls` in `add`.
 
-import Add from "@mui/icons-material/Add";
 import Close from "@mui/icons-material/Close";
 import UploadFile from "@mui/icons-material/UploadFile";
 import Alert from "@mui/material/Alert";
@@ -17,7 +16,13 @@ import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
+import {
+  TrackMetadataEditor,
+  metadataFromRows,
+  metadataRows,
+  type TrackMetadataRow,
+  type TrackStoreInstance,
+} from "@weng-lab/genomebrowser";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { parseCustomTracks, sortByPriority, type LineError } from "../customTracks";
 import {
@@ -66,13 +71,12 @@ export function AddTracksDialog({ trackStore, open, onClose }: AddTracksDialogPr
   );
 }
 
-/** A metadata field being edited. `key` identifies it while its name changes. */
-type MetadataField = { key: string; name: string; value: string };
 type RowRequest = Omit<TrackRequest, "metadata">;
 type Row = {
   key: string;
   request: RowRequest;
-  fields: MetadataField[];
+  /** The metadata being edited, as the settings dialog's editor edits it. */
+  fields: TrackMetadataRow[];
   /** The title was filled in from the file name and hasn't been edited, so it follows the URL. */
   titleFromFile: boolean;
   failure?: string;
@@ -83,15 +87,6 @@ const hexColor = /^#[0-9a-f]{6}$/i;
 const optionalText = (value: string) => value.trim() || undefined;
 // Far more than the URLs and track lines of a session's most tracks.
 const maxUploadBytes = 1_000_000;
-// Collection views and sorting use these names for a track's own values, so a metadata field
-// can't take one. The agent's metadata commands refuse them too.
-const builtInFields = new Set(["id", "title", "type"]);
-
-const newField = (name = "", value = ""): MetadataField => ({
-  key: crypto.randomUUID(),
-  name,
-  value,
-});
 
 type AddTracksFormProps = {
   trackStore: TrackStoreInstance;
@@ -119,11 +114,11 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
       return;
     }
     setRows(
-      sortByPriority(tracks).map(({ request: { metadata = {}, ...request } }) => ({
+      sortByPriority(tracks).map(({ request: { metadata, ...request } }) => ({
         key: crypto.randomUUID(),
         // Show the title the track gets from its file name, ready to edit.
         request: { ...request, title: request.title ?? titleFromUrl(request.url) },
-        fields: Object.entries(metadata).map(([name, value]) => newField(name, String(value))),
+        fields: metadataRows(metadata),
         titleFromFile: request.title === undefined,
       })),
     );
@@ -315,22 +310,11 @@ function updated(
 
 /** The row as a request, or why it can't be added before its files are checked. */
 function rowRequest({ request, fields }: Row): TrackRequest | string {
-  const metadata = new Map<string, string>();
-  for (const field of fields) {
-    const name = field.name.trim();
-    const value = field.value.trim();
-    if (name === "") {
-      if (value === "") continue;
-      return "Name each metadata field, or remove it.";
-    }
-    if (builtInFields.has(name))
-      return `A metadata field can't be named "${name}", which is the track's own ${name}. Choose another name.`;
-    if (metadata.has(name)) return `Two metadata fields are named "${name}". Rename or remove one.`;
-    // How a field without a value is stored waits on the shared metadata editor (#435).
-    if (value === "") return `Enter a value for "${name}", or remove the field.`;
-    metadata.set(name, value);
-  }
-  return metadata.size > 0 ? { ...request, metadata: Object.fromEntries(metadata) } : request;
+  const result = metadataFromRows(fields);
+  // The editor already says under each field what's wrong with it.
+  if (!result.ok) return "Finish or fix the metadata fields above.";
+  const { metadata } = result;
+  return Object.keys(metadata).length > 0 ? { ...request, metadata } : request;
 }
 
 const typeLabels: Record<UrlTrackType, string> = {
@@ -346,7 +330,7 @@ type RequestRowProps = {
   row: Row;
   disabled: boolean;
   onChange: (update: Partial<RowRequest>) => void;
-  onFieldsChange: (fields: MetadataField[]) => void;
+  onFieldsChange: (fields: TrackMetadataRow[]) => void;
   onRemove: () => void;
 };
 
@@ -470,7 +454,7 @@ function RequestRow({
           <Close fontSize="small" />
         </IconButton>
       </Box>
-      <MetadataFields fields={fields} disabled={disabled} onChange={onFieldsChange} />
+      <TrackMetadataEditor value={fields} disabled={disabled} onChange={onFieldsChange} />
       {failure && (
         <Typography variant="body2" color="error">
           {failure}
@@ -575,66 +559,6 @@ function colorEffect(type: UrlTrackType | undefined, preset: BigBedPreset | unde
     default:
       return undefined;
   }
-}
-
-type MetadataFieldsProps = {
-  fields: MetadataField[];
-  disabled: boolean;
-  onChange: (fields: MetadataField[]) => void;
-};
-
-/** Name and value pairs for one track's metadata, until the shared metadata editor (#435). */
-function MetadataFields({ fields, disabled, onChange }: MetadataFieldsProps) {
-  const change = (key: string, update: Partial<MetadataField>) =>
-    onChange(fields.map((field) => (field.key === key ? { ...field, ...update } : field)));
-  return (
-    <Box
-      component="fieldset"
-      aria-label="Metadata"
-      sx={{ border: 0, m: 0, p: 0, minWidth: 0, display: "flex", flexDirection: "column", gap: 1 }}
-    >
-      {fields.map((field) => (
-        <Box key={field.key} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <TextField
-            // oxlint-disable-next-line jsx-a11y/no-autofocus -- A field just added is typed into next.
-            autoFocus={field.name === "" && field.value === ""}
-            size="small"
-            label="Field"
-            value={field.name}
-            disabled={disabled}
-            onChange={(event) => change(field.key, { name: event.target.value })}
-            sx={{ flex: 1 }}
-          />
-          <TextField
-            size="small"
-            label="Value"
-            value={field.value}
-            disabled={disabled}
-            onChange={(event) => change(field.key, { value: event.target.value })}
-            sx={{ flex: 2 }}
-          />
-          <IconButton
-            aria-label={`Remove the field ${field.name || "without a name"}`}
-            size="small"
-            onClick={() => onChange(fields.filter(({ key }) => key !== field.key))}
-            disabled={disabled}
-          >
-            <Close fontSize="small" />
-          </IconButton>
-        </Box>
-      ))}
-      <Box>
-        <Button
-          size="small"
-          startIcon={<Add />}
-          disabled={disabled}
-          onClick={() => onChange([...fields, newField()])}
-        >
-          Add metadata field
-        </Button>
-      </Box>
-    </Box>
-  );
 }
 
 /** A grid cell spanning `span` of a row's four columns on wider screens. */
