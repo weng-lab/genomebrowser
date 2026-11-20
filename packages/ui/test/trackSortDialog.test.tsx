@@ -3,7 +3,6 @@
 import {
   createTrackStore,
   defineTrackModule,
-  type AnyTrackInstance,
   type TrackStoreInstance,
 } from "@weng-lab/genomebrowser";
 import { act, useState, type ReactNode } from "react";
@@ -24,18 +23,9 @@ const signalModule = defineTrackModule({
   render: { full: () => null },
 });
 
-const assayRank = new Map([
-  ["ATAC", 0],
-  ["RNA", 1],
-]);
-
-const options: TrackSortOption<SampleInfo>[] = [
-  { id: "sample", label: "Sample", compare: (a, b) => a.sample.localeCompare(b.sample) },
-  {
-    id: "assay",
-    label: "Assay",
-    compare: (a, b) => assayRank.get(a.assay)! - assayRank.get(b.assay)!,
-  },
+const options: TrackSortOption[] = [
+  { id: "sample", label: "Sample", value: (track) => sampleInfo.get(track.base.id)?.sample },
+  { id: "assay", label: "Assay", value: (track) => sampleInfo.get(track.base.id)?.assay },
 ];
 
 const sampleInfo = new Map<string, SampleInfo>([
@@ -45,8 +35,6 @@ const sampleInfo = new Map<string, SampleInfo>([
   ["s2-atac", { sample: "s2", assay: "ATAC" }],
   ["s1-atac", { sample: "s1", assay: "ATAC" }],
 ]);
-
-const getMetadata = (track: AnyTrackInstance) => sampleInfo.get(track.base.id);
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
@@ -60,30 +48,22 @@ afterEach(() => {
 });
 
 describe("TrackSortDialog", () => {
-  it("sorts described tracks by option priority and leaves pinned and undescribed tracks in place", () => {
+  it("sorts tracks by option priority, keeps pinned tracks in place, and puts tracks without values last", () => {
     const trackStore = createStore();
     const onClose = vi.fn<() => void>();
-    mount(
-      <TrackSortDialog
-        trackStore={trackStore}
-        open
-        onClose={onClose}
-        options={options}
-        getMetadata={getMetadata}
-      />,
-    );
+    mount(<TrackSortDialog trackStore={trackStore} open onClose={onClose} options={options} />);
 
     expect(priorityLabels()).toEqual(["Sample", "Assay"]);
     clickButton("Apply order");
 
     expect(trackStore.getState().order).toEqual([
       "pinned-s2-atac",
-      "genes",
       "s1-atac",
       "s1-rna",
       "s2-atac",
-      "other",
       "s2-rna",
+      "genes",
+      "other",
     ]);
     expect(onClose).toHaveBeenCalledOnce();
   });
@@ -96,7 +76,6 @@ describe("TrackSortDialog", () => {
         open
         onClose={vi.fn<() => void>()}
         options={options}
-        getMetadata={getMetadata}
       />,
     );
 
@@ -116,7 +95,7 @@ describe("TrackSortDialog", () => {
   it("replaces chips with an add picker and remove buttons when there are more than five options", () => {
     const trackStore = createStore();
     const noOpOptions = ["Lab", "Tissue", "Donor", "Platform"].map(
-      (label): TrackSortOption<SampleInfo> => ({ id: label, label, compare: () => 0 }),
+      (label): TrackSortOption => ({ id: label, label, value: () => undefined }),
     );
     mount(
       <TrackSortDialog
@@ -124,7 +103,6 @@ describe("TrackSortDialog", () => {
         open
         onClose={vi.fn<() => void>()}
         options={[...options, ...noOpOptions]}
-        getMetadata={getMetadata}
       />,
     );
 
@@ -186,7 +164,7 @@ describe("TrackSortDialog", () => {
     clickButton("Apply order");
     closeTransition();
 
-    const tissue = { id: "tissue", label: "Tissue", compare: () => 0 };
+    const tissue: TrackSortOption = { id: "tissue", label: "Tissue", value: () => undefined };
     act(() =>
       root!.render(<DialogHost trackStore={trackStore} options={[sample, assay, tissue]} />),
     );
@@ -201,7 +179,7 @@ function DialogHost({
   options: hostOptions = options,
 }: {
   trackStore: TrackStoreInstance;
-  options?: TrackSortOption<SampleInfo>[];
+  options?: TrackSortOption[];
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -212,7 +190,6 @@ function DialogHost({
         open={open}
         onClose={() => setOpen(false)}
         options={hostOptions}
-        getMetadata={getMetadata}
       />
     </>
   );

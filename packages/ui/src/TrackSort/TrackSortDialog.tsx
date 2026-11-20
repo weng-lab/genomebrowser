@@ -8,35 +8,32 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import type { AnyTrackInstance, TrackStoreInstance } from "@weng-lab/genomebrowser";
+import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { useState } from "react";
 import { TrackSortOptionChips } from "./trackSortOptionChips";
 import { TrackSortOptionPicker } from "./trackSortOptionPicker";
-import { getSortedTrackIds, type TrackSortOption } from "./trackSortOrder";
+import { applyTrackSort, type TrackSortOption } from "./trackSortOrder";
 import { TrackSortPriorityList } from "./trackSortPriorityList";
 
 // Beyond this many options, chips wrap onto several lines, so a single-line picker replaces them.
 const MAX_CHIP_OPTIONS = 5;
 
-export type TrackSortDialogProps<Metadata> = {
+export type TrackSortDialogProps = {
   trackStore: TrackStoreInstance;
   open: boolean;
   onClose: () => void;
   /** Sort criteria, initially all included in this priority order. */
-  options: readonly TrackSortOption<Metadata>[];
-  /** Returns the metadata the options compare, or `undefined` to leave a track where it is. */
-  getMetadata: (track: AnyTrackInstance) => Metadata | undefined;
+  options: readonly TrackSortOption[];
   title?: string;
 };
 
-export function TrackSortDialog<Metadata>({
+export function TrackSortDialog({
   trackStore,
   open,
   onClose,
   options,
-  getMetadata,
   title = "Sort Tracks",
-}: TrackSortDialogProps<Metadata>) {
+}: TrackSortDialogProps) {
   // The priority last applied to the track store. Each opening drafts from it,
   // so Cancel discards an unfinished arrangement. Until a sort is applied, every
   // current option is included, so options that change before then all start included.
@@ -46,13 +43,13 @@ export function TrackSortDialog<Metadata>({
   const [moving, setMoving] = useState(false);
 
   const applySort = (includedIds: readonly string[]) => {
-    const comparators = includedIds.flatMap(
-      (id) => options.find((option) => option.id === id)?.compare ?? [],
-    );
-    // Read tracks at apply time rather than subscribing, so track changes do not
+    const rules = includedIds.flatMap((id) => {
+      const option = options.find((candidate) => candidate.id === id);
+      return option ? [{ option, direction: "ascending" as const }] : [];
+    });
+    // The store is read at apply time rather than subscribed to, so track changes do not
     // re-render the dialog.
-    const { tracks, pinnedTrackIds, reorderTracks } = trackStore.getState();
-    reorderTracks(getSortedTrackIds(tracks, pinnedTrackIds, getMetadata, comparators));
+    applyTrackSort(trackStore, rules);
     setAppliedIds(includedIds);
     onClose();
   };
