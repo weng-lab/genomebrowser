@@ -49,17 +49,22 @@ Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `
 
 ### Track definition
 
-| Exports                                                                                                           | Reference                                                                                                       |
-| ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `defineTrackModule`                                                                                               | [defineTrackModule](03-trackDefinition/defineTrackModule.md#definetrackmodule)                                  |
-| `TrackModule`, `ModuleCreateInput`, `ModuleInstance`, `AnyTrackModule`, `AnyTrackInstance`, `AnyTrackInteraction` | [TrackModule and inferred types](03-trackDefinition/defineTrackModule.md#trackmodule-and-inferred-types)        |
-| `TrackCreateInput`, `TrackBaseInput`, `TrackSource`                                                               | [TrackCreateInput and TrackBaseInput](03-trackDefinition/trackInstances.md#trackcreateinput-and-trackbaseinput) |
-| `TrackInstance`, `TrackBase`, `ReadonlyTrackInstance`                                                             | [TrackInstance and TrackBase](03-trackDefinition/trackInstances.md#trackinstance-and-trackbase)                 |
-| `TrackMetadata`                                                                                                   | [TrackMetadata](03-trackDefinition/trackInstances.md#trackmetadata)                                             |
-| `TrackFetch`, `TrackFetchContext`, `TrackFetchTrack`, `TrackFetchDemand`                                          | [Fetching data](03-trackDefinition/fetchingData.md#fetching-data)                                               |
-| `TrackResources`                                                                                                  | [TrackResources](03-trackDefinition/fetchingData.md#trackresources)                                             |
-| `TrackSettingsComponent`, `TrackSettingsProps`                                                                    | [Settings](03-trackDefinition/trackSettings.md#settings)                                                        |
-| `fetchOnChange`                                                                                                   | [fetchOnChange](03-trackDefinition/fetchOnChange.md#fetchonchange)                                              |
+| Exports                                                                                                           | Reference                                                                                                                          |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `defineTrackModule`                                                                                               | [defineTrackModule](03-trackDefinition/defineTrackModule.md#definetrackmodule)                                                     |
+| `TrackModule`, `ModuleCreateInput`, `ModuleInstance`, `AnyTrackModule`, `AnyTrackInstance`, `AnyTrackInteraction` | [TrackModule and inferred types](03-trackDefinition/defineTrackModule.md#trackmodule-and-inferred-types)                           |
+| `TrackCreateInput`, `TrackBaseInput`, `TrackSource`                                                               | [TrackCreateInput and TrackBaseInput](03-trackDefinition/trackInstances.md#trackcreateinput-and-trackbaseinput)                    |
+| `TrackInstance`, `TrackBase`, `ReadonlyTrackInstance`                                                             | [TrackInstance and TrackBase](03-trackDefinition/trackInstances.md#trackinstance-and-trackbase)                                    |
+| `TrackMetadata`                                                                                                   | [TrackMetadata](03-trackDefinition/trackInstances.md#trackmetadata)                                                                |
+| `TrackMetadataEditor`, `TrackMetadataEditorProps`                                                                 | [TrackMetadataEditor](03-trackDefinition/trackMetadataEditor.md#trackmetadataeditorprops)                                          |
+| `TrackMetadataRow`, `TrackMetadataValueType`                                                                      | [Metadata rows](03-trackDefinition/trackMetadataEditor.md#trackmetadatarow-and-trackmetadatavaluetype)                             |
+| `metadataRows`                                                                                                    | [metadataRows](03-trackDefinition/trackMetadataEditor.md#metadatarows)                                                             |
+| `metadataFromRows`, `TrackMetadataRowsResult`, `TrackMetadataRowProblem`                                          | [metadataFromRows](03-trackDefinition/trackMetadataEditor.md#metadatafromrows-trackmetadatarowsresult-and-trackmetadatarowproblem) |
+| `builtInTrackFields`                                                                                              | [builtInTrackFields](03-trackDefinition/trackMetadataEditor.md#builtintrackfields)                                                 |
+| `TrackFetch`, `TrackFetchContext`, `TrackFetchTrack`, `TrackFetchDemand`                                          | [Fetching data](03-trackDefinition/fetchingData.md#fetching-data)                                                                  |
+| `TrackResources`                                                                                                  | [TrackResources](03-trackDefinition/fetchingData.md#trackresources)                                                                |
+| `TrackSettingsComponent`, `TrackSettingsProps`                                                                    | [Settings](03-trackDefinition/trackSettings.md#settings)                                                                           |
+| `fetchOnChange`                                                                                                   | [fetchOnChange](03-trackDefinition/fetchOnChange.md#fetchonchange)                                                                 |
 
 ### Renderer integration
 
