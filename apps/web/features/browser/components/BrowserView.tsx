@@ -12,7 +12,7 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import SortIcon from "@mui/icons-material/Sort";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
-import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
+import { getTrackSortOptions } from "../trackSort";
 import { AddTracksDialog } from "./AddTracksDialog";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
@@ -143,7 +143,6 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         open={sortOpen}
         onClose={() => setSortOpen(false)}
         options={sortOptions}
-        getMetadata={getTrackSortValues}
       />
     </>
   );

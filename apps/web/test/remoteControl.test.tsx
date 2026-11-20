@@ -287,29 +287,30 @@ it("sorts tracks for the agent, replies with the new order, and saves it", async
   const savedTitles = () => server.stored.get(alpha)!.snapshot.tracks.map(({ base }) => base.title);
   const before = savedTitles();
 
-  await sort(["subject"]);
+  await sort([{ field: "subject" }]);
   expect(reply(0).result).toEqual({
     ok: false,
     code: "UNKNOWN_SORT_FIELD",
     error: 'Unknown sort field "subject". Available fields: "title", "type"',
   });
-  await sort(["type", "type"]);
+  await sort([{ field: "type" }, { field: "type", direction: "descending" }]);
   expect(reply(1).result).toMatchObject({ ok: false, code: "INVALID_PARAMS" });
 
-  await sort(["type", "title"]);
+  // A new session's ruler is pinned, so it stays on top.
+  await sort([{ field: "title", direction: "descending" }]);
   expect(reply(2).result).toEqual({
     ok: true,
     value: {
       tracks: [
+        { id: "ruler", title: "Coordinates" },
         { id: "ccres", title: "Human cCREs" },
         { id: "genes", title: "GENCODE 50 basic" },
-        { id: "ruler", title: "Coordinates" },
       ],
     },
   });
   expect(before).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);
   await vi.waitFor(() =>
-    expect(savedTitles()).toEqual(["Human cCREs", "GENCODE 50 basic", "Coordinates"]),
+    expect(savedTitles()).toEqual(["Coordinates", "Human cCREs", "GENCODE 50 basic"]),
   );
 });
 
@@ -328,7 +329,7 @@ it("lists and tags tracks for the agent, replies with their metadata, and saves 
     ok: true,
     value: {
       tracks: [
-        { id: "ruler", title: "Coordinates", type: "ruler", pinned: false, metadata: {} },
+        { id: "ruler", title: "Coordinates", type: "ruler", pinned: true, metadata: {} },
         { id: "genes", title: "GENCODE 50 basic", type: "gene", pinned: false, metadata: {} },
         { id: "ccres", title: "Human cCREs", type: "ccre-bigbed", pinned: false, metadata: {} },
       ],
