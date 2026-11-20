@@ -4,12 +4,12 @@ import { defineCommand } from "./define";
 export const sortTracks = defineCommand({
   name: "sort_tracks",
   description:
-    'Sort the loaded tracks once, like the Sort tracks button. Tracks order by the first field, and each later field breaks ties. Fields: "title" (track title) and "type" (track type). Text sorts in natural order ignoring case, so "rep2" comes before "rep10". Each field sorts ascending unless its direction is "descending". Pinned tracks keep their positions, and tracks that tie on every field keep their current order. Tracks added later are not sorted until you sort again. Returns every track in its new order.',
+    'Sort the loaded tracks once, like the Sort tracks button. Tracks order by the first field, and each later field breaks ties. Fields: "title" (track title), "type" (track type), and "meta:<name>" for a metadata field any loaded track has, named as list_tracks shows it, such as "meta:Cell type". Numbers sort numerically, text in natural order ignoring case (so "rep2" comes before "rep10"), and false before true. Each field sorts ascending unless its direction is "descending"; tracks without a value for a field go last either way. Pinned tracks keep their positions, and tracks that tie on every field keep their current order. Tracks added later are not sorted until you sort again. Returns every track in its new order.',
   params: z.strictObject({
     by: z
       .array(
         z.strictObject({
-          field: z.string().min(1).describe('A field ID, such as "title".'),
+          field: z.string().min(1).describe('A field ID, such as "title" or "meta:Assay".'),
           direction: z
             .enum(["ascending", "descending"])
             .optional()
