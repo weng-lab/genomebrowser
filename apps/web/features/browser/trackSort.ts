@@ -23,7 +23,8 @@ const typeField: TrackSortOption = {
 const metadataField = (name: string): TrackSortOption => ({
   id: `meta:${name}`,
   label: name,
-  value: (track) => track.metadata?.[name],
+  // Only the track's own fields: every object inherits names such as `constructor`.
+  value: ({ metadata }) => (metadata && Object.hasOwn(metadata, name) ? metadata[name] : undefined),
 });
 
 // Field names in natural order, ignoring case, as text values sort.
