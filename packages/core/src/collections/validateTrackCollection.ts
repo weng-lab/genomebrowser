@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { builtInTrackFields } from "../modules/trackMetadata";
 import type { AnyTrackModule } from "../modules/types";
 import {
   createTrackCollectionSchema,
@@ -6,7 +7,7 @@ import {
   type TrackCollectionView,
 } from "./collectionSchema";
 
-const builtInFields = new Set(["id", "title", "type"]);
+const builtInFields = new Set(builtInTrackFields);
 
 function formatZodError(error: z.ZodError) {
   return error.issues

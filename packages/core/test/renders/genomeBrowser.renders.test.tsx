@@ -562,6 +562,63 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
   });
 
+  it("saves a metadata field typed in the settings without rendering the track", async () => {
+    const { probe, trackStore } = await mountBrowser();
+    await probe.measure(() =>
+      document
+        .querySelector<SVGGElement>('[aria-label="Settings for second"]')!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    const addField = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent === "Add field",
+    )!;
+    await probe.measure(() => addField.click());
+    const [name, value] = Array.from(
+      document.querySelectorAll<HTMLInputElement>(
+        '[aria-label="Field 1"] input:not(.MuiSelect-nativeInput)',
+      ),
+    );
+    const type = (input: HTMLInputElement, text: string) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, text);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    await probe.measure(() => type(name, "Interesting"));
+
+    const report = await probe.measure(() => type(value, "yes"));
+    expect(trackStore.getState().getTrack("second")?.metadata).toEqual({ Interesting: "yes" });
+
+    // Necessary: the metadata section renders once for the typed value and the save it
+    // makes. The rest of the modal and the track tree don't read metadata.
+    expect(
+      budget(
+        report,
+        "SettingsModalController",
+        "DefaultSettingsModal",
+        "TrackMetadataControls",
+        "TrackMetadataEditor",
+        "TrackDownloadControls",
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "DefaultSettingsModal": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "SettingsModalController": 0,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackDownloadControls": 0,
+        "TrackFrame": 0,
+        "TrackMetadataControls": 1,
+        "TrackMetadataEditor": 1,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
   it("adds a fourth track", async () => {
     const { probe, trackStore } = await mountBrowser();
 
