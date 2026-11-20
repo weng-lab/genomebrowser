@@ -1,6 +1,6 @@
 # TrackSortDialog
 
-`TrackSortDialog` reorders tracks by fields such as sample ID or assay. People add the sort options they want, drag them into priority order, and choose ascending or descending for each; the top option sorts first and each option below it breaks ties. Pass the same track store instance used by `GenomeBrowser`.
+`TrackSortDialog` reorders tracks by fields such as sample ID or assay. People add the sort options they want, drag them into priority order, and choose a direction for each; the top option sorts first and each option below it breaks ties. Pass the same track store instance used by `GenomeBrowser`.
 
 ## Usage
 
@@ -148,7 +148,16 @@ The first rule orders the tracks, and each later rule breaks ties left by the ru
 
 ## Behavior
 
-The dialog has one list for any number of options. The "Add sort option" search field lists the options not yet in the sort, in the order of `options`, and picking one adds it at the bottom of the list, sorting ascending. Each row in the list has an **Ascending** and **Descending** choice and a remove button. The top row is labeled "Primary sort" and the rest "Tiebreaker". Dragging a row stays within the list.
+The dialog has one list for any number of options. The "Add sort option" search field lists the options not yet in the sort, in the order of `options`, each with the kind of value it holds, and picking one adds it at the bottom of the list, sorting ascending. Each row in the list has a direction choice and a remove button. Under its label, a row shows the kind of value, then "Primary sort" for the top row or "Tiebreaker" for the rest. Dragging a row stays within the list.
+
+The kind of value comes from what `value` returns for the unpinned tracks when the dialog opens: **Text**, **Number**, or **True or false**. An option that returns more than one type shows **Mixed:** and the types, such as "Mixed: number and text". Tracks without a value don't count, so an option that none of them has a value for shows no kind. Each direction is named for what it does to that kind of value:
+
+| Kind                | Ascending   | Descending  |
+| ------------------- | ----------- | ----------- |
+| Number              | Low to high | High to low |
+| Text                | A to Z      | Z to A      |
+| True or false       | False first | True first  |
+| Mixed, or no values | Ascending   | Descending  |
 
 The list starts empty, and **Apply order** is disabled until an option is added. **Apply order** sorts with [`applyTrackSort`](#applytracksort), each option in its row's direction, and calls `onClose`. Sorting runs once per Apply; tracks added later are not sorted until the next Apply.
 
