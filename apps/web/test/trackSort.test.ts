@@ -1,6 +1,12 @@
-import type { AnyTrackInstance, TrackMetadata } from "@weng-lab/genomebrowser";
+import {
+  createTrackStore,
+  defineTrackModule,
+  type AnyTrackInstance,
+  type TrackMetadata,
+} from "@weng-lab/genomebrowser";
 import { expect, it } from "vitest";
-import { getTrackSortOptions } from "../features/browser/trackSort";
+import { z } from "zod";
+import { getTrackSortOptions, sortTracks } from "../features/browser/trackSort";
 
 const track = (id: string, type: string, metadata?: TrackMetadata) =>
   ({ type, base: { id, title: id }, metadata }) as unknown as AnyTrackInstance;
@@ -45,4 +51,30 @@ it("lists metadata fields after Title and Track type, named as typed, in natural
     "rep 2",
     "rep 10",
   ]);
+});
+
+it("treats a field named like an object built-in as missing on tracks without it", () => {
+  // Every object inherits names such as `constructor`, so a track without the field has none.
+  const missing = [track("a", "bigwig", { constructor: null }), track("b", "bigwig", {})];
+  expect(labels(missing)).toEqual(["Title"]);
+
+  const signalModule = defineTrackModule({
+    type: "signal",
+    configSchema: z.object({ url: z.string() }),
+    fetch: async () => null,
+    render: { full: () => null },
+  });
+  const records: [string, TrackMetadata][] = [
+    ["a", { constructor: "b" }],
+    ["b", {}],
+    ["c", { constructor: "a" }],
+  ];
+  const trackStore = createTrackStore({
+    modules: [signalModule],
+    tracks: records.map(([id, metadata]) =>
+      signalModule.create({ base: { id, title: id }, config: { url: "YOUR_URL_HERE" }, metadata }),
+    ),
+  });
+  expect(sortTracks(trackStore, [{ field: "meta:constructor" }])).toEqual({ ok: true });
+  expect(trackStore.getState().order).toEqual(["c", "a", "b"]);
 });
