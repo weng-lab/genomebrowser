@@ -76,7 +76,7 @@ Every track's settings dialog has a **Metadata** section between the module's se
 `metadataFromRows(rows)` returns `{ ok: true, metadata }` or `{ ok: false, problems }`. Each `TrackMetadataRowProblem` has the row's `key`, a `message` to show, and `incomplete`, which is true when the row only needs a name or value typed. The editor shows incomplete rows as hints and other problems as errors.
 
 - A row with neither a name nor a typed value is skipped, so a field just added isn't a problem.
-- Every other row needs a name that isn't one of [`builtInTrackFields`](#builtintrackfields) and isn't used by another row.
+- Every other row needs a name that isn't one of [`builtInTrackFields`](#builtintrackfields) and isn't used by another row. `__proto__` is refused too: a JavaScript object can't hold it as an ordinary field, and saved sessions drop it when they're read.
 - A text field needs text, and a number field a finite number. Clearing a number field is incomplete; it isn't stored as `0`.
 - Names and text are stored as typed, without trimming, so fields nobody edits keep their exact values.
 

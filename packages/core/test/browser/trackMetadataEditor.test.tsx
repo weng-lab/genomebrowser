@@ -82,6 +82,12 @@ it("keeps the last valid metadata while a field isn't valid, and says why", asyn
     message: `A field can't be named "title", which is the track's own title. Choose another name.`,
     error: true,
   });
+  // Assigning this name would set the record's prototype instead of adding a field.
+  await type(textInputs(row(1))[0], "__proto__");
+  expect(problem(row(1))).toEqual({
+    message: `A field can't be named "__proto__". Choose another name.`,
+    error: true,
+  });
   await type(textInputs(row(1))[0], "Replicate");
   expect(problem(row(1))).toEqual({
     message: 'Two fields are named "Replicate". Rename one.',

@@ -48,7 +48,7 @@ export function metadataRows(metadata: TrackMetadata | undefined): TrackMetadata
 /**
  * The metadata rows describe, or what keeps each row from being stored. Rows with neither a
  * name nor a typed value are skipped, so a field just added isn't a problem. Every other row
- * needs a name that isn't `id`, `title`, or `type` and isn't used by another row. A text
+ * needs a name that isn't `id`, `title`, `type`, or `__proto__` and isn't used by another row. A text
  * field needs text, and a number field a finite number. Names and text are stored as typed,
  * so fields that aren't edited keep their exact values.
  */
@@ -75,6 +75,13 @@ function rowProblem(row: TrackMetadataRow, uses: number) {
   if (builtInTrackFields.includes(name))
     return {
       message: `A field can't be named "${name}", which is the track's own ${name}. Choose another name.`,
+      incomplete: false,
+    };
+  // Assigning this name sets an object's prototype instead of adding a field, and reading
+  // a saved session drops it, so it can't be stored.
+  if (name === "__proto__")
+    return {
+      message: `A field can't be named "__proto__". Choose another name.`,
       incomplete: false,
     };
   if (uses > 1)
@@ -107,6 +114,8 @@ export function sameMetadata(a: TrackMetadata | undefined, b: TrackMetadata | un
   const bRecord = b ?? {};
   return (
     aEntries.length === Object.keys(bRecord).length &&
-    aEntries.every(([name, value]) => name in bRecord && Object.is(bRecord[name], value))
+    aEntries.every(
+      ([name, value]) => Object.hasOwn(bRecord, name) && Object.is(bRecord[name], value),
+    )
   );
 }
