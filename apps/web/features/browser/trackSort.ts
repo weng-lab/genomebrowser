@@ -50,8 +50,9 @@ export function getTrackSortOptions({
 }): TrackSortOption[] {
   const pinned = new Set(pinnedTrackIds);
   const unpinned = tracks.filter((track) => !pinned.has(track.base.id));
-  const [title, ...others] = sortFields(tracks);
-  return [title, ...others.filter((field) => distinctValues(unpinned, field) > 1)];
+  return sortFields(tracks).filter(
+    (field) => field === titleField || distinctValues(unpinned, field) > 1,
+  );
 }
 
 function distinctValues(tracks: readonly AnyTrackInstance[], field: TrackSortOption) {
