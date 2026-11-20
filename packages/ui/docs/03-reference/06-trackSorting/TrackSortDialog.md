@@ -1,6 +1,6 @@
 # TrackSortDialog
 
-`TrackSortDialog` reorders tracks by fields such as sample ID or assay. People choose which sort options to use and drag them into priority order; the top option sorts first and each option below it breaks ties. Pass the same track store instance used by `GenomeBrowser`.
+`TrackSortDialog` reorders tracks by fields such as sample ID or assay. People add the sort options they want, drag them into priority order, and choose a direction for each; the top option sorts first and each option below it breaks ties. Pass the same track store instance used by `GenomeBrowser`.
 
 ## Usage
 
@@ -105,7 +105,7 @@ const byAssay: TrackSortOption = {
 | `trackStore` | `TrackStoreInstance`         | Required        | Track store whose tracks are read and reordered when the sort is applied.                     |
 | `open`       | `boolean`                    | Required        | Whether the dialog is open.                                                                   |
 | `onClose`    | `() => void`                 | Required        | Called after the sort is applied and when the user cancels or requests that the dialog close. |
-| `options`    | `readonly TrackSortOption[]` | Required        | Sort options. Until a sort is applied, every option is included in this priority order.       |
+| `options`    | `readonly TrackSortOption[]` | Required        | The options people can add to the sort, listed in this order in the Add sort option field.    |
 | `title`      | `string`                     | `"Sort Tracks"` | Dialog heading.                                                                               |
 
 ### TrackSortOption
@@ -115,7 +115,7 @@ const byAssay: TrackSortOption = {
 | Field   | Type                                          | Description                                                                                                        |
 | ------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `id`    | `string`                                      | Identifies the option. Must be unique among the dialog's options; the dialog remembers the applied priority by ID. |
-| `label` | `string`                                      | Text shown on the option's chip or in the Add sort option list, and in the priority list.                          |
+| `label` | `string`                                      | Text shown in the Add sort option list and in the sort list.                                                       |
 | `value` | `(track: AnyTrackInstance) => TrackSortValue` | Reads the value this option sorts a track by. See [How values order](#how-values-order).                           |
 
 ### TrackSortValue
@@ -148,19 +148,24 @@ The first rule orders the tracks, and each later rule breaks ties left by the ru
 
 ## Behavior
 
-With five or fewer options, each option appears as a chip. Clicking an included chip leaves that option out of the sort; clicking it again adds it back at the bottom of the priority list as the lowest tiebreaker.
+The dialog has one list for any number of options. The "Add sort option" search field lists the options not yet in the sort, in the order of `options`, each with the kind of value it holds, and picking one adds it at the bottom of the list, sorting ascending. Each row in the list has a direction choice and a remove button. Under its label, a row shows the kind of value, then "Primary sort" for the top row or "Tiebreaker" for the rest. Dragging a row stays within the list.
 
-With more than five options, chips would wrap onto several lines, so an "Add sort option" search field replaces them. It lists only the excluded options, and picking one adds it at the bottom of the priority list. Each priority row then has a remove button that excludes its option.
+The kind of value comes from what `value` returns for the unpinned tracks when the dialog opens: **Text**, **Number**, or **True or false**. An option that returns more than one type shows **Mixed:** and the types, such as "Mixed: number and text". Tracks without a value don't count, so an option that none of them has a value for shows no kind. Each direction is named for what it does to that kind of value:
 
-The priority list shows only included options, labeling the top one "Primary sort" and the rest "Tiebreaker". Dragging a row stays within the list. When no options are included, Apply keeps the current track order.
+| Kind                | Ascending   | Descending  |
+| ------------------- | ----------- | ----------- |
+| Number              | Low to high | High to low |
+| Text                | A to Z      | Z to A      |
+| True or false       | False first | True first  |
+| Mixed, or no values | Ascending   | Descending  |
 
-**Apply order** sorts with [`applyTrackSort`](#applytracksort), every included option ascending, and calls `onClose`. Sorting runs once per Apply; tracks added later are not sorted until the next Apply.
+The list starts empty, and **Apply order** is disabled until an option is added. **Apply order** sorts with [`applyTrackSort`](#applytracksort), each option in its row's direction, and calls `onClose`. Sorting runs once per Apply; tracks added later are not sorted until the next Apply.
 
-The dialog remembers the last applied priority while it stays mounted, and each opening starts from it. **Cancel**, the close button, Escape, and clicking outside the dialog call `onClose` and discard unapplied changes. Until the first Apply, every option currently in `options` is included, so options can change with the loaded tracks. An option added after a sort is applied starts excluded. Escape during a move cancels the move and leaves the dialog open.
+The dialog remembers the last applied sort, with each option's direction, while it stays mounted, and each opening starts from it. An applied option that is no longer in `options` is left out when the dialog opens, and the next Apply forgets it. **Cancel**, the close button, Escape, and clicking outside the dialog call `onClose` and discard unapplied changes. Escape during a move cancels the move and leaves the dialog open.
 
 ## Accessibility
 
-The dialog uses MUI's modal focus and keyboard behavior, and the close button is named "Close track sorting". Option chips are buttons whose `aria-pressed` state reports whether the option is included; excluded chips also use an outlined, struck-through style so state does not depend on color alone. With more than five options, the "Add sort option" field is a labeled combobox, and each row's remove button is named "Remove" followed by the option label. Rows in the "Sort priority" list are focusable. Press Space or Enter to pick up a row, the arrow keys to move it, Space or Enter to drop it, and Escape to cancel the move.
+The dialog uses MUI's modal focus and keyboard behavior, and the close button is named "Close track sorting". The "Add sort option" field is a labeled combobox. In each row, the direction choice is a button group named after the option, such as "Assay sort direction", whose buttons report the selected direction through `aria-pressed`; both directions keep their text labels, so the choice does not depend on color alone. Each row's remove button is named "Remove" followed by the option label. Rows in the "Sort priority" list are focusable. Press Space or Enter to pick up a row, the arrow keys to move it, Space or Enter to drop it, and Escape to cancel the move.
 
 ## Related reference
 
