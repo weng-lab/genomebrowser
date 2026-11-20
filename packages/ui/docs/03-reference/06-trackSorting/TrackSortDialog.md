@@ -1,21 +1,13 @@
 # TrackSortDialog
 
-`TrackSortDialog` reorders tracks by application metadata, such as sample ID or assay. People choose which sort options to use and drag them into priority order; the top option sorts first and each option below it breaks ties. Pass the same track store instance used by `GenomeBrowser`.
+`TrackSortDialog` reorders tracks by fields such as sample ID or assay. People choose which sort options to use and drag them into priority order; the top option sorts first and each option below it breaks ties. Pass the same track store instance used by `GenomeBrowser`.
 
 ## Usage
 
 ```tsx
 import { useState } from "react";
-import {
-  GenomeBrowser,
-  createBrowserStore,
-  createTrackStore,
-  hg38,
-  type AnyTrackInstance,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { TrackSortDialog, type TrackSortOption } from "@weng-lab/genomebrowser-ui";
-
-type SampleInfo = { sampleId: string; assay: string };
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -24,19 +16,12 @@ const useBrowserStore = createBrowserStore({
 
 const useTrackStore = createTrackStore({ modules: [] });
 
-const sortOptions: TrackSortOption<SampleInfo>[] = [
-  { id: "sample", label: "Sample ID", compare: (a, b) => a.sampleId.localeCompare(b.sampleId) },
-  { id: "assay", label: "Assay", compare: (a, b) => a.assay.localeCompare(b.assay) },
-];
-
-// Reads fields the application set when adding the track, such as
+// Each option reads a field the application set when adding the track, such as
 // metadata: { "Sample ID": "S12", Assay: "ChIP-seq" }.
-function getSampleInfo(track: AnyTrackInstance): SampleInfo | undefined {
-  const sampleId = track.metadata?.["Sample ID"];
-  const assay = track.metadata?.Assay;
-  if (typeof sampleId !== "string" || typeof assay !== "string") return undefined;
-  return { sampleId, assay };
-}
+const sortOptions: TrackSortOption[] = [
+  { id: "sample", label: "Sample ID", value: (track) => track.metadata?.["Sample ID"] },
+  { id: "assay", label: "Assay", value: (track) => track.metadata?.Assay },
+];
 
 export function BrowserWithTrackSorting() {
   const [open, setOpen] = useState(false);
@@ -52,7 +37,6 @@ export function BrowserWithTrackSorting() {
         open={open}
         onClose={() => setOpen(false)}
         options={sortOptions}
-        getMetadata={getSampleInfo}
       />
     </>
   );
@@ -63,15 +47,35 @@ export function BrowserWithTrackSorting() {
 
 ## Examples
 
-### Choose which tracks are sorted
+### How values order
 
-`getMetadata` decides which tracks participate. Return the values the options compare, or `undefined` to leave a track where it is. For example, sort only the tracks your application added from one collection by returning metadata for their IDs and `undefined` for everything else. Pinned tracks always keep their positions.
+Each option's `value` reads one value from a track: text, a number, `true` or `false`, or `null` or `undefined` when the track has none. Values order by type:
 
-Sorted tracks are rearranged among the positions they already occupy. If an unsorted gene track sits between two sorted tracks, it stays in that row and the sorted tracks move around it.
+- Numbers in numeric order.
+- Text in natural order, ignoring case, so "rep2" comes before "rep10".
+- `false` before `true`.
 
-### Compare by a custom order
+When one option returns values of different types, numbers come first, then text, then `true` and `false`. Tracks without a value go after the tracks with one, in their current order, in either direction.
 
-Each `compare` works like an `Array.prototype.sort` comparator: return a negative number when `a` belongs above `b`, a positive number when it belongs below, and `0` on a tie. To sort by a fixed order instead of alphabetically, compare ranks:
+Every unpinned track takes part in a sort. Sorted tracks are rearranged among the positions they already occupy, so a pinned track stays in its row and the others move around it.
+
+### Read values from your own data
+
+`value` can read anything about a track, not only its metadata. To sort by details your application keeps elsewhere, look them up by track ID:
+
+```ts
+const donors = new Map([["h3k27ac-k562", "D3"]]);
+
+const byDonor: TrackSortOption = {
+  id: "donor",
+  label: "Donor",
+  value: (track) => donors.get(track.base.id),
+};
+```
+
+### Sort by a fixed order
+
+To sort by a fixed order instead of alphabetically, return each value's rank. Numbers sort numerically, and a value without a rank sorts last:
 
 ```ts
 const assayRank = new Map([
@@ -80,50 +84,67 @@ const assayRank = new Map([
   ["WGBS", 2],
 ]);
 
-const byAssay: TrackSortOption<SampleInfo> = {
+const byAssay: TrackSortOption = {
   id: "assay",
   label: "Assay",
-  compare: (a, b) =>
-    (assayRank.get(a.assay) ?? Number.MAX_SAFE_INTEGER) -
-    (assayRank.get(b.assay) ?? Number.MAX_SAFE_INTEGER),
+  value: (track) => {
+    const assay = track.metadata?.Assay;
+    return typeof assay === "string" ? assayRank.get(assay) : undefined;
+  },
 };
 ```
-
-A comparator can also combine fields, such as ordering by assay and then by a file's position within that assay.
 
 ## API
 
 ### TrackSortDialogProps
 
-`TrackSortDialogProps<Metadata>` is exported from the package root. `Metadata` is the type your options compare.
+`TrackSortDialogProps` is exported from the package root.
 
-| Prop          | Type                                                 | Default         | Description                                                                                                |
-| ------------- | ---------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------- |
-| `trackStore`  | `TrackStoreInstance`                                 | Required        | Track store whose tracks are read and reordered when the sort is applied.                                  |
-| `open`        | `boolean`                                            | Required        | Whether the dialog is open.                                                                                |
-| `onClose`     | `() => void`                                         | Required        | Called after the sort is applied and when the user cancels or requests that the dialog close.              |
-| `options`     | `readonly TrackSortOption<Metadata>[]`               | Required        | Sort options. Until a sort is applied, every option is included in this priority order.                    |
-| `getMetadata` | `(track: AnyTrackInstance) => Metadata \| undefined` | Required        | Returns the metadata the options compare for a track. Tracks that return `undefined` keep their positions. |
-| `title`       | `string`                                             | `"Sort Tracks"` | Dialog heading.                                                                                            |
+| Prop         | Type                         | Default         | Description                                                                                   |
+| ------------ | ---------------------------- | --------------- | --------------------------------------------------------------------------------------------- |
+| `trackStore` | `TrackStoreInstance`         | Required        | Track store whose tracks are read and reordered when the sort is applied.                     |
+| `open`       | `boolean`                    | Required        | Whether the dialog is open.                                                                   |
+| `onClose`    | `() => void`                 | Required        | Called after the sort is applied and when the user cancels or requests that the dialog close. |
+| `options`    | `readonly TrackSortOption[]` | Required        | Sort options. Until a sort is applied, every option is included in this priority order.       |
+| `title`      | `string`                     | `"Sort Tracks"` | Dialog heading.                                                                               |
 
 ### TrackSortOption
 
-`TrackSortOption<Metadata>` is exported from the package root.
+`TrackSortOption` is exported from the package root.
 
-| Field     | Type                                   | Description                                                                                                        |
-| --------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `id`      | `string`                               | Identifies the option. Must be unique among the dialog's options; the dialog remembers the applied priority by ID. |
-| `label`   | `string`                               | Text shown on the option's chip or in the Add sort option list, and in the priority list.                          |
-| `compare` | `(a: Metadata, b: Metadata) => number` | Returns a negative number when `a` belongs above `b`, a positive number when it belongs below, or `0` on a tie.    |
+| Field   | Type                                          | Description                                                                                                        |
+| ------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `id`    | `string`                                      | Identifies the option. Must be unique among the dialog's options; the dialog remembers the applied priority by ID. |
+| `label` | `string`                                      | Text shown on the option's chip or in the Add sort option list, and in the priority list.                          |
+| `value` | `(track: AnyTrackInstance) => TrackSortValue` | Reads the value this option sorts a track by. See [How values order](#how-values-order).                           |
 
-### getSortedTrackIds
+### TrackSortValue
 
-`getSortedTrackIds(tracks, pinnedTrackIds, getMetadata, comparators)` returns every track ID in the order the dialog's **Apply order** would produce, without changing the store. Use it to sort from somewhere other than the dialog, such as an agent command, so both give the same order. Pass the store's `tracks` and `pinnedTrackIds`, the dialog's `getMetadata`, and the chosen options' `compare` functions in priority order, then apply the result with `reorderTracks`.
+`TrackSortValue` is exported from the package root. It's `string`, `number`, `boolean`, `null`, or `undefined`; `null` and `undefined` mean the track has no value, and it sorts last.
+
+### applyTrackSort
+
+`applyTrackSort(trackStore, rules)` sorts the store's tracks once, as the dialog's **Apply order** does, and commits the order with `reorderTracks`. Use it to sort from somewhere other than the dialog, such as an agent command, so both give the same order.
 
 ```ts
-const { tracks, pinnedTrackIds, reorderTracks } = trackStore.getState();
-reorderTracks(getSortedTrackIds(tracks, pinnedTrackIds, getSampleInfo, [byAssay.compare]));
+import { applyTrackSort } from "@weng-lab/genomebrowser-ui";
+
+const result = applyTrackSort(trackStore, [
+  { option: byAssay, direction: "ascending" },
+  { option: byDonor, direction: "descending" },
+]);
 ```
+
+The first rule orders the tracks, and each later rule breaks ties left by the rules before it, in its own direction. Tracks without a value for a rule go after the tracks with one in either direction, and tracks that tie on every rule keep their current order. Pinned tracks keep their positions. The store's tracks are read when the function runs; tracks added later are not sorted until the next call. Returns `reorderTracks`' [mutation result](https://github.com/weng-lab/genomebrowser/blob/main/packages/core/docs/03-reference/01-browserSetup/trackStore.md#mutation-results).
+
+### TrackSortRule and TrackSortDirection
+
+`TrackSortRule` and `TrackSortDirection` are exported from the package root. A rule is one level of a sort.
+
+| Field       | Type                                                  | Description                                                                                                                    |
+| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `option`    | `TrackSortOption`                                     | The option whose value orders the tracks.                                                                                      |
+| `direction` | `TrackSortDirection`: `"ascending"` or `"descending"` | `"descending"` reverses the order of the tracks that have a value, including the order of types; tracks without one stay last. |
 
 ## Behavior
 
@@ -133,7 +154,7 @@ With more than five options, chips would wrap onto several lines, so an "Add sor
 
 The priority list shows only included options, labeling the top one "Primary sort" and the rest "Tiebreaker". Dragging a row stays within the list. When no options are included, Apply keeps the current track order.
 
-**Apply order** reads the store's current tracks, reorders them with `reorderTracks`, and calls `onClose`. Tracks that tie on every included option keep their current relative order. Sorting runs once per Apply; tracks added later are not sorted until the next Apply.
+**Apply order** sorts with [`applyTrackSort`](#applytracksort), every included option ascending, and calls `onClose`. Sorting runs once per Apply; tracks added later are not sorted until the next Apply.
 
 The dialog remembers the last applied priority while it stays mounted, and each opening starts from it. **Cancel**, the close button, Escape, and clicking outside the dialog call `onClose` and discard unapplied changes. Until the first Apply, every option currently in `options` is included, so options can change with the loaded tracks. An option added after a sort is applied starts excluded. Escape during a move cancels the move and leaves the dialog open.
 

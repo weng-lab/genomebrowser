@@ -47,7 +47,7 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
     if (!enabled || !id || !stores || !signal) return;
     const app: CommandApp = {
       stores,
-      sortTracks: (fieldIds) => sortTracks(stores.useTrackStore, fieldIds),
+      sortTracks: (sort) => sortTracks(stores.useTrackStore, sort),
       changeTrackMetadata: (trackIds, change) =>
         changeTrackMetadata(stores.useTrackStore, trackIds, change),
       exportImage: (format, { filename, ...options }, signal) =>
