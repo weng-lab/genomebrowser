@@ -118,10 +118,13 @@ describe("BigBed schema diagnostics", () => {
 
   it("preserves custom field names, raw values, record coordinates, and Zod compatibility", async () => {
     const error = await decode("peak1\t611\t.\t10.8645\t65.6076\tinvalid\t418").catch(
-      (error) => error,
+      (caught: unknown) => caught,
     );
     expect(error).toBeInstanceOf(z.ZodError);
     expect(error).toBeInstanceOf(BigBedParseError);
+    if (!(error instanceof BigBedParseError)) {
+      throw new Error("Expected BigBedParseError");
+    }
     expect(error.context).toEqual({
       region: { chromosome: "chr1", start: 10, end: 20 },
       column: 9,
@@ -137,7 +140,11 @@ describe("BigBed schema diagnostics", () => {
   });
 
   it("reports the first missing column and total BED column counts", async () => {
-    const error = await decode("peak1\t611\t.").catch((error) => error);
+    const error = await decode("peak1\t611\t.").catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(BigBedParseError);
+    if (!(error instanceof BigBedParseError)) {
+      throw new Error("Expected BigBedParseError");
+    }
     expect(error.context).toMatchObject({
       column: 7,
       field: "signalValue",

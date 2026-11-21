@@ -87,7 +87,9 @@ async function loadTrackModules(sources: string[], cwd: string): Promise<AnyTrac
       try {
         imported = await jiti.import(specifier);
       } catch (error) {
-        throw new Error(`Could not import track modules from "${source}": ${errorMessage(error)}`);
+        throw new Error(`Could not import track modules from "${source}": ${errorMessage(error)}`, {
+          cause: error,
+        });
       }
       return selectTrackModules(imported, reference.exportName, source);
     }),

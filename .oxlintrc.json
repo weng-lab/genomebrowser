@@ -18,6 +18,8 @@
     "jsx-a11y/tabindex-no-positive": "error",
     "vitest/no-focused-tests": "error",
     "no-unused-vars": "error",
+    "eqeqeq": "error",
+    "preserve-caught-error": "error",
     "no-eval": "error",
     "import/no-self-import": "error",
     "react/exhaustive-deps": "error",
@@ -32,6 +34,8 @@
     "typescript/no-for-in-array": "error",
     "typescript/no-implied-eval": "error",
     "typescript/no-import-type-side-effects": "error",
+    "typescript/no-meaningless-void-operator": "error",
+    "typescript/no-misused-promises": "error",
     "typescript/no-misused-spread": "error",
     "typescript/no-redundant-type-constituents": "error",
     "typescript/no-unnecessary-type-assertion": "error",
@@ -39,6 +43,8 @@
     "typescript/no-useless-default-assignment": "error",
     "typescript/only-throw-error": "error",
     "typescript/prefer-string-starts-ends-with": "error",
+    "typescript/require-array-sort-compare": "error",
+    "typescript/restrict-template-expressions": "error",
     "typescript/return-await": ["error", "error-handling-correctness-only"],
     "typescript/switch-exhaustiveness-check": [
       "error",
@@ -47,6 +53,7 @@
         "considerDefaultExhaustiveForUnions": true
       }
     ],
+    "typescript/use-unknown-in-catch-callback-variable": "error",
     "unicorn/prefer-set-has": "error",
     "typescript/no-base-to-string": "off",
     "typescript/no-floating-promises": [
@@ -55,9 +62,6 @@
         "ignoreVoid": false
       }
     ],
-    "typescript/no-meaningless-void-operator": "off",
-    "typescript/require-array-sort-compare": "off",
-    "typescript/restrict-template-expressions": "off",
     "typescript/unbound-method": "off"
   },
   "overrides": [
@@ -396,12 +400,6 @@
       "files": ["apps/web/{app,composition,features,shared}/**"],
       "rules": {
         "import/no-cycle": "error"
-      }
-    },
-    {
-      "files": ["apps/web/**"],
-      "rules": {
-        "typescript/no-misused-promises": "error"
       }
     },
     {
