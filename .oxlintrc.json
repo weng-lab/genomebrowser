@@ -16,21 +16,44 @@
     "jsx-a11y/role-has-required-aria-props": "error",
     "jsx-a11y/tabindex-no-positive": "error",
     "vitest/no-focused-tests": "error",
-    "no-unused-vars": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "fix": {
+          "imports": "safe-fix",
+          "variables": "off"
+        }
+      }
+    ],
+    "no-eval": "error",
+    "import/no-self-import": "error",
     "react/exhaustive-deps": "error",
-    "typescript/await-thenable": "off",
-    "typescript/no-array-delete": "off",
+    "typescript/await-thenable": "error",
+    "typescript/no-array-delete": "error",
+    "typescript/no-confusing-non-null-assertion": "error",
+    "typescript/no-duplicate-type-constituents": "error",
+    "typescript/no-for-in-array": "error",
+    "typescript/no-implied-eval": "error",
+    "typescript/no-misused-spread": "error",
+    "typescript/no-redundant-type-constituents": "error",
+    "typescript/no-unsafe-unary-minus": "error",
+    "typescript/no-useless-default-assignment": "error",
+    "typescript/only-throw-error": "error",
+    "typescript/prefer-string-starts-ends-with": "error",
+    "typescript/return-await": ["error", "error-handling-correctness-only"],
+    "typescript/switch-exhaustiveness-check": [
+      "error",
+      {
+        "allowDefaultCaseForExhaustiveSwitch": true,
+        "considerDefaultExhaustiveForUnions": true
+      }
+    ],
+    "unicorn/prefer-set-has": "error",
     "typescript/no-base-to-string": "off",
-    "typescript/no-duplicate-type-constituents": "off",
     "typescript/no-floating-promises": "off",
-    "typescript/no-for-in-array": "off",
-    "typescript/no-implied-eval": "off",
     "typescript/no-meaningless-void-operator": "off",
-    "typescript/no-misused-spread": "off",
-    "typescript/no-redundant-type-constituents": "off",
-    "typescript/no-unsafe-unary-minus": "off",
-    "typescript/no-useless-default-assignment": "off",
-    "typescript/prefer-string-starts-ends-with": "off",
     "typescript/require-array-sort-compare": "off",
     "typescript/restrict-template-expressions": "off",
     "typescript/unbound-method": "off"
@@ -448,6 +471,15 @@
             ]
           }
         ]
+      }
+    },
+    {
+      "files": [
+        "**/*.{test,spec}.{js,jsx,ts,tsx,mts,cts}",
+        "**/__tests__/**/*.{js,jsx,ts,tsx,mts,cts}"
+      ],
+      "rules": {
+        "vitest/require-awaited-expect-poll": "error"
       }
     }
   ],
