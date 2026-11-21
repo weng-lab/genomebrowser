@@ -22,11 +22,16 @@
     "import/no-self-import": "error",
     "react/exhaustive-deps": "error",
     "typescript/await-thenable": "error",
+    "typescript/consistent-type-imports": [
+      "error",
+      { "disallowTypeAnnotations": false }
+    ],
     "typescript/no-array-delete": "error",
     "typescript/no-confusing-non-null-assertion": "error",
     "typescript/no-duplicate-type-constituents": "error",
     "typescript/no-for-in-array": "error",
     "typescript/no-implied-eval": "error",
+    "typescript/no-import-type-side-effects": "error",
     "typescript/no-misused-spread": "error",
     "typescript/no-redundant-type-constituents": "error",
     "typescript/no-unsafe-unary-minus": "error",

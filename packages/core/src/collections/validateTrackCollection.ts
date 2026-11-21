@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 import type { AnyTrackModule } from "../modules/types";
 import {
   createTrackCollectionSchema,
