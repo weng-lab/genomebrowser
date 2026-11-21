@@ -35,6 +35,10 @@ function bigBedWithColumns(fieldCount: number, definedFieldCount: number) {
 
 type HostedFiles = Record<string, Uint8Array | number>;
 
+function requestUrl(input: RequestInfo | URL): string {
+  return typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+}
+
 // Serves each file as a host that supports byte-range requests would, answering 416 to a range that
 // starts past its end. A number answers with that status instead; an unlisted URL fails as fetch
 // does when a host is unreachable or CORS blocks it.
@@ -43,7 +47,7 @@ function host(files: HostedFiles) {
     "fetch",
     vi.fn<typeof fetch>(async (input, init) => {
       init?.signal?.throwIfAborted();
-      const file = files[String(input)];
+      const file = files[requestUrl(input)];
       if (file === undefined) throw new TypeError("Failed to fetch");
       if (typeof file === "number") return new Response(null, { status: file });
       const range = /^bytes=(\d+)-(\d+)$/.exec(new Headers(init?.headers).get("Range") ?? "");

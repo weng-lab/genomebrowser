@@ -5,12 +5,16 @@ export const sources = {
   standard: "https://users.wenglab.org/niship/hg38_ucsc_std_rmsk.bb",
   joined: "https://users.wenglab.org/niship/hg38_rmsk.bb",
 };
+export function requestUrl(input: RequestInfo | URL): string {
+  return typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+}
+
 export function serveRepeatMasker(
   standard = standardRepeatFile,
   joined = singleRepeatFile(joinedRepeatColumns),
 ) {
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input);
+    const url = requestUrl(input);
     const bytes = url === sources.standard ? standard : url === sources.joined ? joined : undefined;
     if (!bytes) throw new Error(`Unexpected source: ${url}`);
     if (init?.signal?.aborted) throw init.signal.reason;
