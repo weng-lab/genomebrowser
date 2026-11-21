@@ -102,18 +102,18 @@ describe("first-party track package", () => {
       ],
     };
     expect(() => validateTrackCollection(collection, firstPartyTrackModules)).toThrow();
-    collection.tracks[0]!.type = "gene";
+    collection.tracks[0].type = "gene";
     expect(() => validateTrackCollection(collection, firstPartyTrackModules)).toThrow();
     expect(
       validateTrackCollection(
         {
           ...collection,
           tracks: [
-            { type: "gene", base: collection.tracks[0]!.base, config: { url: "YOUR_URL_HERE" } },
+            { type: "gene", base: collection.tracks[0].base, config: { url: "YOUR_URL_HERE" } },
           ],
         },
         firstPartyTrackModules,
-      ).tracks[0]!.type,
+      ).tracks[0].type,
     ).toBe("gene");
   });
 

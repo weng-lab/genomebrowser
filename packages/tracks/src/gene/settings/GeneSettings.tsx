@@ -9,7 +9,6 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import SvgIcon from "@mui/material/SvgIcon";
 import TextField from "@mui/material/TextField";
-import type { TextFieldProps } from "@mui/material/TextField";
 import { useGenomeBrowser, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { useState, type ComponentProps } from "react";
 import { TrackSettingsColorField } from "../../shared/settings/trackSettingsColorField";
@@ -230,7 +229,7 @@ function HostGeneDatasetField({
         }}
         renderInput={(params) => (
           <TextField
-            {...(params as unknown as TextFieldProps)}
+            {...params}
             helperText={
               variants.length === 0 ? `No datasets available for ${assembly}.` : undefined
             }
@@ -254,9 +253,7 @@ function HostGeneDatasetField({
             );
             if (nextDataset) onChange(nextDataset);
           }}
-          renderInput={(params) => (
-            <TextField {...(params as unknown as TextFieldProps)} label="Version" />
-          )}
+          renderInput={(params) => <TextField {...params} label="Version" />}
         />
       ) : null}
     </TrackSettingsFieldRow>
@@ -382,11 +379,7 @@ function TagField({
       value={value}
       onChange={(_event, tag) => onChange(tag)}
       renderInput={(params) => (
-        <TextField
-          {...(params as unknown as TextFieldProps)}
-          autoFocus={autoFocus}
-          label="Transcript tag"
-        />
+        <TextField {...params} autoFocus={autoFocus} label="Transcript tag" />
       )}
     />
   );

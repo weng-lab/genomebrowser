@@ -15,8 +15,8 @@ const classColors: Record<string, string> = {
 
 export function repeatColor(repeat: BigRmskRepeat): string {
   const repeatClass = repeat.repeatClass.replace(/\?$/, "");
-  if (["rRNA", "tRNA", "snRNA", "scRNA", "srpRNA"].includes(repeatClass)) return classColors.RNA!;
+  if (["rRNA", "tRNA", "snRNA", "scRNA", "srpRNA"].includes(repeatClass)) return classColors.RNA;
   return (
-    classColors[repeatClass] ?? (repeatClass === "RC" ? classColors.Other! : classColors.Unknown!)
+    classColors[repeatClass] ?? (repeatClass === "RC" ? classColors.Other : classColors.Unknown)
   );
 }

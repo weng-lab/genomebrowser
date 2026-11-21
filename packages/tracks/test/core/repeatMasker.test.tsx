@@ -149,14 +149,14 @@ describe("RepeatMasker public module", () => {
     expect(
       renderToStaticMarkup(
         <Tooltip
-          item={standard.data.repeats[0]!}
+          item={standard.data.repeats[0]}
           context={{ ...track({ view: "joined" }), metadata: {} }}
         />,
       ),
     ).toContain("SW score");
     expect(
       renderToStaticMarkup(
-        <Tooltip item={joined.data[0]!} context={{ ...track(), metadata: {} }} />,
+        <Tooltip item={joined.data[0]} context={{ ...track(), metadata: {} }} />,
       ),
     ).toContain("24.2%");
   });

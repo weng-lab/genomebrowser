@@ -51,7 +51,7 @@ describe("2bit regional reader", () => {
         { ...region, start: 2, end: 10, sequence: "ANNnagtC" },
       ]);
       expect(mock).toHaveBeenCalledTimes(1);
-      expect(new Headers(mock.mock.calls[0]![1]?.headers).get("range")).toBe("bytes=57-59");
+      expect(new Headers(mock.mock.calls[0][1]?.headers).get("range")).toBe("bytes=57-59");
     },
   );
   it("clips the end and returns no records for missing or nonoverlapping sequences", async () => {

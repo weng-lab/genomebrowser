@@ -117,10 +117,10 @@ describe("standard RepeatMasker BED6+11", () => {
     expect(full.querySelectorAll("[data-repeatmasker-category]")).toHaveLength(10);
     expect(full.querySelectorAll("[data-repeatmasker-block]")).toHaveLength(11);
     const blocks = full.querySelectorAll("[data-repeatmasker-block]");
-    expect(blocks[0]!.getAttribute("y")).not.toBe(blocks[1]!.getAttribute("y"));
-    expect(Number(blocks[0]!.getAttribute("x"))).toBeCloseTo(100 / 3);
-    expect(Number(blocks[0]!.getAttribute("width"))).toBeCloseTo(60);
-    expect(blocks[0]!.getAttribute("fill")).toBe("rgb(69,69,69)");
+    expect(blocks[0].getAttribute("y")).not.toBe(blocks[1].getAttribute("y"));
+    expect(Number(blocks[0].getAttribute("x"))).toBeCloseTo(100 / 3);
+    expect(Number(blocks[0].getAttribute("width"))).toBeCloseTo(60);
+    expect(blocks[0].getAttribute("fill")).toBe("rgb(69,69,69)");
     expect(full.querySelector("[data-repeatmasker-strand='-']")).not.toBeNull();
     // The third repeat spans [700, 880): x = 700 / 3, width = 180 / 3 at 1000 px for 3000 bp.
     const third = Array.from(blocks).find(
@@ -215,11 +215,11 @@ describe("standard RepeatMasker BED6+11", () => {
         cell.getAttribute("fill"),
       ),
     );
-    expect(cells[500]!.getAttribute("fill")).toBe("rgb(0,0,0)");
+    expect(cells[500].getAttribute("fill")).toBe("rgb(0,0,0)");
     // Unsorted, partially overlapping regions cover [100, 280), not 240 distinct bases.
     const partial = [
-      { ...repeats[0]!, start: 200, end: 280 },
-      { ...repeats[1]!, start: 100, end: 260 },
+      { ...repeats[0], start: 200, end: 280 },
+      { ...repeats[1], start: 100, end: 260 },
     ];
     for (const records of [partial, [...partial].reverse()]) {
       const view = await markup({ kind: "repeats", repeats: records }, "dense", {
@@ -239,7 +239,7 @@ describe("standard RepeatMasker BED6+11", () => {
     const crowded: StandardData = {
       kind: "repeats",
       repeats: Array.from({ length: 1500 }, (_, index) => ({
-        ...data.repeats[0]!,
+        ...data.repeats[0],
         repeatId: index,
       })),
     };

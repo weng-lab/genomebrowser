@@ -355,10 +355,7 @@ async function mountSettings(
   const module = {
     ...signalModule,
     render: Object.fromEntries(
-      displayOptions.map((option) => [
-        option,
-        signalModule.render[option as keyof typeof signalModule.render],
-      ]),
+      displayOptions.map((option) => [option, signalModule.render[option]]),
     ),
   };
   const trackStore = createTrackStore({

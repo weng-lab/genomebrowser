@@ -33,7 +33,7 @@ export function coverageCells(data: CoverageData, region: GenomicRegion, width: 
       const start = Math.max(record.start, region.start + i * bpPerBin);
       const end = Math.min(record.end, region.start + (i + 1) * bpPerBin);
       const overlap = Math.max(0, end - start);
-      const bin = bins[i]!;
+      const bin = bins[i];
       if (record.kind === "summary") {
         const covered = (overlap * record.validCount) / (record.end - record.start);
         bin.covered += covered;

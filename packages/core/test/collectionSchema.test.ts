@@ -113,7 +113,7 @@ describe("TrackSelect collection schemas", () => {
     expect(validated.tracks).toBe(authored.tracks);
     expect(validated.views?.[0]).toMatchObject({ grouping: [], leaf: "title" });
     expect(authored.views[0]).not.toHaveProperty("grouping");
-    const entry = validated.tracks[0]!;
+    const entry = validated.tracks[0];
     if (entry.type !== "transformed") throw new Error("Unexpected module");
     const track = transformedModule.create({ base: entry.base, config: entry.config });
     expect(track.config).toEqual({ value: 5, offset: 2, enabled: true });

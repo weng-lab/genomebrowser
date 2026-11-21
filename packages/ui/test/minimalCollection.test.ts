@@ -34,8 +34,8 @@ describe("portable track collections", () => {
     expect(collection).toEqual(minimal);
     expect(collection.tracks[0]).not.toHaveProperty("metadata");
     const track = registry
-      .get(collection.tracks[0]!.type)
-      .create({ base: collection.tracks[0]!.base, config: collection.tracks[0]!.config });
+      .get(collection.tracks[0].type)
+      .create({ base: collection.tracks[0].base, config: collection.tracks[0].config });
     expect(track.base).toEqual({
       id: "one",
       title: "Signal one",
@@ -44,7 +44,7 @@ describe("portable track collections", () => {
       color: "#2266aa",
     });
     expect(track.config).toEqual({ url: "YOUR_URL_HERE", scale: 1 });
-    expect(collection.tracks[0]!.base).not.toHaveProperty("height");
+    expect(collection.tracks[0].base).not.toHaveProperty("height");
   });
 
   it("preserves a configured track through a JSON collection round trip", () => {
@@ -58,7 +58,7 @@ describe("portable track collections", () => {
       JSON.parse(JSON.stringify({ ...minimal, tracks: [{ type, base, config, metadata }] })),
       registry.modules,
     );
-    const entry = collection.tracks[0]!;
+    const entry = collection.tracks[0];
     expect(
       registry
         .get(entry.type)
@@ -70,7 +70,7 @@ describe("portable track collections", () => {
     const compiledCollections = compileTrackCollections([
       validateTrackCollection(minimal, registry.modules),
     ]);
-    const record = compiledCollections.records[0]!;
+    const record = compiledCollections.records[0];
     expect(record.label).toBe("signals");
     expect(record.assembly).toBe("lab/custom-v1");
     expect(record.views).toEqual([
@@ -92,7 +92,7 @@ describe("portable track collections", () => {
     });
     expect(track?.base.id).toBe("signals::one");
     expect(track?.base.color).toBe("#2266aa");
-    expect(minimal.tracks[0]!.base.id).toBe("one");
+    expect(minimal.tracks[0].base.id).toBe("one");
     expect(minimal).not.toHaveProperty("views");
   });
 

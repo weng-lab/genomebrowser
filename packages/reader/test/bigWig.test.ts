@@ -37,7 +37,7 @@ beforeAll(async () => {
       const [chromosome, start, end, value] = line.split("\t");
       return {
         kind: "value",
-        chromosome: chromosome!,
+        chromosome: chromosome,
         start: Number(start),
         end: Number(end),
         value: Number(value),
@@ -268,7 +268,7 @@ describe("createBigWigFile", () => {
     const zoomHeaders = parseBbiZoomHeaders(fixture.subarray(64, 64 + 24 * 4), header);
     const prefixRange = "bytes=0-2047";
     const unzoomedIndexRange = `bytes=${header.unzoomedIndexOffset}-${header.unzoomedIndexOffset + 2047n}`;
-    const zoomIndexOffset = zoomHeaders[0]!.indexOffset;
+    const zoomIndexOffset = zoomHeaders[0].indexOffset;
     const zoomIndexRange = `bytes=${zoomIndexOffset}-${fixture.byteLength - 1}`;
     const region = { chromosome: "chr1", start: 0, end: 1_000 };
 

@@ -54,7 +54,7 @@ export function adaptTrackSelectInteraction(
     ...(onLeave ? { onLeave: (item, runtime) => onLeave(item, runtime, collection) } : {}),
   };
 
-  return adapted as AnyTrackInteraction;
+  return adapted;
 }
 
 function assertValidTrackSelectInteraction(

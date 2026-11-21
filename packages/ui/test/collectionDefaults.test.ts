@@ -267,7 +267,7 @@ describe("TrackSelect default track reconciliation", () => {
     expect(resolveTrackInteraction).toHaveBeenCalledWith({
       collectionId: "beta",
       qualifiedTrackId: "beta::one",
-      track: collections[1]!.tracks[0],
+      track: collections[1].tracks[0],
     });
     expect(track.metadata).toEqual({});
     expect(track.config).not.toHaveProperty("metadata");
@@ -314,8 +314,8 @@ describe("TrackSelect default track reconciliation", () => {
       base: existingTrack.base,
       config: existingTrack.config,
     });
-    expect(preserved[1]!.source).toBe("host");
-    expect(preserved[1]!.interaction).toBe(existingTrack.interaction);
+    expect(preserved[1].source).toBe("host");
+    expect(preserved[1].interaction).toBe(existingTrack.interaction);
 
     const replacement = { onClick: vi.fn() };
     const replaced = getReconciledTracks({
@@ -327,11 +327,11 @@ describe("TrackSelect default track reconciliation", () => {
       resolveTrackInteraction: () => replacement,
     });
     expect(replaced[0]).toBe(unmanagedTrack);
-    expect(replaced[0]!.interaction).toBe(unmanagedTrack.interaction);
+    expect(replaced[0].interaction).toBe(unmanagedTrack.interaction);
     expect(replaced[1]).not.toBe(existingTrack);
-    expect(replaced[1]!.interaction).toHaveProperty("onClick");
-    expect(replaced[1]!.interaction).not.toHaveProperty("onHover");
-    expect(replaced[1]!.interaction).not.toHaveProperty("onLeave");
+    expect(replaced[1].interaction).toHaveProperty("onClick");
+    expect(replaced[1].interaction).not.toHaveProperty("onHover");
+    expect(replaced[1].interaction).not.toHaveProperty("onLeave");
 
     const cleared = getReconciledTracks({
       compiledCollections,
@@ -394,7 +394,7 @@ describe("TrackSelect ordered draft selection", () => {
   it("preserves surviving tracks and appends additions in active-view order", () => {
     const next = setOrderedCollectionSelection({
       selectedTrackIds: ["beta::one", "alpha::one"],
-      collection: compiledCollections.records[0]!,
+      collection: compiledCollections.records[0],
       view: defaultView,
       selectedIds: new Set(["alpha::two", "alpha::one"]),
     });

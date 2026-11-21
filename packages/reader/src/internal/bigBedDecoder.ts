@@ -67,7 +67,7 @@ export async function decodeBigBedBlock<Schema extends z.ZodObject>(
         throw new BigBedParseError(result.error, {
           region: { chromosome, start, end },
           column: tokens.length + 4,
-          field: fieldNames[tokens.length]!,
+          field: fieldNames[tokens.length],
           expectedColumns: fieldNames.length + 3,
           actualColumns: tokens.length + 3,
         });
@@ -79,15 +79,15 @@ export async function decodeBigBedBlock<Schema extends z.ZodObject>(
     defineOwnProperty(record, "start", start);
     defineOwnProperty(record, "end", end);
     for (let index = 0; index < fieldNames.length; index += 1) {
-      const fieldName = fieldNames[index]!;
+      const fieldName = fieldNames[index];
       throwIfAborted(signal);
-      const result = await schema.shape[fieldName]!.safeParseAsync(tokens[index]!);
+      const result = await schema.shape[fieldName]!.safeParseAsync(tokens[index]);
       if (!result.success) {
         throw new BigBedParseError(result.error, {
           region: { chromosome, start, end },
           column: index + 4,
           field: fieldName,
-          value: tokens[index]!,
+          value: tokens[index],
           expectedColumns: fieldNames.length + 3,
           actualColumns: tokens.length + 3,
         });
