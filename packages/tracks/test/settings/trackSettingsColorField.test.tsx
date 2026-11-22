@@ -49,7 +49,9 @@ describe("TrackSettingsColorField", () => {
     updateInput(input, "#abc");
     expect(input.value).toBe("#abc");
     expect(document.body.textContent).toContain("Enter a six-digit hexadecimal color");
-    act(() => vi.advanceTimersByTime(1_000));
+    act(() => {
+      vi.advanceTimersByTime(1_000);
+    });
     expect(onCommit).not.toHaveBeenCalled();
 
     updateInput(input, "#a1b2c3");
@@ -149,7 +151,9 @@ describe("TrackSettingsColorField", () => {
     click(getButton("Open Track color color picker"));
 
     rerender(renderField(true));
-    act(() => vi.runAllTimers());
+    act(() => {
+      vi.runAllTimers();
+    });
 
     expect(onCommit).not.toHaveBeenCalled();
     expect(getButton("Open Track color color picker").disabled).toBe(true);
@@ -262,11 +266,15 @@ function updateInput(input: HTMLInputElement, value: string) {
   const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
   if (!valueSetter) throw new Error("Input value setter is unavailable");
   valueSetter.call(input, value);
-  act(() => input.dispatchEvent(new Event("input", { bubbles: true })));
+  act(() => {
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
 }
 
 function blur(input: HTMLInputElement) {
-  act(() => input.dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+  act(() => {
+    input.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+  });
 }
 
 function click(element: HTMLElement) {
@@ -286,5 +294,7 @@ function dispatchKeyboardEvent(element: HTMLElement, type: "keydown" | "keyup", 
   const keyCode = { ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 }[key] ?? 0;
   Object.defineProperty(event, "keyCode", { value: keyCode });
   Object.defineProperty(event, "which", { value: keyCode });
-  act(() => element.dispatchEvent(event));
+  act(() => {
+    element.dispatchEvent(event);
+  });
 }

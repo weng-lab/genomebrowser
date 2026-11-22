@@ -125,13 +125,13 @@ export function createSession({
   function run(effect: Effect.Effect<void>, within = scope) {
     if (!within) return undefined;
     const fiber = Effect.runSync(Effect.forkIn(effect, within));
-    const done = new Promise<void>((resolve) =>
+    const done = new Promise<void>((resolve) => {
       fiber.addObserver((exit) => {
         if (Exit.isFailure(exit) && !Cause.hasInterruptsOnly(exit.cause))
           console.error(Cause.pretty(exit.cause));
         resolve();
-      }),
-    );
+      });
+    });
     return { fiber, done };
   }
 

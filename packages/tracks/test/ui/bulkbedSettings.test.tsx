@@ -106,7 +106,9 @@ describe("BulkBed settings", () => {
     updateInput(gapInput(), "6.5");
     updateInput(rowInput(datasetRows()[1], "Name"), "Dataset B updated");
     updateInput(rowInput(datasetRows()[0], "URL"), "DATASET_A_UPDATED_URL");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     act(() =>
       datasetRows()[0].querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click(),
     );
@@ -155,14 +157,18 @@ describe("BulkBed settings", () => {
 
     renderControlledSettings(baselineTrack, updateTrack);
     updateInput(rowInput(datasetRows()[0], "Name"), "Accepted Dataset A");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     renderControlledSettings(advancedTrack, updateTrack);
     renderControlledSettings(baselineTrack, updateTrack);
     updateInput(rowInput(datasetRows()[0], "URL"), "RESTORED_C0_URL");
     act(() =>
       datasetRows()[0].querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click(),
     );
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
 
     expect(updateTrack).toHaveBeenLastCalledWith({
       config: {
@@ -242,7 +248,9 @@ describe("BulkBed settings", () => {
     const { rerender } = renderSettings(initialConfig, updateTrack);
 
     updateInput(rowInput(datasetRows()[0], "Name"), "Dataset A updated");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     rerender({ ...initialConfig });
 
     expect(rowInput(datasetRows()[0], "Name").value).toBe("Dataset A updated");

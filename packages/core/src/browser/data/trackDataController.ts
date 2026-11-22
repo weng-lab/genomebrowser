@@ -238,12 +238,14 @@ export function createTrackDataController({
       }
     };
 
-    void run().then((result) => {
-      // A newer request, a removed track, or a disconnect replaced this one.
-      if (!connected || entries.get(trackId)?.pending !== request) return;
-      entries.set(trackId, { current: result });
-      update();
-    });
+    run()
+      .then((result) => {
+        // A newer request, a removed track, or a disconnect replaced this one.
+        if (!connected || entries.get(trackId)?.pending !== request) return;
+        entries.set(trackId, { current: result });
+        update();
+      })
+      .catch(() => {});
   };
 
   /** Brings every track in line with the stores and notifies if anything visible changed. */

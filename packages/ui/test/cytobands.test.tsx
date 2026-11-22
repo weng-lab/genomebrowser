@@ -596,7 +596,9 @@ describe("Cytobands current region", () => {
     const highlightElement = getHighlight("unchanged");
     expectBoundaryPoints("left", "23,0 20,0 20,20 23,20");
 
-    act(() => useTestBrowserStore.getState().setRegion({ chromosome, start: 30, end: 40 }));
+    act(() => {
+      useTestBrowserStore.getState().setRegion({ chromosome, start: 30, end: 40 });
+    });
     expectBoundaryPoints("left", "63,0 60,0 60,20 63,20");
     expect(getHighlight("unchanged")).toBe(highlightElement);
   });
@@ -617,7 +619,9 @@ function renderNode(node: ReactNode) {
 
 async function flushMutationObserver() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
   });
 }
 
@@ -733,7 +737,9 @@ function svgRect({ x, y, width, height }: { x: number; y: number; width: number;
 }
 
 function dispatch(element: Element, type: string) {
-  act(() => element.dispatchEvent(new Event(type, { bubbles: true })));
+  act(() => {
+    element.dispatchEvent(new Event(type, { bubbles: true }));
+  });
 }
 
 function dispatchPointer(
@@ -741,19 +747,19 @@ function dispatchPointer(
   type: "pointerover" | "pointerout",
   init?: MouseEventInit,
 ) {
-  act(() =>
+  act(() => {
     element.dispatchEvent(
       new MouseEvent(type, { bubbles: true, clientX: 100, clientY: 100, ...init }),
-    ),
-  );
+    );
+  });
 }
 
 function dispatchKey(element: Element, key: string, repeat = false) {
-  act(() =>
+  act(() => {
     element.dispatchEvent(
       new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key, repeat }),
-    ),
-  );
+    );
+  });
 }
 
 function coordinate(value: number) {

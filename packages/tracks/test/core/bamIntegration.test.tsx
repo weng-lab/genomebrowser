@@ -42,7 +42,9 @@ const records: BamRecord[] = [100, 120, 180].map((start, i) => ({
 async function settle(action: () => void) {
   await act(async () => {
     action();
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 30);
+    });
   });
 }
 describe("BAM hosted track", () => {

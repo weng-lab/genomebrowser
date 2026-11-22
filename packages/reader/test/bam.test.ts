@@ -477,7 +477,9 @@ describe("BAM chunk requests", () => {
     let peak = 0;
     const mock = mockFiles(bam, bai, async () => {
       peak = Math.max(peak, ++active);
-      await new Promise((resolve) => setTimeout(resolve, 1));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1);
+      });
       active--;
     });
     const file = createBamFile({ url, indexUrl });

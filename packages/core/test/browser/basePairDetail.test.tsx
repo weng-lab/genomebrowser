@@ -175,7 +175,12 @@ it("ignores an obsolete detail request after the setting changes again", async (
   await mount();
   await act(async () => root?.render(<GenomeBrowser sizing="fixed" {...f} />));
   const resolve: Array<() => void> = [];
-  f.fetch.mockImplementation(() => new Promise<boolean>((done) => resolve.push(() => done(true))));
+  f.fetch.mockImplementation(
+    () =>
+      new Promise<boolean>((done) => {
+        resolve.push(() => done(true));
+      }),
+  );
   await act(async () => {
     f.browserStore.getState().setBasePairDetail({ maxVisibleBases: 100 });
   });

@@ -64,7 +64,12 @@ export function installSessionServer() {
     /** Hold the next request of `method` until released or failed. */
     hold(method: string) {
       let open!: (outcome: Outcome) => void;
-      gates.push({ method, gate: new Promise((resolve) => (open = resolve)) });
+      gates.push({
+        method,
+        gate: new Promise((resolve) => {
+          open = resolve;
+        }),
+      });
       return {
         release: () => open(undefined),
         fail: (status = 503) => open(Response.json({ message: "Unavailable" }, { status })),
@@ -161,9 +166,9 @@ export function installSessionServer() {
     const signal = init.signal ?? undefined;
     signal?.throwIfAborted();
     if (file === "silent")
-      return new Promise<never>((_, reject) =>
-        signal?.addEventListener("abort", () => reject(signal.reason)),
-      );
+      return new Promise<never>((_, reject) => {
+        signal?.addEventListener("abort", () => reject(signal.reason));
+      });
     if (typeof file === "number") return new Response(null, { status: file });
     const range = /^bytes=(\d+)-(\d+)$/.exec(new Headers(init.headers).get("Range") ?? "");
     if (!range) return new Response(file.slice(), { status: 200 });

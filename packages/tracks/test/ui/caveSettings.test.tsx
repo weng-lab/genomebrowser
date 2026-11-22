@@ -159,5 +159,7 @@ function updateInput(label: string, value: string) {
 }
 
 function blurInput(label: string) {
-  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+  act(() => {
+    getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+  });
 }

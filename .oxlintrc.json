@@ -8,6 +8,7 @@
     "react/jsx-no-duplicate-props": "error",
     "no-debugger": "error",
     "no-async-promise-executor": "error",
+    "no-promise-executor-return": "error",
     "no-unsafe-finally": "error",
     "jsx-a11y/alt-text": "error",
     "jsx-a11y/aria-props": "error",
@@ -52,7 +53,12 @@
     ],
     "unicorn/prefer-set-has": "error",
     "typescript/no-base-to-string": "off",
-    "typescript/no-floating-promises": "off",
+    "typescript/no-floating-promises": [
+      "error",
+      {
+        "ignoreVoid": false
+      }
+    ],
     "typescript/no-meaningless-void-operator": "off",
     "typescript/require-array-sort-compare": "off",
     "typescript/restrict-template-expressions": "off",
@@ -399,12 +405,6 @@
     {
       "files": ["apps/web/**"],
       "rules": {
-        "typescript/no-floating-promises": [
-          "error",
-          {
-            "ignoreVoid": false
-          }
-        ],
         "typescript/no-misused-promises": "error"
       }
     },

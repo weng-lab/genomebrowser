@@ -254,9 +254,9 @@ it.each(checks)(
       "fetch",
       vi.fn<typeof fetch>(
         (_input, init) =>
-          new Promise((_resolve, reject) =>
-            init?.signal?.addEventListener("abort", () => reject(init.signal!.reason)),
-          ),
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => reject(init.signal!.reason));
+          }),
       ),
     );
     const controller = new AbortController();
