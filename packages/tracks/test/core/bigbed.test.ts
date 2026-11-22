@@ -135,7 +135,10 @@ describe("BigBed parse guidance", () => {
     const failure = await fetchBigBed({
       ...context,
       track: { ...context.track, config: { ...context.track.config, bedSchema: preset } },
-    }).catch((error) => error);
+    }).catch((caught: unknown) => caught);
+    expect(failure).toBeInstanceOf(Error);
+    if (!(failure instanceof Error))
+      throw new Error("Expected fetchBigBed to reject with an Error");
     expect(failure.message).toContain('Column 9 (color): received "61.1871"');
     expect(failure.message).toContain("Expected itemRgb as 0 or R,G,B");
     expect(failure.message).toContain(
