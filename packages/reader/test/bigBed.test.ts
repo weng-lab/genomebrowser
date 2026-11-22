@@ -22,7 +22,7 @@ beforeAll(async () => {
     .split(/\r?\n/)
     .map((line) => {
       const [chromosome, start, end, ...fields] = line.split("\t");
-      return { chromosome: chromosome!, start: Number(start), end: Number(end), fields };
+      return { chromosome: chromosome, start: Number(start), end: Number(end), fields };
     });
 });
 
@@ -474,7 +474,7 @@ describe("createBigBedFile", () => {
         fields: ["+"],
       },
     ]);
-    expect(Object.keys(records[0]!)).toEqual([
+    expect(Object.keys(records[0])).toEqual([
       "chromosome",
       "start",
       "end",
@@ -656,8 +656,8 @@ describe("createBigBedFile", () => {
     const [record] = await file.read({ chromosome: "chr1", start: 10, end: 11 });
 
     expect(Object.getPrototypeOf(record)).toBe(Object.prototype);
-    expect(Object.hasOwn(record!, "__proto__")).toBe(true);
-    expect(record!["__proto__"]).toBe("ALPHA");
+    expect(Object.hasOwn(record, "__proto__")).toBe(true);
+    expect(record["__proto__"]).toBe("ALPHA");
     expect(record).toMatchObject({
       chromosome: "chr1",
       start: 10,
@@ -665,7 +665,7 @@ describe("createBigBedFile", () => {
       score: 100,
       fields: ["+"],
     });
-    expect(Object.keys(record!)).toEqual([
+    expect(Object.keys(record)).toEqual([
       "chromosome",
       "start",
       "end",

@@ -69,7 +69,9 @@ describe("BigBed settings", () => {
     });
 
     expect(updateTrack).not.toHaveBeenCalled();
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(updateTrack).not.toHaveBeenCalled();
     act(() => container?.querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click());
     expect(updateTrack).toHaveBeenCalledWith({ config: { url: "UPDATED_URL" } });

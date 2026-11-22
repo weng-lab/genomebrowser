@@ -54,7 +54,7 @@ function createResources(): TrackResources {
     get: <T>(key: string) => values.get(key) as T | undefined,
     set: (key, value) => void values.set(key, value),
     delete: (key) => void values.delete(key),
-    clear: () => void values.clear(),
+    clear: () => values.clear(),
   };
 }
 

@@ -38,7 +38,9 @@ const savedRegion = (id: string) => server.stored.get(id)?.snapshot.browser.regi
 /** Let fibers, requests, and timers run for `ms` of fake time. */
 async function advance(ms: number) {
   for (let elapsed = 0; elapsed < ms; elapsed += 50) {
-    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
     await vi.advanceTimersByTimeAsync(Math.min(50, ms - elapsed));
   }
 }
@@ -286,7 +288,9 @@ it("flushes immediately when closing during the debounce", async () => {
   await advance(50);
   expect(puts()).toHaveLength(0);
   const closing = state().close();
-  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => {
+    setImmediate(resolve);
+  });
   await closing;
   expect(savedRegion(id)).toBe(1000);
   expect(puts()).toHaveLength(1);
@@ -609,7 +613,10 @@ it("saves and closes the active session before an account change, which nothing 
   setRegion(1000);
   let finish!: () => void;
   const change = vi.fn<() => Promise<void>>(
-    () => new Promise<void>((resolve) => (finish = resolve)),
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
   );
   const closing = state().close({ next: change });
   await vi.waitFor(() => expect(change).toHaveBeenCalledOnce());

@@ -126,7 +126,9 @@ describe("DefaultSettingsModal", () => {
     vi.stubGlobal("innerHeight", 360);
     modalWidth = 304;
     modalHeight = 300;
-    act(() => window.dispatchEvent(new Event("resize")));
+    act(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
     expect(modal.style.left).toBe("8px");
     expect(modal.style.top).toBe("52px");
   });

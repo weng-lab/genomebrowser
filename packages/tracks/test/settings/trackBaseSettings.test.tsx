@@ -125,13 +125,17 @@ describe("TrackBaseSettings", () => {
 
     updateInput(title, "Updated title");
     updateInput(height, "1.");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(updateTrack).toHaveBeenCalledWith({ base: { title: "Updated title" } });
     expect(height.value).toBe("1.");
     expect(updateTrack).toHaveBeenCalledTimes(1);
 
     updateInput(height, "100");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(updateTrack).toHaveBeenLastCalledWith({ base: { height: 100 } });
   });
 
@@ -147,14 +151,18 @@ describe("TrackBaseSettings", () => {
     expect(getFieldRow(height)).toBe(getFieldRow(rowHeight));
 
     updateInput(height, "2");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(updateTrack).toHaveBeenLastCalledWith({
       base: { height: 2 },
       config: { rowHeight: 1 },
     });
 
     updateInput(rowHeight, "2");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(updateTrack).toHaveBeenLastCalledWith({
       base: { height: 4 },
       config: { rowHeight: 2 },
@@ -223,7 +231,9 @@ describe("TrackBaseSettings", () => {
     await mountBaseSettings(trackStore, "signal-a");
 
     updateInput(getInput("Height"), "100");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(trackStore.getState().getTrack("signal-a")?.base.height).toBe(100);
     expect(trackStore.getState().getTrack("signal-b")?.base.height).toBe(60);
 
@@ -345,10 +355,7 @@ async function mountSettings(
   const module = {
     ...signalModule,
     render: Object.fromEntries(
-      displayOptions.map((option) => [
-        option,
-        signalModule.render[option as keyof typeof signalModule.render],
-      ]),
+      displayOptions.map((option) => [option, signalModule.render[option]]),
     ),
   };
   const trackStore = createTrackStore({
@@ -570,5 +577,7 @@ function updateInput(input: HTMLInputElement, value: string) {
 }
 
 function blurInput(label: string) {
-  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+  act(() => {
+    getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+  });
 }

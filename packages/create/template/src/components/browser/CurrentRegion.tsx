@@ -23,7 +23,9 @@ export default function CurrentRegion() {
       <Button
         aria-label={`Copy current region: ${coordinates}`}
         endIcon={<ContentCopyIcon />}
-        onClick={copyRegion}
+        onClick={() => {
+          void copyRegion();
+        }}
         size="small"
         sx={{
           color: "text.primary",

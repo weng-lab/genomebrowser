@@ -48,7 +48,9 @@ describe("NavigationButton", () => {
     expect(setRegion).toHaveBeenLastCalledWith({ chromosome: "chr1", start: 12, end: 15 });
     expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 12, end: 15 });
 
-    act(() => originalSetRegion({ chromosome: "chr1", start: 40, end: 43 }));
+    act(() => {
+      originalSetRegion({ chromosome: "chr1", start: 40, end: 43 });
+    });
     renderButton(browserStore, { type: "pan", fraction: -0.1 }, "Move");
     clickButton();
     expect(setRegion).toHaveBeenLastCalledWith({ chromosome: "chr1", start: 39, end: 42 });
@@ -71,7 +73,9 @@ describe("NavigationButton", () => {
     browserStore.setState({ zoom });
     mountButton(browserStore, { type: "zoom", factor: 0.5 }, "Zoom");
 
-    act(() => browserStore.getState().setRegion({ chromosome: "chr1", start: 40, end: 80 }));
+    act(() => {
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 40, end: 80 });
+    });
     clickButton();
 
     expect(zoom).toHaveBeenCalledWith(0.5);
@@ -84,14 +88,16 @@ describe("NavigationButton", () => {
       cancelable: true,
       key: "Enter",
     });
-    act(() => button.dispatchEvent(keyDown));
+    act(() => {
+      button.dispatchEvent(keyDown);
+    });
     expect(keyDown.defaultPrevented).toBe(false);
 
     const clickDetails: number[] = [];
     button.addEventListener("click", (event) => clickDetails.push(event.detail));
-    act(() =>
-      button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 0 })),
-    );
+    act(() => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 0 }));
+    });
 
     expect(clickDetails).toEqual([0]);
     expect(zoom).toHaveBeenLastCalledWith(2);
@@ -107,10 +113,14 @@ describe("NavigationButton", () => {
     renderButton(secondStore, { type: "pan", fraction: 0.5 }, "Move");
     expect(getButton().disabled).toBe(false);
 
-    act(() => secondStore.getState().setRegion({ chromosome: "chr1", start: 80, end: 100 }));
+    act(() => {
+      secondStore.getState().setRegion({ chromosome: "chr1", start: 80, end: 100 });
+    });
     expect(getButton().disabled).toBe(true);
 
-    act(() => secondStore.getState().setRegion({ chromosome: "chr1", start: 50, end: 70 }));
+    act(() => {
+      secondStore.getState().setRegion({ chromosome: "chr1", start: 50, end: 70 });
+    });
     expect(getButton().disabled).toBe(false);
     clickButton();
 
@@ -126,18 +136,24 @@ describe("NavigationButton", () => {
     renderButton(browserStore, { type: "pan", fraction: 0.5 }, "Navigate");
     expect(getButton().disabled).toBe(false);
 
-    act(() => browserStore.getState().setRegion({ chromosome: "chr1", start: 80, end: 100 }));
+    act(() => {
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 80, end: 100 });
+    });
     renderButton(browserStore, { type: "pan", fraction: -0.5 }, "Navigate");
     expect(getButton().disabled).toBe(false);
 
     renderButton(browserStore, { type: "pan", fraction: 0.5 }, "Navigate");
     expect(getButton().disabled).toBe(true);
 
-    act(() => browserStore.getState().setRegion({ chromosome: "chr1", start: 0, end: 100 }));
+    act(() => {
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 0, end: 100 });
+    });
     renderButton(browserStore, { type: "zoom", factor: 2 }, "Navigate");
     expect(getButton().disabled).toBe(true);
 
-    act(() => browserStore.getState().setRegion({ chromosome: "chr1", start: 20, end: 21 }));
+    act(() => {
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 20, end: 21 });
+    });
     renderButton(browserStore, { type: "zoom", factor: 0.5 }, "Navigate");
     expect(getButton().disabled).toBe(true);
 
@@ -261,10 +277,14 @@ describe("NavigationButton", () => {
     );
     const initialRenderCount = renderCount;
 
-    act(() => browserStore.getState().setTrackWidth(640));
+    act(() => {
+      browserStore.getState().setTrackWidth(640);
+    });
     expect(renderCount).toBe(initialRenderCount);
 
-    act(() => browserStore.getState().setRegion({ chromosome: "chr1", start: 0, end: 20 }));
+    act(() => {
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 0, end: 20 });
+    });
     expect(renderCount).toBeGreaterThan(initialRenderCount);
     expect(getButton().disabled).toBe(true);
   });

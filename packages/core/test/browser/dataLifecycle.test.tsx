@@ -30,7 +30,9 @@ async function mount({ end = 10_000, start = 1_000, ids = ["a", "b"] } = {}) {
     reject: (error: Error) => void;
   }[] = [];
   const fetch = (context: TrackFetchContext<Record<string, never>>) =>
-    new Promise<string>((resolve, reject) => requests.push({ context, resolve, reject }));
+    new Promise<string>((resolve, reject) => {
+      requests.push({ context, resolve, reject });
+    });
   const render = {
     full: ({ id, data }: { id: string; data: string }) => <text data-testid={id}>{data}</text>,
   };

@@ -318,7 +318,9 @@ describe("async settling", () => {
   function Loader() {
     const [value, setValue] = useState("loading");
     useEffect(() => {
-      void Promise.resolve("loaded").then(setValue);
+      Promise.resolve("loaded")
+        .then(setValue)
+        .catch(() => {});
     }, []);
     return <span>{value}</span>;
   }
@@ -334,11 +336,11 @@ describe("async settling", () => {
     const [value, setValue] = useState<number | null>(null);
     useEffect(() => {
       let current = true;
-      void (async () => {
+      (async () => {
         await Promise.resolve();
         const next = await Promise.resolve(id * 10);
         if (current) setValue(next);
-      })();
+      })().catch(() => {});
       return () => {
         current = false;
       };

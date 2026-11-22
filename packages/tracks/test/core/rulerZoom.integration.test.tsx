@@ -13,7 +13,12 @@ it.each([
   { start: 40_000_000, end: 60_000_000 },
 ])("bounds ruler ticks during a delayed zoom from $start–$end to 50 bases", async (previous) => {
   const pending: Array<(reason: Error) => void> = [];
-  const fetch = vi.fn(() => new Promise<Response>((_resolve, reject) => pending.push(reject)));
+  const fetch = vi.fn(
+    () =>
+      new Promise<Response>((_resolve, reject) => {
+        pending.push(reject);
+      }),
+  );
   vi.stubGlobal("fetch", fetch);
   const browserStore = createBrowserStore({
     assembly: { id: "test", chromosomes: { chr12: 133_275_309 } },

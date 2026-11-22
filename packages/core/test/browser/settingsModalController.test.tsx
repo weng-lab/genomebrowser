@@ -283,7 +283,7 @@ describe("browser settings workflows", () => {
     expect(useTrackStore.getState().order).toEqual(["first", "third"]);
     expect(container?.querySelector("dialog")).toBeNull();
 
-    await act(async () => useTrackStore.getState().addTrack(tracks[1]!));
+    await act(async () => useTrackStore.getState().addTrack(tracks[1]));
     expect(container?.querySelector("dialog")).toBeNull();
 
     await openSettings("third");

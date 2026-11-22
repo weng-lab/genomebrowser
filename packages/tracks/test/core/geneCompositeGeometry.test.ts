@@ -186,7 +186,7 @@ function transcript(
   thickEnd: number,
   strand: GeneStrand = "+",
 ): GeneTranscript {
-  const start = exons[0]!.start;
+  const start = exons[0].start;
   const end = exons.at(-1)!.end;
   return {
     kind: "transcript",

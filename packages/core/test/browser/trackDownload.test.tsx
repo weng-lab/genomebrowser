@@ -149,7 +149,10 @@ async function mount(
 function text(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Expected FileReader text result"));
+    };
     reader.onerror = () => reject(reader.error);
     reader.readAsText(blob);
   });

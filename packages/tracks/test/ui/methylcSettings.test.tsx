@@ -153,7 +153,9 @@ describe("methylC settings", () => {
         ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CHG URL"]')
         ?.click(),
     );
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
 
     expect(updateTrack.mock.calls).toEqual([
       [{ config: { colors: { ...config.colors, depth: "#663399" } } }],
@@ -210,7 +212,9 @@ describe("methylC settings", () => {
         ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CpG URL"]')
         ?.click(),
     );
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     renderControlledSettings(advancedTrack, updateTrack);
     renderControlledSettings(baselineTrack, updateTrack);
     updateInput("Plus-strand CHG URL", "RESTORED_C0_CHG_URL");
@@ -219,7 +223,9 @@ describe("methylC settings", () => {
         ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CHG URL"]')
         ?.click(),
     );
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
 
     expect(updateTrack).toHaveBeenLastCalledWith({
       config: {
@@ -258,7 +264,9 @@ describe("methylC settings", () => {
     const { updateTrack } = renderSettings();
 
     updateInput("Minimum", "");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
 
     expect(updateTrack).not.toHaveBeenCalled();
     expect(getInput("Minimum").value).toBe("");
@@ -392,7 +400,9 @@ function updateInput(label: string, value: string) {
 }
 
 function blurInput(label: string) {
-  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+  act(() => {
+    getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+  });
 }
 
 function clickInput(label: string) {
@@ -404,7 +414,9 @@ function focusInput(label: string) {
 }
 
 function keyDownInput(label: string, key: string) {
-  act(() => getInput(label).dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key })));
+  act(() => {
+    getInput(label).dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key }));
+  });
 }
 
 function getAutomaticRangeButton() {

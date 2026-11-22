@@ -87,7 +87,9 @@ describe("BigWig settings", () => {
     updateInput("Minimum", "-1.5");
     updateInput("Maximum", "12");
     act(() => getOptionalButton("Set URL")?.click());
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
 
     expect(updateTrack.mock.calls).toEqual([
       [{ config: { fillWithZero: true } }],
@@ -128,7 +130,9 @@ describe("BigWig settings", () => {
 
     updateInput("Minimum", "0");
     updateInput("Maximum", "10");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
 
     expect(updateTrack).toHaveBeenCalledTimes(1);
     expect(updateTrack).toHaveBeenCalledWith({ config: { yRange: { min: 0, max: 10 } } });
@@ -272,7 +276,9 @@ function updateInput(label: string, value: string) {
 }
 
 function blurInput(label: string) {
-  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+  act(() => {
+    getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+  });
 }
 
 function getAutomaticRangeButton() {

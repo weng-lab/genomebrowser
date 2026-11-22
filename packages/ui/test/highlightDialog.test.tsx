@@ -78,7 +78,9 @@ describe("HighlightDialog", () => {
     setTextInput("Region", "chr2:301-450");
     setTextInput("Color", "#00aa66");
     const select = document.body.querySelector('[role="combobox"]')!;
-    act(() => select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
+    act(() => {
+      select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    });
     const option = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]')).find(
       (el) => el.textContent === "Outlined",
     )!;
@@ -212,7 +214,9 @@ describe("HighlightDialog", () => {
     setTextInput("Name", "Outlined region");
     clickButton("Use Current Region");
     const select = document.body.querySelector('[role="combobox"]')!;
-    act(() => select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
+    act(() => {
+      select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    });
     const option = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]')).find(
       (el) => el.textContent === "Outlined",
     )!;
@@ -317,7 +321,9 @@ function setTextInput(label: string, value: string) {
   const input = getInput(label);
   const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
   valueSetter?.call(input, value);
-  act(() => input.dispatchEvent(new Event("input", { bubbles: true })));
+  act(() => {
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
 }
 
 function getDialog(title: string) {

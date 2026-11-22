@@ -1,6 +1,6 @@
 import { readCachedTwoBitSequence } from "../shared/cachedFiles";
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
-import { type TwoBitRecord } from "@weng-lab/genomic-reader";
+import type { TwoBitRecord } from "@weng-lab/genomic-reader";
 
 import type { RulerConfig } from "./schema";
 export type RulerData = { records: TwoBitRecord[]; error?: string };

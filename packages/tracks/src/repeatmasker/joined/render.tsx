@@ -40,10 +40,10 @@ function RepeatRows({
       const start = x(repeat.thickStart);
       const end = x(repeat.thickEnd);
       const leading =
-        showExtents && repeat.blockStarts[0] === -1 ? Math.max(0, repeat.blockSizes[0]!) : 0;
+        showExtents && repeat.blockStarts[0] === -1 ? Math.max(0, repeat.blockSizes[0]) : 0;
       const trailing =
         showExtents && repeat.blockStarts[repeat.blockCount - 1] === -1
-          ? Math.max(0, repeat.blockSizes[repeat.blockCount - 1]!)
+          ? Math.max(0, repeat.blockSizes[repeat.blockCount - 1])
           : 0;
       const before = Math.min(120, Math.abs(x(repeat.thickStart) - x(repeat.thickStart - leading)));
       const after = Math.min(120, Math.abs(x(repeat.thickEnd + trailing) - x(repeat.thickEnd)));
@@ -135,11 +135,11 @@ function RepeatRows({
             )}
             {mode !== "dense" &&
               repeat.alignedBlocks.slice(1).map((block, index) => {
-                const previous = repeat.alignedBlocks[index]!;
+                const previous = repeat.alignedBlocks[index];
                 const left = Math.max(0, Math.min(width, x(previous.end)));
                 const right = Math.max(0, Math.min(width, x(block.start)));
-                const previousIndex = item.alignedIndexes[index]!;
-                const nextIndex = item.alignedIndexes[index + 1]!;
+                const previousIndex = item.alignedIndexes[index];
+                const nextIndex = item.alignedIndexes[index + 1];
                 const consensusGap = repeat.blockSizes
                   .slice(previousIndex + 1, nextIndex)
                   .reduce((sum, size) => sum + size, 0);
@@ -165,7 +165,7 @@ function RepeatRows({
               const left = Math.max(0, x(block.start));
               const right = Math.min(width, x(block.end));
               const blockWidth = Math.max(1, right - left);
-              const sourceBlockIndex = item.alignedIndexes[index]!;
+              const sourceBlockIndex = item.alignedIndexes[index];
               const arrows =
                 mode === "dense"
                   ? undefined

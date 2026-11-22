@@ -239,7 +239,9 @@ function mount(ui: ReactNode) {
 }
 
 function closeTransition() {
-  act(() => vi.runAllTimers());
+  act(() => {
+    vi.runAllTimers();
+  });
 }
 
 function clickButton(label: string) {

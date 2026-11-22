@@ -8,6 +8,10 @@ const indexUrl = url + ".bai";
 const region = { chromosome: "chr1", start: 100, end: 200 };
 afterEach(() => vi.unstubAllGlobals());
 
+function requestUrl(input: RequestInfo | URL): string {
+  return typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+}
+
 function mockFiles(
   bam: Uint8Array,
   bai: Uint8Array,
@@ -15,7 +19,7 @@ function mockFiles(
 ) {
   const mock = vi.fn<typeof fetch>(async (input, init) => {
     init?.signal?.throwIfAborted();
-    if (String(input) === indexUrl) return new Response(bai.slice(), { status: 200 });
+    if (requestUrl(input) === indexUrl) return new Response(bai.slice(), { status: 200 });
     const held = await hold?.(init!.signal!);
     if (held) return held;
     const range = /^bytes=(\d+)-(\d+)$/.exec(new Headers(init?.headers).get("range")!);
@@ -250,7 +254,7 @@ describe("BAM regional reader", () => {
     mock.mockResolvedValueOnce(new Response(bam, { status: 200 }));
     await expect(createBamFile({ url, indexUrl }).read(region)).rejects.toThrow("206");
     mockFiles(bam, bai).mockImplementation(async (input) => {
-      if (String(input) === indexUrl) return new Response(null, { status: 404 });
+      if (requestUrl(input) === indexUrl) return new Response(null, { status: 404 });
       return new Response(bam, {
         status: 206,
         headers: { "Content-Range": `bytes 0-${bam.length - 1}/${bam.length}` },
@@ -477,7 +481,9 @@ describe("BAM chunk requests", () => {
     let peak = 0;
     const mock = mockFiles(bam, bai, async () => {
       peak = Math.max(peak, ++active);
-      await new Promise((resolve) => setTimeout(resolve, 1));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1);
+      });
       active--;
     });
     const file = createBamFile({ url, indexUrl });
@@ -562,7 +568,7 @@ describe("BAM index check", () => {
     const serveBam = fetchMock.getMockImplementation()!;
     const sent = { bytes: 0 };
     fetchMock.mockImplementation(async (input, init) => {
-      if (String(input) !== indexUrl) return serveBam(input, init);
+      if (requestUrl(input) !== indexUrl) return serveBam(input, init);
       const signal = init?.signal ?? undefined;
       signal?.throwIfAborted();
       if (typeof index === "number") return new Response(null, { status: index });

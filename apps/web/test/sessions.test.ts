@@ -111,7 +111,9 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     edited.tracks.reverse();
     edited.pinnedTrackIds = [];
     // Timestamps have millisecond precision in JavaScript.
-    await new Promise((resolve) => setTimeout(resolve, 5));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 5);
+    });
 
     const updated = await alice().update(saved.id, at(1, { name: "Final", snapshot: edited }));
 

@@ -62,7 +62,7 @@ export async function renderWithProbe(ui: ReactNode): Promise<Probe> {
     if ((fiberRoot as { containerInfo?: unknown }).containerInfo !== container) return;
     commits += 1;
     committedRoot = fiberRoot;
-    const boundary = fiberRoot.current as Fiber;
+    const boundary = fiberRoot.current;
     traverseRenderedFibers(fiberRoot, (fiber, phase) => {
       if (phase === "unmount" || !isCountedFiber(fiber)) return;
       const instance = instanceName(fiber, boundary);
@@ -139,6 +139,6 @@ function mountedComponents(fiberRoot: FiberRoot | null): string[] {
       visit(node.child);
     }
   };
-  visit(fiberRoot ? (fiberRoot.current as Fiber).child : null);
+  visit(fiberRoot ? fiberRoot.current.child : null);
   return names;
 }
