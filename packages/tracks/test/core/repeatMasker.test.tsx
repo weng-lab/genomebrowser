@@ -14,7 +14,7 @@ import {
 import { mountTrack } from "../mountTrack";
 import { standardRepeatFile } from "../fixtures/repeatMaskerStandard";
 import { exampleBigRmsk } from "../fixtures/bigRmsk";
-import { sources, serveRepeatMasker } from "../fixtures/repeatMasker";
+import { requestUrl, sources, serveRepeatMasker } from "../fixtures/repeatMasker";
 
 const region = { chromosome: "chr1", start: 0, end: 3000 };
 function track(config: Partial<RepeatMaskerConfig> = {}) {
@@ -75,7 +75,7 @@ describe("RepeatMasker public module", () => {
     const fetch = serveRepeatMasker(),
       ctx = context();
     const standard = await module.fetch(ctx);
-    expect(fetch.mock.calls.every(([url]) => String(url) === sources.standard)).toBe(true);
+    expect(fetch.mock.calls.every(([url]) => requestUrl(url) === sources.standard)).toBe(true);
     expect(standard).toMatchObject({
       view: "standard",
       data: {
@@ -98,7 +98,7 @@ describe("RepeatMasker public module", () => {
     ).toHaveLength(10);
     const count = fetch.mock.calls.length;
     const joined = await module.fetch({ ...ctx, track: track({ view: "joined" }) });
-    expect(fetch.mock.calls.slice(count).every(([url]) => String(url) === sources.joined)).toBe(
+    expect(fetch.mock.calls.slice(count).every(([url]) => requestUrl(url) === sources.joined)).toBe(
       true,
     );
     expect(joined).toMatchObject({

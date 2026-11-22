@@ -188,11 +188,15 @@ export function installSessionServer() {
     const settings = url.pathname === "/api/account/settings";
     if (!settings && !url.pathname.startsWith("/api/sessions"))
       throw new Error(`Unexpected request ${input}`);
+    if (init.body !== undefined && init.body !== null && typeof init.body !== "string") {
+      throw new Error(`Expected string request body for ${input}`);
+    }
+    const rawBody = init.body ?? undefined;
     const request: Request = {
       method: `${settings ? "settings " : ""}${init.method ?? "GET"}`,
       id: url.pathname.split("/")[3],
-      body: init.body ? JSON.parse(String(init.body)) : undefined,
-      bytes: init.body ? new TextEncoder().encode(String(init.body)).byteLength : 0,
+      body: rawBody ? JSON.parse(rawBody) : undefined,
+      bytes: rawBody ? new TextEncoder().encode(rawBody).byteLength : 0,
     };
     if (settings)
       server.settingsRequests.push(

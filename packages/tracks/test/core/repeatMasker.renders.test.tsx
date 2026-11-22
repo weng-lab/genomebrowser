@@ -6,7 +6,7 @@ import { exampleBigRmsk } from "../fixtures/bigRmsk";
 import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/genomebrowser";
 import { repeatMaskerModule as module } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { serveRepeatMasker, sources } from "../fixtures/repeatMasker";
+import { requestUrl, serveRepeatMasker, sources } from "../fixtures/repeatMasker";
 // jsdom has no SVG geometry. A tooltip measures itself on the animation frame after a hover.
 Object.defineProperty(SVGElement.prototype, "getBBox", {
   configurable: true,
@@ -159,7 +159,7 @@ it("cancels a pending source switch and ignores its late response", async () => 
   };
   const pending: AbortSignal[] = [];
   vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
-    if (String(input) === sources.joined) {
+    if (requestUrl(input) === sources.joined) {
       if (init?.signal) pending.push(init.signal);
       await release.promise;
     }

@@ -1,9 +1,10 @@
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import type { ValueMarkerConfig } from "./collectionColumns";
+import { formatCollectionValue } from "./collectionGrouping";
 
 export function DataGridCellValue({ value }: { value: unknown }) {
-  const text = String(value ?? "");
+  const text = formatCollectionValue(value, "");
 
   return (
     <Tooltip title={text} enterDelay={500} placement="top-start">

@@ -55,7 +55,7 @@
     ],
     "typescript/use-unknown-in-catch-callback-variable": "error",
     "unicorn/prefer-set-has": "error",
-    "typescript/no-base-to-string": "off",
+    "typescript/no-base-to-string": "error",
     "typescript/no-floating-promises": [
       "error",
       {

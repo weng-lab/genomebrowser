@@ -18,7 +18,20 @@ export function groupRowsByField<Row extends Record<string, unknown>>(
   return groupedRows;
 }
 
-export function formatCollectionValue(value: unknown, fallback: string) {
+export function formatCollectionValue(value: unknown, fallback: string): string {
   if (value === null || value === undefined || value === "") return fallback;
-  return String(value);
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    typeof value === "bigint" ||
+    typeof value === "symbol"
+  ) {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value) ?? fallback;
+  } catch {
+    return fallback;
+  }
 }
