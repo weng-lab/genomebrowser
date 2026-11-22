@@ -256,7 +256,9 @@ describe("useGenomeBrowser", () => {
           .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
       });
       await act(async () => {
-        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await new Promise((resolve) => {
+          requestAnimationFrame(resolve);
+        });
       });
       const start = stores.useBrowserStore.getState().region.start;
       for (const location of ["renderer", "settings", "tooltip"]) {
@@ -337,7 +339,11 @@ describe("useGenomeBrowser", () => {
       await act(async () =>
         hoverTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })),
       );
-      await act(async () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+      await act(async () => {
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => resolve());
+        });
+      });
     };
     const pointer = async (type: string) => {
       const event = new MouseEvent(type, { bubbles: true, button: 0, clientX: 10 });

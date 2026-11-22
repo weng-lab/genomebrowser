@@ -494,7 +494,9 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // width and once for its new data; the view, stack, and Highlights once.
     const report = await probe.measure(async () => {
       browserStore.getState().setTrackWidth(1_200);
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 250);
+      });
     });
 
     expect(budget(report)).toMatchInlineSnapshot(`

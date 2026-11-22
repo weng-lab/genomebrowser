@@ -202,7 +202,9 @@ it("adds nothing when the dialog closes while files are checked", async () => {
   server.files.set(`${host}/signal.bw`, bigWig);
   // The slow file answers only once released, after Cancel.
   let release!: () => void;
-  const released = new Promise<void>((resolve) => (release = resolve));
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
   const serve = globalThis.fetch;
   vi.stubGlobal("fetch", (input: string, init?: RequestInit) =>
     input === `${host}/slow.bw`

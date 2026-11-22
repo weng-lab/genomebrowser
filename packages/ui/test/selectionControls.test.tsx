@@ -38,7 +38,9 @@ it("keeps buttons and external mode changes synchronized, isolates stores, and s
     act(() => buttons[1]?.click());
     expect(useFirst.getState().selectionMode).toBe("zoom");
     expect(useSecond.getState().selectionMode).toBe("pan");
-    act(() => useFirst.getState().setSelectionMode("highlight"));
+    act(() => {
+      useFirst.getState().setSelectionMode("highlight");
+    });
     expect(buttons[2]?.getAttribute("aria-pressed")).toBe("true");
     act(() => buttons[2]?.click());
     expect(useFirst.getState().selectionMode).toBe("highlight");

@@ -148,7 +148,9 @@ async function setQuickFilter(value: string) {
   valueSetter?.call(input, value);
   await act(async () => {
     input.dispatchEvent(new Event("input", { bubbles: true }));
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 200);
+    });
   });
 }
 

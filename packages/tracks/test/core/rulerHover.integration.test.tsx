@@ -129,7 +129,9 @@ it("owns hover highlights and clears them without removing user or other ruler h
     await move(110);
     await act(async () => {
       document.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
     });
     expect(browserStore.getState().selectionMode).toBe("pan");
     await move(50);
@@ -139,7 +141,9 @@ it("owns hover highlights and clears them without removing user or other ruler h
     await move(110);
     await act(async () => {
       document.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
     });
     expect(browserStore.getState().selectionMode).toBe("zoom");
     await move(50);
@@ -199,7 +203,9 @@ it("owns hover highlights and clears them without removing user or other ruler h
     });
     await act(async () => {
       document.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
     });
     expect(browserStore.getState().selectionMode).toBe("pan");
   } finally {

@@ -224,7 +224,9 @@ function getRadio(label: string) {
 // Let the next paint, the download, and the dialog transition finish.
 async function settle() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 400);
+    });
   });
 }
 

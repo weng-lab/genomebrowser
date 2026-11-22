@@ -49,13 +49,19 @@ describe("track settings fields", () => {
     expect(input.value).toBe(".");
     updateInput(input, "1.");
     expect(input.value).toBe("1.");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(onCommit).not.toHaveBeenCalled();
 
     updateInput(input, "1.5");
-    act(() => vi.advanceTimersByTime(299));
+    act(() => {
+      vi.advanceTimersByTime(299);
+    });
     expect(onCommit).not.toHaveBeenCalled();
-    act(() => vi.advanceTimersByTime(1));
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
     expect(onCommit).toHaveBeenCalledWith(1.5);
   });
 
@@ -83,7 +89,9 @@ describe("track settings fields", () => {
     updateInput(input, "Discarded title");
     keyDown(input, "Escape");
     expect(input.value).toBe("Second title");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(onCommit).toHaveBeenCalledTimes(2);
   });
 
@@ -103,7 +111,9 @@ describe("track settings fields", () => {
     const input = getInput("Title");
 
     updateInput(input, "Rejected title");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(input.value).toBe("Rejected title");
     expect(container?.textContent).toContain("Core rejected this title.");
 
@@ -148,7 +158,9 @@ describe("track settings fields", () => {
     const input = getInput("Title");
 
     updateInput(input, "Retry title");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(container?.textContent).toContain("Core rejected this title.");
 
     keyDown(input, "Enter");
@@ -183,13 +195,17 @@ describe("track settings fields", () => {
         onCommit={latestCommit}
       />,
     );
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(staleCommit).not.toHaveBeenCalled();
     expect(latestCommit).toHaveBeenCalledWith("T2T-CHM13");
 
     updateInput(input, "hg19");
     act(() => root?.unmount());
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(latestCommit).toHaveBeenCalledTimes(1);
   });
 
@@ -213,11 +229,15 @@ describe("track settings fields", () => {
     updateInput(input, "");
     expect(input.value).toBe("");
     expect(container?.textContent).toContain("Enter a URL.");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     expect(onCommit).not.toHaveBeenCalled();
 
     updateInput(input, "YOUR_OTHER_URL_HERE");
-    act(() => vi.advanceTimersByTime(300));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     blur(input);
     keyDown(input, "Enter");
     expect(onCommit).not.toHaveBeenCalled();
@@ -300,9 +320,13 @@ function updateInput(input: HTMLInputElement, value: string) {
 }
 
 function blur(input: HTMLInputElement) {
-  act(() => input.dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+  act(() => {
+    input.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+  });
 }
 
 function keyDown(input: HTMLInputElement, key: string) {
-  act(() => input.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key })));
+  act(() => {
+    input.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key }));
+  });
 }

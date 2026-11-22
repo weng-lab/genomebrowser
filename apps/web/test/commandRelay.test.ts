@@ -116,7 +116,9 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
         const result = other.dispatch(id, setRegion, never());
         const busy = await Promise.race([
           result.then((value) => value.ok === false && value.code === "BUSY"),
-          new Promise<false>((resolve) => setTimeout(() => resolve(false), 200)),
+          new Promise<false>((resolve) => {
+            setTimeout(() => resolve(false), 200);
+          }),
         ]);
         if (!busy) third = result;
         return busy;
@@ -148,7 +150,9 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     redis.destroy();
     expect(await commands.dispatch(id, setRegion, never())).toMatchObject({ code: "BUSY" });
 
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 400);
+    });
     const result = commands.dispatch(id, setRegion, never());
     const { commandId } = await tab.command();
     await commands.reply(id, { commandId, result: { ok: true, value: 3 } });
@@ -251,7 +255,9 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     expect(expiresAt).toBeGreaterThan(started + 300);
     expect(expiresAt).toBeLessThanOrEqual(Date.now() + 2_000);
     // The tab replies after the relay's own timeout has passed.
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 600);
+    });
     expect(await commands.reply(id, { commandId, result: { ok: true, value: 1 } })).toBe(true);
     expect(await result).toEqual({ ok: true, value: 1 });
   });

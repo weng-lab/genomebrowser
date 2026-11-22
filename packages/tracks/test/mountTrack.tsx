@@ -132,7 +132,9 @@ export async function mountTrack<M extends HostedModule>({
     });
     for (let tries = 0; tries < 100; tries++) {
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 20));
+        await new Promise((resolve) => {
+          setTimeout(resolve, 20);
+        });
       });
       if (pending === 0 && started >= fetches) return;
     }
