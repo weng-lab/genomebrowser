@@ -115,7 +115,7 @@ export function createGeneTranscriptGeometry(transcript: GeneTranscript): GeneTr
     return parts;
   });
   const introns = exons.slice(0, -1).flatMap((exon, intronIndex): GeneIntronPart[] => {
-    const end = exons[intronIndex + 1]!.start;
+    const end = exons[intronIndex + 1].start;
     if (exon.end >= end) return [];
     return [
       {
@@ -168,12 +168,12 @@ export function createCompositeGeneGeometry(gene: GroupedGene): CompositeGeneGeo
   let eventIndex = 0;
 
   while (eventIndex < events.length) {
-    const position = events[eventIndex]!.position;
+    const position = events[eventIndex].position;
     if (cursor !== undefined && cursor < position && active.size > 0) {
       appendCompositeAtom(parts, cursor, position, [...active.values()].toSorted(byOrder));
     }
-    while (eventIndex < events.length && events[eventIndex]!.position === position) {
-      const event = events[eventIndex]!;
+    while (eventIndex < events.length && events[eventIndex].position === position) {
+      const event = events[eventIndex];
       if (event.type === "end") active.delete(event.contribution.id);
       else active.set(event.contribution.id, event.contribution);
       eventIndex += 1;
@@ -237,7 +237,7 @@ function appendCompositeAtom(
 ) {
   const kind = contributions.reduce(
     (winner, part) => (partPriority[part.kind] > partPriority[winner] ? part.kind : winner),
-    contributions[0]!.kind,
+    contributions[0].kind,
   );
   const winningContributions: CompositeGeneContribution[] = [];
   const overriddenContributions: CompositeGeneContribution[] = [];

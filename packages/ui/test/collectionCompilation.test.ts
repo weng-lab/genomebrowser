@@ -31,7 +31,7 @@ const collection = {
 describe("TrackSelect collection compilation", () => {
   it("prebuilds collection records and global identity indexes", () => {
     const compiled = compileTrackCollections([collection]);
-    const record = compiled.records[0]!;
+    const record = compiled.records[0];
 
     expect(record.rows).toEqual([
       {
@@ -58,7 +58,7 @@ describe("TrackSelect collection compilation", () => {
     );
     expect(() =>
       compileTrackCollections([
-        { ...collection, tracks: [collection.tracks[0]!, { ...collection.tracks[0]! }] },
+        { ...collection, tracks: [collection.tracks[0], { ...collection.tracks[0] }] },
       ]),
     ).toThrow("Duplicate collection track id: catalog::one");
   });
@@ -68,7 +68,7 @@ describe("TrackSelect collection compilation", () => {
       {
         ...collection,
         tracks: [
-          { ...collection.tracks[0]!, base: { ...collection.tracks[0]!.base, id: "one,two" } },
+          { ...collection.tracks[0], base: { ...collection.tracks[0].base, id: "one,two" } },
         ],
       },
     ]);
@@ -76,8 +76,8 @@ describe("TrackSelect collection compilation", () => {
       {
         ...collection,
         tracks: [
-          collection.tracks[0]!,
-          { ...collection.tracks[0]!, base: { ...collection.tracks[0]!.base, id: "two" } },
+          collection.tracks[0],
+          { ...collection.tracks[0], base: { ...collection.tracks[0].base, id: "two" } },
         ],
       },
     ]);

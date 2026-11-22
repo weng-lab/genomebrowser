@@ -54,8 +54,8 @@ const collection = {
   ],
 } satisfies TrackCollection;
 
-const collectionRecord = compileTrackCollections([collection]).records[0]!;
-const view = collectionRecord.views[0]!;
+const collectionRecord = compileTrackCollections([collection]).records[0];
+const view = collectionRecord.views[0];
 const groupALeafIds = ["catalog::one", "catalog::two"];
 
 let container: HTMLDivElement | undefined;

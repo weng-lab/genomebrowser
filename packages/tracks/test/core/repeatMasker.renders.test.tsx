@@ -138,7 +138,7 @@ it("budgets visual settings and view switches without losing display, callbacks,
   `);
   const coverage = document.querySelectorAll("[data-repeatmasker-summary]");
   expect(coverage.length).toBeGreaterThan(1);
-  await probe.measure(() => coverage[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  await probe.measure(() => coverage[1].dispatchEvent(new MouseEvent("click", { bubbles: true })));
   expect(onClick).toHaveBeenLastCalledWith(
     expect.objectContaining({ kind: "summary", mean: 2 }),
     expect.objectContaining({
@@ -227,8 +227,8 @@ it("keeps Joined summary interactions and tooltips distinct across view changes"
   expect(cells.length).toBeGreaterThan(0);
   expect(cells.length).toBeLessThanOrEqual(2000);
   const hover = await probe.measure(() => {
-    cells[0]!.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    cells[0]!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    cells[0].dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    cells[0].dispatchEvent(new MouseEvent("click", { bubbles: true }));
   });
   expect(hover.pick("DenseRepeatMasker", "RepeatMaskerRows", "BigRmskSummary"))
     .toMatchInlineSnapshot(`

@@ -38,8 +38,8 @@ function prepareRepeat(row: BigBedRecord<typeof bigRmskSchema>): BigRmskRepeat {
   }
   const alignedBlocks: BigRmskRepeat["alignedBlocks"] = [];
   for (let index = 0; index < row.blockCount; index += 1) {
-    const offset = row.blockStarts[index]!;
-    const size = row.blockSizes[index]!;
+    const offset = row.blockStarts[index];
+    const size = row.blockSizes[index];
     if (offset === -1) continue; // Unaligned consensus; size may be negative for overlaps.
     if (offset < 0 || size <= 0)
       fail("aligned blocks require a non-negative start and positive size.");
@@ -47,7 +47,7 @@ function prepareRepeat(row: BigBedRecord<typeof bigRmskSchema>): BigRmskRepeat {
     const end = start + size;
     if (start < row.thickStart || end > row.thickEnd)
       fail("aligned blocks must lie within thickStart/thickEnd.");
-    if (alignedBlocks.length && start < alignedBlocks[alignedBlocks.length - 1]!.start)
+    if (alignedBlocks.length && start < alignedBlocks[alignedBlocks.length - 1].start)
       fail("aligned blocks must be in genomic order.");
     alignedBlocks.push({ chromosome: row.chromosome, start, end });
   }

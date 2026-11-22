@@ -52,7 +52,7 @@ describe("highlight overlay", () => {
       getHighlightRects({
         region: { ...region, start: 50, end: 250 },
         width: 1000,
-        highlights: [{ ...highlights[0]!, opacity: 0 }],
+        highlights: [{ ...highlights[0], opacity: 0 }],
       })[0],
     ).toMatchObject({ x: 200, width: 300, opacity: 0 });
   });

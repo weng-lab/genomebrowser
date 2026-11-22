@@ -65,8 +65,8 @@ export function parseBigGenePredRecord(row: BigGenePredRecord): GeneTranscript {
 
   const exons: GeneExon[] = [];
   for (let index = 0; index < row.blockCount; index += 1) {
-    const offset = row.chromStarts[index]!;
-    const size = row.blockSizes[index]!;
+    const offset = row.chromStarts[index];
+    const size = row.blockSizes[index];
     const start = row.start + offset;
     const end = start + size;
     const previous = exons.at(-1);
@@ -86,7 +86,7 @@ export function parseBigGenePredRecord(row: BigGenePredRecord): GeneTranscript {
       "blocks must be ordered and non-overlapping",
     );
     const frameIndex = row.strand === "+" ? index : row.blockCount - index - 1;
-    const frame = row.exonFrames[frameIndex]!;
+    const frame = row.exonFrames[frameIndex];
     assertCoordinate(
       frame === -1 || frame === 0 || frame === 1 || frame === 2,
       label,
@@ -150,7 +150,7 @@ function parseExpandedFields(
       `Invalid BigGenePred record ${label}: expected either the standard fields or the tags and attributes extension.`,
     );
   }
-  return { tags: fields[0]!, attributes: fields[1]! };
+  return { tags: fields[0], attributes: fields[1] };
 }
 
 function parseAttributes(value: string, label: string): GeneAttributes {

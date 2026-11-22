@@ -19,7 +19,7 @@ export function renderDenseBigBedData<Row extends BigBedRow>(
       });
     } else {
       previous.end = x(row.end);
-      previous.row = { ...previous.row, end: row.end } as Row;
+      previous.row = { ...previous.row, end: row.end };
     }
   }
   return rendered;

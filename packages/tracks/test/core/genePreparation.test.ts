@@ -54,7 +54,7 @@ describe("Gene glyph preparation", () => {
     };
 
     const prepared = prepareMergedGeneGlyph(gene);
-    const intron = prepared.geometry.introns[0]!;
+    const intron = prepared.geometry.introns[0];
     const target = prepared.targets.get(intron.id);
 
     expect(target).toMatchObject({

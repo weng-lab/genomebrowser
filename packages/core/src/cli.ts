@@ -128,7 +128,7 @@ function selectTrackModules(imported: unknown, exportName: string | undefined, s
   }
 
   const candidates = Object.entries(imported).filter(([, value]) => isTrackModuleValue(value));
-  if (candidates.length === 1) return assertTrackModuleValue(candidates[0]![1], source);
+  if (candidates.length === 1) return assertTrackModuleValue(candidates[0][1], source);
   if (candidates.length === 0) {
     throw new Error(`Module source "${source}" does not export a track module or module array`);
   }

@@ -114,7 +114,7 @@ export async function mountTrack<M extends HostedModule>({
   const tooltip = () => document.querySelector(`[data-mounted-tooltip="${mountId}"]`);
   const hosted = { ...module, fetch, render, tooltipComponent } as unknown as AnyTrackModule;
   const browserStore = createBrowserStore({ assembly, region: visibleRegion, trackWidth: width });
-  const instance = hosted.create(track, interaction as never);
+  const instance = hosted.create(track, interaction);
   const trackStore = createTrackStore({ modules: [hosted], tracks: [instance] });
   const container = document.createElement("div");
   document.body.appendChild(container);
