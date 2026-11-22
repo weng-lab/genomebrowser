@@ -245,7 +245,9 @@ export function createTrackDataController({
         entries.set(trackId, { current: result });
         update();
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        console.error(error);
+      });
   };
 
   /** Brings every track in line with the stores and notifies if anything visible changed. */
