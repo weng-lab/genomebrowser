@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Typography from "@mui/material/Typography";
-import { type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";

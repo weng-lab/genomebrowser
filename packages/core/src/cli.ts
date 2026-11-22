@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, dirname, resolve } from "node:path";
 import process from "node:process";
 import { parseArgs } from "node:util";
-import { type AnyTrackModule } from "./modules/types";
+import type { AnyTrackModule } from "./modules/types";
 import { createJiti } from "jiti";
 import { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 

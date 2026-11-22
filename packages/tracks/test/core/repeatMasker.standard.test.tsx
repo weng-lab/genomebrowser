@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { type TrackFetchContext, type TrackResources } from "@weng-lab/genomebrowser";
+import type { TrackFetchContext, TrackResources } from "@weng-lab/genomebrowser";
 import {
   repeatMaskerModule as module,
   type RepeatMaskerConfig,
