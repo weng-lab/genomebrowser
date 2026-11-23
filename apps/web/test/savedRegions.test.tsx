@@ -390,6 +390,9 @@ it("deletes every region and group after asking", async () => {
   expect(groups()).toEqual([]);
 });
 
+const actionsFor = (region: string) =>
+  document.querySelector(`[aria-label="Actions for region ${region}"]`);
+
 function button(within: ParentNode, label: string) {
   return [...within.querySelectorAll("button")].find((button) => button.textContent === label);
 }
@@ -410,6 +413,8 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   await click(applyColor());
   await click(button(groupForm()!, "Create group"));
   expect(groupForm()).toBeNull();
+  // The region's row moves into the group, and focus follows it to its actions button.
+  expect(document.activeElement).toBe(actionsFor(first));
   expect(header()?.getAttribute("aria-expanded")).toBe("true");
   expect(members("Locus control")).toEqual([first]);
   // Groups come first, then the regions in none, with no heading.
@@ -434,6 +439,7 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
 
   await moveTo(second, "Locus control");
   expect(members("Locus control")).toEqual([first, second]);
+  expect(document.activeElement).toBe(actionsFor(second));
 
   await click(header());
   expect(header()?.getAttribute("aria-expanded")).toBe("false");
@@ -474,6 +480,12 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
 
   await chooseAction(second, "Remove from group");
   expect(members("Enhancers")).toEqual([first]);
+  expect(document.activeElement).toBe(actionsFor(second));
+  // Moved into a collapsed group, whose rows are not shown, the region leaves focus on the list.
+  await click(header());
+  await moveTo(second, "Enhancers");
+  expect(document.activeElement).toBe(container!.querySelector('[aria-label="Saved regions"]'));
+  await click(header());
   await click(container!.querySelector('[aria-label="Actions for group Enhancers"]'));
   await click(
     [...document.querySelectorAll('[role="menuitem"]')].find(

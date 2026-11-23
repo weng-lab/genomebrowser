@@ -16,7 +16,7 @@ import {
   type BrowserStoreInstance,
   type Highlight,
 } from "@weng-lab/genomebrowser";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type Ref, type RefObject } from "react";
 import { useSession } from "../../../sessions/SessionProvider";
 import type { RegionGroup } from "../regionGroupSchema";
 import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
@@ -90,6 +90,33 @@ type OpenForm =
 /** Opens a new group around a region, from that region's actions button. */
 type AddToNewGroup = (regionId: string, opener: HTMLElement) => void;
 
+/**
+ * Keeps focus on a region as it moves into or out of a group. Its row mounts again in its new
+ * place, which would drop focus from the old row's actions button. `keep` marks the region
+ * before it moves, and `actionsRef` records each row's actions button. When the row is not
+ * shown, such as in a collapsed group, `list` takes focus instead.
+ */
+function useMovedRowFocus(list: RefObject<HTMLElement | null>) {
+  const moving = useRef<string | null>(null);
+  const buttons = useRef(new Map<string, HTMLButtonElement>());
+  // An effect, so it runs after the old row's menu, unmounting, restores focus to its button.
+  useEffect(() => {
+    const regionId = moving.current;
+    if (regionId === null) return;
+    moving.current = null;
+    (buttons.current.get(regionId) ?? list.current)?.focus();
+  });
+  return {
+    keep: (regionId: string) => {
+      moving.current = regionId;
+    },
+    actionsRef: (regionId: string) => (button: HTMLButtonElement | null) => {
+      if (button) buttons.current.set(regionId, button);
+      else buttons.current.delete(regionId);
+    },
+  };
+}
+
 function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const useBrowserStore = browserStore;
   const useRegionGroupStore = regionGroupStore;
@@ -100,6 +127,8 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const addRegionButton = useRef<HTMLButtonElement>(null);
   const addGroupButton = useRef<HTMLButtonElement>(null);
   const formId = useId();
+  const listRef = useRef<HTMLUListElement>(null);
+  const rowFocus = useMovedRowFocus(listRef);
   // Returns focus to what opened the form, which would otherwise be lost with it.
   const closeForm = () => {
     form?.opener?.focus();
@@ -122,6 +151,8 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
       key={highlight.id}
       highlight={highlight}
       onAddToNewGroup={addToNewGroup}
+      onMove={rowFocus.keep}
+      actionsRef={rowFocus.actionsRef(highlight.id)}
       {...stores}
     />
   );
@@ -184,7 +215,11 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
                 regionGroupStore.getState().createGroup(group, regionIds);
                 if (applyColor && group.color)
                   setRegionsColor(browserStore, regionIds, group.color);
-                closeForm();
+                // The region whose menu opened the form moves into the group, and focus with it.
+                if (form.regionId !== undefined && regionIds.includes(form.regionId)) {
+                  rowFocus.keep(form.regionId);
+                  setForm(null);
+                } else closeForm();
               }}
               onCancel={closeForm}
             />
@@ -203,7 +238,14 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
               bgcolor: "background.default",
             }}
           >
-            <List aria-label="Saved regions" disablePadding sx={listSx}>
+            <List
+              ref={listRef}
+              aria-label="Saved regions"
+              // Takes focus when a region moves to a row that is not shown.
+              tabIndex={-1}
+              disablePadding
+              sx={listSx}
+            >
               {sections.groups.map(({ group, members }) => (
                 <RegionGroupSection key={group.id} group={group} {...stores}>
                   {members.map(card)}
@@ -266,7 +308,13 @@ function DeleteAllButton({
   );
 }
 
-type RegionCardProps = StoresProps & { highlight: Highlight; onAddToNewGroup: AddToNewGroup };
+type RegionCardProps = StoresProps & {
+  highlight: Highlight;
+  onAddToNewGroup: AddToNewGroup;
+  /** Called as the region moves into or out of a group. */
+  onMove: (regionId: string) => void;
+  actionsRef: Ref<HTMLButtonElement>;
+};
 
 /** A saved region: its color, name, and coordinates. Clicking it goes there. */
 function RegionCard({
@@ -274,6 +322,8 @@ function RegionCard({
   browserStore,
   regionGroupStore,
   onAddToNewGroup,
+  onMove,
+  actionsRef,
 }: RegionCardProps) {
   const useBrowserStore = browserStore;
   const shownChromosome = useBrowserStore((state) => state.region.chromosome);
@@ -293,6 +343,8 @@ function RegionCard({
           browserStore={browserStore}
           regionGroupStore={regionGroupStore}
           onAddToNewGroup={onAddToNewGroup}
+          onMove={onMove}
+          buttonRef={actionsRef}
         />
       }
       sx={{ "& .MuiListItemSecondaryAction-root": { right: 4 } }}

@@ -15,7 +15,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MenuList from "@mui/material/MenuList";
 import type { BrowserStoreInstance, Highlight } from "@weng-lab/genomebrowser";
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import type { RegionGroup } from "../regionGroupSchema";
@@ -37,12 +37,23 @@ type RegionMenuProps = {
   regionGroupStore: RegionGroupStoreInstance;
   /** Opens a new group around the region, returning focus to `opener` when it closes. */
   onAddToNewGroup: (regionId: string, opener: HTMLElement) => void;
+  /**
+   * Called as the region moves into or out of a group, whose row mounts again in its new
+   * place, so focus can follow it there.
+   */
+  onMove: (regionId: string) => void;
 };
 
 /** A region's more-actions button, which opens its menu. */
-export function RegionActions(props: RegionMenuProps) {
+export function RegionActions({
+  buttonRef,
+  ...props
+}: RegionMenuProps & { buttonRef?: Ref<HTMLButtonElement> }) {
   return (
-    <ActionsPopover label={`Actions for region ${regionName(props.highlight)}`}>
+    <ActionsPopover
+      label={`Actions for region ${regionName(props.highlight)}`}
+      buttonRef={buttonRef}
+    >
       {(close, opener) => <RegionMenu {...props} opener={opener} onClose={close} />}
     </ActionsPopover>
   );
@@ -58,6 +69,7 @@ function RegionMenu({
   browserStore,
   regionGroupStore,
   onAddToNewGroup,
+  onMove,
   opener,
   onClose,
 }: RegionMenuProps & { opener: HTMLElement | null; onClose: () => void }) {
@@ -73,6 +85,11 @@ function RegionMenu({
     onClose();
     action();
   };
+  const move = (action: () => void) =>
+    act(() => {
+      onMove(highlight.id);
+      action();
+    });
 
   if (isOpen(coordinates))
     return (
@@ -138,7 +155,7 @@ function RegionMenu({
           <ChevronRight fontSize="small" sx={{ color: "text.secondary", mr: -0.5 }} />
         </MenuItem>
         {current ? (
-          <MenuItem onClick={act(() => regionGroupStore.getState().removeFromGroup(highlight.id))}>
+          <MenuItem onClick={move(() => regionGroupStore.getState().removeFromGroup(highlight.id))}>
             <ListItemIcon>
               <FolderOff fontSize="small" />
             </ListItemIcon>
@@ -173,7 +190,7 @@ function RegionMenu({
           .map((group) => (
             <MenuItem
               key={group.id}
-              onClick={act(() => regionGroupStore.getState().addToGroup(highlight.id, group.id))}
+              onClick={move(() => regionGroupStore.getState().addToGroup(highlight.id, group.id))}
             >
               <ListItemIcon>
                 <GroupDot group={group} />
