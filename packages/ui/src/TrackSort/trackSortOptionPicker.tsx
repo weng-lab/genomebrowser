@@ -1,7 +1,9 @@
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, TextField, Typography } from "@mui/material";
 import { useState } from "react";
+import { valueTypeLabel } from "./trackSortLabels";
+import type { TrackSortValueType } from "./trackSortOrder";
 
-type PickerOption = { id: string; label: string };
+type PickerOption = { id: string; label: string; types: readonly TrackSortValueType[] };
 
 /** Single-line search for adding excluded options; each pick joins the priority list at the bottom. */
 export function TrackSortOptionPicker({
@@ -22,6 +24,24 @@ export function TrackSortOptionPicker({
     <Autocomplete
       options={available}
       getOptionLabel={(option) => option.label}
+      renderOption={({ key, ...props }, option) => {
+        const valueType = valueTypeLabel(option.types);
+        return (
+          <li key={key} {...props}>
+            <span>{option.label}</span>
+            {valueType && (
+              <Typography
+                component="span"
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: "auto", pl: 2 }}
+              >
+                {valueType}
+              </Typography>
+            )}
+          </li>
+        );
+      }}
       value={null}
       inputValue={inputValue}
       // Keep only typed text; picking an option would otherwise fill the field with its label.

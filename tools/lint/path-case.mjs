@@ -26,7 +26,9 @@ export function findCaseCollisions(paths) {
   const groups = new Map();
   for (const spellings of names.values()) {
     if (spellings.size < 2) continue;
-    const group = [...new Set([...spellings.values()].flatMap((labels) => [...labels]))].sort();
+    const group = [...new Set([...spellings.values()].flatMap((labels) => [...labels]))].sort(
+      (a, b) => (a < b ? -1 : a > b ? 1 : 0),
+    );
     groups.set(group.join("\0"), group);
   }
   return [...groups.values()];

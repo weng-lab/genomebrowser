@@ -85,7 +85,9 @@ export async function stalledServer() {
     sockets.add(socket);
     socket.on("close", () => sockets.delete(socket));
   });
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  await new Promise<void>((resolve) => {
+    server.listen(0, "127.0.0.1", resolve);
+  });
   const { port } = server.address() as { port: number };
   return {
     url: `redis://127.0.0.1:${port}`,
@@ -100,8 +102,12 @@ export async function stalledServer() {
 /** A local port nothing listens on. */
 export async function closedPort() {
   const server = createServer();
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  await new Promise<void>((resolve) => {
+    server.listen(0, "127.0.0.1", resolve);
+  });
   const { port } = server.address() as { port: number };
-  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await new Promise<void>((resolve) => {
+    server.close(() => resolve());
+  });
   return `redis://127.0.0.1:${port}`;
 }

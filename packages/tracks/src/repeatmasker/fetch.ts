@@ -35,7 +35,7 @@ export async function fetchRepeatMasker(
       return { view: "joined-summary", url, data: { kind: "detail-required" } };
     const target = (region.end - region.start) / Math.max(1, width) / 2;
     const reduction =
-      metadata.zoomLevels.filter((level) => level <= target).at(-1) ?? metadata.zoomLevels[0]!;
+      metadata.zoomLevels.filter((level) => level <= target).at(-1) ?? metadata.zoomLevels[0];
     return {
       view: "joined-summary",
       url,

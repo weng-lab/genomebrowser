@@ -27,7 +27,7 @@ vi.mock("@weng-lab/ui-components", () => ({
           props.onSearchSubmit({
             type: "Gene",
             domain: { chromosome: "chr1", start: 40, end: 60 },
-          } as Parameters<typeof props.onSearchSubmit>[0])
+          })
         }
       >
         Submit test result

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { type TrackFetchContext, type TrackResources } from "@weng-lab/genomebrowser";
+import type { TrackFetchContext, TrackResources } from "@weng-lab/genomebrowser";
 import {
   repeatMaskerModule as module,
   type RepeatMaskerConfig,
@@ -113,7 +113,7 @@ describe("RepeatMasker joined view", () => {
     serveBigRmsk(singleRepeatFile(joinedRepeatColumns));
     const testRegion = { chromosome: "chr1", start: 100, end: 200 };
     const rows = await fetchView(context(testRegion));
-    expect(rows[0]!.alignedBlocks).toEqual([
+    expect(rows[0].alignedBlocks).toEqual([
       { chromosome: "chr1", start: 110, end: 130 },
       { chromosome: "chr1", start: 150, end: 170 },
     ]);
@@ -163,7 +163,7 @@ describe("RepeatMasker joined view", () => {
             .match(/-?\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi)!
             .map(Number);
           expect(points.length).toBeGreaterThan(6);
-          expect(strand === "+" ? points[2]! > points[0]! : points[2]! < points[0]!).toBe(true);
+          expect(strand === "+" ? points[2] > points[0] : points[2] < points[0]).toBe(true);
           for (let index = 0; index < points.length; index += 2) {
             expect(points[index]).toBeGreaterThan(left);
             expect(points[index]).toBeLessThan(right);

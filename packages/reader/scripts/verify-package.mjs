@@ -158,10 +158,14 @@ await Promise.all(
   }),
 );
 
+function compareStrings(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 const runtimeSpecifiers = collectModuleSpecifiers(javascript);
 assert(runtimeSpecifiers.size > 0, "runtime ESM import scan found no module specifiers");
 const importedPackages = collectImportedPackages(runtimeSpecifiers);
-assertJsonEqual([...importedPackages].sort(), ["zod"], "external runtime imports");
+assertJsonEqual([...importedPackages].sort(compareStrings), ["zod"], "external runtime imports");
 assert(
   javascriptMap.sources.some((source) => /(?:^|\/)fflate(?:@|\/)/.test(source)),
   "runtime sourcemap does not identify the bundled fflate implementation",
@@ -288,9 +292,9 @@ function collectDeclarationExports(source) {
   }
 
   return {
-    valueNames: valueNames.sort(),
-    typeNames: typeNames.sort(),
-    moduleSpecifiers: [...moduleSpecifiers].sort(),
+    valueNames: valueNames.sort(compareStrings),
+    typeNames: typeNames.sort(compareStrings),
+    moduleSpecifiers: [...moduleSpecifiers].sort(compareStrings),
   };
 }
 

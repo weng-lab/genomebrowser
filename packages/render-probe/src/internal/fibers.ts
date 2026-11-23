@@ -60,7 +60,11 @@ function stateChanged(fiber: Fiber, previous: Fiber): boolean {
   let hook = fiber.memoizedState as Hook | null;
   let previousHook = previous.memoizedState as Hook | null;
   while (hook && previousHook) {
-    if (hook.queue != null && !Object.is(hook.memoizedState, previousHook.memoizedState)) {
+    if (
+      hook.queue !== null &&
+      hook.queue !== undefined &&
+      !Object.is(hook.memoizedState, previousHook.memoizedState)
+    ) {
       return true;
     }
     hook = hook.next;

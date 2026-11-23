@@ -49,7 +49,7 @@ export function createTwoBitFile(options: TwoBitFileOptions): TwoBitFile {
       const bases = new Array<string>(end - region.start);
       for (let position = region.start; position < end; position++) {
         bases[position - region.start] = "TCAG"[
-          (bytes[Math.floor(position / 4) - firstByte]! >> (6 - 2 * (position % 4))) & 3
+          (bytes[Math.floor(position / 4) - firstByte] >> (6 - 2 * (position % 4))) & 3
         ]!;
       }
       for (const block of metadata.unknown) {
@@ -67,7 +67,7 @@ export function createTwoBitFile(options: TwoBitFileOptions): TwoBitFile {
           position < Math.min(end, block.end);
           position++
         ) {
-          bases[position - region.start] = bases[position - region.start]!.toLowerCase();
+          bases[position - region.start] = bases[position - region.start].toLowerCase();
         }
       }
       throwIfAborted(signal);
@@ -93,11 +93,11 @@ async function readIndex(reader: RequestRangeReader): Promise<Index> {
   let cursor = 0;
   for (let i = 0; i < count; i++) {
     throwIfAborted(reader.signal);
-    if (cursor >= chunk.length || chunk.length - cursor < 1 + chunk[cursor]! + 4) {
+    if (cursor >= chunk.length || chunk.length - cursor < 1 + chunk[cursor] + 4) {
       chunk = await reader.readBounded(offset, 5n, 65536n);
       cursor = 0;
     }
-    const length = chunk[cursor]!;
+    const length = chunk[cursor];
     if (length === 0 || chunk.length - cursor < length + 5)
       throw new Error("Invalid 2bit sequence index");
     const name = new TextDecoder().decode(chunk.subarray(cursor + 1, cursor + 1 + length));
@@ -158,7 +158,7 @@ async function readBlocks(
   const starts = Array.from({ length: count }, () => binary.readUint32());
   return starts.map((start, i) => {
     const end = start + binary.readUint32();
-    if (start >= end || end > size || (i > 0 && start < starts[i - 1]!)) {
+    if (start >= end || end > size || (i > 0 && start < starts[i - 1])) {
       throw new Error("Invalid 2bit block coordinates");
     }
     return { start, end };

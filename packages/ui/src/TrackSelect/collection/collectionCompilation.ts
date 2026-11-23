@@ -1,7 +1,7 @@
-import {
-  type validateTrackCollection,
-  type TrackCollectionView,
-  type TrackCollection,
+import type {
+  validateTrackCollection,
+  TrackCollectionView,
+  TrackCollection,
 } from "@weng-lab/genomebrowser";
 
 export type CollectionGridRow = {

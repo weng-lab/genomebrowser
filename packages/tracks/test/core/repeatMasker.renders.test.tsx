@@ -6,7 +6,7 @@ import { exampleBigRmsk } from "../fixtures/bigRmsk";
 import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/genomebrowser";
 import { repeatMaskerModule as module } from "@weng-lab/genomebrowser-tracks/repeatmasker";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { serveRepeatMasker, sources } from "../fixtures/repeatMasker";
+import { requestUrl, serveRepeatMasker, sources } from "../fixtures/repeatMasker";
 // jsdom has no SVG geometry. A tooltip measures itself on the animation frame after a hover.
 Object.defineProperty(SVGElement.prototype, "getBBox", {
   configurable: true,
@@ -138,7 +138,7 @@ it("budgets visual settings and view switches without losing display, callbacks,
   `);
   const coverage = document.querySelectorAll("[data-repeatmasker-summary]");
   expect(coverage.length).toBeGreaterThan(1);
-  await probe.measure(() => coverage[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  await probe.measure(() => coverage[1].dispatchEvent(new MouseEvent("click", { bubbles: true })));
   expect(onClick).toHaveBeenLastCalledWith(
     expect.objectContaining({ kind: "summary", mean: 2 }),
     expect.objectContaining({
@@ -159,7 +159,7 @@ it("cancels a pending source switch and ignores its late response", async () => 
   };
   const pending: AbortSignal[] = [];
   vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
-    if (String(input) === sources.joined) {
+    if (requestUrl(input) === sources.joined) {
       if (init?.signal) pending.push(init.signal);
       await release.promise;
     }
@@ -227,8 +227,8 @@ it("keeps Joined summary interactions and tooltips distinct across view changes"
   expect(cells.length).toBeGreaterThan(0);
   expect(cells.length).toBeLessThanOrEqual(2000);
   const hover = await probe.measure(() => {
-    cells[0]!.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    cells[0]!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    cells[0].dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    cells[0].dispatchEvent(new MouseEvent("click", { bubbles: true }));
   });
   expect(hover.pick("DenseRepeatMasker", "RepeatMaskerRows", "BigRmskSummary"))
     .toMatchInlineSnapshot(`

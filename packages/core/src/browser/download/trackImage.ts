@@ -487,12 +487,12 @@ export async function svgToPng(svg: SvgImage, signal: AbortSignal, scale = 1): P
     const context = canvas.getContext("2d");
     if (!context) throw new Error("PNG export requires browser canvas support.");
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob>((resolve, reject) =>
+    const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((result) => {
         if (result) resolve(result);
         else reject(new Error("The browser could not encode the track as PNG."));
-      }, "image/png"),
-    );
+      }, "image/png");
+    });
     signal.throwIfAborted();
     return blob;
   } finally {

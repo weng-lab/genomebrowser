@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, dirname, resolve } from "node:path";
 import process from "node:process";
 import { parseArgs } from "node:util";
-import { type AnyTrackModule } from "./modules/types";
+import type { AnyTrackModule } from "./modules/types";
 import { createJiti } from "jiti";
 import { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 
@@ -87,7 +87,9 @@ async function loadTrackModules(sources: string[], cwd: string): Promise<AnyTrac
       try {
         imported = await jiti.import(specifier);
       } catch (error) {
-        throw new Error(`Could not import track modules from "${source}": ${errorMessage(error)}`);
+        throw new Error(`Could not import track modules from "${source}": ${errorMessage(error)}`, {
+          cause: error,
+        });
       }
       return selectTrackModules(imported, reference.exportName, source);
     }),
@@ -128,7 +130,7 @@ function selectTrackModules(imported: unknown, exportName: string | undefined, s
   }
 
   const candidates = Object.entries(imported).filter(([, value]) => isTrackModuleValue(value));
-  if (candidates.length === 1) return assertTrackModuleValue(candidates[0]![1], source);
+  if (candidates.length === 1) return assertTrackModuleValue(candidates[0][1], source);
   if (candidates.length === 0) {
     throw new Error(`Module source "${source}" does not export a track module or module array`);
   }

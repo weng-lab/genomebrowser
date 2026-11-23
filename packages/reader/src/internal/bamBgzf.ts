@@ -1,6 +1,6 @@
 // Adapted from weng-lab/bigwig-reader src/bam (MIT, Copyright 2018 weng-lab).
 import { gunzipSync } from "fflate";
-import { RequestRangeReader } from "./requestRangeReader";
+import type { RequestRangeReader } from "./requestRangeReader";
 
 /** Request-local compressed window; never shares cancellation between reads. */
 export class BamBgzfReader {

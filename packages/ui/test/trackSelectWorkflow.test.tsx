@@ -457,7 +457,7 @@ describe("TrackSelect session workflow", () => {
     await act(async () => {
       result.current.actions.selectActiveCollectionTracks(new Set(["alpha::one"]));
     });
-    trackCollections[0]!.tracks[0]!.config = { url: "" };
+    trackCollections[0].tracks[0].config = { url: "" };
     await act(async () => result.current.actions.submitSelection());
 
     expect(result.current.state.submitError).toMatch(/signal input is invalid/);

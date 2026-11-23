@@ -18,7 +18,7 @@ export async function fetchStandardRepeatMasker({
     if (!metadata.zoomLevels.length) return { kind: "detail-required" };
     const target = (region.end - region.start) / Math.max(1, width) / 2;
     const reduction =
-      metadata.zoomLevels.filter((level) => level <= target).at(-1) ?? metadata.zoomLevels[0]!;
+      metadata.zoomLevels.filter((level) => level <= target).at(-1) ?? metadata.zoomLevels[0];
     return { kind: "summary", summaries: await file.readZoomLevel(region, reduction, { signal }) };
   }
   const rows = await file.read(region, { signal });

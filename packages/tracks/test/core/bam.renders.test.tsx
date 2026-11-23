@@ -186,7 +186,9 @@ it("budgets BAM viewport, display, and section changes through the stores", asyn
   const names = ["BamRenderer", "JunctionSection", "JunctionArcGroup", "JunctionArcShape"];
   const hover = await probe.measure(async () => {
     target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point(0.5) }));
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
   });
   expect(hover.pick(...names)).toMatchInlineSnapshot(`
     {
@@ -274,7 +276,9 @@ it("budgets clearing a hovered strand removed by minimumSupport while its group 
         clientY: 0.25 * y1 + 0.5 * controlY + 0.25 * y2,
       }),
     );
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
   });
   const overlay = document.querySelector("[data-genomebrowser-tooltip-overlay]");
   expect(overlay?.textContent).toContain("- (reverse)");

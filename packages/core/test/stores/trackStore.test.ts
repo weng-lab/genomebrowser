@@ -475,9 +475,7 @@ describe("createTrackStore", () => {
     ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
 
     store.getState().addTrack(signalTrack());
-    expect(
-      store.getState().updateTrack("signal", { config: { tooltip: Tooltip } } as never),
-    ).toMatchObject({
+    expect(store.getState().updateTrack("signal", { config: { tooltip: Tooltip } })).toMatchObject({
       ok: false,
       error: expect.stringMatching(/signal instance is invalid/),
     });

@@ -46,7 +46,8 @@ export function generateSignal2(
     if (
       point.min === null ||
       point.max === null ||
-      (requireCoverage && (coverage?.max == null || coverage.max <= 0))
+      (requireCoverage &&
+        (coverage?.max === null || coverage?.max === undefined || coverage.max <= 0))
     )
       return;
     const n = normalize(point, range, height, inverted);

@@ -286,18 +286,18 @@ function makeDataBlockFixture(
       startBase: 10,
       endChromosomeId: 2,
       endBase: 20,
-      offset: blockOffsets[index]!,
+      offset: blockOffsets[index],
       size: BigInt(bytes.byteLength),
     })),
   );
   const resourceLength = Math.max(
     Number(rootOffset) + leaf.byteLength,
-    ...blockBytes.map((bytes, index) => Number(blockOffsets[index]!) + bytes.byteLength),
+    ...blockBytes.map((bytes, index) => Number(blockOffsets[index]) + bytes.byteLength),
   );
   const resource = new Uint8Array(resourceLength);
   resource.set(makeCirTreeHeader(byteOrder, blockBytes.length, BigInt(blockBytes.length)), 100);
   resource.set(leaf, Number(rootOffset));
-  blockBytes.forEach((bytes, index) => resource.set(bytes, Number(blockOffsets[index]!)));
+  blockBytes.forEach((bytes, index) => resource.set(bytes, Number(blockOffsets[index])));
 
   const header = parseBbiHeader(
     makeBigBedHeader(byteOrder, {
@@ -1260,11 +1260,11 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
     const plainBlocks = [Uint8Array.of(1, 2, 3), Uint8Array.of(4, 5), Uint8Array.of(6, 7, 8, 9)];
     const compressedBlocks = plainBlocks.map((bytes) => zlibSync(bytes));
     const fixture = makeDataBlockFixture(
-      [compressedBlocks[1]!, compressedBlocks[0]!, compressedBlocks[2]!],
+      [compressedBlocks[1], compressedBlocks[0], compressedBlocks[2]],
       [
-        2_000n + BigInt(compressedBlocks[0]!.byteLength),
+        2_000n + BigInt(compressedBlocks[0].byteLength),
         2_000n,
-        2_000n + BigInt(compressedBlocks[1]!.byteLength + compressedBlocks[0]!.byteLength),
+        2_000n + BigInt(compressedBlocks[1].byteLength + compressedBlocks[0].byteLength),
       ],
       "little-endian",
       8,
@@ -1277,19 +1277,19 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
       {
         bytes: plainBlocks[1],
         offset: fixture.blockOffsets[0],
-        size: BigInt(compressedBlocks[1]!.byteLength),
+        size: BigInt(compressedBlocks[1].byteLength),
         query: fixture.query,
       },
       {
         bytes: plainBlocks[0],
         offset: fixture.blockOffsets[1],
-        size: BigInt(compressedBlocks[0]!.byteLength),
+        size: BigInt(compressedBlocks[0].byteLength),
         query: fixture.query,
       },
       {
         bytes: plainBlocks[2],
         offset: fixture.blockOffsets[2],
-        size: BigInt(compressedBlocks[2]!.byteLength),
+        size: BigInt(compressedBlocks[2].byteLength),
         query: fixture.query,
       },
     ]);
