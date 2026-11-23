@@ -33,6 +33,8 @@ These are current implementation constraints and deployment gaps. They do not re
 - A session's agent thread never rolls over yet: it grows until Eve compacts it, and only a conversation Eve no longer has, such as one that expired after 30 idle days, starts a new thread. The [agent panel PRD](agent-panel-prd.md) plans rollover with summaries.
 - Two tabs that send a session's first message at the same moment can each start a conversation. The app keeps the first one and ends the other; the second tab must reload to continue the session's thread.
 - Only the first tab attached to a session receives agent commands. Another tab is refused until the first one closes.
+- A run stops before its next model call once no tab has held its session for 5 seconds, so a reply already streaming finishes first. Turning Remote Control off closes the tab's connection, which stops the run the same way.
+- Switching sessions asks first only when the switch comes from a session URL, such as a link or history. The browser's own leave-page prompt, shown while a run is active, has fixed wording, and browsers may skip it.
 - In local development without `AI_GATEWAY_API_KEY`, the model comes from a provider key or Eve's own sign-in; on Vercel and in production builds it comes from AI Gateway. The app and agent code paths are otherwise the same.
 
 [Back to app direction](README.md)

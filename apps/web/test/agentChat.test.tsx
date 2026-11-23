@@ -29,6 +29,8 @@ let directory: string | undefined;
 let eve = "";
 let logs = "";
 let probe: Probe | undefined;
+let relay: ReturnType<typeof createCommandRelay> | undefined;
+let tab: Exclude<Awaited<ReturnType<typeof attachTab>>, "taken"> | undefined;
 const lifetime = new AbortController();
 const stores = createStores("hg38")!;
 
@@ -137,6 +139,7 @@ describe.skipIf(!available)("Eve agent chat", () => {
         GB_AGENT_APP_ORIGIN: authorization.origin,
         GB_AGENT_NAMESPACE: process.env.GB_AGENT_NAMESPACE ?? "",
         REDIS_URL: testRedisUrl!,
+        GB_AGENT_TAB_GRACE_MS: "1000",
       },
     );
     await ready(`${eve}/eve/v1/health`);
@@ -159,12 +162,19 @@ describe.skipIf(!available)("Eve agent chat", () => {
     );
   }, 90_000);
 
-  // Each test gets its own browser session, so threads from earlier tests do not resume.
+  // Each test gets its own browser session, so threads from earlier tests do not resume,
+  // open in a tab as the panel's session always is.
   beforeEach(async () => {
     sessionId = (await authorization!.createSession("user_alice")).id;
+    relay = createCommandRelay({ url: testRedisUrl!, namespace: agentRedisNamespace() });
+    const attached = await attachTab(relay, sessionId);
+    if (attached === "taken") throw new Error("Expected tab attachment");
+    tab = attached;
   });
 
-  afterEach(({ task }) => {
+  afterEach(async ({ task }) => {
+    tab?.close();
+    await relay?.close();
     if (task.result?.state === "fail") console.error(logs.slice(-10_000));
     probe?.unmount();
     probe = undefined;
@@ -186,11 +196,8 @@ describe.skipIf(!available)("Eve agent chat", () => {
   }, 15_000);
 
   it("streams chat and runs a tool in the bound session's tab, applying the region in the browser stores", async () => {
-    const relay = createCommandRelay({ url: testRedisUrl!, namespace: agentRedisNamespace() });
-    const tab = await attachTab(relay, sessionId);
-    if (tab === "taken") throw new Error("Expected tab attachment");
     const command = (async () => {
-      const message = await tab.command();
+      const message = await tab!.command();
       const app: CommandApp = {
         stores,
         sortTracks: () => ({ ok: true }),
@@ -200,63 +207,50 @@ describe.skipIf(!available)("Eve agent chat", () => {
         addTracksFromUrls: () => Promise.reject(new Error("Not tested")),
       };
       const result = await runCommand(app, message, lifetime.signal);
-      expect(await relay.reply(sessionId, { commandId: message.commandId, result })).toBe(true);
+      expect(await relay!.reply(sessionId, { commandId: message.commandId, result })).toBe(true);
       return result;
     })();
 
-    try {
-      probe = await renderWithProbe(
-        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await act(async () => {
+      await vi.waitFor(
+        () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+        { timeout: 30_000 },
       );
-      await send("hello");
-      await act(async () => {
-        await vi.waitFor(
-          () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
-          { timeout: 30_000 },
-        );
+    });
+    await send("navigate to chr1:1001-2000");
+    await act(async () => {
+      await vi.waitFor(() => expect(document.body.textContent).toContain("Browser result:"), {
+        timeout: 30_000,
       });
-      await send("navigate to chr1:1001-2000");
-      await act(async () => {
-        await vi.waitFor(() => expect(document.body.textContent).toContain("Browser result:"), {
-          timeout: 30_000,
-        });
-      });
-      expect(await command).toMatchObject({
-        ok: true,
-        value: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
-      });
-      expect(stores.useBrowserStore.getState().region).toMatchObject({
-        chromosome: "chr1",
-        start: 1000,
-        end: 2000,
-      });
-      expect(document.body.textContent).toContain("completed");
-    } finally {
-      tab.close();
-      await relay.close();
-    }
+    });
+    expect(await command).toMatchObject({
+      ok: true,
+      value: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
+    });
+    expect(stores.useBrowserStore.getState().region).toMatchObject({
+      chromosome: "chr1",
+      start: 1000,
+      end: 2000,
+    });
+    expect(document.body.textContent).toContain("completed");
   }, 70_000);
 
   it("Stop cancels a command across Eve's real MCP connection", async () => {
-    const relay = createCommandRelay({ url: testRedisUrl!, namespace: agentRedisNamespace() });
-    const tab = await attachTab(relay, sessionId);
-    if (tab === "taken") throw new Error("Expected tab attachment");
-    try {
-      probe = await renderWithProbe(
-        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
-      );
-      await send("navigate to chr1:1001-2000");
-      const delivered = await tab.command();
-      await act(async () => {
-        [...document.querySelectorAll("button")]
-          .find((button) => button.textContent === "Stop")!
-          .click();
-      });
-      expect(await tab.next()).toEqual({ event: "cancel", commandId: delivered.commandId });
-    } finally {
-      tab.close();
-      await relay.close();
-    }
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("navigate to chr1:1001-2000");
+    const delivered = await tab!.command();
+    await act(async () => {
+      [...document.querySelectorAll("button")]
+        .find((button) => button.textContent === "Stop")!
+        .click();
+    });
+    expect(await tab!.next()).toEqual({ event: "cancel", commandId: delivered.commandId });
   }, 30_000);
 
   it("Stop cancels an active reply and allows another message", async () => {
@@ -285,6 +279,37 @@ describe.skipIf(!available)("Eve agent chat", () => {
       { timeout: 15_000 },
     );
   }, 50_000);
+
+  it("stops a run once no tab has held its session for the grace period", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    tab!.close();
+    await tab!.ended;
+    await send("hello");
+    const client = new Client({
+      baseUrl: eve,
+      headers: {
+        authorization: `Bearer ${authorization!.token("user_alice")}`,
+        "x-genomebrowser-session-id": sessionId,
+      },
+    });
+    const { conversationId } = await vi.waitFor(async () => {
+      const current = await thread();
+      if (!current.conversationId) throw new Error("Waiting for the thread");
+      return current as { conversationId: string };
+    });
+    await vi.waitFor(
+      async () => {
+        const snapshot = await client.sessions.attach(conversationId).snapshot();
+        expect(snapshot.events.find((event) => event.type === "turn.settled")?.data.outcome).toBe(
+          "cancelled",
+        );
+      },
+      { timeout: 15_000 },
+    );
+    expect(document.body.textContent).not.toContain("Hello from the genome browser agent.");
+  }, 30_000);
 
   it("reopens the session's thread after the panel remounts", async () => {
     probe = await renderWithProbe(
