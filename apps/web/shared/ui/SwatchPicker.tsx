@@ -2,8 +2,8 @@ import Add from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import { alpha, type Theme } from "@mui/material/styles";
-import { useRef, type KeyboardEvent } from "react";
-import { visuallyHidden } from "./theme";
+import { useState, type KeyboardEvent } from "react";
+import { ColorPickerPopover } from "./ColorPicker";
 
 export type Swatch = { name: string; color: string };
 
@@ -18,7 +18,7 @@ export type SwatchPickerProps = {
   allowNone?: boolean;
   /** The dotted option's accessible name. Defaults to "No color". */
   noneLabel?: string;
-  /** Ends the row with a + that opens the system color picker for any other color. */
+  /** Ends the row with a + that opens the color picker for any other color. */
   allowCustom?: boolean;
 };
 
@@ -35,7 +35,8 @@ export function SwatchPicker({
   noneLabel = "No color",
   allowCustom = false,
 }: SwatchPickerProps) {
-  const customInput = useRef<HTMLInputElement>(null);
+  // The + while it has the color picker open.
+  const [customAnchor, setCustomAnchor] = useState<HTMLElement | null>(null);
   const isCustom = value !== null && !colors.some(({ color }) => sameColor(color, value));
   const options: { label: string; value: string | null; kind: "none" | "color" | "custom" }[] = [
     ...(allowNone ? [{ label: noneLabel, value: null, kind: "none" as const }] : []),
@@ -56,13 +57,6 @@ export function SwatchPicker({
     const option = options[index];
     if (option.kind !== "custom") onChange(option.value);
     else if (isCustom) onChange(value);
-    else openCustom();
-  };
-  const openCustom = () => {
-    const input = customInput.current;
-    if (!input) return;
-    if (typeof input.showPicker === "function") input.showPicker();
-    else input.click();
   };
 
   function handleKeyDown(event: KeyboardEvent<HTMLElement>, index: number) {
@@ -70,7 +64,7 @@ export function SwatchPicker({
     if (step === undefined) return;
     event.preventDefault();
     let next = (index + step + options.length) % options.length;
-    // Arrowing onto the + would open the system picker, so it stays a Tab stop and click.
+    // Arrowing onto the + would open the color picker, so it stays a Tab stop and click.
     if (options[next].kind === "custom" && !isCustom)
       next = (next + step + options.length) % options.length;
     choose(next);
@@ -92,7 +86,9 @@ export function SwatchPicker({
           aria-label={option.label}
           // One Tab stop: the checked option, or the first while none is.
           tabIndex={index === Math.max(checked, 0) ? 0 : -1}
-          onClick={() => (option.kind === "custom" ? openCustom() : choose(index))}
+          onClick={(event) =>
+            option.kind === "custom" ? setCustomAnchor(event.currentTarget) : choose(index)
+          }
           onKeyDown={(event) => handleKeyDown(event, index)}
           sx={[swatchSx, ringSx(index === checked, option.value), kindSx(option)]}
         >
@@ -100,20 +96,20 @@ export function SwatchPicker({
         </ButtonBase>
       ))}
       {allowCustom ? (
-        <Box
-          component="input"
-          ref={customInput}
-          type="color"
-          tabIndex={-1}
-          aria-hidden
-          value={isCustom ? value : "#000000"}
-          onChange={(event) => onChange((event.target as HTMLInputElement).value)}
-          sx={visuallyHidden}
+        <ColorPickerPopover
+          anchor={customAnchor}
+          initialColor={value ?? defaultCustomColor}
+          label="Custom color"
+          onApply={onChange}
+          onClose={() => setCustomAnchor(null)}
         />
       ) : null}
     </Box>
   );
 }
+
+/** Where the color picker starts while no color is chosen. */
+const defaultCustomColor = "#1a73e8";
 
 const sameColor = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 

@@ -10,12 +10,7 @@ import PaletteOutlined from "@mui/icons-material/PaletteOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -25,11 +20,11 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { alpha, useTheme } from "@mui/material/styles";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import { TrackSettingsColorField } from "@weng-lab/genomebrowser-tracks/shared";
-import { useId, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useId, useState, type ReactNode } from "react";
 import type { RegionGroup } from "../regionGroupSchema";
 import { groupColors, type RegionGroupStoreInstance } from "../regionGroups";
 import { setRegionsColor, setRegionsHidden } from "../regions";
+import { ColorPickerPopover } from "../../../../shared/ui/ColorPicker";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { GroupDialog } from "./GroupDialog";
 
@@ -262,7 +257,8 @@ function GroupActions({
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [recoloring, setRecoloring] = useState(false);
+  // The actions button, while the highlight color picker is open below it.
+  const [recoloring, setRecoloring] = useState<HTMLElement | null>(null);
   const menuId = useId();
   const label = `Actions for group ${group.name}`;
   const close = () => setAnchor(null);
@@ -302,7 +298,7 @@ function GroupActions({
         <MenuItem
           onClick={() => {
             close();
-            setRecoloring(true);
+            setRecoloring(anchor);
           }}
         >
           <ListItemIcon>
@@ -342,11 +338,13 @@ function GroupActions({
         onSubmit={(edit) => editGroup(group.id, edit)}
         onClose={() => setEditing(false)}
       />
-      <HighlightColorDialog
-        open={recoloring}
+      <ColorPickerPopover
+        anchor={recoloring}
+        // The group's color, so matching it is a single Apply.
         initialColor={group.color ?? groupColors[1].color}
+        label="Highlight color"
         onApply={(color) => setRegionsColor(browserStore, group.regionIds, color)}
-        onClose={() => setRecoloring(false)}
+        onClose={() => setRecoloring(null)}
       />
       <ConfirmDeleteDialog
         open={deleting}
@@ -357,59 +355,5 @@ function GroupActions({
         onClose={() => setDeleting(false)}
       />
     </>
-  );
-}
-
-type HighlightColorDialogProps = {
-  open: boolean;
-  /** The color the picker starts at: the group's, so matching it is a single Apply. */
-  initialColor: string;
-  onApply: (color: string) => void;
-  onClose: () => void;
-};
-
-/** Picks one color for every highlight in a group. */
-function HighlightColorDialog({ open, onClose, ...form }: HighlightColorDialogProps) {
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      {/* The dialog unmounts its content once closed, so each opening starts from `initialColor`. */}
-      <HighlightColorForm {...form} onClose={onClose} />
-    </Dialog>
-  );
-}
-
-function HighlightColorForm({
-  initialColor,
-  onApply,
-  onClose,
-}: Omit<HighlightColorDialogProps, "open">) {
-  const [color, setColor] = useState(initialColor);
-
-  function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
-    event.preventDefault();
-    onApply(color);
-    onClose();
-  }
-
-  return (
-    <Box component="form" onSubmit={handleSubmit}>
-      <DialogTitle>Change highlight color</DialogTitle>
-      <DialogContent sx={{ "&&": { pt: 1 } }}>
-        <TrackSettingsColorField
-          label="Highlight color"
-          value={color}
-          onCommit={(next) => {
-            setColor(next);
-            return { ok: true };
-          }}
-        />
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button type="submit" variant="contained">
-          Apply
-        </Button>
-      </DialogActions>
-    </Box>
   );
 }

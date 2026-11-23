@@ -254,6 +254,25 @@ it("makes an empty group from the heading, with no color, that regions join and 
   expect(groupName().placeholder).toBe("Group 1 (optional)");
   // It starts with no regions, so there are none to recolor.
   expect(applyColor().disabled).toBe(true);
+  // The + opens the color picker; Escape and Cancel close it alone, choosing nothing.
+  const picker = () => document.querySelector('form[aria-label="Custom color"]');
+  const hex = () => picker()!.querySelector<HTMLInputElement>("input:not([type='range'])")!;
+  const custom = groupForm()!.querySelector('[role="radio"][aria-label="Custom color"]')!;
+  await click(custom);
+  expect(hex().value).toBe("#1F6FE5");
+  await act(async () =>
+    hex().dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  await vi.waitFor(() => expect(picker()).toBeNull());
+  expect(groupForm()).not.toBeNull();
+  await click(custom);
+  await type(hex(), "not a color");
+  await click(button(picker()!, "Apply"));
+  expect(picker()!.textContent).toContain("Enter a hex color like #1A73E8");
+  await type(hex(), "#0A6");
+  await click(button(picker()!, "Apply"));
+  await vi.waitFor(() => expect(picker()).toBeNull());
+  expect(custom.getAttribute("aria-checked")).toBe("true");
   await click(groupForm()!.querySelector('[role="radio"][aria-label="No color"]'));
   await click(button(groupForm()!, "Create group"));
   expect(groupForm()).toBeNull();
@@ -387,18 +406,17 @@ it("recolors every highlight in a group, keeping each one's other settings", asy
   const before = server.stored.get(id)!.snapshot;
 
   await chooseGroupAction("Group 1", "Change highlight color");
-  const input = document.querySelector<HTMLInputElement>('[role="dialog"] input')!;
-  // It starts at the group's color. The field writes hex colors in capitals.
+  const picker = () => document.querySelector('form[aria-label="Highlight color"]');
+  const input = picker()!.querySelector<HTMLInputElement>("input:not([type='range'])")!;
+  // It starts at the group's color, its hex code in capitals.
   expect(input.value).toBe("#1F6FE5");
-  await type(input, "#00aa66");
-  await act(async () =>
-    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
-  );
-  await click(button(document.querySelector('[role="dialog"]')!, "Apply"));
+  await type(input, "00aa66");
+  await click(button(picker()!, "Apply"));
+  await vi.waitFor(() => expect(picker()).toBeNull());
 
   const recolored = before.browser.highlights.map((highlight) => ({
     ...highlight,
-    color: "#00AA66",
+    color: "#00aa66",
   }));
   expect(recolored[1]).toMatchObject({ hidden: true });
   await vi.waitFor(() => expect(saved().highlights).toEqual(recolored));

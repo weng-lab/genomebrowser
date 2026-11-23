@@ -10,6 +10,7 @@ import Sort from "@mui/icons-material/Sort";
 import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
 import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
 import { brand, navigation } from "../composition/navigation";
+import { ColorPicker } from "../shared/ui/ColorPicker";
 import { EmptyState } from "../shared/ui/EmptyState";
 import { FormCard, FormCardActions } from "../shared/ui/FormCard";
 import { NavRail } from "../shared/ui/NavRail";
@@ -82,6 +83,16 @@ export function Gallery() {
       </Section>
       <Section title="SwatchPicker" source="shared/ui/SwatchPicker.tsx">
         <SwatchPickerExample />
+      </Section>
+      <Section title="ColorPicker" source="shared/ui/ColorPicker.tsx">
+        <Box sx={{ bgcolor: "background.paper", borderRadius: 3, boxShadow: 4 }}>
+          <ColorPicker
+            initialColor="#1a73e8"
+            label="Example color"
+            onApply={() => {}}
+            onCancel={() => {}}
+          />
+        </Box>
       </Section>
       <Section title="FormCard" source="shared/ui/FormCard.tsx">
         <Box sx={{ width: 280, p: 1.5, bgcolor: "background.paper" }}>
