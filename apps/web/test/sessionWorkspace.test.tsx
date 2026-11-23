@@ -316,7 +316,10 @@ it("deletes the open session and shows the empty browser", async () => {
   expect(server.stored.has(a)).toBe(false);
 });
 
-/** A setup unlike the defaults: another region, a saved region, and reordered tracks. */
+/**
+ * A setup unlike the defaults: another region, a saved region, and reordered tracks with
+ * the ruler unpinned, since pinned tracks stay on top.
+ */
 function customized(chromosome: string) {
   const saved = defaults();
   return {
@@ -327,6 +330,7 @@ function customized(chromosome: string) {
       highlights: [{ id: "hs2", color: "#ff0000", region: { chromosome, start: 1200, end: 1400 } }],
     },
     tracks: saved.tracks.toReversed(),
+    pinnedTrackIds: [],
   };
 }
 
@@ -590,7 +594,12 @@ it("keeps conflict recovery after another session is deleted", async () => {
 
 it("sorts the open session's tracks and saves the order", async () => {
   const saved = defaults();
-  const id = server.add("Alpha", { ...saved, tracks: saved.tracks.toReversed() });
+  // Unpinned, so the sort rather than the ruler's pin puts Coordinates first.
+  const id = server.add("Alpha", {
+    ...saved,
+    tracks: saved.tracks.toReversed(),
+    pinnedTrackIds: [],
+  });
   await visit(`/browser/${id}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   const titles = () => server.stored.get(id)!.snapshot.tracks.map(({ base }) => base.title);
