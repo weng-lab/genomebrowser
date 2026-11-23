@@ -18,7 +18,8 @@ export const metadataValueInputSchema = z.union([
 ]);
 
 // Collection views and sorting use these names for a track's own ID, title, and type, so a
-// metadata field with one of them would be hidden there.
+// metadata field with one of them would be hidden there. A copy of core's
+// `builtInTrackFields`: command files can't load core on the server. A test keeps it current.
 const builtInFields = new Set(["id", "title", "type"]);
 
 /**
