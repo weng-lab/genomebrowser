@@ -72,18 +72,16 @@ function Conversation({
   // Catching up on a saved conversation blocks sending but is not work to stop.
   const running = agent.status === "busy" || activeTurn(agent.view) !== undefined;
 
-  // Switching sessions or leaving the page stops a run, so ask first. Catching up
-  // on a saved conversation is not a run.
-  const working = agent.status === "busy" || activeTurn(agent.view) !== undefined;
+  // Switching sessions or leaving the page stops a run, so ask first.
   useHoldSession(
-    working ? "Your agent is still working. Switching sessions will stop it." : undefined,
+    running ? "Your agent is still working. Switching sessions will stop it." : undefined,
   );
   useEffect(() => {
-    if (!working) return;
+    if (!running) return;
     const warn = (event: BeforeUnloadEvent) => event.preventDefault();
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [working]);
+  }, [running]);
 
   useEffect(() => {
     const element = transcript.current;

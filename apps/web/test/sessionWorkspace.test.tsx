@@ -192,11 +192,23 @@ it("asks before another session replaces a held one, and stays or switches", asy
   await act(async () => route.push(`/browser/${b}`));
   await click(withText('[role="dialog"] button', "Switch"));
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+
+  // Every switch while held asks again, including back to a session switched to before.
+  await act(async () => route.push(`/browser/${a}`));
+  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
+  await click(withText('[role="dialog"] button', "Switch"));
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await act(async () => route.push(`/browser/${b}`));
+  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
+  expect(heading()).toBe("Alpha");
+  await click(withText('[role="dialog"] button', "Stay"));
+  await vi.waitFor(() => expect(route.pathname()).toBe(`/browser/${a}`));
 
   // Without a hold, a session URL opens at once.
   act(() => hold(undefined));
-  await act(async () => route.push(`/browser/${a}`));
-  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await act(async () => route.push(`/browser/${b}`));
+  await vi.waitFor(() => expect(heading()).toBe("Beta"));
   expect(dialog()).toBeNull();
 });
 

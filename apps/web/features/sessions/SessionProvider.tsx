@@ -7,7 +7,15 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { useParams, useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useStore } from "zustand";
 import { createStores } from "../assemblies/assemblies";
 import { sessionIdSchema } from "./schema";
@@ -43,32 +51,52 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
   const { sessionId } = useParams<{ sessionId?: string }>();
   const requested = sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
-  const [hold, setHold] = useState<string>();
   const active = useStore(session.store, (state) => state.active?.id);
-  // The session the user chose to switch to despite the hold.
-  const [confirmed, setConfirmed] = useState<string>();
-  const confirming = Boolean(
-    hold && active && requested && requested !== active && requested !== confirmed,
-  );
+  // Why the open session should not be replaced without asking, while something holds it.
+  const hold = useRef<string | undefined>(undefined);
+  const setHold = useCallback((reason: string | undefined) => {
+    hold.current = reason;
+  }, []);
+  // A session URL that would replace a held session, waiting for the user's choice.
+  const [prompt, setPrompt] = useState<{ to: string; reason: string }>();
 
   useEffect(() => session.start(), [session]);
   useEffect(() => {
-    if (!requested || confirming) return;
+    if (!requested) return;
+    const current = session.store.getState().active?.id;
+    const reason = hold.current;
+    if (reason && current && requested !== current) {
+      setPrompt({ to: requested, reason });
+      return;
+    }
+    setPrompt(undefined);
     // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
     void session.store.getState().open(requested);
-  }, [session, requested, confirming]);
+  }, [session, requested]);
+
+  function stay() {
+    setPrompt(undefined);
+    if (active) router.replace(`/browser/${active}`);
+  }
 
   return (
     <SessionContext value={session.store}>
       <HoldContext value={setHold}>{children}</HoldContext>
-      <Dialog open={confirming} onClose={() => router.replace(`/browser/${active}`)} maxWidth="xs">
+      <Dialog open={prompt !== undefined} onClose={stay} maxWidth="xs">
         <DialogTitle>Switch sessions?</DialogTitle>
         <DialogContent>
-          <DialogContentText>{hold}</DialogContentText>
+          <DialogContentText>{prompt?.reason}</DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={() => router.replace(`/browser/${active}`)}>Stay</Button>
-          <Button variant="contained" onClick={() => setConfirmed(requested)}>
+          <Button onClick={stay}>Stay</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setPrompt(undefined);
+              // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
+              if (prompt) void session.store.getState().open(prompt.to);
+            }}
+          >
             Switch
           </Button>
         </DialogActions>

@@ -312,6 +312,49 @@ describe.skipIf(!available)("Eve agent chat", () => {
     expect(document.body.textContent).not.toContain("Hello from the genome browser agent.");
   }, 30_000);
 
+  it("keeps a run whose tab reattaches within the grace period", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    tab!.close();
+    await tab!.ended;
+    await send("hello");
+    // A reload: a new connection attaches well within the grace period.
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 300);
+    });
+    const attached = await attachTab(relay!, sessionId);
+    if (attached === "taken") throw new Error("Expected tab attachment");
+    tab = attached;
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+  }, 30_000);
+
+  it("asks before the page unloads only while a run is working", async () => {
+    const leaving = () => {
+      const event = new Event("beforeunload", { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    expect(leaving()).toBe(false);
+    await send("wait for stop");
+    await vi.waitFor(() => expect(document.body.textContent).toContain("Waiting for Stop."), {
+      timeout: 15_000,
+    });
+    expect(leaving()).toBe(true);
+    await act(async () =>
+      [...document.querySelectorAll("button")]
+        .find((button) => button.textContent === "Stop")!
+        .click(),
+    );
+    await vi.waitFor(() => expect(leaving()).toBe(false), { timeout: 15_000 });
+  }, 30_000);
+
   it("reopens the session's thread after the panel remounts", async () => {
     probe = await renderWithProbe(
       <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,

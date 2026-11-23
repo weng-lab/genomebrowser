@@ -8,26 +8,48 @@ export function tabLeaseKey(namespace: string, sessionId: string) {
   return `${namespace}:lease:${sessionId}`;
 }
 
+const pollMs = 1_000;
+
+function sleep(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", done);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    signal.addEventListener("abort", done, { once: true });
+  });
+}
+
 /**
  * Whether a browser tab holds `sessionId`'s commands, waiting up to `graceMs`
- * for one to attach, as a reloading tab does. Resolves false when `signal`
- * aborts first.
+ * for one to attach, as a reloading tab does: `"attached"` or `"absent"`.
+ * `"unknown"` when `signal` aborts first or Redis cannot answer.
  */
-export async function waitForTab(sessionId: string, graceMs: number, signal: AbortSignal) {
+export async function tabPresence(
+  sessionId: string,
+  graceMs: number,
+  signal: AbortSignal,
+): Promise<"attached" | "absent" | "unknown"> {
+  if (signal.aborted) return "unknown";
   const key = tabLeaseKey(agentRedisNamespace(), sessionId);
   const deadline = Date.now() + graceMs;
-  for (;;) {
-    if ((await withAgentRedis((redis) => redis.exists(key))) > 0) return true;
-    const wait = Math.min(500, deadline - Date.now());
-    if (wait <= 0 || signal.aborted) return false;
-    await new Promise<void>((resolve) => {
-      const done = () => {
-        clearTimeout(timer);
-        signal.removeEventListener("abort", done);
-        resolve();
-      };
-      const timer = setTimeout(done, wait);
-      signal.addEventListener("abort", done, { once: true });
-    });
+  try {
+    return await withAgentRedis(
+      async (redis) => {
+        for (;;) {
+          if ((await redis.exists(key)) > 0) return "attached";
+          const wait = Math.min(pollMs, deadline - Date.now());
+          if (wait <= 0) return "absent";
+          await sleep(wait, signal);
+          if (signal.aborted) return "unknown";
+        }
+      },
+      { timeoutMs: graceMs + 5_000 },
+    );
+  } catch (error) {
+    console.error("Could not check whether the session's tab is open", error);
+    return "unknown";
   }
 }
