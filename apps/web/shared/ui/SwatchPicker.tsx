@@ -83,6 +83,7 @@ export function SwatchPicker({
         {options.map((option, index) => (
           <ButtonBase
             key={option.label}
+            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- Round swatches with a roving tabindex, as one Tab stop; a native radio input cannot be styled as this button.
             role="radio"
             aria-checked={index === checked}
             aria-label={option.label}

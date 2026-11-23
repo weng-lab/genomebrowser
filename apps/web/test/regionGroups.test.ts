@@ -69,7 +69,7 @@ it("keeps each region in at most one group as regions are added and moved", () =
 });
 
 it("makes empty groups, with a color or none, that regions join later", () => {
-  const { stores, groups, members, createGroup, addToGroup, deleteGroup, clear } = setup();
+  const { stores, groups, members, createGroup, addToGroup, deleteGroup, deleteAll } = setup();
   const result = createGroup({ name: "Later", color: null });
   if (!result.ok) throw new Error(result.error);
   expect(groups()).toEqual([
@@ -88,10 +88,10 @@ it("makes empty groups, with a color or none, that regions join later", () => {
   expect(deleteGroup(other.id)).toEqual({ ok: true });
   expect(members()).toEqual([["Later", ["a"]]]);
 
-  // Clearing deletes every group and keeps their regions.
-  clear();
+  // Deleting all removes every group and every region's highlight.
+  deleteAll();
   expect(groups()).toEqual([]);
-  expect(stores.useBrowserStore.getState().highlights).toHaveLength(3);
+  expect(stores.useBrowserStore.getState().highlights).toEqual([]);
 });
 
 it("moves a region into a new group in one update", () => {

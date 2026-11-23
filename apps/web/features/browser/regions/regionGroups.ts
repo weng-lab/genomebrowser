@@ -51,8 +51,8 @@ export type RegionGroupState = {
   ungroup: (groupId: string) => RegionGroupResult;
   /** Deletes the group and its regions' highlights. */
   deleteGroup: (groupId: string) => RegionGroupResult;
-  /** Deletes every group, keeping their regions. */
-  clear: () => void;
+  /** Deletes every group and every region's highlight. */
+  deleteAll: () => void;
 };
 
 export type RegionGroupStoreInstance = UseBoundStore<StoreApi<RegionGroupState>>;
@@ -177,7 +177,10 @@ export function createRegionGroupStore(browserStore: BrowserStoreInstance) {
         browserStore.getState().removeHighlights(group.regionIds);
         return { ok: true };
       },
-      clear: () => set({ groups: [] }),
+      deleteAll: () => {
+        set({ groups: [] });
+        browserStore.getState().clearHighlights();
+      },
     };
   });
 

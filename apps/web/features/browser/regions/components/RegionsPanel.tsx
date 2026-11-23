@@ -273,7 +273,7 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
         )}
       </Box>
       <Box sx={{ p: 1, pb: 1.5 }}>
-        <DeleteAllButton {...stores} disabled={empty} />
+        <DeleteAllButton regionGroupStore={regionGroupStore} disabled={empty} />
       </Box>
     </Box>
   );
@@ -281,10 +281,9 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
 
 /** Deletes every saved region and group after asking, since it cannot be undone. */
 function DeleteAllButton({
-  browserStore,
   regionGroupStore,
   disabled,
-}: StoresProps & { disabled: boolean }) {
+}: Pick<StoresProps, "regionGroupStore"> & { disabled: boolean }) {
   const [confirming, setConfirming] = useState(false);
   const close = () => setConfirming(false);
   return (
@@ -306,10 +305,7 @@ function DeleteAllButton({
         title="Delete all regions?"
         text="Every saved region, its highlight, and every group will be removed from this session."
         confirmLabel="Delete all"
-        onConfirm={() => {
-          regionGroupStore.getState().clear();
-          browserStore.getState().clearHighlights();
-        }}
+        onConfirm={() => regionGroupStore.getState().deleteAll()}
         onClose={close}
       />
     </>
