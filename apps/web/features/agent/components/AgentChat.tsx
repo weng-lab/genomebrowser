@@ -19,7 +19,7 @@ import { activeTurn, openInteractions } from "eve/events";
 import { useHoldSession } from "../../sessions/SessionProvider";
 import { useAgentControlHandle } from "../RemoteControlProvider";
 import { useAgentSession } from "../useAgentSession";
-import { useAgentThread } from "../useAgentThread";
+import { isLostConversation, useAgentThread } from "../useAgentThread";
 
 type ChatProps = { sessionId: string; signal: AbortSignal; connected: boolean };
 
@@ -72,15 +72,28 @@ function Conversation({
   const [draft, setDraft] = useState("");
   const transcript = useRef<HTMLDivElement>(null);
   const pending = openInteractions(agent.view).filter((item) => item.answer === undefined);
-  const busy = agent.status !== "idle";
+  // Ending the conversation for New conversation is neither a run nor a time to send.
+  const [restarting, setRestarting] = useState(false);
+  const busy = agent.status !== "idle" || restarting;
   // Catching up on a saved conversation blocks sending but is not work to stop.
-  const running = agent.status === "busy" || activeTurn(agent.view) !== undefined;
+  const running = !restarting && (agent.status === "busy" || activeTurn(agent.view) !== undefined);
   const conversationId = agent.session?.sessionId;
 
-  /** End this conversation in Eve and start the session's thread clean. */
+  /**
+   * End this conversation in Eve, then start the session's thread clean. When it
+   * cannot be ended, the thread stays, so the user can try again; releasing it
+   * would leave a conversation no one can reach running for good.
+   */
   async function startOver(id: string) {
-    await agent.store.end().catch(() => {});
-    await replace(id);
+    setRestarting(true);
+    try {
+      await agent.store.end().catch((error: unknown) => {
+        if (!isLostConversation(error)) throw error;
+      });
+      await replace(id);
+    } finally {
+      setRestarting(false);
+    }
   }
 
   // Stop in the browser's control banner stops this run, and a run that ends,
