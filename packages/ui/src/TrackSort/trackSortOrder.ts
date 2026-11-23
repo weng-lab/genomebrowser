@@ -77,7 +77,7 @@ function compareForRule(a: TrackSortValue, b: TrackSortValue, direction: TrackSo
 
 /** NaN counts as no value: compared as a number, it would leave the whole sort inconsistent. */
 function hasValue(value: TrackSortValue): value is string | number | boolean {
-  return value != null && !Number.isNaN(value);
+  return value !== null && value !== undefined && !Number.isNaN(value);
 }
 
 function compareValues(a: string | number | boolean, b: string | number | boolean) {
