@@ -112,7 +112,9 @@ export function ColorPicker({ initialColor, label, onApply, onCancel }: ColorPic
             if (typed) setHex(typed.toUpperCase());
           }}
           error={invalid}
-          helperText={invalid ? "Enter a hex color like #1A73E8" : undefined}
+          helperText={
+            invalid ? `Enter a hex color like ${defaultPickerColor.toUpperCase()}` : undefined
+          }
           size="small"
           fullWidth
           slotProps={{

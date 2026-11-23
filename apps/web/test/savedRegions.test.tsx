@@ -292,7 +292,7 @@ it("makes an empty group from the heading, with no color, that regions join and 
   await click(custom);
   await type(hex(), "not a color");
   await click(button(picker()!, "Apply"));
-  expect(picker()!.textContent).toContain("Enter a hex color like #1A73E8");
+  expect(picker()!.textContent).toContain("Enter a hex color like #1F6FE5");
   await type(hex(), "#0A6");
   await click(button(picker()!, "Apply"));
   await vi.waitFor(() => expect(picker()).toBeNull());
