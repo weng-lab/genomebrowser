@@ -19,8 +19,8 @@ import { alpha, useTheme } from "@mui/material/styles";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
 import { useId, useState, type ReactNode } from "react";
 import type { RegionGroup } from "../regionGroupSchema";
-import { groupColors, type RegionGroupStoreInstance } from "../regionGroups";
-import { setRegionsColor, setRegionsHidden } from "../regions";
+import type { RegionGroupStoreInstance } from "../regionGroups";
+import { regionColors, setRegionsColor, setRegionsHidden } from "../regions";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
@@ -264,7 +264,7 @@ function GroupActions({
               onDone={close}
               color={{
                 label: "Group color",
-                colors: groupColors,
+                colors: regionColors,
                 value: color,
                 onChange: (next) => edit({ color: next }),
                 allowNone: true,

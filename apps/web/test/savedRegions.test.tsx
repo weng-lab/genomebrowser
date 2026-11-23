@@ -181,8 +181,23 @@ it("adds the current view as a region, named Region and a number unless named", 
   expect(cards().map((card) => card.textContent)).toEqual([`Region 1${first}`]);
   await vi.waitFor(() =>
     expect(saved().highlights).toEqual([
-      expect.objectContaining({ name: "Region 1", region: start, type: "filled" }),
+      expect.objectContaining({
+        name: "Region 1",
+        region: start,
+        color: "#1f6fe5",
+        type: "filled",
+      }),
     ]),
+  );
+  // Its color is one its menu offers, shown chosen there.
+  await click(container!.querySelector('[aria-label="Actions for region Region 1"]'));
+  const checked = document.querySelector('[aria-label="Region color"] [aria-checked="true"]');
+  expect(checked?.getAttribute("aria-label")).toBe("Blue");
+  await act(async () =>
+    checked!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  await vi.waitFor(() =>
+    expect(document.querySelector('[role="dialog"][aria-label^="Actions for region"]')).toBeNull(),
   );
 
   await click(add);

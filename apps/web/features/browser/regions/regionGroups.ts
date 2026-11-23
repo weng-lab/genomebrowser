@@ -6,6 +6,7 @@ import type {
 import { z } from "zod";
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { regionGroupSchema, type RegionGroup } from "./regionGroupSchema";
+import { colorInTurn } from "./regions";
 
 export type RegionGroupErrorCode = "GROUP_NOT_FOUND" | "REGION_NOT_FOUND" | "INVALID_GROUP";
 
@@ -59,18 +60,6 @@ export type RegionGroupStoreInstance = UseBoundStore<StoreApi<RegionGroupState>>
 /** A session's browser and track stores, with the groups of its saved regions. */
 export type SessionStores = GenomeBrowserStores & { useRegionGroupStore: RegionGroupStoreInstance };
 
-/** The group color picker's colors, in its order, with the names it announces. */
-export const groupColors = [
-  { name: "Gray", color: "#55585e" },
-  { name: "Blue", color: "#1f6fe5" },
-  { name: "Red", color: "#c8362b" },
-  { name: "Orange", color: "#a8561c" },
-  { name: "Green", color: "#2e7d32" },
-  { name: "Crimson", color: "#b3264f" },
-  { name: "Purple", color: "#7b3fc4" },
-  { name: "Teal", color: "#21737a" },
-];
-
 /**
  * The name and color a new group starts with: "Group N", and the next color in turn,
  * starting from blue.
@@ -81,7 +70,7 @@ export function newGroupDefaults(groups: readonly RegionGroup[]) {
   while (names.has(`Group ${number}`)) number++;
   return {
     name: `Group ${number}`,
-    color: groupColors[(groups.length + 1) % groupColors.length].color,
+    color: colorInTurn(groups.length),
   };
 }
 

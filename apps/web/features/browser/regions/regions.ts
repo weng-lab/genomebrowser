@@ -13,8 +13,23 @@ import {
  * region and its style. They save with the session.
  */
 
-/** Colors new regions take in turn. */
-const regionColors = ["#1976d2", "#f59e0b", "#2e7d32", "#9c27b0", "#d32f2f", "#00838f"];
+/**
+ * The colors a region's or group's color row offers, in its order, with the names it
+ * announces. New regions and groups take them in turn.
+ */
+export const regionColors = [
+  { name: "Gray", color: "#55585e" },
+  { name: "Blue", color: "#1f6fe5" },
+  { name: "Red", color: "#c8362b" },
+  { name: "Orange", color: "#a8561c" },
+  { name: "Green", color: "#2e7d32" },
+  { name: "Crimson", color: "#b3264f" },
+  { name: "Purple", color: "#7b3fc4" },
+  { name: "Teal", color: "#21737a" },
+];
+
+/** The color the `index`th new region or group takes: the row's colors in turn, from blue. */
+export const colorInTurn = (index: number) => regionColors[(index + 1) % regionColors.length].color;
 
 /**
  * The name a new region takes when it is not given one: “Region” and the number after the
@@ -27,7 +42,7 @@ export function nextRegionName(highlights: readonly Highlight[]) {
 
 /**
  * Saves `region` as a new region named `name`, or `nextRegionName` when it is blank, with the
- * next color in turn.
+ * next color in turn, so its menu shows that color chosen.
  */
 export function saveRegion(browserStore: BrowserStoreInstance, region: GenomicRegion, name = "") {
   const { highlights, addHighlight } = browserStore.getState();
@@ -35,7 +50,7 @@ export function saveRegion(browserStore: BrowserStoreInstance, region: GenomicRe
     id: crypto.randomUUID(),
     name: name.trim() || nextRegionName(highlights),
     region,
-    color: regionColors[highlights.length % regionColors.length],
+    color: colorInTurn(highlights.length),
     type: "filled",
   });
 }

@@ -19,9 +19,10 @@ import { useState } from "react";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import type { RegionGroup } from "../regionGroupSchema";
-import { groupColors, type RegionGroupStoreInstance } from "../regionGroups";
+import type { RegionGroupStoreInstance } from "../regionGroups";
 import {
   moveRegion,
+  regionColors,
   regionName,
   regionOf,
   renameRegion,
@@ -100,7 +101,7 @@ function RegionMenu({
         onDone={onClose}
         color={{
           label: "Region color",
-          colors: groupColors,
+          colors: regionColors,
           value: hidden ? null : highlight.color,
           onChange: (color) => setRegionColor(browserStore, highlight.id, color),
           allowNone: true,

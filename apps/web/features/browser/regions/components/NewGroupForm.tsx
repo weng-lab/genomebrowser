@@ -9,7 +9,7 @@ import { useState } from "react";
 import { FormCard, FormCardActions } from "../../../../shared/ui/FormCard";
 import { SwatchPicker } from "../../../../shared/ui/SwatchPicker";
 import type { RegionGroup } from "../regionGroupSchema";
-import { groupColors } from "../regionGroups";
+import { regionColors } from "../regions";
 
 export type NewGroup = Pick<RegionGroup, "name" | "color" | "regionIds"> & {
   /** Whether the group's regions take its color as their highlights' color. */
@@ -83,7 +83,7 @@ export function NewGroupForm({
       />
       <SwatchPicker
         label="Group color"
-        colors={groupColors}
+        colors={regionColors}
         value={color}
         onChange={setColor}
         allowNone
