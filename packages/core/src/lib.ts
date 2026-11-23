@@ -82,6 +82,16 @@ export type {
   TrackSettingsProps,
   TrackUpdate,
 } from "./modules/types";
+export { builtInTrackFields } from "./modules/trackMetadata";
+export { TrackMetadataEditor } from "./browser/settings/metadata/TrackMetadataEditor";
+export type { TrackMetadataEditorProps } from "./browser/settings/metadata/TrackMetadataEditor";
+export { metadataFromRows, metadataRows } from "./browser/settings/metadata/metadataRows";
+export type {
+  TrackMetadataRow,
+  TrackMetadataRowProblem,
+  TrackMetadataRowsResult,
+  TrackMetadataValueType,
+} from "./browser/settings/metadata/metadataRows";
 
 // Renderer integration
 export type { BasePairDetailStatus } from "./browser/viewport/basePairDetail";

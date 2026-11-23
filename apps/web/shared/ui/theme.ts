@@ -5,6 +5,8 @@ declare module "@mui/material/styles" {
   interface TypeBackground {
     // A blue-tinted surface for areas set apart from the page and paper backgrounds.
     subtle: string;
+    // A light navy tint for a card set into a panel, such as the current session card.
+    muted: string;
   }
 }
 
@@ -71,7 +73,7 @@ export const theme = createTheme({
     primary: { main: "#171C55", dark: "#0F133E", light: "#5260A4", contrastText: "#FFFFFF" },
     secondary: { main: "#7FA6E8", dark: "#5C88D5", light: "#9DBFF8", contrastText: "#0F133E" },
     text: { primary: textPrimary, secondary: "#666970", disabled: "#9C9EA6" },
-    background: { default: "#FFFFFF", paper: "#FBFBFE", subtle: "#F2F5FF" },
+    background: { default: "#FFFFFF", paper: "#FBFBFE", subtle: "#F2F5FF", muted: "#E9EAF1" },
     divider: "#CED1D9",
     action: {
       // Icons use this color. MUI's default is 54% black; icons should be fully opaque.

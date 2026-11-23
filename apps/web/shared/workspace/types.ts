@@ -13,7 +13,7 @@ export type WorkspaceNavigation = {
 };
 export type WorkspacePanel = {
   title: string;
-  /** Shown beside the title on the right panel's button. */
+  /** Shown beside the title in the panel's title row and on the right panel's button. */
   icon?: ReactNode;
   children: ReactNode;
 };

@@ -18,26 +18,46 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import CloseIcon from "@mui/icons-material/Close";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import { IconButton, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import {
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
 import type { KeyboardEvent, PointerEvent } from "react";
+import { directionLabels, valueTypeLabel } from "./trackSortLabels";
+import type { TrackSortDirection, TrackSortValueType } from "./trackSortOrder";
 
-type PriorityOption = { id: string; label: string };
+type PriorityOption = {
+  id: string;
+  label: string;
+  types: readonly TrackSortValueType[];
+  direction: TrackSortDirection;
+};
 
 // A dragged row's transform counts toward the dialog's scroll height, so an
 // unbounded drag grows the content and auto-scroll chases it indefinitely.
 const dragModifiers = [restrictToVerticalAxis, restrictToParentElement];
 
-/** Drag-to-reorder priority list; the top option sorts first and the rest break ties. */
+/**
+ * Drag-to-reorder priority list; the top option sorts first and the rest break ties. Each
+ * row has its own direction and a remove button.
+ */
 export function TrackSortPriorityList({
   options,
   onReorder,
+  onDirectionChange,
   onRemove,
   onMovingChange,
 }: {
   options: readonly PriorityOption[];
   onReorder: (ids: string[]) => void;
-  /** Shows a remove button on each row when supplied. */
-  onRemove?: (id: string) => void;
+  onDirectionChange: (id: string, direction: TrackSortDirection) => void;
+  onRemove: (id: string) => void;
   /** Reports whether a row is being moved, so the dialog can leave Escape to cancel the move. */
   onMovingChange: (moving: boolean) => void;
 }) {
@@ -56,7 +76,7 @@ export function TrackSortPriorityList({
   if (options.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
-        No sort options are selected. Applying keeps the current track order.
+        No options added yet. Add one above to sort by it.
       </Typography>
     );
   }
@@ -77,6 +97,7 @@ export function TrackSortPriorityList({
               key={option.id}
               option={option}
               primary={index === 0}
+              onDirectionChange={onDirectionChange}
               onRemove={onRemove}
             />
           ))}
@@ -86,7 +107,7 @@ export function TrackSortPriorityList({
   );
 }
 
-// The whole row is the drag handle, so keep presses on the remove button from starting a move.
+// The whole row is the drag handle, so keep presses on the row's buttons from starting a move.
 function stopDragActivation(event: PointerEvent | KeyboardEvent) {
   if (!("key" in event) || event.key === " " || event.key === "Enter") event.stopPropagation();
 }
@@ -94,15 +115,20 @@ function stopDragActivation(event: PointerEvent | KeyboardEvent) {
 function PriorityRow({
   option,
   primary,
+  onDirectionChange,
   onRemove,
 }: {
   option: PriorityOption;
   primary: boolean;
-  onRemove?: (id: string) => void;
+  onDirectionChange: (id: string, direction: TrackSortDirection) => void;
+  onRemove: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: option.id,
   });
+  const valueType = valueTypeLabel(option.types);
+  const directions = directionLabels(option.types);
+  const priority = primary ? "Primary sort" : "Tiebreaker";
 
   return (
     <ListItem
@@ -110,21 +136,10 @@ function PriorityRow({
       {...attributes}
       {...listeners}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      secondaryAction={
-        onRemove ? (
-          <IconButton
-            edge="end"
-            size="small"
-            aria-label={`Remove ${option.label}`}
-            onPointerDown={stopDragActivation}
-            onKeyDown={stopDragActivation}
-            onClick={() => onRemove(option.id)}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        ) : undefined
-      }
       sx={{
+        // On narrow screens the direction and remove controls wrap below the label.
+        flexWrap: "wrap",
+        columnGap: 1,
         border: 1,
         borderColor: "divider",
         borderRadius: 1,
@@ -146,7 +161,36 @@ function PriorityRow({
       <ListItemIcon sx={{ minWidth: 32 }}>
         <DragIndicatorIcon fontSize="small" color="disabled" />
       </ListItemIcon>
-      <ListItemText primary={option.label} secondary={primary ? "Primary sort" : "Tiebreaker"} />
+      <ListItemText
+        primary={option.label}
+        secondary={valueType ? `${valueType} · ${priority}` : priority}
+        sx={{ flex: "1 1 8rem" }}
+      />
+      <ToggleButtonGroup
+        exclusive
+        size="small"
+        value={option.direction}
+        aria-label={`${option.label} sort direction`}
+        onPointerDown={stopDragActivation}
+        onKeyDown={stopDragActivation}
+        // Choosing the selected direction again reports null; keep the direction.
+        onChange={(_, direction: TrackSortDirection | null) => {
+          if (direction) onDirectionChange(option.id, direction);
+        }}
+      >
+        <ToggleButton value="ascending">{directions.ascending}</ToggleButton>
+        <ToggleButton value="descending">{directions.descending}</ToggleButton>
+      </ToggleButtonGroup>
+      <IconButton
+        edge="end"
+        size="small"
+        aria-label={`Remove ${option.label}`}
+        onPointerDown={stopDragActivation}
+        onKeyDown={stopDragActivation}
+        onClick={() => onRemove(option.id)}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
     </ListItem>
   );
 }

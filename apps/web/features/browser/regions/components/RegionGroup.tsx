@@ -1,299 +1,334 @@
 "use client";
 
-import ChevronRight from "@mui/icons-material/ChevronRight";
-import DeleteOutline from "@mui/icons-material/DeleteOutline";
-import EditOutlined from "@mui/icons-material/EditOutlined";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-import LayersClearOutlined from "@mui/icons-material/LayersClearOutlined";
-import MoreVert from "@mui/icons-material/MoreVert";
-import PaletteOutlined from "@mui/icons-material/PaletteOutlined";
-import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
-import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUp from "@mui/icons-material/KeyboardArrowUp";
+import Palette from "@mui/icons-material/Palette";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import { useTheme } from "@mui/material/styles";
+import MenuList from "@mui/material/MenuList";
+import Divider from "@mui/material/Divider";
+import { alpha, useTheme } from "@mui/material/styles";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import { TrackSettingsColorField } from "@weng-lab/genomebrowser-tracks/shared";
-import { useId, useState, type ReactNode, type SyntheticEvent } from "react";
+import { useId, useState, type ReactNode } from "react";
 import type { RegionGroup } from "../regionGroupSchema";
 import type { RegionGroupStoreInstance } from "../regionGroups";
 import { setRegionsColor, setRegionsHidden } from "../regions";
+import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
+import { swatchColors } from "../../../../shared/ui/color";
+import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
-import { GroupDialog } from "./GroupDialog";
 
-/** One column that can shrink below the cards' text, so long names and coordinates truncate. */
-export const listSx = { display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 1 } as const;
+/** One column that can shrink below the rows' text, so long names and coordinates truncate. */
+export const listSx = {
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr)",
+  gap: 0.5,
+} as const;
 
 type RegionGroupSectionProps = {
   group: RegionGroup;
   browserStore: BrowserStoreInstance;
   regionGroupStore: RegionGroupStoreInstance;
-  /** The members' cards, shown while the group is expanded. */
+  /** The members' rows, shown while the group is expanded. */
   children: ReactNode;
+  /** Called as the group is ungrouped, so focus can go to its regions. */
+  onUngroup: () => void;
+  /** Called as the group and its regions are deleted, so focus can go to another row. */
+  onDelete: () => void;
 };
 
 /**
- * A region group: a header chip in the group's color that collapses or expands it, and
- * while expanded its members, with the color running down their left side.
+ * A region group: a row tinted with the group's color, or gray without one, whose chevron
+ * and name collapse or expand it, then its region count, a button that hides or shows its
+ * highlights, and its actions. While expanded, its members follow. An outline in the color,
+ * or gray, goes around the header and them, holding the group together.
  */
 export function RegionGroupSection({
   group,
   browserStore,
   regionGroupStore,
   children,
+  onUngroup,
+  onDelete,
 }: RegionGroupSectionProps) {
-  const listId = useId();
   const theme = useTheme();
   const { collapsed, color } = group;
+  const count = group.regionIds.length;
 
   return (
-    <ListItem disablePadding sx={{ display: "block" }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-        <ButtonBase
-          aria-expanded={!collapsed}
-          aria-controls={collapsed ? undefined : listId}
-          onClick={() => regionGroupStore.getState().setCollapsed(group.id, !collapsed)}
-          sx={{
-            minWidth: 0,
-            gap: 0.5,
-            py: 0.5,
-            pl: 0.5,
-            pr: 1.25,
-            bgcolor: color,
-            color: theme.palette.getContrastText(color),
-            // Square at the bottom left while expanded, where the color runs down the members.
-            borderRadius: collapsed ? 2 : "8px 8px 8px 0",
-            typography: "body2",
-            fontWeight: "fontWeightMedium",
-          }}
-        >
-          {collapsed ? <ChevronRight fontSize="small" /> : <ExpandMore fontSize="small" />}
-          {/* One line, so a long name with spaces truncates as a whole. */}
+    <CollapsibleSection
+      label={group.name}
+      expanded={!collapsed}
+      onToggle={() => regionGroupStore.getState().setCollapsed(group.id, !collapsed)}
+      tint={color ? alpha(color, 0.14) : theme.palette.action.hover}
+      // Around the header and its regions, to show which are its own.
+      outline={color ? alpha(color, 0.5) : theme.palette.divider}
+      title={
+        <>
           <Box
             component="span"
-            sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            sx={{
+              minWidth: 0,
+              px: 1.25,
+              py: 0.5,
+              borderRadius: 999,
+              bgcolor: color ?? "action.selected",
+              color: color ? theme.palette.getContrastText(color) : "text.primary",
+              typography: "body2",
+              fontWeight: "fontWeightMedium",
+              // One line, so a long name with spaces truncates as a whole.
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
           >
             {group.name}
           </Box>
-          {collapsed ? (
-            <Box component="span" sx={{ flexShrink: 0, opacity: 0.85, whiteSpace: "nowrap" }}>
-              · {group.regionIds.length}
-            </Box>
-          ) : null}
+          <Count value={count} />
+        </>
+      }
+      actions={
+        <>
+          <GroupVisibilityButton group={group} browserStore={browserStore} />
+          <GroupActions
+            group={group}
+            browserStore={browserStore}
+            regionGroupStore={regionGroupStore}
+            onUngroup={onUngroup}
+            onDelete={onDelete}
+          />
+        </>
+      }
+    >
+      {count === 0 ? (
+        <ListItem sx={{ px: 1.5, py: 0.75, typography: "body2", color: "text.secondary" }}>
+          No regions in this group
+        </ListItem>
+      ) : (
+        children
+      )}
+    </CollapsibleSection>
+  );
+}
+
+type CollapsibleSectionProps = {
+  /** The members list's accessible name. */
+  label: string;
+  expanded: boolean;
+  onToggle: () => void;
+  /** Shown after the chevron, inside the button that toggles the section. */
+  title: ReactNode;
+  /** Buttons at the header's right end. */
+  actions?: ReactNode;
+  /** The header's background. */
+  tint?: string;
+  /** A border color around the header and the rows under it, which sets them apart as one. */
+  outline?: string;
+  children: ReactNode;
+};
+
+/**
+ * A list item with a header that collapses or expands the rows under it. The chevron points
+ * down while expanded and up while collapsed.
+ */
+function CollapsibleSection({
+  label,
+  expanded,
+  onToggle,
+  title,
+  actions,
+  tint,
+  outline,
+  children,
+}: CollapsibleSectionProps) {
+  const listId = useId();
+  return (
+    <ListItem
+      disablePadding
+      sx={{
+        display: "block",
+        ...(outline
+          ? { border: 1, borderColor: outline, borderRadius: 1.5, overflow: "hidden" }
+          : {}),
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.25,
+          minHeight: 40,
+          pr: 0.25,
+          borderRadius: 1.5,
+          bgcolor: tint,
+        }}
+      >
+        <ButtonBase
+          aria-expanded={expanded}
+          aria-controls={expanded ? listId : undefined}
+          onClick={onToggle}
+          sx={{
+            flexGrow: 1,
+            justifyContent: "flex-start",
+            minWidth: 0,
+            alignSelf: "stretch",
+            gap: 0.75,
+            pl: 0.75,
+            borderRadius: 1.5,
+          }}
+        >
+          {expanded ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowUp fontSize="small" />}
+          {title}
         </ButtonBase>
-        <Box sx={{ flexGrow: 1 }} />
-        <GroupActions
-          group={group}
-          browserStore={browserStore}
-          regionGroupStore={regionGroupStore}
-        />
+        {actions}
       </Box>
-      {collapsed ? null : (
+      {expanded ? (
         <List
           id={listId}
-          aria-label={group.name}
+          aria-label={label}
           disablePadding
-          sx={{ ...listSx, borderLeft: 3, borderColor: color, pl: 1, pt: 1 }}
+          // Inset within an outline, so its rows clear it.
+          sx={{ ...listSx, pt: 0.5, ...(outline ? { px: 0.5, pb: 0.5 } : {}) }}
         >
           {children}
         </List>
-      )}
+      ) : null}
     </ListItem>
   );
 }
 
+function Count({ value }: { value: number }) {
+  return (
+    <Box component="span" sx={{ flexShrink: 0, typography: "body2", color: "text.secondary" }}>
+      {value}
+    </Box>
+  );
+}
+
+/** Hides or shows every highlight in a group. They count as hidden once all of them are. */
+function GroupVisibilityButton({
+  group,
+  browserStore,
+}: {
+  group: RegionGroup;
+  browserStore: BrowserStoreInstance;
+}) {
+  const useBrowserStore = browserStore;
+  const members = new Set(group.regionIds);
+  const hidden = useBrowserStore(
+    (state) =>
+      members.size > 0 &&
+      state.highlights.every((highlight) => !members.has(highlight.id) || highlight.hidden),
+  );
+  const label = `${hidden ? "Show" : "Hide"} highlights in ${group.name}`;
+  return (
+    <IconButton
+      size="small"
+      aria-label={label}
+      title={label}
+      disabled={members.size === 0}
+      onClick={() => setRegionsHidden(browserStore, group.regionIds, !hidden)}
+      sx={{ color: "primary.main" }}
+    >
+      {hidden ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+    </IconButton>
+  );
+}
+
 /**
- * A group's more-actions button and menu: edit, hide or show its highlights, change their
- * color, ungroup, delete.
+ * A group's more-actions button and menu: its name and color, which apply as they change,
+ * then giving its regions its color, ungrouping it, and deleting it with its regions.
  */
 function GroupActions({
   group,
   browserStore,
   regionGroupStore,
+  onUngroup,
+  onDelete,
 }: Omit<RegionGroupSectionProps, "children">) {
-  const useBrowserStore = browserStore;
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [recoloring, setRecoloring] = useState(false);
-  const menuId = useId();
-  const label = `Actions for group ${group.name}`;
-  const close = () => setAnchor(null);
-  const members = new Set(group.regionIds);
-  const hidden = useBrowserStore((state) =>
-    state.highlights.every((highlight) => !members.has(highlight.id) || highlight.hidden),
-  );
   const { editGroup, ungroup, deleteGroup } = regionGroupStore.getState();
+  // From the store, so an edit keeps the other field's latest value.
+  const edit = (change: Partial<Pick<RegionGroup, "name" | "color">>) => {
+    const latest = regionGroupStore.getState().groups.find(({ id }) => id === group.id) ?? group;
+    editGroup(group.id, { name: latest.name, color: latest.color, ...change });
+  };
+  const { color } = group;
 
   return (
     <>
-      <IconButton
-        size="small"
-        aria-label={label}
-        title={label}
-        aria-haspopup="menu"
-        aria-controls={anchor ? menuId : undefined}
-        aria-expanded={anchor ? "true" : undefined}
-        onClick={(event) => setAnchor(event.currentTarget)}
-      >
-        <MoreVert fontSize="small" />
-      </IconButton>
-      <Menu
-        id={menuId}
-        anchorEl={anchor}
-        open={anchor !== null}
-        onClose={close}
-        slotProps={{ list: { dense: true, "aria-label": label } }}
-      >
-        <MenuItem
-          onClick={() => {
-            close();
-            setEditing(true);
-          }}
-        >
-          <ListItemIcon>
-            <EditOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Edit group" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            setRegionsHidden(browserStore, group.regionIds, !hidden);
-          }}
-        >
-          <ListItemIcon>
-            {hidden ? (
-              <VisibilityOutlined fontSize="small" />
-            ) : (
-              <VisibilityOffOutlined fontSize="small" />
-            )}
-          </ListItemIcon>
-          <ListItemText primary={hidden ? "Show highlights" : "Hide highlights"} />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            setRecoloring(true);
-          }}
-        >
-          <ListItemIcon>
-            <PaletteOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Change highlight color" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            ungroup(group.id);
-          }}
-        >
-          <ListItemIcon>
-            <LayersClearOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Ungroup" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            setDeleting(true);
-          }}
-          sx={{ color: "error.main" }}
-        >
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <DeleteOutline fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Delete group" />
-        </MenuItem>
-      </Menu>
-      <GroupDialog
-        open={editing}
-        title="Edit group"
-        submitLabel="Save"
-        initial={group}
-        onSubmit={(edit) => editGroup(group.id, edit)}
-        onClose={() => setEditing(false)}
-      />
-      <HighlightColorDialog
-        open={recoloring}
-        initialColor={group.color}
-        onApply={(color) => setRegionsColor(browserStore, group.regionIds, color)}
-        onClose={() => setRecoloring(false)}
-      />
+      <ActionsPopover label={`Actions for group ${group.name}`}>
+        {(close) => (
+          <>
+            <NameAndColor
+              nameLabel="Group name"
+              initialName={group.name}
+              onRename={(name) => edit({ name })}
+              onDone={close}
+              color={{
+                label: "Group color",
+                colors: swatchColors,
+                value: color,
+                onChange: (next) => edit({ color: next }),
+                allowNone: true,
+              }}
+            />
+            <MenuList dense aria-label={`Actions for group ${group.name}`} sx={{ pt: 0 }}>
+              <MenuItem
+                // Without a color, or regions to take it, there is nothing to apply.
+                disabled={color === null || group.regionIds.length === 0}
+                onClick={() => {
+                  close();
+                  if (color) setRegionsColor(browserStore, group.regionIds, color);
+                }}
+              >
+                <ListItemIcon>
+                  <Palette fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Apply color to all regions" />
+              </MenuItem>
+              <Divider />
+              <MenuItem
+                onClick={() => {
+                  close();
+                  onUngroup();
+                  ungroup(group.id);
+                }}
+              >
+                <ListItemText primary="Ungroup" />
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  close();
+                  setDeleting(true);
+                }}
+                sx={{ color: "error.main" }}
+              >
+                <ListItemText primary="Delete group and regions" />
+              </MenuItem>
+            </MenuList>
+          </>
+        )}
+      </ActionsPopover>
       <ConfirmDeleteDialog
         open={deleting}
         title={`Delete “${group.name}”?`}
         text="The group and every region in it, with their highlights, will be removed from this session. To keep the regions, ungroup it instead."
-        confirmLabel="Delete group"
-        onConfirm={() => deleteGroup(group.id)}
+        confirmLabel="Delete group and regions"
+        onConfirm={() => {
+          onDelete();
+          deleteGroup(group.id);
+        }}
         onClose={() => setDeleting(false)}
       />
     </>
-  );
-}
-
-type HighlightColorDialogProps = {
-  open: boolean;
-  /** The color the picker starts at: the group's, so matching it is a single Apply. */
-  initialColor: string;
-  onApply: (color: string) => void;
-  onClose: () => void;
-};
-
-/** Picks one color for every highlight in a group. */
-function HighlightColorDialog({ open, onClose, ...form }: HighlightColorDialogProps) {
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      {/* The dialog unmounts its content once closed, so each opening starts from `initialColor`. */}
-      <HighlightColorForm {...form} onClose={onClose} />
-    </Dialog>
-  );
-}
-
-function HighlightColorForm({
-  initialColor,
-  onApply,
-  onClose,
-}: Omit<HighlightColorDialogProps, "open">) {
-  const [color, setColor] = useState(initialColor);
-
-  function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
-    event.preventDefault();
-    onApply(color);
-    onClose();
-  }
-
-  return (
-    <Box component="form" onSubmit={handleSubmit}>
-      <DialogTitle>Change highlight color</DialogTitle>
-      <DialogContent sx={{ "&&": { pt: 1 } }}>
-        <TrackSettingsColorField
-          label="Highlight color"
-          value={color}
-          onCommit={(next) => {
-            setColor(next);
-            return { ok: true };
-          }}
-        />
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button type="submit" variant="contained">
-          Apply
-        </Button>
-      </DialogActions>
-    </Box>
   );
 }

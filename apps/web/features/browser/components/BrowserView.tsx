@@ -12,7 +12,7 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import SortIcon from "@mui/icons-material/Sort";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
-import { getTrackSortOptions, getTrackSortValues } from "../trackSort";
+import { getTrackSortOptions } from "../trackSort";
 import { AddTracksDialog } from "./AddTracksDialog";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
@@ -89,10 +89,10 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   // Read the tracks when Sort is clicked rather than subscribing, so track changes
   // do not re-render the controls. A sort is a one-time operation.
   const [sortOptions, setSortOptions] = useState(() =>
-    getTrackSortOptions(useTrackStore.getState().tracks),
+    getTrackSortOptions(useTrackStore.getState()),
   );
   const openSort = () => {
-    setSortOptions(getTrackSortOptions(useTrackStore.getState().tracks));
+    setSortOptions(getTrackSortOptions(useTrackStore.getState()));
     setSortOpen(true);
   };
 
@@ -143,7 +143,6 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
         open={sortOpen}
         onClose={() => setSortOpen(false)}
         options={sortOptions}
-        getMetadata={getTrackSortValues}
       />
     </>
   );

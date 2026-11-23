@@ -35,7 +35,9 @@ Every current public export has one canonical destination below.
 | Chromosome overview | `Cytobands`, `CytobandsProps`                             | [Cytobands](04-chromosomeOverview/Cytobands.md#cytobandsprops)                                                        |
 | Track sorting       | `TrackSortDialog`, `TrackSortDialogProps`                 | [TrackSortDialog](06-trackSorting/TrackSortDialog.md#tracksortdialogprops)                                            |
 | Track sorting       | `TrackSortOption`                                         | [Sort options](06-trackSorting/TrackSortDialog.md#tracksortoption)                                                    |
-| Track sorting       | `getSortedTrackIds`                                       | [Sorting without the dialog](06-trackSorting/TrackSortDialog.md#getsortedtrackids)                                    |
+| Track sorting       | `TrackSortValue`                                          | [Sort values](06-trackSorting/TrackSortDialog.md#tracksortvalue)                                                      |
+| Track sorting       | `applyTrackSort`                                          | [Sorting without the dialog](06-trackSorting/TrackSortDialog.md#applytracksort)                                       |
+| Track sorting       | `TrackSortRule`, `TrackSortDirection`                     | [Sort rules](06-trackSorting/TrackSortDialog.md#tracksortrule-and-tracksortdirection)                                 |
 | Chromosome overview | `CytobandColors`                                          | [Stain colors](04-chromosomeOverview/Cytobands.md#cytobandcolors)                                                     |
 | Track selection     | `TrackSelect`, `TrackSelectProps`                         | [TrackSelect](03-trackSelection/TrackSelect.md#trackselectprops)                                                      |
 | Track selection     | `TrackSelectColumnOverride`, `TrackSelectColumnOverrides` | [Column overrides](03-trackSelection/columnCustomization.md#trackselectcolumnoverride-and-trackselectcolumnoverrides) |
