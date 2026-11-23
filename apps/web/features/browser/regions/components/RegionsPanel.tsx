@@ -20,11 +20,13 @@ import { useEffect, useId, useRef, useState, type Ref, type RefObject } from "re
 import { useSession } from "../../../sessions/SessionProvider";
 import type { RegionGroup } from "../regionGroupSchema";
 import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
+import { ColorDot } from "../../../../shared/ui/ColorDot";
 import { EmptyState } from "../../../../shared/ui/EmptyState";
+import { formButtonSx } from "../../../../shared/ui/FormCard";
 import { SectionHeader } from "../../../../shared/ui/SectionHeader";
 import {
-  formatPosition,
   nextRegionName,
+  positionsOf,
   regionName,
   regionOf,
   sameRegion,
@@ -205,11 +207,14 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
               // The regions in no group, and the one whose menu opened it, which starts checked.
               candidates={highlights
                 .filter((highlight) => ungrouped.has(highlight) || highlight.id === form.regionId)
-                .map((highlight) => ({
-                  id: highlight.id,
-                  name: regionName(highlight),
-                  positions: `${formatPosition(highlight.region.start + 1)}-${formatPosition(highlight.region.end)}`,
-                }))}
+                .map((highlight) => {
+                  const { start, end } = positionsOf(highlight.region);
+                  return {
+                    id: highlight.id,
+                    name: regionName(highlight),
+                    positions: `${start}-${end}`,
+                  };
+                })}
               initialRegionIds={form.regionId === undefined ? [] : [form.regionId]}
               onCreate={({ applyColor, regionIds, ...group }) => {
                 const created = regionGroupStore.getState().createGroup(group, regionIds);
@@ -291,7 +296,8 @@ function DeleteAllButton({
         startIcon={<DeleteOutline />}
         disabled={disabled}
         onClick={() => setConfirming(true)}
-        sx={panelButtonSx}
+        // A quiet border, with the form buttons' sentence-case label.
+        sx={{ ...formButtonSx, borderColor: "divider", fontWeight: "fontWeightMedium" }}
       >
         Delete all regions
       </Button>
@@ -357,7 +363,13 @@ function RegionCard({
         onClick={() => browserStore.getState().setRegion(region)}
         sx={cardSx}
       >
-        <Swatch highlight={highlight} />
+        <ColorDot
+          color={highlight.color}
+          size={10}
+          outlined={highlight.type === "outlined"}
+          faded={hidden}
+          sx={{ mr: 1.5 }}
+        />
         <ListItemText
           primary={regionName(highlight)}
           secondary={`${formatDisplayRegion(region)}${hidden ? " · Hidden" : ""}`}
@@ -379,35 +391,6 @@ function RegionCard({
     </ListItem>
   );
 }
-
-/** The highlight's color as a dot: filled or a ring like the highlight, and faded while hidden. */
-function Swatch({ highlight }: { highlight: Highlight }) {
-  const outlined = highlight.type === "outlined";
-  return (
-    <Box
-      aria-hidden
-      sx={{
-        flexShrink: 0,
-        width: 10,
-        height: 10,
-        mr: 1.5,
-        borderRadius: "50%",
-        border: 2,
-        borderColor: highlight.color,
-        bgcolor: outlined ? "transparent" : highlight.color,
-        opacity: highlight.hidden ? 0.35 : 1,
-      }}
-    />
-  );
-}
-
-/** The panel's full-width buttons: quiet borders and sentence-case labels. */
-const panelButtonSx = {
-  borderColor: "divider",
-  borderRadius: 2,
-  textTransform: "none",
-  fontWeight: "fontWeightMedium",
-} as const;
 
 /** A plain row, tinted with the primary color while the view shows its region. */
 const cardSx = {

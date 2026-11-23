@@ -6,6 +6,7 @@ import {
   type Highlight,
   type MutationFailure,
 } from "@weng-lab/genomebrowser";
+import { hexColorMessage, isHexColor } from "../../../shared/ui/color";
 
 /**
  * Saved regions are the browser's highlights. A region keeps its highlight's ID for life and
@@ -90,22 +91,24 @@ export type SetRegionsColorResult =
   | BrowserHighlightMutationResult
   | MutationFailure<"INVALID_COLOR">;
 
-/** Colors the regions' highlights, keeping everything else about them. */
+/**
+ * Colors the regions' highlights, keeping everything else about them. With `show`, it also
+ * shows any that are hidden.
+ */
 export function setRegionsColor(
   browserStore: BrowserStoreInstance,
   ids: readonly string[],
   color: string,
+  { show = false } = {},
 ): SetRegionsColorResult {
   if (!isHexColor(color))
-    return {
-      ok: false,
-      code: "INVALID_COLOR",
-      error: `Expected a hex color like #1a73e8: ${color}`,
-    };
-  return updateRegions(browserStore, ids, (highlight) => ({ ...highlight, color }));
+    return { ok: false, code: "INVALID_COLOR", error: `${hexColorMessage}: ${color}` };
+  return updateRegions(browserStore, ids, (highlight) => {
+    if (!show) return { ...highlight, color };
+    const { hidden: _hidden, ...shown } = highlight;
+    return { ...shown, color };
+  });
 }
-
-const isHexColor = (color: string) => /^#[0-9a-f]{6}$/i.test(color);
 
 /** Renames a region. A blank name is ignored, keeping the one it has. */
 export function renameRegion(browserStore: BrowserStoreInstance, id: string, name: string) {
@@ -129,16 +132,7 @@ export function setRegionColor(
   color: string | null,
 ): SetRegionsColorResult {
   if (color === null) return setRegionsHidden(browserStore, [id], true);
-  if (!isHexColor(color))
-    return {
-      ok: false,
-      code: "INVALID_COLOR",
-      error: `Expected a hex color like #1a73e8: ${color}`,
-    };
-  return updateRegions(browserStore, [id], ({ hidden: _hidden, ...shown }) => ({
-    ...shown,
-    color,
-  }));
+  return setRegionsColor(browserStore, [id], color, { show: true });
 }
 
 /** A highlight without a chromosome is drawn on whichever chromosome is shown. */
@@ -161,7 +155,7 @@ export type PositionsResult =
 export const formatPosition = (position: number) => position.toLocaleString("en-US");
 
 /** Shows `region`'s bounds as the positions a person would type for it. */
-export const positionsOf = (region: GenomicRegion): Positions => ({
+export const positionsOf = (region: Pick<GenomicRegion, "start" | "end">): Positions => ({
   start: formatPosition(region.start + 1),
   end: formatPosition(region.end),
 });

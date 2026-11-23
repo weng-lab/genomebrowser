@@ -17,8 +17,8 @@ import MenuList from "@mui/material/MenuList";
 import type { BrowserStoreInstance, Highlight } from "@weng-lab/genomebrowser";
 import { useState, type Ref } from "react";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
+import { ColorDot } from "../../../../shared/ui/ColorDot";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
-import type { RegionGroup } from "../regionGroupSchema";
 import type { RegionGroupStoreInstance } from "../regionGroups";
 import {
   moveRegion,
@@ -193,7 +193,7 @@ function RegionMenu({
               onClick={move(() => regionGroupStore.getState().addToGroup(highlight.id, group.id))}
             >
               <ListItemIcon>
-                <GroupDot group={group} />
+                <ColorDot color={group.color} size={12} sx={{ ml: 0.25 }} />
               </ListItemIcon>
               <ListItemText primary={group.name} slotProps={{ primary: { noWrap: true } }} />
             </MenuItem>
@@ -207,23 +207,5 @@ function RegionMenu({
         </MenuItem>
       </Menu>
     </>
-  );
-}
-
-/** A group's color as a dot, or a dotted ring for a group with none, as its picker shows it. */
-function GroupDot({ group }: { group: RegionGroup }) {
-  return (
-    <Box
-      aria-hidden
-      sx={{
-        width: 12,
-        height: 12,
-        borderRadius: "50%",
-        ml: 0.25,
-        ...(group.color
-          ? { bgcolor: group.color }
-          : { border: 1.5, borderStyle: "dotted", borderColor: "text.secondary" }),
-      }}
-    />
   );
 }

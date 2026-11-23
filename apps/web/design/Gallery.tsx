@@ -63,7 +63,7 @@ export function Gallery() {
       <Section title="ColorPicker" source="shared/ui/ColorPicker.tsx">
         <Box sx={{ bgcolor: "background.paper", borderRadius: 3, boxShadow: 4 }}>
           <ColorPicker
-            initialColor="#1a73e8"
+            initialColor={regionColors[1].color}
             label="Example color"
             onApply={() => {}}
             onCancel={() => {}}

@@ -3,7 +3,8 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import { alpha, type Theme } from "@mui/material/styles";
 import { useState, type KeyboardEvent } from "react";
-import { ColorPickerPopover } from "./ColorPicker";
+import { colorDotSx } from "./ColorDot";
+import { ColorPickerPopover, defaultPickerColor } from "./ColorPicker";
 
 export type Swatch = { name: string; color: string };
 
@@ -99,7 +100,7 @@ export function SwatchPicker({
       {allowCustom ? (
         <ColorPickerPopover
           anchor={customAnchor}
-          initialColor={value ?? defaultCustomColor}
+          initialColor={value ?? defaultPickerColor}
           label="Custom color"
           onApply={onChange}
           onClose={() => setCustomAnchor(null)}
@@ -108,9 +109,6 @@ export function SwatchPicker({
     </Box>
   );
 }
-
-/** Where the color picker starts while no color is chosen. */
-const defaultCustomColor = "#1a73e8";
 
 const sameColor = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
@@ -135,8 +133,7 @@ function ringSx(chosen: boolean, color: string | null) {
 }
 
 function kindSx(option: { kind: "none" | "color" | "custom"; value: string | null }) {
-  if (option.kind === "none")
-    return { border: 2, borderStyle: "dotted", borderColor: "text.secondary" };
+  if (option.kind === "none") return colorDotSx(null);
   // A chosen custom color: its + in whichever of black or white reads on it.
   if (option.kind === "custom" && option.value !== null) {
     const color = option.value;
@@ -145,7 +142,7 @@ function kindSx(option: { kind: "none" | "color" | "custom"; value: string | nul
       color: (theme: Theme) => theme.palette.getContrastText(color),
     };
   }
-  if (option.value !== null) return { bgcolor: option.value };
+  if (option.value !== null) return colorDotSx(option.value);
   // The + before a custom color is chosen: an outlined circle.
   return { border: 1.5, borderColor: "text.secondary", color: "text.secondary" };
 }

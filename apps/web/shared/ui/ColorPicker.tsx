@@ -6,7 +6,11 @@ import Popover from "@mui/material/Popover";
 import Slider from "@mui/material/Slider";
 import TextField from "@mui/material/TextField";
 import { useState, type KeyboardEvent, type PointerEvent } from "react";
+import { readHex } from "./color";
 import { formButtonSx } from "./FormCard";
+
+/** Where the picker starts when it is given no color, or one it cannot read. */
+export const defaultPickerColor = "#1f6fe5";
 
 /** A color as hue (0–360), saturation (0–1), and brightness (0–1). */
 type Hsv = { h: number; s: number; v: number };
@@ -28,7 +32,7 @@ type ColorPickerProps = {
  * menu it opened from.
  */
 export function ColorPicker({ initialColor, label, onApply, onCancel }: ColorPickerProps) {
-  const [hsv, setHsv] = useState(() => hexToHsv(readHex(initialColor) ?? "#1a73e8"));
+  const [hsv, setHsv] = useState(() => hexToHsv(readHex(initialColor) ?? defaultPickerColor));
   const [hex, setHex] = useState(() => hsvToHex(hsv).toUpperCase());
   const [invalid, setInvalid] = useState(false);
   const typed = readHex(hex);
@@ -240,14 +244,6 @@ function SaturationArea({ hsv, onChange }: { hsv: Hsv; onChange: (hsv: Hsv) => v
 }
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
-
-/** A typed hex color, with or without #, in three or six digits, as lowercase #rrggbb. */
-export function readHex(text: string) {
-  const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text.trim());
-  if (!match) return undefined;
-  const digits = match[1].length === 3 ? [...match[1]].map((d) => d + d).join("") : match[1];
-  return `#${digits.toLowerCase()}`;
-}
 
 function hexToHsv(hex: string): Hsv {
   const value = Number.parseInt(hex.slice(1), 16);
