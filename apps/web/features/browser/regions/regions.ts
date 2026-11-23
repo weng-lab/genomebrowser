@@ -6,7 +6,7 @@ import type {
   Highlight,
   MutationFailure,
 } from "@weng-lab/genomebrowser";
-import { hexColorMessage, isHexColor } from "../../../shared/ui/color";
+import { hexColorMessage, isHexColor, swatchColors } from "../../../shared/ui/color";
 
 /**
  * Saved regions are the browser's highlights. A region keeps its highlight's ID for life and
@@ -15,22 +15,10 @@ import { hexColorMessage, isHexColor } from "../../../shared/ui/color";
  */
 
 /**
- * The colors a region's or group's color row offers, in its order, with the names it
- * announces. New regions and groups take them in turn.
+ * The color the `index`th new region or group takes: the color row's swatches in turn, from
+ * blue, so its menu shows that color chosen.
  */
-export const regionColors = [
-  { name: "Gray", color: "#55585e" },
-  { name: "Blue", color: "#1f6fe5" },
-  { name: "Red", color: "#c8362b" },
-  { name: "Orange", color: "#a8561c" },
-  { name: "Green", color: "#2e7d32" },
-  { name: "Crimson", color: "#b3264f" },
-  { name: "Purple", color: "#7b3fc4" },
-  { name: "Teal", color: "#21737a" },
-];
-
-/** The color the `index`th new region or group takes: the row's colors in turn, from blue. */
-export const colorInTurn = (index: number) => regionColors[(index + 1) % regionColors.length].color;
+export const colorInTurn = (index: number) => swatchColors[(index + 1) % swatchColors.length].color;
 
 /**
  * The name a new region takes when it is not given one: “Region” and the number after the

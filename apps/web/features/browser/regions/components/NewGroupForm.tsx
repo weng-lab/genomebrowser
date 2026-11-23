@@ -8,8 +8,8 @@ import Typography from "@mui/material/Typography";
 import { useId, useState } from "react";
 import { FormCard, FormCardActions } from "../../../../shared/ui/FormCard";
 import { SwatchPicker } from "../../../../shared/ui/SwatchPicker";
+import { swatchColors } from "../../../../shared/ui/color";
 import type { RegionGroup } from "../regionGroupSchema";
-import { regionColors } from "../regions";
 
 export type NewGroup = Pick<RegionGroup, "name" | "color" | "regionIds"> & {
   /** Whether the group's regions take its color as their highlights' color. */
@@ -89,7 +89,7 @@ export function NewGroupForm({
       />
       <SwatchPicker
         label="Group color"
-        colors={regionColors}
+        colors={swatchColors}
         value={color}
         onChange={setColor}
         allowNone

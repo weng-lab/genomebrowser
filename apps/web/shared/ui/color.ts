@@ -7,6 +7,21 @@ import { z } from "zod";
  */
 const hexColorPattern = /^#[0-9a-f]{6}$/i;
 
+/**
+ * The colors a color row offers, in its order, with the names it announces: a gray, then
+ * seven hues dark enough for white text and to show on the tracks.
+ */
+export const swatchColors = [
+  { name: "Gray", color: "#55585e" },
+  { name: "Blue", color: "#1f6fe5" },
+  { name: "Red", color: "#c8362b" },
+  { name: "Orange", color: "#a8561c" },
+  { name: "Green", color: "#2e7d32" },
+  { name: "Crimson", color: "#b3264f" },
+  { name: "Purple", color: "#7b3fc4" },
+  { name: "Teal", color: "#21737a" },
+];
+
 /** Why a color was refused. */
 export const hexColorMessage = "Expected a color in #RRGGBB format";
 

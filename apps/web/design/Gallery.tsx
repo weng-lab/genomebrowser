@@ -12,7 +12,7 @@ import { ColorPicker } from "../shared/ui/ColorPicker";
 import { NavRail } from "../shared/ui/NavRail";
 import { StatusTag } from "../shared/ui/StatusTag";
 import { SwatchPicker } from "../shared/ui/SwatchPicker";
-import { regionColors } from "../features/browser/regions/regions";
+import { swatchColors } from "../shared/ui/color";
 
 // A browser store for the toolbar preview, as in the UI package's ControlToolbar docs.
 const useBrowserStore = createBrowserStore({
@@ -63,7 +63,7 @@ export function Gallery() {
       <Section title="ColorPicker" source="shared/ui/ColorPicker.tsx">
         <Box sx={{ bgcolor: "background.paper", borderRadius: 3, boxShadow: 4 }}>
           <ColorPicker
-            initialColor={regionColors[1].color}
+            initialColor={swatchColors[1].color}
             label="Example color"
             onApply={() => {}}
             onCancel={() => {}}
@@ -102,12 +102,12 @@ export function Gallery() {
 
 /** The group color picker, with No color and a custom color. */
 function SwatchPickerExample() {
-  const [color, setColor] = useState<string | null>(regionColors[1].color);
+  const [color, setColor] = useState<string | null>(swatchColors[1].color);
   return (
     <Box sx={{ width: 250 }}>
       <SwatchPicker
         label="Group color"
-        colors={regionColors}
+        colors={swatchColors}
         value={color}
         onChange={setColor}
         allowNone

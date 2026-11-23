@@ -17,12 +17,12 @@ import MenuList from "@mui/material/MenuList";
 import type { BrowserStoreInstance, Highlight } from "@weng-lab/genomebrowser";
 import { useState, type Ref } from "react";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
+import { swatchColors } from "../../../../shared/ui/color";
 import { ColorDot } from "../../../../shared/ui/ColorDot";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import type { RegionGroupStoreInstance } from "../regionGroups";
 import {
   moveRegion,
-  regionColors,
   regionName,
   regionOf,
   renameRegion,
@@ -121,7 +121,7 @@ function RegionMenu({
         onDone={onClose}
         color={{
           label: "Region color",
-          colors: regionColors,
+          colors: swatchColors,
           value: hidden ? null : highlight.color,
           onChange: (color) => setRegionColor(browserStore, highlight.id, color),
           allowNone: true,

@@ -20,8 +20,9 @@ import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
 import { useId, useState, type ReactNode } from "react";
 import type { RegionGroup } from "../regionGroupSchema";
 import type { RegionGroupStoreInstance } from "../regionGroups";
-import { regionColors, setRegionsColor, setRegionsHidden } from "../regions";
+import { setRegionsColor, setRegionsHidden } from "../regions";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
+import { swatchColors } from "../../../../shared/ui/color";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 
@@ -274,7 +275,7 @@ function GroupActions({
               onDone={close}
               color={{
                 label: "Group color",
-                colors: regionColors,
+                colors: swatchColors,
                 value: color,
                 onChange: (next) => edit({ color: next }),
                 allowNone: true,
