@@ -59,17 +59,18 @@ Every track's settings dialog has a **Metadata** section between the module's se
 
 `TrackMetadataRow` and `TrackMetadataValueType` are exported from the package root. `TrackMetadataValueType` is `"text"`, `"number"`, `"boolean"`, or `"none"`; `"none"` is a stored `null`.
 
-| Field     | Type                     | Description                                                                              |
-| --------- | ------------------------ | ---------------------------------------------------------------------------------------- |
-| `key`     | `string`                 | Identifies the row while it's edited, including while its name changes. It isn't stored. |
-| `name`    | `string`                 | The field name, as typed.                                                                |
-| `type`    | `TrackMetadataValueType` | Which kind of value the field holds.                                                     |
-| `text`    | `string`                 | What's typed for a text or number value. Switching between Text and Number keeps it.     |
-| `checked` | `boolean`                | The value of a true/false field.                                                         |
+| Field     | Type                        | Description                                                                                                                                                     |
+| --------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key`     | `string`                    | Identifies the row while it's edited, including while its name changes. It isn't stored.                                                                        |
+| `name`    | `string`                    | The field name, as typed.                                                                                                                                       |
+| `type`    | `TrackMetadataValueType`    | Which kind of value the field holds.                                                                                                                            |
+| `text`    | `string`                    | What's typed for a text or number value. Switching between Text and Number keeps it.                                                                            |
+| `checked` | `boolean`                   | The value of a true/false field.                                                                                                                                |
+| `stored`  | `{ name, value }`, optional | The field as the track stores it, on rows `metadataRows` builds. See [metadataFromRows](#metadatafromrows-trackmetadatarowsresult-and-trackmetadatarowproblem). |
 
 ### metadataRows
 
-`metadataRows(metadata)` returns one row for each field of a `TrackMetadata` record, in the record's order, or no rows for `undefined`. Text becomes a `"text"` row, a number a `"number"` row with its digits as `text`, `true` or `false` a `"boolean"` row, and `null` a `"none"` row.
+`metadataRows(metadata)` returns one row for each field of a `TrackMetadata` record, in the record's order, or no rows for `undefined`. Text becomes a `"text"` row, a number a `"number"` row with its digits as `text`, `true` or `false` a `"boolean"` row, and `null` a `"none"` row. Each row remembers the field in `stored`.
 
 ### metadataFromRows, TrackMetadataRowsResult, and TrackMetadataRowProblem
 
@@ -78,7 +79,8 @@ Every track's settings dialog has a **Metadata** section between the module's se
 - A row with neither a name nor a typed value is skipped, so a field just added isn't a problem.
 - Every other row needs a name that isn't one of [`builtInTrackFields`](#builtintrackfields) and isn't used by another row. `__proto__` is refused too: a JavaScript object can't hold it as an ordinary field, and saved sessions drop it when they're read.
 - A text field needs text, and a number field a finite number. Clearing a number field is incomplete; it isn't stored as `0`.
-- Names and text are stored as typed, without trimming, so fields nobody edits keep their exact values.
+- Names and text are stored as typed, without trimming.
+- A row from `metadataRows` keeps its stored name and value until its name or value changes, even when the editor wouldn't accept them in a new field, such as empty text or a name like `title`. Only a name another row also uses is still a problem. That way a stored field never holds back edits to the others, and fields nobody edits keep their exact values.
 
 ### builtInTrackFields
 

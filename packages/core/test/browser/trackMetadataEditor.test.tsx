@@ -105,6 +105,20 @@ it("keeps the last valid metadata while a field isn't valid, and says why", asyn
   expect(metadata()).toEqual({ Assay: "ChIP-seq", Replicate: 3, Donor: "D3" });
 });
 
+it("keeps a stored field the editor wouldn't accept as new until it's edited", async () => {
+  // An agent can store empty text, which a new field can't have. It mustn't hold back edits.
+  await openSettings({ Note: "", Assay: "ChIP-seq" });
+  expect(problem(row(1))).toBeUndefined();
+
+  await type(textInputs(row(2))[1], "ATAC-seq");
+  expect(metadata()).toEqual({ Note: "", Assay: "ATAC-seq" });
+
+  // Once it's edited, the field follows the rules for new values.
+  await type(textInputs(row(1))[1], " ");
+  expect(problem(row(1))?.message).toBe('Enter a value for "Note", or remove the field.');
+  expect(metadata()).toEqual({ Note: "", Assay: "ATAC-seq" });
+});
+
 it("rebuilds the fields when the track's metadata changes elsewhere", async () => {
   await openSettings({ Assay: "ChIP-seq" });
   await click(button("Add field"));
