@@ -62,7 +62,7 @@ function distinctValues(tracks: readonly AnyTrackInstance[], field: TrackSortOpt
 
 // `1` and `"1"` are different values, while `null` and a missing field both mean none.
 function valueKey(value: TrackSortValue) {
-  return value == null ? "none" : `${typeof value}:${value}`;
+  return value === null || value === undefined ? "none" : `${typeof value}:${value}`;
 }
 
 /** One level of a sort by field ID. Ascending when no direction is given. */
