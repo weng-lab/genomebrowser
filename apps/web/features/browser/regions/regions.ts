@@ -160,11 +160,16 @@ export const positionsOf = (region: Pick<GenomicRegion, "start" | "end">): Posit
   end: formatPosition(region.end),
 });
 
-/** Reads a typed position: whole digits, which commas may group. */
+/**
+ * Reads a typed position: plain digits, or digits that commas group in threes. A misplaced
+ * comma is refused, so a typo cannot quietly read as another position.
+ */
 function readPosition(text: string) {
-  const digits = text.trim().replaceAll(",", "");
-  return /^\d+$/.test(digits) ? Number(digits) : undefined;
+  const typed = text.trim();
+  return /^(\d+|\d{1,3}(,\d{3})+)$/.test(typed) ? Number(typed.replaceAll(",", "")) : undefined;
 }
+
+const positionFormat = (field: string) => `${field} must be a position like 5,225,001`;
 
 /**
  * The region on `chromosome` between typed `positions`, or the field at fault and why. The
@@ -178,10 +183,10 @@ export function regionFromPositions(
   const start = readPosition(positions.start);
   const end = readPosition(positions.end);
   const length = assembly.chromosomes[chromosome];
-  if (start === undefined || start < 1)
-    return { ok: false, field: "start", error: "Start must be a position from 1" };
-  if (end === undefined || end < 1)
-    return { ok: false, field: "end", error: "End must be a position from 1" };
+  if (start === undefined) return { ok: false, field: "start", error: positionFormat("Start") };
+  if (start < 1) return { ok: false, field: "start", error: "Start must be a position from 1" };
+  if (end === undefined) return { ok: false, field: "end", error: positionFormat("End") };
+  if (end < 1) return { ok: false, field: "end", error: "End must be a position from 1" };
   if (end < start) return { ok: false, field: "end", error: "End must be after start" };
   if (length !== undefined && end > length)
     return {
