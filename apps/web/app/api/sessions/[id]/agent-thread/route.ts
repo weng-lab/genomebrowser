@@ -1,11 +1,7 @@
 import { getAgentThreads, getTabAccount } from "../../../../../composition/server";
 import { clerkIdentity } from "../../../../../features/account/server/identity";
 import { consumeBindProof } from "../../../../../features/agent/server/credential";
-import {
-  bindAgentThread,
-  readAgentThread,
-  releaseAgentThread,
-} from "../../../../../features/agent/server/http";
+import { bindAgentThread, readAgentThread } from "../../../../../features/agent/server/http";
 
 const dependencies = { account: getTabAccount, threads: getAgentThreads };
 
@@ -27,12 +23,4 @@ export async function POST(
     userId: () => clerkIdentity.userId(),
     proof: consumeBindProof,
   });
-}
-
-export async function DELETE(
-  request: Request,
-  { params }: RouteContext<"/api/sessions/[id]/agent-thread">,
-) {
-  const { id } = await params;
-  return releaseAgentThread(request, id, dependencies);
 }

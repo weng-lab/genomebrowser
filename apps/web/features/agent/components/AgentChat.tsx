@@ -24,11 +24,13 @@ type ChatProps = { sessionId: string; signal: AbortSignal; connected: boolean };
 
 /** The browser session's agent thread, remounted when the browser session changes. */
 export function AgentChat({ sessionId, signal, connected }: ChatProps) {
-  const thread = useAgentThread(sessionId, signal);
-  if (thread.status === "loading")
+  const thread = useAgentThread(sessionId, signal, connected);
+  if (thread.status === "loading" || thread.status === "rolling-over")
     return (
       <Typography component="output" variant="body2" color="text.secondary">
-        Loading the conversation…
+        {thread.status === "loading"
+          ? "Loading the conversation…"
+          : "Summarizing the earlier conversation…"}
       </Typography>
     );
   if (thread.status === "failed") return <Alert severity="error">{thread.error.message}</Alert>;
@@ -38,7 +40,8 @@ export function AgentChat({ sessionId, signal, connected }: ChatProps) {
       signal={signal}
       connected={connected}
       saved={thread.saved}
-      replace={thread.replace}
+      summarized={thread.summarized}
+      rollOver={thread.rollOver}
     />
   );
 }
@@ -48,21 +51,24 @@ function Conversation({
   signal,
   connected,
   saved,
-  replace,
+  summarized,
+  rollOver,
 }: ChatProps & {
   saved: SessionSnapshot | null;
-  replace: (conversationId: string) => Promise<void>;
+  summarized: boolean;
+  rollOver: (conversationId: string, options: { summarize: boolean }) => Promise<void>;
 }) {
   const [failure, setFailure] = useState<string>();
+  const report = useCallback((error: unknown) => {
+    setFailure(error instanceof Error ? error.message : "The agent request failed.");
+  }, []);
   // Eve can no longer continue this conversation, such as one stranded by an
   // upgrade or ended, so start the session's thread afresh.
   const onLost = useCallback(
     (conversationId: string) => {
-      replace(conversationId).catch((error: unknown) => {
-        setFailure(error instanceof Error ? error.message : "The agent request failed.");
-      });
+      rollOver(conversationId, { summarize: false }).catch(report);
     },
-    [replace],
+    [rollOver, report],
   );
   const agent = useAgentSession(sessionId, saved, signal, onLost);
   const [draft, setDraft] = useState("");
@@ -71,6 +77,7 @@ function Conversation({
   const busy = agent.status !== "idle";
   // Catching up on a saved conversation blocks sending but is not work to stop.
   const running = agent.status === "busy" || activeTurn(agent.view) !== undefined;
+  const conversationId = agent.session?.sessionId;
 
   // Switching sessions or leaving the page stops a run, so ask first.
   useHoldSession(
@@ -87,10 +94,6 @@ function Conversation({
     const element = transcript.current;
     if (element) element.scrollTop = element.scrollHeight;
   }, [agent.messages]);
-
-  function report(error: unknown) {
-    setFailure(error instanceof Error ? error.message : "The agent request failed.");
-  }
 
   async function submitMessage() {
     const message = draft.trim();
@@ -132,6 +135,11 @@ function Conversation({
         aria-label="Agent conversation"
         sx={{ overflow: "auto", flex: 1, minHeight: 0 }}
       >
+        {summarized && agent.messages.length === 0 && (
+          <Typography variant="caption" component="p" color="text.secondary" sx={{ mb: 1 }}>
+            Earlier conversations in this session are summarized for the agent.
+          </Typography>
+        )}
         {agent.messages.length === 0 && (
           <Typography variant="body2" color="text.secondary">
             Ask the agent to navigate, inspect or add tracks, sort tracks, tag metadata, or export
@@ -243,6 +251,19 @@ function Conversation({
             <Typography component="output" variant="body2" color="text.secondary">
               Working…
             </Typography>
+          )}
+          {conversationId && !busy && !running && (
+            <Button
+              size="small"
+              sx={{ ml: "auto" }}
+              disabled={!connected}
+              onClick={() => {
+                setFailure(undefined);
+                rollOver(conversationId, { summarize: true }).catch(report);
+              }}
+            >
+              New conversation
+            </Button>
           )}
         </Stack>
       </Box>

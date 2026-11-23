@@ -6,6 +6,7 @@ import { commandReplySchema } from "../commands/protocol";
 import { authorizeRemoteControl, type AgentAccount, type RemoteControlDenial } from "./access";
 import type { CommandRelay } from "./relay";
 import type { AgentThreads } from "./threads";
+import { SessionError } from "../../sessions/server/sessions";
 
 /** Resolved for each request, so missing configuration is reported like any other outage. */
 type Dependencies = { account: () => Promise<AgentAccount>; relay: () => CommandRelay };
@@ -27,6 +28,25 @@ type BindDependencies = ThreadDependencies & {
 };
 
 const conversationSchema = z.object({ conversationId: z.string().min(1).max(200) });
+const rolloverSchema = conversationSchema.extend({
+  /** About 2,500 words of session history plus the latest thread's detail. */
+  summary: z.string().trim().min(1).max(40_000).optional(),
+});
+
+/** A JSON body of at most `maxBytes`, or a 400 response. */
+async function jsonBody(request: Request, maxBytes: number) {
+  try {
+    return {
+      body: await readJsonBody(request, {
+        maxBytes,
+        tooLarge: () => new SyntaxError(),
+        invalid: () => new SyntaxError(),
+      }),
+    };
+  } catch {
+    return { failed: error(400, "INVALID_INPUT", "The request body must be JSON") };
+  }
+}
 
 const noStore = { "Cache-Control": "no-store" };
 const statuses: Record<RemoteControlDenial["code"], number> = {
@@ -111,8 +131,9 @@ export function receiveCommandReply(
 /**
  * Authorize the embedded agent to act on `sessionId` for the signed-in account.
  * A request on an existing conversation names it in `conversation`, which must
- * be the session's thread. Stop requests (`control=stop`) skip the Remote
- * Control check, so Stop still works after the preference is turned off.
+ * be the session's thread; `activity` records a message in it. Stop requests
+ * (`control=stop`) skip the Remote Control check, so Stop still works after the
+ * preference is turned off.
  */
 export async function authorizeAgentSession(
   request: Request,
@@ -130,12 +151,13 @@ export async function authorizeAgentSession(
       if (denied) return error(statuses[denied.code], denied.code, denied.error);
     }
     // Only a conversation's own session may read, continue, or stop it.
-    const conversation = new URL(request.url).searchParams.get("conversation");
-    const foreign = conversation
-      ? !(await (await threads()).owns(sessionId, conversation))
-      : stopping;
+    const query = new URL(request.url).searchParams;
+    const conversation = query.get("conversation");
+    const store = await threads();
+    const foreign = conversation ? !(await store.owns(sessionId, conversation)) : stopping;
     if (foreign)
       return error(403, "FORBIDDEN", "This agent conversation is not this session's thread");
+    if (conversation && query.has("activity")) await store.touch(sessionId, conversation);
     return Response.json({ userId: actingUser, browserSessionId: sessionId }, { headers: noStore });
   } catch (cause) {
     console.error("Agent session authorization failed", cause);
@@ -143,14 +165,21 @@ export async function authorizeAgentSession(
   }
 }
 
-/** The session's current agent conversation, or null before its first message. */
+/**
+ * The session's current agent conversation, or null when the next message
+ * starts one; whether it is idle enough to roll over; and whether earlier
+ * threads left a summary.
+ */
 export function readAgentThread(sessionId: string, { account, threads }: ThreadDependencies) {
-  return authorized(sessionId, account, async () =>
-    Response.json(
-      { conversationId: await (await threads()).current(sessionId) },
-      { headers: noStore },
-    ),
-  );
+  return authorized(sessionId, account, async () => {
+    const { conversationId, idle, summary } = await (await threads()).read(sessionId);
+    return Response.json(
+      { conversationId, idle, summarized: summary !== null },
+      {
+        headers: noStore,
+      },
+    );
+  });
 }
 
 /**
@@ -167,16 +196,8 @@ export function bindAgentThread(
   return authorized(sessionId, account, async () => {
     const token = request.headers.get("x-genomebrowser-bind-proof");
     const proven = token ? await proof(token) : null;
-    let body: unknown;
-    try {
-      body = await readJsonBody(request, {
-        maxBytes: 1_024,
-        tooLarge: () => new SyntaxError(),
-        invalid: () => new SyntaxError(),
-      });
-    } catch {
-      return error(400, "INVALID_INPUT", "The request body must be JSON");
-    }
+    const { body, failed } = await jsonBody(request, 1_024);
+    if (failed) return failed;
     const input = conversationSchema.safeParse(body);
     if (!input.success) return error(400, "INVALID_INPUT", "Invalid conversation ID");
     if (
@@ -192,16 +213,62 @@ export function bindAgentThread(
   });
 }
 
-/** Release the session's thread named by `conversation`, such as one Eve no longer has. */
-export function releaseAgentThread(
+/**
+ * End the session's current conversation so the next message starts a new
+ * thread, keeping the summary the agent wrote of it when given. Refused with 409
+ * when the named conversation is no longer the current one.
+ */
+export function rollOverAgentThread(
   request: Request,
   sessionId: string,
   { account, threads }: ThreadDependencies,
 ) {
   return authorized(sessionId, account, async () => {
-    const conversation = new URL(request.url).searchParams.get("conversation");
-    if (!conversation) return error(400, "INVALID_INPUT", "Name the conversation to release");
-    await (await threads()).release(sessionId, conversation);
+    const { body, failed } = await jsonBody(request, 65_536);
+    if (failed) return failed;
+    const input = rolloverSchema.safeParse(body);
+    if (!input.success) return error(400, "INVALID_INPUT", "Invalid rollover");
+    const { conversationId, summary } = input.data;
+    if (!(await (await threads()).rollOver(sessionId, conversationId, summary)))
+      return error(409, "CONFLICT", "This conversation is no longer the session's thread");
     return new Response(null, { status: 204, headers: noStore });
   });
+}
+
+type ContextDependencies = {
+  /** The user and session a scoped Eve credential names, or null when it is not valid. */
+  credential: (token: string) => Promise<{ userId: string; sessionId: string } | null>;
+  account: (userId: string) => Promise<AgentAccount & { threads: AgentThreads }>;
+};
+
+/**
+ * What the agent knows about its session before each message: the session's
+ * ID, title, and assembly, and the summary earlier threads left. Eve asks with
+ * the scoped credential it holds for the session.
+ */
+export async function readAgentContext(
+  request: Request,
+  sessionId: string,
+  { credential, account }: ContextDependencies,
+) {
+  try {
+    const token = /^Bearer (\S+)$/i.exec(request.headers.get("authorization") ?? "")?.[1];
+    const caller = token ? await credential(token) : null;
+    if (!caller) return error(401, "UNAUTHENTICATED", "A scoped agent credential is required");
+    if (caller.sessionId !== sessionId) return error(404, "NOT_FOUND", "Session not found");
+    const acting = await account(caller.userId);
+    const denied = await authorizeRemoteControl(acting, sessionId);
+    if (denied) return error(statuses[denied.code], denied.code, denied.error);
+    const session = await acting.sessions.load(sessionId);
+    const { summary } = await acting.threads.read(sessionId);
+    return Response.json(
+      { sessionId, title: session.name, assembly: session.snapshot.browser.assembly, summary },
+      { headers: noStore },
+    );
+  } catch (cause) {
+    if (cause instanceof SessionError && cause.code === "NOT_FOUND")
+      return error(404, "NOT_FOUND", "Session not found");
+    console.error("Agent context request failed", cause);
+    return error(503, "UNAVAILABLE", "The agent's session context is unavailable");
+  }
 }

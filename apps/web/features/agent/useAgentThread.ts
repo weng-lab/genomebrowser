@@ -5,13 +5,20 @@ import { Client, ClientError, SessionNotActiveError, type SessionSnapshot } from
 
 export type AgentThread =
   | { status: "loading" }
+  /** The thread is rolling over: summarizing its conversation, then starting afresh. */
+  | { status: "rolling-over" }
   | { status: "failed"; error: Error }
   | {
       status: "ready";
       /** The thread's conversation so far, or null when the next message starts it. */
       saved: SessionSnapshot | null;
-      /** Give up a conversation Eve can no longer continue, and start the thread afresh. */
-      replace(conversationId: string): Promise<void>;
+      /** Whether the agent carries a summary of the session's earlier threads. */
+      summarized: boolean;
+      /**
+       * End `conversationId` and start the thread afresh. With `summarize`, the
+       * agent first writes a summary of it to carry forward.
+       */
+      rollOver(conversationId: string, options: { summarize: boolean }): Promise<void>;
     };
 
 /**
@@ -29,22 +36,72 @@ export function isLostConversation(error: unknown) {
 const threadUrl = (sessionId: string) =>
   `/api/sessions/${encodeURIComponent(sessionId)}/agent-thread`;
 
-async function release(sessionId: string, conversationId: string, signal: AbortSignal) {
-  const url = `${threadUrl(sessionId)}?conversation=${encodeURIComponent(conversationId)}`;
-  const response = await fetch(url, { method: "DELETE", signal });
-  if (!response.ok) throw new Error("The expired agent conversation could not be replaced");
+const conversations = (sessionId: string) =>
+  new Client({ baseUrl: "", headers: { "x-genomebrowser-session-id": sessionId } }).sessions;
+
+const summarySchema = {
+  type: "object",
+  properties: {
+    sessionHistory: {
+      type: "string",
+      description:
+        "A high-level account of everything in this session before this conversation, merged with the summary you were given. At most 2,500 words; compress or drop the oldest details first.",
+    },
+    latestThread: {
+      type: "string",
+      description:
+        "A somewhat more detailed account of this conversation: what the user asked for, what you changed in the browser, and anything left unfinished.",
+    },
+  },
+  required: ["sessionHistory", "latestThread"],
+  additionalProperties: false,
+} as const;
+
+/** Ask the conversation's agent to summarize it for the next thread. */
+async function summarize(sessionId: string, conversationId: string, signal: AbortSignal) {
+  const delivery = await conversations(sessionId)
+    .attach(conversationId)
+    .send<{ sessionHistory: string; latestThread: string }>(
+      "This conversation is ending. Without calling any tools, summarize it for the next conversation in this session. The browser may change before then, so describe what happened rather than the browser's current state.",
+      { outputSchema: summarySchema, signal },
+    );
+  const { data } = await delivery.result();
+  if (!data) return undefined;
+  return `Session history:\n${data.sessionHistory.trim()}\n\nLatest conversation:\n${data.latestThread.trim()}`;
 }
 
-async function loadThread(sessionId: string, signal: AbortSignal): Promise<SessionSnapshot | null> {
+/** End `conversationId` as the session's thread, keeping `summary` when given. */
+async function endThread(
+  sessionId: string,
+  conversationId: string,
+  summary: string | undefined,
+  signal: AbortSignal,
+) {
+  const response = await fetch(`${threadUrl(sessionId)}/rollover`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ conversationId, summary }),
+    signal,
+  });
+  // 409: another tab already rolled it over.
+  if (!response.ok && response.status !== 409)
+    throw new Error("The agent conversation could not be restarted");
+}
+
+type Loaded =
+  | { status: "ready"; saved: SessionSnapshot | null; summarized: boolean }
+  | { status: "idle"; conversationId: string };
+
+async function loadThread(sessionId: string, signal: AbortSignal): Promise<Loaded> {
   const response = await fetch(threadUrl(sessionId), { cache: "no-store", signal });
   if (!response.ok) throw new Error("The agent conversation could not be loaded");
-  const { conversationId } = (await response.json()) as { conversationId: string | null };
-  if (!conversationId) return null;
-  const client = new Client({
-    baseUrl: "",
-    headers: { "x-genomebrowser-session-id": sessionId },
-  });
-  const conversation = client.sessions.attach(conversationId);
+  const { conversationId, idle, summarized } = (await response.json()) as {
+    conversationId: string | null;
+    idle: boolean;
+    summarized: boolean;
+  };
+  if (!conversationId) return { status: "ready", saved: null, summarized };
+  const conversation = conversations(sessionId).attach(conversationId);
   try {
     // A conversation another tab just created can 404 briefly, so retry a little;
     // Eve's own reads would retry a missing one for most of a minute.
@@ -56,51 +113,80 @@ async function loadThread(sessionId: string, signal: AbortSignal): Promise<Sessi
     });
     for await (const _event of latest) break;
     const saved = await conversation.snapshot({ signal });
-    if (!saved.events.some((event) => event.type === "session.ended")) return saved;
+    if (!saved.events.some((event) => event.type === "session.ended")) {
+      return idle ? { status: "idle", conversationId } : { status: "ready", saved, summarized };
+    }
   } catch (error) {
     if (!isLostConversation(error)) throw error;
   }
-  await release(sessionId, conversationId, signal);
-  return null;
+  // Eve can no longer continue it, so the next message starts the thread afresh.
+  await endThread(sessionId, conversationId, undefined, signal);
+  return { status: "ready", saved: null, summarized };
 }
 
 /**
  * Load `sessionId`'s agent thread while `signal` is open: the app names the
  * session's conversation, and Eve supplies what it holds so far. A conversation
- * Eve can no longer continue is replaced, so the next message starts the thread
- * afresh.
+ * Eve can no longer continue is replaced. One idle for hours rolls over once
+ * the session's tab is `connected`, since the agent summarizes it first.
  */
-export function useAgentThread(sessionId: string, signal: AbortSignal): AgentThread {
-  const [thread, setThread] = useState<
-    | { status: "loading" }
-    | { status: "failed"; error: Error }
-    | { status: "ready"; saved: SessionSnapshot | null }
+export function useAgentThread(
+  sessionId: string,
+  signal: AbortSignal,
+  connected: boolean,
+): AgentThread {
+  const [loaded, setLoaded] = useState<
+    Loaded | { status: "loading" | "rolling-over" } | { status: "failed"; error: Error }
   >({ status: "loading" });
   const [generation, setGeneration] = useState(0);
+
+  const fail = useCallback((error: unknown) => {
+    const failure = error instanceof Error ? error : new Error("The agent conversation failed");
+    setLoaded({ status: "failed", error: failure });
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     const aborted = AbortSignal.any([signal, controller.signal]);
-    setThread({ status: "loading" });
+    setLoaded({ status: "loading" });
     loadThread(sessionId, aborted)
-      .then((saved) => {
-        if (!aborted.aborted) setThread({ status: "ready", saved });
+      .then((thread) => {
+        if (!aborted.aborted) setLoaded(thread);
       })
       .catch((error: unknown) => {
-        if (aborted.aborted) return;
-        const failure = error instanceof Error ? error : new Error("The agent conversation failed");
-        setThread({ status: "failed", error: failure });
+        if (!aborted.aborted) fail(error);
       });
     return () => controller.abort();
-  }, [sessionId, signal, generation]);
+  }, [sessionId, signal, generation, fail]);
 
-  const replace = useCallback(
-    async (conversationId: string) => {
-      await release(sessionId, conversationId, signal);
+  const rollOver = useCallback(
+    async (conversationId: string, { summarize: withSummary }: { summarize: boolean }) => {
+      setLoaded({ status: "rolling-over" });
+      // A summary that cannot be written leaves the previous one in place.
+      const summary = withSummary
+        ? await summarize(sessionId, conversationId, signal).catch((error: unknown) => {
+            console.error("Could not summarize the agent conversation", error);
+            return undefined;
+          })
+        : undefined;
+      await conversations(sessionId)
+        .attach(conversationId)
+        .end({ signal })
+        .catch(() => {});
+      await endThread(sessionId, conversationId, summary, signal);
       setGeneration((value) => value + 1);
     },
     [sessionId, signal],
   );
 
-  return thread.status === "ready" ? { ...thread, replace } : thread;
+  // An idle thread rolls over once the tab holds the session, so the summary turn can run.
+  const idle = loaded.status === "idle" ? loaded.conversationId : undefined;
+  useEffect(() => {
+    if (!idle || !connected) return;
+    rollOver(idle, { summarize: true }).catch(fail);
+  }, [idle, connected, rollOver, fail]);
+
+  if (loaded.status === "ready") return { ...loaded, rollOver };
+  if (loaded.status === "idle") return { status: "rolling-over" };
+  return loaded;
 }

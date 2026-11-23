@@ -31,9 +31,12 @@ const authorize =
     if (!session.success) return null;
     // Always call back to this deployment's configured origin, never a caller's Host or Origin.
     const url = new URL(`/api/sessions/${session.data}/agent-auth`, agentAppOrigin());
-    if (request.method === "POST" && stopPath.test(new URL(request.url).pathname))
-      url.searchParams.set("control", "stop");
+    const stopping = request.method === "POST" && stopPath.test(new URL(request.url).pathname);
+    if (stopping) url.searchParams.set("control", "stop");
     if (conversation) url.searchParams.set("conversation", conversation);
+    // Any other POST on a conversation adds to it, so its thread is not idle.
+    if (conversation && request.method === "POST" && !stopping)
+      url.searchParams.set("activity", "1");
     const response = await fetch(url, {
       headers: await forwardedHeaders(request),
       cache: "no-store",

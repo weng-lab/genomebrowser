@@ -16,10 +16,12 @@ Each saved session has one agent thread at a time, keyed on the session ID. Open
 
 A thread rolls over into a new one in two cases:
 
-- **Inactivity.** No turn has ended for 3 hours. The check is lazy: it runs when the user next opens the session's panel or sends a message, not on a timer.
+- **Inactivity.** No message has been sent for 3 hours. The check is lazy: it runs when the user next opens the session's panel, not on a timer.
 - **New conversation.** The user presses the panel's "New conversation" button. This uses the same rollover path immediately.
 
-Rollover never happens while a run is in progress. The 3-hour window is a config value.
+Rollover never happens while a run is in progress. The 3-hour window is a config value, `GB_AGENT_THREAD_IDLE_MINUTES`.
+
+The agent writes the summary itself, in a final turn of the ending conversation that the panel does not show. That turn runs only once the session's tab is connected, since every run needs its tab.
 
 On rollover, the app summarizes the ending thread, stores the summary, ends the old Eve session, and starts a new one with the summary in its instructions. The panel clears and shows a subtle "previous context loaded" indicator. The user cannot read the old thread's messages afterward; only the summary survives.
 

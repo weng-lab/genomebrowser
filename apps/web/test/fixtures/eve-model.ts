@@ -24,10 +24,48 @@ export default defineAgent({
       const searched = results.some((message) => JSON.stringify(message).includes("eve__search"));
       const called = results.some((message) => JSON.stringify(message).includes("eve__tool"));
       const tool = navigate && !called;
+      const summarizing = prompt.includes("This conversation is ending");
+      const replied = results.some((message) => JSON.stringify(message).includes("eve__reply"));
+      const system = options.prompt
+        .filter((message) => message.role === "system")
+        .map((message) => (typeof message.content === "string" ? message.content : ""))
+        .join("\n");
       return {
         stream: new ReadableStream({
           start(controller) {
             controller.enqueue({ type: "stream-start", warnings: [] });
+            const finish = (reason: "stop" | "tool-calls") => {
+              controller.enqueue({
+                type: "finish",
+                finishReason: { unified: reason, raw: undefined },
+                usage: {
+                  inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+                  outputTokens: { total: 1, text: 1, reasoning: 0 },
+                },
+              });
+              controller.close();
+            };
+            // The structured summary a thread writes before it rolls over.
+            if (summarizing && !replied) {
+              controller.enqueue({
+                type: "tool-call",
+                toolCallId: crypto.randomUUID(),
+                toolName: "eve__reply",
+                input: JSON.stringify({
+                  sessionHistory: "Nothing before this conversation.",
+                  latestThread: "The user greeted the agent.",
+                }),
+              });
+              return finish("tool-calls");
+            }
+            if (summarizing) return finish("stop");
+            // Repeat the system instructions, so tests can see the context the app supplies.
+            if (prompt.includes("what do you know")) {
+              controller.enqueue({ type: "text-start", id: "context" });
+              controller.enqueue({ type: "text-delta", id: "context", delta: system });
+              controller.enqueue({ type: "text-end", id: "context" });
+              return finish("stop");
+            }
             if (prompt.includes("wait for stop")) {
               controller.enqueue({ type: "text-start", id: "waiting" });
               controller.enqueue({ type: "text-delta", id: "waiting", delta: "Waiting for Stop." });

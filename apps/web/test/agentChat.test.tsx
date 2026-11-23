@@ -82,7 +82,8 @@ async function thread() {
     `${authorization!.origin}/api/sessions/${sessionId}/agent-thread`,
     { headers: { authorization: `Bearer ${authorization!.token("user_alice")}` } },
   );
-  return (await response.json()) as { conversationId: string | null };
+  const { conversationId } = (await response.json()) as { conversationId: string | null };
+  return { conversationId };
 }
 
 async function send(message: string) {
@@ -354,6 +355,75 @@ describe.skipIf(!available)("Eve agent chat", () => {
     );
     await vi.waitFor(() => expect(leaving()).toBe(false), { timeout: 15_000 });
   }, 30_000);
+
+  it("starts a new conversation that carries a summary and the session's facts", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    const { conversationId: first } = await thread();
+    await act(async () =>
+      [...document.querySelectorAll("button")]
+        .find((button) => button.textContent === "New conversation")!
+        .click(),
+    );
+    await vi.waitFor(
+      () =>
+        expect(document.body.textContent).toContain(
+          "Earlier conversations in this session are summarized for the agent.",
+        ),
+      { timeout: 15_000 },
+    );
+    expect(await thread()).toEqual({ conversationId: null });
+    expect(document.querySelector('[role="log"]')?.textContent).not.toContain("hello");
+
+    await send("what do you know");
+    await vi.waitFor(
+      () => {
+        const log = document.querySelector('[role="log"]')?.textContent;
+        expect(log).toContain(`"Agent auth" (ID ${sessionId}) on the hg38 assembly`);
+        expect(log).toContain("The user greeted the agent.");
+      },
+      { timeout: 15_000 },
+    );
+    expect((await thread()).conversationId).not.toBe(first);
+  }, 50_000);
+
+  it("rolls a thread idle for too long over when the panel opens", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    await act(async () => probe?.unmount());
+    // The app server runs in this process, so the idle limit applies to it at once.
+    process.env.GB_AGENT_THREAD_IDLE_MINUTES = "0.005";
+    try {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 400);
+      });
+      probe = await renderWithProbe(
+        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+      );
+      await vi.waitFor(
+        () =>
+          expect(document.body.textContent).toContain(
+            "Earlier conversations in this session are summarized for the agent.",
+          ),
+        { timeout: 15_000 },
+      );
+      expect(await thread()).toEqual({ conversationId: null });
+    } finally {
+      delete process.env.GB_AGENT_THREAD_IDLE_MINUTES;
+    }
+  }, 50_000);
 
   it("reopens the session's thread after the panel remounts", async () => {
     probe = await renderWithProbe(

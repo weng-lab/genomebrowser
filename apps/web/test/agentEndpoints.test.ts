@@ -15,6 +15,8 @@ import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 const mcp = await import("../app/api/mcp/route");
 const agentAuth = await import("../app/api/sessions/[id]/agent-auth/route");
 const agentThread = await import("../app/api/sessions/[id]/agent-thread/route");
+const agentRollover = await import("../app/api/sessions/[id]/agent-thread/rollover/route");
+const agentContext = await import("../app/api/sessions/[id]/agent-context/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
@@ -301,6 +303,8 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect(await allowed.json()).toEqual({ userId: "user_alice", browserSessionId: id });
     expect(await (await agentThread.GET(new Request(thread), params(id))).json()).toEqual({
       conversationId: null,
+      idle: false,
+      summarized: false,
     });
     // Stop and follow-ups must name the session's thread.
     expect((await auth("?control=stop")).status).toBe(403);
@@ -322,6 +326,8 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await bind("conversation-b")).status).toBe(409);
     expect(await (await agentThread.GET(new Request(thread), params(id))).json()).toEqual({
       conversationId: "conversation-a",
+      idle: false,
+      summarized: false,
     });
     expect((await auth("?conversation=conversation-a")).status).toBe(200);
     expect((await auth("?conversation=conversation-b")).status).toBe(403);
@@ -366,22 +372,77 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
       await setRemoteControl("user_alice", true);
     }
 
-    // Releasing a lost conversation lets the next message start a new thread.
+    // Rolling over ends the current conversation, keeping a summary when given, so
+    // the next message starts a new one that the summary follows.
     await signIn("user_alice");
-    const release = (conversation: string) =>
-      agentThread.DELETE(
-        new Request(`${thread}?conversation=${conversation}`, { method: "DELETE" }),
+    const rollOver = (conversationId: string, summary?: string) =>
+      agentRollover.POST(
+        new Request(`${thread}/rollover`, {
+          method: "POST",
+          body: JSON.stringify({ conversationId, summary }),
+        }),
         params(id),
       );
-    expect((await release("conversation-b")).status).toBe(204);
+    const read = async () => (await agentThread.GET(new Request(thread), params(id))).json();
+    expect((await rollOver("conversation-b", "Wrong thread")).status).toBe(409);
     expect((await auth("?conversation=conversation-a")).status).toBe(200);
-    expect((await release("conversation-a")).status).toBe(204);
+    expect((await rollOver("conversation-a", "Looked at chr1.")).status).toBe(204);
+    expect(await read()).toEqual({ conversationId: null, idle: false, summarized: true });
+    expect((await auth("?conversation=conversation-a")).status).toBe(403);
     expect((await bind("conversation-b")).status).toBe(200);
+    expect((await rollOver("conversation-b")).status).toBe(204);
+    // A rollover without a summary keeps the earlier one.
+    expect(await read()).toEqual({ conversationId: null, idle: false, summarized: true });
+    expect((await bind("conversation-c")).status).toBe(200);
+
+    // A message keeps the thread from idling; a long gap makes it roll over on next load.
+    process.env.GB_AGENT_THREAD_IDLE_MINUTES = "0.005";
+    try {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 400);
+      });
+      expect((await read()).idle).toBe(true);
+      expect((await auth("?conversation=conversation-c&activity=1")).status).toBe(200);
+      expect((await read()).idle).toBe(false);
+    } finally {
+      delete process.env.GB_AGENT_THREAD_IDLE_MINUTES;
+    }
 
     // Deleting the session deletes its thread.
     await sessionById.DELETE(new Request(`http://localhost/api/sessions/${id}`), params(id));
-    expect((await auth("?control=stop&conversation=conversation-b")).status).toBe(403);
-    expect((await bind("conversation-c")).status).toBe(404);
+    expect((await auth("?control=stop&conversation=conversation-c")).status).toBe(403);
+    expect((await bind("conversation-d")).status).toBe(404);
+  });
+
+  it("gives Eve its session's facts and summary only with that session's scoped credential", async () => {
+    const id = await createSession("user_alice");
+    const other = await createSession("user_alice");
+    const context = (session: string, bearer?: string) =>
+      agentContext.GET(
+        new Request(`http://localhost/api/sessions/${session}/agent-context`, {
+          headers: bearer ? { authorization: `Bearer ${bearer}` } : {},
+        }),
+        params(session),
+      );
+    await signIn(null);
+    expect((await context(id)).status).toBe(401);
+    expect((await context(id, sessionToken("user_alice"))).status).toBe(401);
+    const { token } = await issueCommandCredential("user_alice", id);
+    expect((await context(other, token)).status).toBe(404);
+    const allowed = await context(id, token);
+    expect(allowed.status).toBe(200);
+    expect(await allowed.json()).toEqual({
+      sessionId: id,
+      title: "Agent work",
+      assembly: "hg38",
+      summary: null,
+    });
+    await setRemoteControl("user_alice", false);
+    try {
+      expect((await context(id, token)).status).toBe(403);
+    } finally {
+      await setRemoteControl("user_alice", true);
+    }
   });
 
   it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {

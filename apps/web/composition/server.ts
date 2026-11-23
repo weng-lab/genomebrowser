@@ -69,6 +69,13 @@ async function accountForUser(userId: string): Promise<AgentAccount> {
   };
 }
 
+/** A verified user's account with its agent threads, for Eve's scoped requests. */
+export async function getAgentAccountForUser(userId: string) {
+  const { db } = await getServices();
+  const identity: Identity = { userId: async () => userId };
+  return { ...(await accountForUser(userId)), threads: createAgentThreads({ db, identity }) };
+}
+
 async function composeServices(): Promise<Services> {
   const db = drizzle({ client: await connectDatabase(process.env) });
   return {

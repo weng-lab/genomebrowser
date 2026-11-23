@@ -35,6 +35,8 @@ export async function startAgentAuthorizationServer() {
   const { proxy } = await import("../proxy");
   const { GET } = await import("../app/api/sessions/[id]/agent-auth/route");
   const thread = await import("../app/api/sessions/[id]/agent-thread/route");
+  const rollover = await import("../app/api/sessions/[id]/agent-thread/rollover/route");
+  const context = await import("../app/api/sessions/[id]/agent-context/route");
   const { POST: mcp } = await import("../app/api/mcp/route");
   const { getAccountSettings, getCommandRelay, getSessions } =
     await import("../composition/server");
@@ -95,10 +97,12 @@ export async function startAgentAuthorizationServer() {
       const id = request.nextUrl.pathname.split("/")[3];
       const params = { params: Promise.resolve({ id }) };
       const route = () => {
-        if (request.nextUrl.pathname === "/api/mcp") return mcp(request);
-        if (!request.nextUrl.pathname.endsWith("/agent-thread")) return GET(request, params);
+        const path = request.nextUrl.pathname;
+        if (path === "/api/mcp") return mcp(request);
+        if (path.endsWith("/agent-context")) return context.GET(request, params);
+        if (path.endsWith("/agent-thread/rollover")) return rollover.POST(request, params);
+        if (!path.endsWith("/agent-thread")) return GET(request, params);
         if (request.method === "POST") return thread.POST(request, params);
-        if (request.method === "DELETE") return thread.DELETE(request, params);
         return thread.GET(request, params);
       };
       const response = await authenticated(request, route);
