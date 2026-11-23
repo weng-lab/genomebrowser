@@ -43,7 +43,8 @@ type RegionGroupSectionProps = {
 /**
  * A region group: a row tinted with the group's color, or gray without one, whose chevron
  * and name collapse or expand it, then its region count, a button that hides or shows its
- * highlights, and its actions. While expanded, its members follow.
+ * highlights, and its actions. While expanded, its members follow. An outline in the color,
+ * or gray, goes around the header and them, holding the group together.
  */
 export function RegionGroupSection({
   group,
@@ -61,6 +62,8 @@ export function RegionGroupSection({
       expanded={!collapsed}
       onToggle={() => regionGroupStore.getState().setCollapsed(group.id, !collapsed)}
       tint={color ? alpha(color, 0.14) : theme.palette.action.hover}
+      // Around the header and its regions, to show which are its own.
+      outline={color ? alpha(color, 0.5) : theme.palette.divider}
       title={
         <>
           <Box
@@ -107,37 +110,6 @@ export function RegionGroupSection({
   );
 }
 
-/** The regions in no group, under a heading that collapses or expands them, below the groups. */
-export function UngroupedSection({ count, children }: { count: number; children: ReactNode }) {
-  // Not saved with the session, unlike groups: it is only a way to make room.
-  const [expanded, setExpanded] = useState(true);
-  return (
-    <CollapsibleSection
-      label="Ungrouped"
-      expanded={expanded}
-      onToggle={() => setExpanded(!expanded)}
-      title={
-        <>
-          <Box
-            component="span"
-            sx={{
-              typography: "caption",
-              fontWeight: "fontWeightMedium",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-            }}
-          >
-            Ungrouped
-          </Box>
-          <Count value={count} />
-        </>
-      }
-    >
-      {children}
-    </CollapsibleSection>
-  );
-}
-
 type CollapsibleSectionProps = {
   /** The members list's accessible name. */
   label: string;
@@ -149,6 +121,8 @@ type CollapsibleSectionProps = {
   actions?: ReactNode;
   /** The header's background. */
   tint?: string;
+  /** A border color around the header and the rows under it, which sets them apart as one. */
+  outline?: string;
   children: ReactNode;
 };
 
@@ -163,11 +137,20 @@ function CollapsibleSection({
   title,
   actions,
   tint,
+  outline,
   children,
 }: CollapsibleSectionProps) {
   const listId = useId();
   return (
-    <ListItem disablePadding sx={{ display: "block" }}>
+    <ListItem
+      disablePadding
+      sx={{
+        display: "block",
+        ...(outline
+          ? { border: 1, borderColor: outline, borderRadius: 1.5, overflow: "hidden" }
+          : {}),
+      }}
+    >
       <Box
         sx={{
           display: "flex",
@@ -199,7 +182,13 @@ function CollapsibleSection({
         {actions}
       </Box>
       {expanded ? (
-        <List id={listId} aria-label={label} disablePadding sx={{ ...listSx, pt: 0.5 }}>
+        <List
+          id={listId}
+          aria-label={label}
+          disablePadding
+          // Inset within an outline, so its rows clear it.
+          sx={{ ...listSx, pt: 0.5, ...(outline ? { px: 0.5, pb: 0.5 } : {}) }}
+        >
           {children}
         </List>
       ) : null}

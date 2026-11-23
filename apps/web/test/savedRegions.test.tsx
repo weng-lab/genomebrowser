@@ -397,8 +397,14 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   expect(groupForm()).toBeNull();
   expect(header()?.getAttribute("aria-expanded")).toBe("true");
   expect(members("Locus control")).toEqual([first]);
-  // Groups come first, then the regions in none.
-  expect(members("Ungrouped")).toEqual([second]);
+  // Groups come first, then the regions in none, with no heading.
+  const topLevel = () =>
+    [...container!.querySelectorAll('[aria-label="Saved regions"] > li')].map(
+      (item) =>
+        item.querySelector("[aria-expanded]")?.textContent ??
+        item.querySelector(".MuiListItemText-primary")?.textContent,
+    );
+  expect(topLevel()).toEqual(["Locus control1", second]);
   await vi.waitFor(() =>
     expect(groups()).toEqual([
       expect.objectContaining({

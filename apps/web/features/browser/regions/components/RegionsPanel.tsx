@@ -34,7 +34,7 @@ import {
 import { AddRegionForm } from "./AddRegionForm";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { NewGroupForm } from "./NewGroupForm";
-import { listSx, RegionGroupSection, UngroupedSection } from "./RegionGroup";
+import { listSx, RegionGroupSection } from "./RegionGroup";
 import { RegionActions } from "./RegionMenu";
 
 /**
@@ -209,14 +209,8 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
                   {members.map(card)}
                 </RegionGroupSection>
               ))}
-              {/* Without groups, the regions need no heading of their own. */}
-              {groups.length === 0 ? (
-                sections.ungrouped.map(card)
-              ) : sections.ungrouped.length > 0 ? (
-                <UngroupedSection count={sections.ungrouped.length}>
-                  {sections.ungrouped.map(card)}
-                </UngroupedSection>
-              ) : null}
+              {/* The regions in no group follow the groups, with no heading of their own. */}
+              {sections.ungrouped.map(card)}
             </List>
           </Box>
         )}
