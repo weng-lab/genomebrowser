@@ -126,11 +126,12 @@ describe("TrackSortDialog", () => {
   });
 
   it("shows the kind of value each option holds and names its directions by it", () => {
-    // The pinned track isn't sorted, so its text doesn't make Replicate a mixed field.
+    // The pinned track isn't sorted, so its text doesn't make Replicate a mixed field. NaN is
+    // no value, so it doesn't make Interesting one either.
     const values = new Map<string, Record<string, TrackSortValue>>([
       ["pinned", { replicate: "two" }],
       ["a", { replicate: 2, interesting: true, batch: 1 }],
-      ["b", { replicate: 10, batch: "B" }],
+      ["b", { replicate: 10, interesting: Number.NaN, batch: "B" }],
       ["c", {}],
     ]);
     const read =

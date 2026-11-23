@@ -31,8 +31,8 @@ export type TrackSortValueType = keyof typeof typeRank;
 
 /**
  * The kinds of value each option reads from the tracks a sort moves, by option ID, in the
- * order a field that mixes them sorts ascending. Missing values aren't a kind, so an option
- * none of those tracks has a value for has no kinds.
+ * order a field that mixes them sorts ascending. Missing values, including NaN, aren't a kind,
+ * so an option none of those tracks has a value for has no kinds.
  */
 export function trackSortValueTypes(
   trackStore: TrackStoreInstance,
@@ -46,7 +46,7 @@ export function trackSortValueTypes(
       const types = new Set<TrackSortValueType>();
       for (const track of sortable) {
         const trackValue = value(track);
-        if (trackValue != null) types.add(typeOf(trackValue));
+        if (hasValue(trackValue)) types.add(typeOf(trackValue));
       }
       return [id, [...types].sort((a, b) => typeRank[a] - typeRank[b])];
     }),
