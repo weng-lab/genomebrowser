@@ -15,6 +15,7 @@ import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 const mcp = await import("../app/api/mcp/route");
 const agentAuth = await import("../app/api/sessions/[id]/agent-auth/route");
 const agentThread = await import("../app/api/sessions/[id]/agent-thread/route");
+const agentContext = await import("../app/api/sessions/[id]/agent-context/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
@@ -382,6 +383,35 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     await sessionById.DELETE(new Request(`http://localhost/api/sessions/${id}`), params(id));
     expect((await auth("?control=stop&conversation=conversation-b")).status).toBe(403);
     expect((await bind("conversation-c")).status).toBe(404);
+  });
+
+  it("gives Eve its session's facts only with that session's scoped credential", async () => {
+    const id = await createSession("user_alice");
+    const other = await createSession("user_alice");
+    const context = (session: string, bearer?: string) =>
+      agentContext.GET(
+        new Request(`http://localhost/api/sessions/${session}/agent-context`, {
+          headers: bearer ? { authorization: `Bearer ${bearer}` } : {},
+        }),
+        params(session),
+      );
+    await signIn(null);
+    expect((await context(id)).status).toBe(401);
+    expect((await context(id, sessionToken("user_alice"))).status).toBe(401);
+    const { token } = await issueCommandCredential("user_alice", id);
+    expect((await context(other, token)).status).toBe(404);
+    expect((await context(id, (await issueCommandCredential("user_bob", id)).token)).status).toBe(
+      404,
+    );
+    const allowed = await context(id, token);
+    expect(allowed.status).toBe(200);
+    expect(await allowed.json()).toEqual({ sessionId: id, title: "Agent work", assembly: "hg38" });
+    await setRemoteControl("user_alice", false);
+    try {
+      expect((await context(id, token)).status).toBe(403);
+    } finally {
+      await setRemoteControl("user_alice", true);
+    }
   });
 
   it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {

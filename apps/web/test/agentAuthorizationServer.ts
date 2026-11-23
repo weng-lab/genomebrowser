@@ -35,6 +35,7 @@ export async function startAgentAuthorizationServer() {
   const { proxy } = await import("../proxy");
   const { GET } = await import("../app/api/sessions/[id]/agent-auth/route");
   const thread = await import("../app/api/sessions/[id]/agent-thread/route");
+  const context = await import("../app/api/sessions/[id]/agent-context/route");
   const { POST: mcp } = await import("../app/api/mcp/route");
   const { getAccountSettings, getCommandRelay, getSessions } =
     await import("../composition/server");
@@ -96,6 +97,8 @@ export async function startAgentAuthorizationServer() {
       const params = { params: Promise.resolve({ id }) };
       const route = () => {
         if (request.nextUrl.pathname === "/api/mcp") return mcp(request);
+        if (request.nextUrl.pathname.endsWith("/agent-context"))
+          return context.GET(request, params);
         if (!request.nextUrl.pathname.endsWith("/agent-thread")) return GET(request, params);
         if (request.method === "POST") return thread.POST(request, params);
         if (request.method === "DELETE") return thread.DELETE(request, params);

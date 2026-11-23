@@ -32,7 +32,7 @@ const threadUrl = (sessionId: string) =>
 async function release(sessionId: string, conversationId: string, signal: AbortSignal) {
   const url = `${threadUrl(sessionId)}?conversation=${encodeURIComponent(conversationId)}`;
   const response = await fetch(url, { method: "DELETE", signal });
-  if (!response.ok) throw new Error("The expired agent conversation could not be replaced");
+  if (!response.ok) throw new Error("The agent conversation could not be restarted");
 }
 
 async function loadThread(sessionId: string, signal: AbortSignal): Promise<SessionSnapshot | null> {

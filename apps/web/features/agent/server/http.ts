@@ -6,6 +6,7 @@ import { commandReplySchema } from "../commands/protocol";
 import { authorizeRemoteControl, type AgentAccount, type RemoteControlDenial } from "./access";
 import type { CommandRelay } from "./relay";
 import type { AgentThreads } from "./threads";
+import { SessionError } from "../../sessions/server/sessions";
 
 /** Resolved for each request, so missing configuration is reported like any other outage. */
 type Dependencies = { account: () => Promise<AgentAccount>; relay: () => CommandRelay };
@@ -204,4 +205,40 @@ export function releaseAgentThread(
     await (await threads()).release(sessionId, conversation);
     return new Response(null, { status: 204, headers: noStore });
   });
+}
+
+type ContextDependencies = {
+  /** The user and session a scoped Eve credential names, or null when it is not valid. */
+  credential: (token: string) => Promise<{ userId: string; sessionId: string } | null>;
+  account: (userId: string) => Promise<AgentAccount>;
+};
+
+/**
+ * What the agent knows about its session before each message: its ID, title,
+ * and assembly. Eve asks with the scoped credential it holds for the session.
+ */
+export async function readAgentContext(
+  request: Request,
+  sessionId: string,
+  { credential, account }: ContextDependencies,
+) {
+  try {
+    const token = /^Bearer (\S+)$/i.exec(request.headers.get("authorization") ?? "")?.[1];
+    const caller = token ? await credential(token) : null;
+    if (!caller) return error(401, "UNAUTHENTICATED", "A scoped agent credential is required");
+    if (caller.sessionId !== sessionId) return error(404, "NOT_FOUND", "Session not found");
+    const acting = await account(caller.userId);
+    const denied = await authorizeRemoteControl(acting, sessionId);
+    if (denied) return error(statuses[denied.code], denied.code, denied.error);
+    const session = await acting.sessions.load(sessionId);
+    return Response.json(
+      { sessionId, title: session.name, assembly: session.snapshot.browser.assembly },
+      { headers: noStore },
+    );
+  } catch (cause) {
+    if (cause instanceof SessionError && cause.code === "NOT_FOUND")
+      return error(404, "NOT_FOUND", "Session not found");
+    console.error("Agent context request failed", cause);
+    return error(503, "UNAVAILABLE", "The agent's session context is unavailable");
+  }
 }

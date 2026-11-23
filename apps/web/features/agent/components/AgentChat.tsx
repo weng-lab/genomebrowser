@@ -71,6 +71,13 @@ function Conversation({
   const busy = agent.status !== "idle";
   // Catching up on a saved conversation blocks sending but is not work to stop.
   const running = agent.status === "busy" || activeTurn(agent.view) !== undefined;
+  const conversationId = agent.session?.sessionId;
+
+  /** End this conversation in Eve and start the session's thread clean. */
+  async function startOver(id: string) {
+    await agent.store.end().catch(() => {});
+    await replace(id);
+  }
 
   // Switching sessions or leaving the page stops a run, so ask first.
   useHoldSession(
@@ -243,6 +250,18 @@ function Conversation({
             <Typography component="output" variant="body2" color="text.secondary">
               Working…
             </Typography>
+          )}
+          {conversationId && !busy && !running && (
+            <Button
+              size="small"
+              sx={{ ml: "auto" }}
+              onClick={() => {
+                setFailure(undefined);
+                startOver(conversationId).catch(report);
+              }}
+            >
+              New conversation
+            </Button>
           )}
         </Stack>
       </Box>

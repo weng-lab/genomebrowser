@@ -355,6 +355,45 @@ describe.skipIf(!available)("Eve agent chat", () => {
     await vi.waitFor(() => expect(leaving()).toBe(false), { timeout: 15_000 });
   }, 30_000);
 
+  it("starts a clean conversation on request, still knowing its session", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    const { conversationId: first } = await thread();
+    await act(async () =>
+      [...document.querySelectorAll("button")]
+        .find((button) => button.textContent === "New conversation")!
+        .click(),
+    );
+    await vi.waitFor(async () => expect(await thread()).toEqual({ conversationId: null }), {
+      timeout: 15_000,
+    });
+    await vi.waitFor(() =>
+      expect(document.querySelector('[role="log"]')?.textContent).not.toContain("hello"),
+    );
+
+    await send("what do you know");
+    await vi.waitFor(
+      () => {
+        const log = document.querySelector('[role="log"]')?.textContent;
+        expect(log).toContain("<session>");
+        expect(log).toContain(sessionId);
+        expect(log).toContain("hg38");
+      },
+      { timeout: 15_000 },
+    );
+    // Nothing of the earlier conversation carries over.
+    expect(document.querySelector('[role="log"]')?.textContent).not.toContain(
+      "Hello from the genome browser agent.",
+    );
+    expect((await thread()).conversationId).not.toBe(first);
+  }, 50_000);
+
   it("reopens the session's thread after the panel remounts", async () => {
     probe = await renderWithProbe(
       <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
