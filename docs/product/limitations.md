@@ -8,7 +8,7 @@ These are current implementation constraints and deployment gaps. They do not re
 - A Clerk development instance keeps each site's sign-in separately, so every new preview deployment URL starts signed out.
 - App account controls save or ask the user to discard before changing accounts. External account changes, such as another tab signing out or the Clerk session ending, may discard unsaved state. Old credentials cannot save it, and a new account must not see it. Clerk multi-session switching is not offered.
 - Cloud SQL connections from Vercel are unverified against a deployment. Preview and Production share development resources; see [production deployment](production.md). Each server process holds up to five connections; validate the instance's connection limit against expected concurrency before production deployment.
-- MCP accepts the session owner's Clerk session token or a Clerk-issued OAuth access token. OAuth discovery and onboarding for external clients are not built yet, so outside automated tests a client needs a token obtained separately. Remote control and MCP on a deployment are unverified against a hosted Redis.
+- MCP accepts the session owner's Clerk session token, a Clerk-issued OAuth access token, or a short-lived token Eve issues for one session. OAuth discovery and onboarding for external clients are not built yet, so outside automated tests a client needs a token obtained separately. Remote control and MCP on a deployment are unverified against a hosted Redis.
 - Next.js binds to `localhost` for Clerk request handling. This can resolve only to `::1`, so IPv4 clients or SSH forwarding to `127.0.0.1` may fail. Use the documented localhost URL and check the listening address before configuring a tunnel.
 
 ## Session behavior
@@ -27,5 +27,12 @@ These are current implementation constraints and deployment gaps. They do not re
 - Cancellation is cooperative: the tab stops a command that is still running, but a change already applied stays.
 - A timeout or disconnect can occur after a command changed the stores but before its reply arrived. A failed call does not prove that nothing changed.
 - A terminal save failure, such as deletion elsewhere, disables MCP for that session. Remote control resumes when the next session opens. Refused edits that a further edit can fix do not end the attachment.
+
+## Agent panel
+
+- Agent conversations are ephemeral: reloading the page or switching sessions starts a new conversation. The [agent panel PRD](agent-panel-prd.md) plans persistent per-session threads.
+- A conversation's access binding expires 24 hours after it was created. Later requests on that conversation are refused until the panel starts a new one.
+- Only the first tab attached to a session receives agent commands. Another tab is refused until the first one closes.
+- Locally, the model comes from a provider key or Eve's own sign-in; on Vercel it comes from AI Gateway. The app and agent code paths are otherwise the same.
 
 [Back to app direction](README.md)
