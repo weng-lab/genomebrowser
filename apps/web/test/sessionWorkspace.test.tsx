@@ -42,6 +42,11 @@ async function deleteSession(name: string) {
   await click(button(`Actions for session ${name}`));
   await click(actionItem("Delete"));
 }
+/** Confirm the open "Save a copy" dialog, bringing the agent's conversation when asked. */
+async function confirmCopy({ bringAgent = false } = {}) {
+  if (bringAgent) await click(withText('[role="dialog"] label', "Bring the agent's conversation"));
+  await click(withText('[role="dialog"] button', "Save a copy"));
+}
 const menuItem = (label: string) =>
   [...document.querySelectorAll<HTMLElement>('[role="presentation"] [role="button"]')].find(
     (item) => item.textContent === label,
@@ -437,6 +442,7 @@ it("copies the open session with its unsaved edits and opens the copy", async ()
   await openSessions();
   await click(button("Actions for session Alpha"));
   await click(actionItem("Save a copy"));
+  await confirmCopy();
   save.release();
   await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
   const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
@@ -456,6 +462,36 @@ it("copies the open session with its unsaved edits and opens the copy", async ()
   expect(server.stored.get(alpha)!.snapshot).toEqual(original);
 });
 
+it("brings the agent's conversation into a copy when asked", async () => {
+  const alpha = server.add("Alpha", customized("chr2"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  await confirmCopy({ bringAgent: true });
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+  const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+  await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull());
+  const copied = server.agentThread.mock.calls.find(([url]) => url.endsWith("/agent-thread/copy"));
+  expect(copied?.[0]).toBe(`/api/sessions/${copy}/agent-thread/copy`);
+  expect(JSON.parse(copied?.[1].body as string)).toEqual({ from: alpha });
+});
+
+it("leaves the agent behind in a copy by default", async () => {
+  const alpha = server.add("Alpha", customized("chr2"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  await confirmCopy();
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+  expect(server.agentThread.mock.calls.some(([url]) => url.endsWith("/agent-thread/copy"))).toBe(
+    false,
+  );
+});
+
 it("copies a saved session that is not open and opens the copy", async () => {
   const alpha = server.add("Alpha", defaults());
   const beta = server.add("Beta", customized("chr3"));
@@ -465,6 +501,7 @@ it("copies a saved session that is not open and opens the copy", async () => {
   await openSessions();
   await click(button("Actions for session Beta"));
   await click(actionItem("Save a copy"));
+  await confirmCopy();
   await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
   const copy = [...server.stored.keys()].find((id) => id !== alpha && id !== beta)!;
   expect(route.pathname()).toBe(`/browser/${copy}`);
@@ -491,6 +528,7 @@ it.each(["saved elsewhere", "deleted elsewhere"])(
     await openSessions();
     await click(button("Actions for session Alpha"));
     await click(actionItem("Save a copy"));
+    await confirmCopy();
     await click(button("Pan right"));
     const edited = region();
     creating.release();
@@ -516,6 +554,7 @@ it("keeps the open session's edits when it cannot be reached to copy it", async 
   await openSessions();
   await click(button("Actions for session Alpha"));
   await click(actionItem("Save a copy"));
+  await confirmCopy();
   await act(async () => save.fail());
   await vi.waitFor(() =>
     expect(text()).toContain("Could not save “Alpha”. Its changes are kept here."),

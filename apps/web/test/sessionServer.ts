@@ -85,8 +85,10 @@ export function installSessionServer() {
      */
     files: new Map<string, Uint8Array | number | "silent">(),
     /** Answers agent thread requests; by default no session has a conversation yet. */
-    agentThread: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
-      Response.json({ conversationId: null }),
+    agentThread: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async (url) =>
+      url.endsWith("/agent-thread")
+        ? Response.json({ conversationId: null, idle: false, summarized: false })
+        : new Response(null, { status: 204 }),
     ),
     /** Answers command results that tabs post for remote control. */
     replies: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
@@ -191,7 +193,7 @@ export function installSessionServer() {
     if (file !== undefined) return serveFile(file, init);
     const url = new URL(input, "http://localhost");
     if (/^\/api\/sessions\/[^/]+\/commands$/.test(url.pathname)) return server.replies(input, init);
-    if (/^\/api\/sessions\/[^/]+\/agent-thread$/.test(url.pathname))
+    if (/^\/api\/sessions\/[^/]+\/agent-thread(\/[a-z]+)?$/.test(url.pathname))
       return server.agentThread(input, init);
     if (url.pathname === "/api/account/agent-preferences") {
       const owner = server.user;

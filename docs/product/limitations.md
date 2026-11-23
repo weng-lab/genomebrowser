@@ -31,6 +31,7 @@ These are current implementation constraints and deployment gaps. They do not re
 ## Agent panel
 
 - An idle thread rolls over only when its session's panel opens with the tab connected; until then the user sees "Summarizing the earlier conversation…". A conversation Eve no longer has, such as one that expired after 30 idle days, starts a new thread without a summary of it.
+- "Save a copy" with the agent's conversation gives the copy the original's summary plus its current conversation's text, up to the last 80 messages or 20,000 characters. Tool calls and their results are left out, and the copy's agent starts a new conversation with that as background.
 - The summary is only as good as the agent's last turn makes it. If writing it fails, the thread still rolls over and the earlier summary stays.
 - Two tabs that send a session's first message at the same moment can each start a conversation. The app keeps the first one and ends the other; the second tab must reload to continue the session's thread.
 - Only the first tab attached to a session receives agent commands. Another tab is refused until the first one closes.

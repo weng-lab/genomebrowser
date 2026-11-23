@@ -29,6 +29,11 @@ type BindDependencies = ThreadDependencies & {
 };
 
 const conversationSchema = z.object({ conversationId: z.string().min(1).max(200) });
+const copySchema = z.strictObject({
+  from: sessionIdSchema,
+  /** The source's current conversation in words, at most about 20,000 characters. */
+  transcript: z.string().trim().min(1).max(24_000).optional(),
+});
 const rolloverSchema = conversationSchema.extend({
   /** About 2,500 words of session history plus the latest thread's detail. */
   summary: z.string().trim().min(1).max(40_000).optional(),
@@ -284,4 +289,27 @@ export async function readAgentContext(
     console.error("Agent context request failed", cause);
     return error(503, "UNAVAILABLE", "The agent's session context is unavailable");
   }
+}
+
+/**
+ * Start a copied session's agent thread from its source's: the source's summary
+ * and its current conversation in words. Refused with 409 once the copy's
+ * thread has started.
+ */
+export function copyAgentThread(
+  request: Request,
+  sessionId: string,
+  { account, threads }: ThreadDependencies,
+) {
+  return authorized(sessionId, account, async () => {
+    const { body, failed } = await jsonBody(request, 65_536);
+    if (failed) return failed;
+    const input = copySchema.safeParse(body);
+    if (!input.success) return error(400, "INVALID_INPUT", "Invalid thread copy");
+    const denied = await authorizeRemoteControl(await account(), input.data.from);
+    if (denied) return error(statuses[denied.code], denied.code, denied.error);
+    if (!(await (await threads()).copy(input.data.from, sessionId, input.data.transcript)))
+      return error(409, "CONFLICT", "This session's agent thread has already started");
+    return new Response(null, { status: 204, headers: noStore });
+  });
 }

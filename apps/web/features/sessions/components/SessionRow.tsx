@@ -16,6 +16,7 @@ import { useId, useState } from "react";
 import type { SessionState } from "../session";
 import { formatSavedAt, formatTrackCount } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
+import { CopySessionDialog } from "./CopySessionDialog";
 
 type SessionRowProps = {
   id: string;
@@ -76,9 +77,9 @@ export function SessionRow({ id, now, onOpen }: SessionRowProps) {
 /** A session's more-actions button and the menu it opens: save a copy and delete. */
 function SessionActions({ id, name }: { id: string; name: string | undefined }) {
   const busy = useSession((session) => session.pending !== undefined);
-  const copy = useSession((session) => session.copy);
   const remove = useSession((session) => session.remove);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [copying, setCopying] = useState(false);
   const menuId = useId();
   const label = `Actions for session ${name}`;
   const close = () => setAnchor(null);
@@ -110,8 +111,7 @@ function SessionActions({ id, name }: { id: string; name: string | undefined }) 
         <MenuItem
           onClick={() => {
             close();
-            // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
-            void copy(id);
+            setCopying(true);
           }}
         >
           <ListItemIcon>
@@ -133,6 +133,12 @@ function SessionActions({ id, name }: { id: string; name: string | undefined }) 
           <ListItemText primary="Delete" />
         </MenuItem>
       </Menu>
+      <CopySessionDialog
+        id={id}
+        name={name ?? "this session"}
+        open={copying}
+        onClose={() => setCopying(false)}
+      />
     </>
   );
 }

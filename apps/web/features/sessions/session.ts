@@ -44,8 +44,9 @@ export type SessionState = {
    * Save a copy of a session, named “Copy of” its name, then open the copy like `open`.
    * A copy of the active session includes its unsaved edits. When they can no longer
    * be saved to it, such as after a conflict or deletion elsewhere, they move to the copy.
+   * Resolves to the copy's ID once it is saved, or undefined when it could not be.
    */
-  copy(id: string): Promise<void>;
+  copy(id: string): Promise<string | undefined>;
   /** Rename the active session. The name saves with its next autosave. */
   rename(name: string): void;
   overwrite(): Promise<void>;
@@ -354,6 +355,7 @@ export function createSession({
         saveError = `“${createdName}” was created but not opened: “${get().active?.name}” could not be saved. Its changes are kept here.`;
         set({ error: saveError });
       }
+      return id;
     });
 
   function open(id: string): Promise<void> {
@@ -413,7 +415,8 @@ export function createSession({
     return run(exclusive({ operation: "create" }, operation))?.done ?? Promise.resolve();
   }
 
-  function copy(id: string): Promise<void> {
+  function copy(id: string): Promise<string | undefined> {
+    let copied: string | undefined;
     const operation = Effect.gen(function* () {
       const active = get().active;
       let source: { name: string; snapshot: SessionSnapshot };
@@ -453,7 +456,7 @@ export function createSession({
       } catch {
         return set({ error: "This session's saved state cannot be copied." });
       }
-      yield* createAndOpen(
+      const created = yield* createAndOpen(
         copyName(source.name),
         stores,
         (error) =>
@@ -462,8 +465,10 @@ export function createSession({
             : `Could not copy “${source.name}”. Try again.`,
         { takeOver },
       );
+      if (typeof created === "string") copied = created;
     });
-    return run(exclusive({ operation: "copy", id }, operation))?.done ?? Promise.resolve();
+    const done = run(exclusive({ operation: "copy", id }, operation))?.done ?? Promise.resolve();
+    return done.then(() => copied);
   }
 
   function rename(name: string): void {

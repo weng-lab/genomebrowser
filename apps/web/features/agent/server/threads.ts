@@ -44,6 +44,13 @@ export type AgentThreads = {
    * changing nothing, when the session's current conversation is another.
    */
   rollOver(sessionId: string, conversationId: string, summary?: string): Promise<boolean>;
+  /**
+   * Start `copyId`'s thread from `sourceId`'s: its summary, followed by
+   * `transcript`, the source's current conversation in words. Returns false,
+   * changing nothing, unless the acting user owns both and the copy's thread has
+   * not started.
+   */
+  copy(sourceId: string, copyId: string, transcript: string | undefined): Promise<boolean>;
 };
 
 /** Whether PostgreSQL refused a write for breaking a unique constraint. */
@@ -158,6 +165,49 @@ export function createAgentThreads({
 
     async touch(sessionId, conversationId) {
       await whileCurrent(sessionId, conversationId, { lastActiveAt: sql`now()` });
+    },
+
+    async copy(sourceId, copyId, transcript) {
+      const [source, target] = await Promise.all([owned(sourceId), owned(copyId)]);
+      if (!source || !target || sourceId === copyId) return false;
+      const existing = await row(copyId);
+      if (existing?.conversationId || existing?.summary) return false;
+      const [from] = await db
+        .select({ id: sessionsTable.id, summary: agentThreadsTable.summary })
+        .from(sessionsTable)
+        .leftJoin(agentThreadsTable, eq(agentThreadsTable.sessionId, sessionsTable.id))
+        .where(source);
+      if (!from) return false;
+      const parts = [
+        from.summary,
+        transcript &&
+          `The latest conversation in the session this one was copied from, word for word:\n${transcript}`,
+      ].filter(Boolean);
+      if (parts.length === 0) return true;
+      const summary = parts.join("\n\n");
+      await db
+        .insert(agentThreadsTable)
+        .select(
+          db
+            .select({
+              sessionId: sessionsTable.id,
+              conversationId: sql<null>`null`.as("conversation_id"),
+              summary: sql<string>`${summary}`.as("summary"),
+              lastActiveAt: sql<Date>`now()`.as("last_active_at"),
+              createdAt: sql<Date>`now()`.as("created_at"),
+            })
+            .from(sessionsTable)
+            .where(target),
+        )
+        .onConflictDoUpdate({
+          target: agentThreadsTable.sessionId,
+          set: { summary },
+          setWhere: and(
+            isNull(agentThreadsTable.conversationId),
+            isNull(agentThreadsTable.summary),
+          ),
+        });
+      return (await row(copyId))?.summary === summary;
     },
 
     rollOver(sessionId, conversationId, summary) {

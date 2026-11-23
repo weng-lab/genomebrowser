@@ -17,6 +17,7 @@ const agentAuth = await import("../app/api/sessions/[id]/agent-auth/route");
 const agentThread = await import("../app/api/sessions/[id]/agent-thread/route");
 const agentRollover = await import("../app/api/sessions/[id]/agent-thread/rollover/route");
 const agentContext = await import("../app/api/sessions/[id]/agent-context/route");
+const agentCopy = await import("../app/api/sessions/[id]/agent-thread/copy/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
@@ -436,6 +437,53 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     await sessionById.DELETE(new Request(`http://localhost/api/sessions/${id}`), params(id));
     expect((await auth("?control=stop&conversation=conversation-c")).status).toBe(403);
     expect((await bind("conversation-d")).status).toBe(404);
+  });
+
+  it("starts a copy's agent thread from its source's summary and conversation", async () => {
+    const source = await createSession("user_alice");
+    const copy = await createSession("user_alice");
+    const bobs = await createSession("user_bob");
+    await signIn("user_alice");
+    const proof = await issueBindProof("user_alice", source, "conversation-source");
+    await agentThread.POST(
+      new Request(`http://localhost/api/sessions/${source}/agent-thread`, {
+        method: "POST",
+        headers: { "x-genomebrowser-bind-proof": proof },
+        body: JSON.stringify({ conversationId: "conversation-source" }),
+      }),
+      params(source),
+    );
+    await agentRollover.POST(
+      new Request(`http://localhost/api/sessions/${source}/agent-thread/rollover`, {
+        method: "POST",
+        body: JSON.stringify({ conversationId: "conversation-source", summary: "Looked at TP53." }),
+      }),
+      params(source),
+    );
+    const copyThread = (target: string, body: unknown) =>
+      agentCopy.POST(
+        new Request(`http://localhost/api/sessions/${target}/agent-thread/copy`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+        params(target),
+      );
+    // Only sessions the user owns, in either role.
+    expect((await copyThread(copy, { from: bobs })).status).toBe(404);
+    expect((await copyThread(bobs, { from: source })).status).toBe(404);
+    expect((await copyThread(copy, { from: source, transcript: "User: hi" })).status).toBe(204);
+    // Once started, a copy's thread cannot be replaced.
+    expect((await copyThread(copy, { from: source })).status).toBe(409);
+    const { token } = await issueCommandCredential("user_alice", copy);
+    const context = await agentContext.GET(
+      new Request(`http://localhost/api/sessions/${copy}/agent-context`, {
+        headers: { authorization: `Bearer ${token}` },
+      }),
+      params(copy),
+    );
+    const { summary } = (await context.json()) as { summary: string };
+    expect(summary).toContain("Looked at TP53.");
+    expect(summary).toContain("User: hi");
   });
 
   it("gives Eve its session's facts and summary only with that session's scoped credential", async () => {
