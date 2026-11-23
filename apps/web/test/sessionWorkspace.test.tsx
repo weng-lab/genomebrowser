@@ -204,6 +204,14 @@ it("lists the open session and the three most recently saved others", async () =
   ids.forEach((id, index) => (server.stored.get(id)!.updatedAt = day(index + 1)));
   await visit(`/browser/${ids[0]}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  // The left panel's session card shows the same details from its info button.
+  await vi.waitFor(() => expect(button("Session details")).not.toBeNull());
+  await click(button("Session details"));
+  await vi.waitFor(() =>
+    expect(document.querySelector('[role="tooltip"]')?.textContent).toMatch(
+      /^Assemblyhg38Modified.+Tracks3 tracks$/,
+    ),
+  );
   await openSessions();
   expect(sessionNames()).toEqual(["Alpha", "Epsilon", "Delta", "Gamma"]);
   const current = document.querySelector('[role="presentation"] nav [aria-current="page"]');

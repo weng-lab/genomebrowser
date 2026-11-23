@@ -70,7 +70,7 @@ it("retains panel state across page remounts and resets them with the workspace"
     );
     expect(getComputedStyle(container.querySelector("#left-panel")!).width).toBe("480px");
     render("a", "fresh-workspace");
-    expect(handle().getAttribute("aria-valuenow")).toBe("240");
+    expect(handle().getAttribute("aria-valuenow")).toBe("300");
   } finally {
     act(() => root.unmount());
     container.remove();

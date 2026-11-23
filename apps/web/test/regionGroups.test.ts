@@ -19,12 +19,23 @@ function setup(ids = ["a", "b", "c"]) {
   const actions = stores.useRegionGroupStore.getState();
   /** Makes a group around `regionId` and returns its ID. */
   const newGroup = (regionId: string, name: string, color = "#1a73e8") => {
-    const result = actions.addToNewGroup(regionId, { name, color });
+    const result = actions.createGroup({ name, color }, [regionId]);
     if (!result.ok) throw new Error(result.error);
     return result.id;
   };
   return { ...actions, stores, groups, members, newGroup };
 }
+
+it("makes a group around several regions, taking them from their groups", () => {
+  const { members, newGroup, createGroup } = setup();
+  newGroup("a", "First");
+  const result = createGroup({ name: "Both", color: null }, ["c", "a", "c"]);
+  expect(result).toMatchObject({ ok: true });
+  expect(members()).toEqual([
+    ["First", []],
+    ["Both", ["c", "a"]],
+  ]);
+});
 
 it("keeps each region in at most one group as regions are added and moved", () => {
   const { groups, members, newGroup, addToGroup, removeFromGroup } = setup();
@@ -37,16 +48,50 @@ it("keeps each region in at most one group as regions are added and moved", () =
   ]);
   expect(groups()[0]).toMatchObject({ id: first, color: "#1a73e8", collapsed: false });
 
-  // A new group takes its region from the old one, and a group left empty is deleted.
+  // A new group takes its region from the old one, and a group left empty stays.
   addToGroup("c", first);
-  expect(members()).toEqual([["First", ["a", "b", "c"]]]);
+  expect(members()).toEqual([
+    ["First", ["a", "b", "c"]],
+    ["Second", []],
+  ]);
   newGroup("b", "Third", "#f9ab00");
   expect(members()).toEqual([
     ["First", ["a", "c"]],
+    ["Second", []],
     ["Third", ["b"]],
   ]);
   expect(removeFromGroup("b")).toEqual({ ok: true });
-  expect(members()).toEqual([["First", ["a", "c"]]]);
+  expect(members()).toEqual([
+    ["First", ["a", "c"]],
+    ["Second", []],
+    ["Third", []],
+  ]);
+});
+
+it("makes empty groups, with a color or none, that regions join later", () => {
+  const { stores, groups, members, createGroup, addToGroup, deleteGroup, deleteAll } = setup();
+  const result = createGroup({ name: "Later", color: null });
+  if (!result.ok) throw new Error(result.error);
+  expect(groups()).toEqual([
+    { id: result.id, name: "Later", color: null, collapsed: false, regionIds: [] },
+  ]);
+  expect(createGroup({ name: "", color: "#1a73e8" })).toMatchObject({ code: "INVALID_GROUP" });
+  expect(createGroup({ name: "Red", color: "red" })).toMatchObject({ code: "INVALID_GROUP" });
+
+  expect(addToGroup("a", result.id)).toEqual({ ok: true });
+  const other = createGroup({ name: "Other", color: "#1a73e8" });
+  expect(members()).toEqual([
+    ["Later", ["a"]],
+    ["Other", []],
+  ]);
+  if (!other.ok) throw new Error(other.error);
+  expect(deleteGroup(other.id)).toEqual({ ok: true });
+  expect(members()).toEqual([["Later", ["a"]]]);
+
+  // Deleting all removes every group and every region's highlight.
+  deleteAll();
+  expect(groups()).toEqual([]);
+  expect(stores.useBrowserStore.getState().highlights).toEqual([]);
 });
 
 it("moves a region into a new group in one update", () => {
@@ -55,7 +100,7 @@ it("moves a region into a new group in one update", () => {
   const seen: RegionGroup[][] = [];
   stores.useRegionGroupStore.subscribe((state) => seen.push(state.groups));
   newGroup("a", "Second");
-  expect(seen.map((groups) => groups.map(({ name }) => name))).toEqual([["Second"]]);
+  expect(seen.map((groups) => groups.map(({ name }) => name))).toEqual([["First", "Second"]]);
   expect(seen[0]).toBe(groups());
 });
 
@@ -70,11 +115,11 @@ it("rejects unknown groups and regions and invalid groups without changing state
   });
   expect(actions.addToGroup("a", "no-such-group")).toMatchObject({ code: "GROUP_NOT_FOUND" });
   expect(actions.addToGroup("missing", first)).toMatchObject({ code: "REGION_NOT_FOUND" });
-  expect(actions.addToNewGroup("missing", { name: "Lost", color: "#1a73e8" })).toMatchObject({
+  expect(actions.createGroup({ name: "Lost", color: "#1a73e8" }, ["b", "missing"])).toMatchObject({
     ok: false,
     code: "REGION_NOT_FOUND",
   });
-  expect(actions.addToNewGroup("b", { name: "Red", color: "red" })).toMatchObject({
+  expect(actions.createGroup({ name: "Red", color: "red" }, ["b"])).toMatchObject({
     code: "INVALID_GROUP",
   });
   expect(actions.editGroup(first, { name: "First", color: "red" })).toMatchObject({
@@ -114,7 +159,7 @@ it("keeps a renamed region's ID and group, and follows removed or cleared highli
   browser().removeHighlight("a");
   expect(members()).toEqual([["First", ["b"]]]);
   browser().clearHighlights();
-  expect(members()).toEqual([]);
+  expect(members()).toEqual([["First", []]]);
 });
 
 it("drops a replaced highlight from its group, never moving another into it", () => {
@@ -124,7 +169,10 @@ it("drops a replaced highlight from its group, never moving another into it", ()
   const [, b] = stores.useBrowserStore.getState().highlights;
   const c = { id: "c", region: { chromosome: "chr1", start: 500, end: 600 }, color: "#000000" };
   stores.useBrowserStore.setState({ highlights: [b, c] });
-  expect(members()).toEqual([["G2", ["b"]]]);
+  expect(members()).toEqual([
+    ["G1", []],
+    ["G2", ["b"]],
+  ]);
 });
 
 it("ungroups a group's regions, or deletes them with it in one update", () => {
@@ -164,7 +212,7 @@ it("edits and collapses groups, and saves and restores them with the session", (
   expect(sessionSnapshotSchema.parse(older).regionGroups).toEqual([]);
 });
 
-it("cleans up stale, repeated, and empty group members when a session loads", () => {
+it("cleans up stale and repeated group members when a session loads, keeping empty groups", () => {
   const saved = snapshot(setup().stores);
   const group = (id: string, regionIds: string[]) => ({
     id,
@@ -186,6 +234,8 @@ it("cleans up stale, repeated, and empty group members when a session loads", ()
   expect(restored.useRegionGroupStore.getState().groups).toEqual([
     group("stale", ["a"]),
     group("repeated", ["b"]),
+    group("empty", []),
+    group("allGone", []),
   ]);
 });
 
@@ -197,11 +247,16 @@ it("rejects saved groups with colors the panel cannot draw", () => {
     sessionSnapshotSchema.safeParse({ ...saved, regionGroups: [{ ...group, color: "#D93025" }] })
       .success,
   ).toBe(true);
+  // A group with no color is drawn neutral.
+  expect(
+    sessionSnapshotSchema.safeParse({ ...saved, regionGroups: [{ ...group, color: null }] })
+      .success,
+  ).toBe(true);
 });
 
-it("names and colors new groups in turn", () => {
-  expect(newGroupDefaults([])).toEqual({ name: "Group 1", color: "#1a73e8" });
+it("names and colors new groups in turn, starting from blue", () => {
+  expect(newGroupDefaults([])).toEqual({ name: "Group 1", color: "#1f6fe5" });
   const { groups, newGroup } = setup();
   newGroup("a", "Group 2");
-  expect(newGroupDefaults(groups())).toEqual({ name: "Group 3", color: "#d93025" });
+  expect(newGroupDefaults(groups())).toEqual({ name: "Group 3", color: "#c8362b" });
 });

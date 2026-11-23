@@ -24,6 +24,7 @@ import {
   type TrackStoreInstance,
 } from "@weng-lab/genomebrowser";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { isHexColor } from "../../../shared/ui/color";
 import { parseCustomTracks, sortByPriority, type LineError } from "../customTracks";
 import {
   addTracksFromUrls,
@@ -82,7 +83,6 @@ type Row = {
   failure?: string;
 };
 
-const hexColor = /^#[0-9a-f]{6}$/i;
 // Empty text means no choice, so the file or the type decides.
 const optionalText = (value: string) => value.trim() || undefined;
 // Far more than the URLs and track lines of a session's most tracks.
@@ -477,7 +477,7 @@ type ColorFieldProps = {
 
 /** A track's color, typed as `#RRGGBB` or picked. */
 function ColorField({ trackName, color, fallback, effect, disabled, onChange }: ColorFieldProps) {
-  const picked = color && hexColor.test(color) ? color : (fallback ?? "#000000");
+  const picked = color && isHexColor(color) ? color : (fallback ?? "#000000");
   return (
     <TextField
       size="small"
