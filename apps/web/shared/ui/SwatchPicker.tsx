@@ -92,7 +92,8 @@ export function SwatchPicker({
           onKeyDown={(event) => handleKeyDown(event, index)}
           sx={[swatchSx, ringSx(index === checked, option.value), kindSx(option)]}
         >
-          {option.kind === "custom" && !isCustom ? <Add sx={{ fontSize: 18 }} /> : null}
+          {/* The + stays on a chosen custom color, which opens the picker again. */}
+          {option.kind === "custom" ? <Add sx={{ fontSize: 18 }} /> : null}
         </ButtonBase>
       ))}
       {allowCustom ? (
@@ -136,6 +137,14 @@ function ringSx(chosen: boolean, color: string | null) {
 function kindSx(option: { kind: "none" | "color" | "custom"; value: string | null }) {
   if (option.kind === "none")
     return { border: 2, borderStyle: "dotted", borderColor: "text.secondary" };
+  // A chosen custom color: its + in whichever of black or white reads on it.
+  if (option.kind === "custom" && option.value !== null) {
+    const color = option.value;
+    return {
+      bgcolor: color,
+      color: (theme: Theme) => theme.palette.getContrastText(color),
+    };
+  }
   if (option.value !== null) return { bgcolor: option.value };
   // The + before a custom color is chosen: an outlined circle.
   return { border: 1.5, borderColor: "text.secondary", color: "text.secondary" };
