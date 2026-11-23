@@ -9,6 +9,9 @@ import { activeTurn } from "eve/events";
  * the browser session aborts or the component unmounts, keeping observation
  * open until cancellation settles so pending submissions are not stranded.
  */
+/** How long an unmounted panel keeps its stream open for Stop to reach a turn that is starting. */
+const stopWaitMs = 10_000;
+
 export function useAgentSession(sessionId: string, signal: AbortSignal) {
   const [store] = useState(
     () => new SessionStore({ headers: { "x-genomebrowser-session-id": sessionId } }),
@@ -35,12 +38,16 @@ export function useAgentSession(sessionId: string, signal: AbortSignal) {
       signal.removeEventListener("abort", stop);
       stop();
       // cancel() may await a pending send's acceptance and turn.started event.
-      // Detaching first aborts that wait and leaves server work running.
-      if (stopping) {
-        stopping.then(release, release).catch(() => {});
-      } else {
-        release();
-      }
+      // Detaching first aborts that wait and leaves server work running, so keep
+      // observing until it settles, but no longer than the bound.
+      if (!stopping) return release();
+      const bound = setTimeout(release, stopWaitMs);
+      stopping
+        .finally(() => {
+          clearTimeout(bound);
+          release();
+        })
+        .catch(() => {});
     };
   }, [store, signal]);
 

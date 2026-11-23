@@ -8,7 +8,10 @@ import { getVercelOidcToken } from "@vercel/oidc";
  * browser tabs or credentials.
  */
 export function agentRedisNamespace(env: NodeJS.ProcessEnv = process.env) {
-  return `gb:${env.VERCEL_DEPLOYMENT_ID ?? env.VERCEL_URL ?? env.GB_AGENT_NAMESPACE ?? "local"}`;
+  const namespace = [env.VERCEL_DEPLOYMENT_ID, env.VERCEL_URL, env.GB_AGENT_NAMESPACE]
+    .map((value) => value?.trim())
+    .find(Boolean);
+  return `gb:${namespace ?? "local"}`;
 }
 
 /**
