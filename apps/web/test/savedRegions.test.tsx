@@ -283,6 +283,20 @@ it("makes an empty group from the heading, with no color, that regions join and 
     ]),
   );
 
+  // Without a color or regions, the group has none to apply.
+  const applyItem = () =>
+    [...document.querySelectorAll('[role="menuitem"]')].find(
+      (item) => item.textContent === "Apply color to all regions",
+    );
+  await click(container!.querySelector('[aria-label="Actions for group Group 1"]'));
+  expect(applyItem()?.getAttribute("aria-disabled")).toBe("true");
+  await act(async () =>
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    ),
+  );
+  await vi.waitFor(() => expect(applyItem()).toBeUndefined());
+
   await moveTo(first, "Group 1");
   await vi.waitFor(() => expect(groups()[0].regionIds).toEqual(["r1"]));
   await chooseAction(first, "Remove from group");
@@ -314,8 +328,6 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
     [...container!.querySelectorAll(`[aria-label="${name}"] li`)].map(
       (card) => card.querySelector(".MuiListItemText-primary")?.textContent,
     );
-  const dialog = () => document.querySelector('[role="dialog"]')!;
-  const nameField = () => dialog().querySelector("input") as HTMLInputElement;
 
   await moveTo(first, "Move to new group");
   expect(groupName().placeholder).toBe("Group 1 (optional)");
@@ -355,19 +367,23 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   await click(header());
   expect(members("Locus control")).toEqual([first, second]);
 
+  // The group's menu renames and recolors it as they change.
   await click(container!.querySelector('[aria-label="Actions for group Locus control"]'));
-  await click(
-    [...document.querySelectorAll('[role="menuitem"]')].find(
-      (item) => item.textContent === "Edit group",
-    ),
-  );
-  await type(nameField(), "Enhancers");
-  await click(dialog().querySelector('[role="radio"][aria-label="Green"]'));
-  await click(button(dialog(), "Save"));
+  const menu = () => document.querySelector('[role="dialog"][aria-label^="Actions for group"]');
+  const groupNameField = menu()!.querySelector<HTMLInputElement>('input[aria-label="Group name"]')!;
+  expect(document.activeElement).toBe(groupNameField);
+  await type(groupNameField, "Enhancers");
   expect(members("Enhancers")).toEqual([first, second]);
+  await click(menu()!.querySelector('[aria-label="Group color"] [aria-label="Green"]'));
   await vi.waitFor(() =>
     expect(groups()).toEqual([expect.objectContaining({ name: "Enhancers", color: "#2e7d32" })]),
   );
+  // Changing the group's color leaves its regions' highlights alone.
+  expect(saved().highlights.map(({ color }) => color)).toEqual(["#1f6fe5", "#f59e0b"]);
+  await act(async () =>
+    groupNameField.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  await vi.waitFor(() => expect(menu()).toBeNull());
 
   // The group's eye hides and shows all of its highlights.
   const hidden = () => saved().highlights.map((highlight) => highlight.hidden === true);
@@ -396,7 +412,7 @@ async function chooseGroupAction(group: string, action: string) {
   );
 }
 
-it("recolors every highlight in a group, keeping each one's other settings", async () => {
+it("gives every region in a group its color, keeping each one's other settings", async () => {
   await openWithRegions(regionAt("r1", first, "#1976d2"), regionAt("r2", second, "#f59e0b"));
   await moveTo(first, "Move to new group");
   await click(button(groupForm()!, "Create group"));
@@ -405,18 +421,11 @@ it("recolors every highlight in a group, keeping each one's other settings", asy
   await vi.waitFor(() => expect(saved().highlights[1]).toMatchObject({ hidden: true }));
   const before = server.stored.get(id)!.snapshot;
 
-  await chooseGroupAction("Group 1", "Change highlight color");
-  const picker = () => document.querySelector('form[aria-label="Highlight color"]');
-  const input = picker()!.querySelector<HTMLInputElement>("input:not([type='range'])")!;
-  // It starts at the group's color, its hex code in capitals.
-  expect(input.value).toBe("#1F6FE5");
-  await type(input, "00aa66");
-  await click(button(picker()!, "Apply"));
-  await vi.waitFor(() => expect(picker()).toBeNull());
+  await chooseGroupAction("Group 1", "Apply color to all regions");
 
   const recolored = before.browser.highlights.map((highlight) => ({
     ...highlight,
-    color: "#00aa66",
+    color: "#1f6fe5",
   }));
   expect(recolored[1]).toMatchObject({ hidden: true });
   await vi.waitFor(() => expect(saved().highlights).toEqual(recolored));

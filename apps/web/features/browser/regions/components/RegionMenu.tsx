@@ -5,22 +5,19 @@ import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
 import EditNote from "@mui/icons-material/EditNote";
 import Folder from "@mui/icons-material/Folder";
 import FolderOff from "@mui/icons-material/FolderOff";
-import MoreVert from "@mui/icons-material/MoreVert";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MenuList from "@mui/material/MenuList";
-import Popover from "@mui/material/Popover";
-import TextField from "@mui/material/TextField";
 import type { BrowserStoreInstance, Highlight } from "@weng-lab/genomebrowser";
-import { useId, useState } from "react";
-import { SwatchPicker } from "../../../../shared/ui/SwatchPicker";
+import { useState } from "react";
+import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
+import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import type { RegionGroup } from "../regionGroupSchema";
 import { groupColors, type RegionGroupStoreInstance } from "../regionGroups";
 import {
@@ -43,41 +40,10 @@ type RegionMenuProps = {
 
 /** A region's more-actions button, which opens its menu. */
 export function RegionActions(props: RegionMenuProps) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const menuId = useId();
-  const label = `Actions for region ${regionName(props.highlight)}`;
   return (
-    <>
-      <IconButton
-        size="small"
-        aria-label={label}
-        title={label}
-        aria-haspopup="dialog"
-        aria-controls={anchor ? menuId : undefined}
-        aria-expanded={anchor ? "true" : undefined}
-        onClick={(event) => setAnchor(event.currentTarget)}
-      >
-        <MoreVert fontSize="small" />
-      </IconButton>
-      <Popover
-        open={anchor !== null}
-        anchorEl={anchor}
-        onClose={() => setAnchor(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{
-          paper: {
-            id: menuId,
-            role: "dialog",
-            "aria-label": label,
-            sx: { width: 300, borderRadius: 3 },
-          },
-        }}
-      >
-        {/* The popover mounts it only while open, so each opening starts from the region as it is. */}
-        <RegionMenu {...props} opener={anchor} onClose={() => setAnchor(null)} />
-      </Popover>
-    </>
+    <ActionsPopover label={`Actions for region ${regionName(props.highlight)}`}>
+      {(close, opener) => <RegionMenu {...props} opener={opener} onClose={close} />}
+    </ActionsPopover>
   );
 }
 
@@ -99,8 +65,6 @@ function RegionMenu({
   const shownChromosome = useBrowserStore((state) => state.region.chromosome);
   const groups = useRegionGroupStore((state) => state.groups);
   const current = groups.find((group) => group.regionIds.includes(highlight.id));
-  // A draft, so clearing the field keeps the name until a new one is typed.
-  const [name, setName] = useState(() => regionName(highlight));
   const [groupMenu, setGroupMenu] = useState<HTMLElement | null>(null);
   const coordinates = useCoordinates();
   const hidden = highlight.hidden === true;
@@ -129,33 +93,20 @@ function RegionMenu({
 
   return (
     <>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, p: 1.5, pb: 1 }}>
-        <TextField
-          value={name}
-          onChange={(event) => {
-            setName(event.target.value);
-            renameRegion(browserStore, highlight.id, event.target.value);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") onClose();
-          }}
-          placeholder="Region name"
-          size="small"
-          fullWidth
-          // oxlint-disable-next-line jsx-a11y/no-autofocus -- The user's click opened the menu, which starts at the region's name.
-          autoFocus
-          slotProps={{ htmlInput: { "aria-label": "Region name", autoComplete: "off" } }}
-        />
-        <SwatchPicker
-          label="Region color"
-          colors={groupColors}
-          value={hidden ? null : highlight.color}
-          onChange={(color) => setRegionColor(browserStore, highlight.id, color)}
-          allowNone
-          noneLabel="Hidden"
-          allowCustom
-        />
-      </Box>
+      <NameAndColor
+        nameLabel="Region name"
+        initialName={regionName(highlight)}
+        onRename={(name) => renameRegion(browserStore, highlight.id, name)}
+        onDone={onClose}
+        color={{
+          label: "Region color",
+          colors: groupColors,
+          value: hidden ? null : highlight.color,
+          onChange: (color) => setRegionColor(browserStore, highlight.id, color),
+          allowNone: true,
+          noneLabel: "Hidden",
+        }}
+      />
       <Divider />
       <MenuList dense aria-label={`Actions for region ${regionName(highlight)}`}>
         <MenuItem onClick={() => coordinates.open(regionOf(highlight, shownChromosome))}>

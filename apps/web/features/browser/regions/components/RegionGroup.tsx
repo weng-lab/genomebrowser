@@ -1,12 +1,8 @@
 "use client";
 
-import DeleteOutline from "@mui/icons-material/DeleteOutline";
-import EditOutlined from "@mui/icons-material/EditOutlined";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUp from "@mui/icons-material/KeyboardArrowUp";
-import LayersClearOutlined from "@mui/icons-material/LayersClearOutlined";
-import MoreVert from "@mui/icons-material/MoreVert";
-import PaletteOutlined from "@mui/icons-material/PaletteOutlined";
+import Palette from "@mui/icons-material/Palette";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Box from "@mui/material/Box";
@@ -16,17 +12,18 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import MenuList from "@mui/material/MenuList";
+import Divider from "@mui/material/Divider";
 import { alpha, useTheme } from "@mui/material/styles";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
 import { useId, useState, type ReactNode } from "react";
 import type { RegionGroup } from "../regionGroupSchema";
 import { groupColors, type RegionGroupStoreInstance } from "../regionGroups";
 import { setRegionsColor, setRegionsHidden } from "../regions";
-import { ColorPickerPopover } from "../../../../shared/ui/ColorPicker";
+import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
+import { NameAndColor } from "../../../../shared/ui/NameAndColor";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
-import { GroupDialog } from "./GroupDialog";
 
 /** One column that can shrink below the rows' text, so long names and coordinates truncate. */
 export const listSx = {
@@ -248,109 +245,83 @@ function GroupVisibilityButton({
   );
 }
 
-/** A group's more-actions button and menu: edit, change its highlights' color, ungroup, delete. */
+/**
+ * A group's more-actions button and menu: its name and color, which apply as they change,
+ * then giving its regions its color, ungrouping it, and deleting it with its regions.
+ */
 function GroupActions({
   group,
   browserStore,
   regionGroupStore,
 }: Omit<RegionGroupSectionProps, "children">) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  // The actions button, while the highlight color picker is open below it.
-  const [recoloring, setRecoloring] = useState<HTMLElement | null>(null);
-  const menuId = useId();
-  const label = `Actions for group ${group.name}`;
-  const close = () => setAnchor(null);
   const { editGroup, ungroup, deleteGroup } = regionGroupStore.getState();
+  // From the store, so an edit keeps the other field's latest value.
+  const edit = (change: Partial<Pick<RegionGroup, "name" | "color">>) => {
+    const latest = regionGroupStore.getState().groups.find(({ id }) => id === group.id) ?? group;
+    editGroup(group.id, { name: latest.name, color: latest.color, ...change });
+  };
+  const { color } = group;
 
   return (
     <>
-      <IconButton
-        size="small"
-        aria-label={label}
-        title={label}
-        aria-haspopup="menu"
-        aria-controls={anchor ? menuId : undefined}
-        aria-expanded={anchor ? "true" : undefined}
-        onClick={(event) => setAnchor(event.currentTarget)}
-      >
-        <MoreVert fontSize="small" />
-      </IconButton>
-      <Menu
-        id={menuId}
-        anchorEl={anchor}
-        open={anchor !== null}
-        onClose={close}
-        slotProps={{ list: { dense: true, "aria-label": label } }}
-      >
-        <MenuItem
-          onClick={() => {
-            close();
-            setEditing(true);
-          }}
-        >
-          <ListItemIcon>
-            <EditOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Edit group" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            setRecoloring(anchor);
-          }}
-        >
-          <ListItemIcon>
-            <PaletteOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Change highlight color" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            ungroup(group.id);
-          }}
-        >
-          <ListItemIcon>
-            <LayersClearOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Ungroup" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            setDeleting(true);
-          }}
-          sx={{ color: "error.main" }}
-        >
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <DeleteOutline fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Delete group" />
-        </MenuItem>
-      </Menu>
-      <GroupDialog
-        open={editing}
-        title="Edit group"
-        submitLabel="Save"
-        initial={group}
-        onSubmit={(edit) => editGroup(group.id, edit)}
-        onClose={() => setEditing(false)}
-      />
-      <ColorPickerPopover
-        anchor={recoloring}
-        // The group's color, so matching it is a single Apply.
-        initialColor={group.color ?? groupColors[1].color}
-        label="Highlight color"
-        onApply={(color) => setRegionsColor(browserStore, group.regionIds, color)}
-        onClose={() => setRecoloring(null)}
-      />
+      <ActionsPopover label={`Actions for group ${group.name}`}>
+        {(close) => (
+          <>
+            <NameAndColor
+              nameLabel="Group name"
+              initialName={group.name}
+              onRename={(name) => edit({ name })}
+              onDone={close}
+              color={{
+                label: "Group color",
+                colors: groupColors,
+                value: color,
+                onChange: (next) => edit({ color: next }),
+                allowNone: true,
+              }}
+            />
+            <MenuList dense aria-label={`Actions for group ${group.name}`} sx={{ pt: 0 }}>
+              <MenuItem
+                // Without a color, or regions to take it, there is nothing to apply.
+                disabled={color === null || group.regionIds.length === 0}
+                onClick={() => {
+                  close();
+                  if (color) setRegionsColor(browserStore, group.regionIds, color);
+                }}
+              >
+                <ListItemIcon>
+                  <Palette fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Apply color to all regions" />
+              </MenuItem>
+              <Divider />
+              <MenuItem
+                onClick={() => {
+                  close();
+                  ungroup(group.id);
+                }}
+              >
+                <ListItemText primary="Ungroup" />
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  close();
+                  setDeleting(true);
+                }}
+                sx={{ color: "error.main" }}
+              >
+                <ListItemText primary="Delete group and regions" />
+              </MenuItem>
+            </MenuList>
+          </>
+        )}
+      </ActionsPopover>
       <ConfirmDeleteDialog
         open={deleting}
         title={`Delete “${group.name}”?`}
         text="The group and every region in it, with their highlights, will be removed from this session. To keep the regions, ungroup it instead."
-        confirmLabel="Delete group"
+        confirmLabel="Delete group and regions"
         onConfirm={() => deleteGroup(group.id)}
         onClose={() => setDeleting(false)}
       />

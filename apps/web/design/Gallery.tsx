@@ -10,9 +10,11 @@ import Sort from "@mui/icons-material/Sort";
 import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
 import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
 import { brand, navigation } from "../composition/navigation";
+import { ActionsPopover } from "../shared/ui/ActionsPopover";
 import { ColorPicker } from "../shared/ui/ColorPicker";
 import { EmptyState } from "../shared/ui/EmptyState";
 import { FormCard, FormCardActions } from "../shared/ui/FormCard";
+import { NameAndColor } from "../shared/ui/NameAndColor";
 import { NavRail } from "../shared/ui/NavRail";
 import { SectionHeader } from "../shared/ui/SectionHeader";
 import { StatusTag } from "../shared/ui/StatusTag";
@@ -84,6 +86,12 @@ export function Gallery() {
       <Section title="SwatchPicker" source="shared/ui/SwatchPicker.tsx">
         <SwatchPickerExample />
       </Section>
+      <Section
+        title="ActionsPopover and NameAndColor"
+        source="shared/ui/ActionsPopover.tsx, shared/ui/NameAndColor.tsx"
+      >
+        <ActionsPopoverExample />
+      </Section>
       <Section title="ColorPicker" source="shared/ui/ColorPicker.tsx">
         <Box sx={{ bgcolor: "background.paper", borderRadius: 3, boxShadow: 4 }}>
           <ColorPicker
@@ -129,6 +137,30 @@ export function Gallery() {
         </Box>
       </Section>
     </Box>
+  );
+}
+
+/** A group's actions button: its menu starts with the name and color, then its items. */
+function ActionsPopoverExample() {
+  const [color, setColor] = useState<string | null>(groupColors[1].color);
+  return (
+    <ActionsPopover label="Actions for group Promoters">
+      {(close) => (
+        <NameAndColor
+          nameLabel="Group name"
+          initialName="Promoters"
+          onRename={() => {}}
+          onDone={close}
+          color={{
+            label: "Group color",
+            colors: groupColors,
+            value: color,
+            onChange: setColor,
+            allowNone: true,
+          }}
+        />
+      )}
+    </ActionsPopover>
   );
 }
 
