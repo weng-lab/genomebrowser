@@ -18,6 +18,13 @@ type ThreadDependencies = {
   account: () => Promise<AgentAccount>;
   threads: () => Promise<AgentThreads>;
 };
+type BindDependencies = ThreadDependencies & {
+  userId: () => Promise<string | null>;
+  /** What a bind proof from Eve proves, using it up, or null when it proves nothing. */
+  proof: (
+    token: string,
+  ) => Promise<{ userId: string; sessionId: string; conversationId: string } | null>;
+};
 
 const conversationSchema = z.object({ conversationId: z.string().min(1).max(200) });
 
@@ -147,15 +154,19 @@ export function readAgentThread(sessionId: string, { account, threads }: ThreadD
 }
 
 /**
- * Record a newly created conversation as the session's thread. Refused with 409
- * when the session already has another one, such as one another tab started.
+ * Record a conversation Eve just created as the session's thread. Eve's bind
+ * proof must name this user, session, and conversation, so no caller can claim
+ * a conversation Eve did not create for them. Refused with 409 when the session
+ * already has another one, such as one another tab started.
  */
 export function bindAgentThread(
   request: Request,
   sessionId: string,
-  { account, threads }: ThreadDependencies,
+  { account, threads, userId, proof }: BindDependencies,
 ) {
   return authorized(sessionId, account, async () => {
+    const token = request.headers.get("x-genomebrowser-bind-proof");
+    const proven = token ? await proof(token) : null;
     let body: unknown;
     try {
       body = await readJsonBody(request, {
@@ -168,6 +179,13 @@ export function bindAgentThread(
     }
     const input = conversationSchema.safeParse(body);
     if (!input.success) return error(400, "INVALID_INPUT", "Invalid conversation ID");
+    if (
+      !proven ||
+      proven.userId !== (await userId()) ||
+      proven.sessionId !== sessionId ||
+      proven.conversationId !== input.data.conversationId
+    )
+      return error(403, "FORBIDDEN", "Only the agent can record a session's conversation");
     if (!(await (await threads()).bind(sessionId, input.data.conversationId)))
       return error(409, "CONFLICT", "This session already has another agent conversation");
     return Response.json(input.data, { headers: noStore });

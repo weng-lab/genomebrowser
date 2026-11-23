@@ -14,8 +14,15 @@ export default defineDynamic(() =>
       principalType: "user",
       async getToken() {
         const caller = ctx.session.auth.initiator;
+        const current = ctx.session.auth.current;
         const userId = caller?.attributes.userId;
         if (typeof userId !== "string" || !userId) throw new Error("Sign in to use browser tools");
+        // Tools act for the user and session that started the conversation; anyone else's turn gets none.
+        if (
+          current?.attributes.userId !== userId ||
+          current.attributes.browserSessionId !== caller?.attributes.browserSessionId
+        )
+          throw new Error("Browser tools act only for the session that started this conversation");
         return issueCommandCredential(
           userId,
           sessionIdSchema.parse(caller?.attributes.browserSessionId),
