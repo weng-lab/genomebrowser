@@ -26,10 +26,8 @@ export default defineAgent({
       const tool = navigate && !called;
       const summarizing = prompt.includes("This conversation is ending");
       const replied = results.some((message) => JSON.stringify(message).includes("eve__reply"));
-      const system = options.prompt
-        .filter((message) => message.role === "system")
-        .map((message) => (typeof message.content === "string" ? message.content : ""))
-        .join("\n");
+      // Everything before the latest message: instructions and the context the app adds.
+      const context = JSON.stringify(options.prompt.slice(0, user));
       return {
         stream: new ReadableStream({
           start(controller) {
@@ -59,10 +57,10 @@ export default defineAgent({
               return finish("tool-calls");
             }
             if (summarizing) return finish("stop");
-            // Repeat the system instructions, so tests can see the context the app supplies.
+            // Repeat what the model was given, so tests can see the context the app supplies.
             if (prompt.includes("what do you know")) {
               controller.enqueue({ type: "text-start", id: "context" });
-              controller.enqueue({ type: "text-delta", id: "context", delta: system });
+              controller.enqueue({ type: "text-delta", id: "context", delta: context });
               controller.enqueue({ type: "text-end", id: "context" });
               return finish("stop");
             }

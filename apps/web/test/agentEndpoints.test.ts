@@ -351,7 +351,7 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
           params(other),
         )
       ).status,
-    ).not.toBe(200);
+    ).toBe(409);
     expect(
       (
         await agentAuth.GET(
@@ -385,6 +385,20 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
       );
     const read = async () => (await agentThread.GET(new Request(thread), params(id))).json();
     expect((await rollOver("conversation-b", "Wrong thread")).status).toBe(409);
+    expect((await rollOver("conversation-a", "   ")).status).toBe(400);
+    expect((await rollOver("conversation-a", "x".repeat(40_001))).status).toBe(400);
+    await signIn("user_bob");
+    expect((await rollOver("conversation-a", "Taken over")).status).toBe(404);
+    await signIn(null);
+    expect((await rollOver("conversation-a", "Taken over")).status).toBe(401);
+    await setRemoteControl("user_alice", false);
+    try {
+      await signIn("user_alice");
+      expect((await rollOver("conversation-a", "Taken over")).status).toBe(403);
+    } finally {
+      await setRemoteControl("user_alice", true);
+    }
+    await signIn("user_alice");
     expect((await auth("?conversation=conversation-a")).status).toBe(200);
     expect((await rollOver("conversation-a", "Looked at chr1.")).status).toBe(204);
     expect(await read()).toEqual({ conversationId: null, idle: false, summarized: true });
@@ -393,6 +407,15 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await rollOver("conversation-b")).status).toBe(204);
     // A rollover without a summary keeps the earlier one.
     expect(await read()).toEqual({ conversationId: null, idle: false, summarized: true });
+    const { token } = await issueCommandCredential("user_alice", id);
+    const carried = await agentContext.GET(
+      new Request(`http://localhost/api/sessions/${id}/agent-context`, {
+        headers: { authorization: `Bearer ${token}` },
+      }),
+      params(id),
+    );
+    expect(await carried.json()).toMatchObject({ summary: "Looked at chr1." });
+    await signIn("user_alice");
     expect((await bind("conversation-c")).status).toBe(200);
 
     // A message keeps the thread from idling; a long gap makes it roll over on next load.
@@ -429,6 +452,9 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await context(id, sessionToken("user_alice"))).status).toBe(401);
     const { token } = await issueCommandCredential("user_alice", id);
     expect((await context(other, token)).status).toBe(404);
+    expect((await context(id, (await issueCommandCredential("user_bob", id)).token)).status).toBe(
+      404,
+    );
     const allowed = await context(id, token);
     expect(allowed.status).toBe(200);
     expect(await allowed.json()).toEqual({

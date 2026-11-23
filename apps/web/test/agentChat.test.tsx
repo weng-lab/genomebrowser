@@ -385,7 +385,10 @@ describe.skipIf(!available)("Eve agent chat", () => {
     await vi.waitFor(
       () => {
         const log = document.querySelector('[role="log"]')?.textContent;
-        expect(log).toContain(`"Agent auth" (ID ${sessionId}) on the hg38 assembly`);
+        expect(log).toContain(sessionId);
+        expect(log).toContain("Agent auth");
+        expect(log).toContain("hg38");
+        expect(log).toContain("<earlier-conversations>");
         expect(log).toContain("The user greeted the agent.");
       },
       { timeout: 15_000 },
@@ -409,8 +412,11 @@ describe.skipIf(!available)("Eve agent chat", () => {
       await new Promise<void>((resolve) => {
         setTimeout(resolve, 400);
       });
+      // StrictMode runs the rollover effect twice; one rollover must result.
       probe = await renderWithProbe(
-        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+        <StrictMode>
+          <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />
+        </StrictMode>,
       );
       await vi.waitFor(
         () =>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Client, ClientError, SessionNotActiveError, type SessionSnapshot } from "eve/client";
 
 export type AgentThread =
@@ -16,7 +16,8 @@ export type AgentThread =
       summarized: boolean;
       /**
        * End `conversationId` and start the thread afresh. With `summarize`, the
-       * agent first writes a summary of it to carry forward.
+       * agent first writes a summary of it to carry forward. Failures show as the
+       * thread's `failed` status; the promise always resolves.
        */
       rollOver(conversationId: string, options: { summarize: boolean }): Promise<void>;
     };
@@ -57,15 +58,27 @@ const summarySchema = {
   additionalProperties: false,
 } as const;
 
-/** Ask the conversation's agent to summarize it for the next thread. */
+/**
+ * Ask the conversation's agent to summarize it for the next thread. The request
+ * is marked, so it does not count as activity in the thread. Stopping early
+ * cancels the summary turn.
+ */
 async function summarize(sessionId: string, conversationId: string, signal: AbortSignal) {
-  const delivery = await conversations(sessionId)
-    .attach(conversationId)
-    .send<{ sessionHistory: string; latestThread: string }>(
-      "This conversation is ending. Without calling any tools, summarize it for the next conversation in this session. The browser may change before then, so describe what happened rather than the browser's current state.",
-      { outputSchema: summarySchema, signal },
-    );
-  const { data } = await delivery.result();
+  const conversation = new Client({
+    baseUrl: "",
+    headers: { "x-genomebrowser-session-id": sessionId, "x-genomebrowser-summary": "1" },
+  }).sessions.attach(conversationId);
+  const delivery = await conversation.send<{ sessionHistory: string; latestThread: string }>(
+    "This conversation is ending. Without calling any tools, summarize it for the next conversation in this session. The browser may change before then, so describe what happened rather than the browser's current state.",
+    { outputSchema: summarySchema, signal },
+  );
+  const result = await delivery
+    .result({ signal: AbortSignal.any([signal, AbortSignal.timeout(120_000)]) })
+    .catch(async (error: unknown) => {
+      await conversation.cancel({ signal: AbortSignal.timeout(5_000) }).catch(() => {});
+      throw error;
+    });
+  const { data } = result;
   if (!data) return undefined;
   return `Session history:\n${data.sessionHistory.trim()}\n\nLatest conversation:\n${data.latestThread.trim()}`;
 }
@@ -114,7 +127,11 @@ async function loadThread(sessionId: string, signal: AbortSignal): Promise<Loade
     for await (const _event of latest) break;
     const saved = await conversation.snapshot({ signal });
     if (!saved.events.some((event) => event.type === "session.ended")) {
-      return idle ? { status: "idle", conversationId } : { status: "ready", saved, summarized };
+      // A turn still running or waiting on the user is never cut short by a rollover.
+      const started = saved.events.filter((event) => event.type === "turn.started").length;
+      const settled = saved.events.filter((event) => event.type === "turn.settled").length;
+      const rollable = idle && started === settled;
+      return rollable ? { status: "idle", conversationId } : { status: "ready", saved, summarized };
     }
   } catch (error) {
     if (!isLostConversation(error)) throw error;
@@ -159,32 +176,50 @@ export function useAgentThread(
     return () => controller.abort();
   }, [sessionId, signal, generation, fail]);
 
+  // Rollovers in progress, by conversation, so asking again, as React's second
+  // effect run in development does, joins the first instead of starting another.
+  const rolling = useRef(new Map<string, Promise<void>>());
+
   const rollOver = useCallback(
-    async (conversationId: string, { summarize: withSummary }: { summarize: boolean }) => {
-      setLoaded({ status: "rolling-over" });
-      // A summary that cannot be written leaves the previous one in place.
-      const summary = withSummary
-        ? await summarize(sessionId, conversationId, signal).catch((error: unknown) => {
-            console.error("Could not summarize the agent conversation", error);
-            return undefined;
-          })
-        : undefined;
-      await conversations(sessionId)
-        .attach(conversationId)
-        .end({ signal })
-        .catch(() => {});
-      await endThread(sessionId, conversationId, summary, signal);
-      setGeneration((value) => value + 1);
+    (conversationId: string, { summarize: withSummary }: { summarize: boolean }) => {
+      const running = rolling.current.get(conversationId);
+      if (running) return running;
+      const run = (async () => {
+        setLoaded({ status: "rolling-over" });
+        try {
+          // A summary that cannot be written leaves the previous one in place.
+          const summary = withSummary
+            ? await summarize(sessionId, conversationId, signal).catch((error: unknown) => {
+                if (signal.aborted) throw error;
+                console.error("Could not summarize the agent conversation", error);
+                return undefined;
+              })
+            : undefined;
+          await conversations(sessionId)
+            .attach(conversationId)
+            .end({ signal })
+            .catch(() => {});
+          await endThread(sessionId, conversationId, summary, signal);
+          setGeneration((value) => value + 1);
+        } catch (error) {
+          if (!signal.aborted) fail(error);
+        } finally {
+          rolling.current.delete(conversationId);
+        }
+      })();
+      rolling.current.set(conversationId, run);
+      return run;
     },
-    [sessionId, signal],
+    [sessionId, signal, fail],
   );
 
   // An idle thread rolls over once the tab holds the session, so the summary turn can run.
   const idle = loaded.status === "idle" ? loaded.conversationId : undefined;
   useEffect(() => {
     if (!idle || !connected) return;
-    rollOver(idle, { summarize: true }).catch(fail);
-  }, [idle, connected, rollOver, fail]);
+    // oxlint-disable-next-line typescript/no-floating-promises -- rollOver reports its own failures and always resolves.
+    void rollOver(idle, { summarize: true });
+  }, [idle, connected, rollOver]);
 
   if (loaded.status === "ready") return { ...loaded, rollOver };
   if (loaded.status === "idle") return { status: "rolling-over" };
