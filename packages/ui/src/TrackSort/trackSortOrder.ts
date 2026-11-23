@@ -4,7 +4,7 @@ import type {
   TrackStoreInstance,
 } from "@weng-lab/genomebrowser";
 
-/** A value a track is sorted by. `null` and `undefined` mean the track has none. */
+/** A value a track is sorted by. `null`, `undefined`, and `NaN` mean the track has none. */
 export type TrackSortValue = string | number | boolean | null | undefined;
 
 /** One field people can sort tracks by. */
@@ -70,9 +70,14 @@ function sortedTrackIds(
 
 function compareForRule(a: TrackSortValue, b: TrackSortValue, direction: TrackSortDirection) {
   // Missing values stay last whichever way the rule orders, as in spreadsheets.
-  if (a == null || b == null) return Number(a == null) - Number(b == null);
+  if (!hasValue(a) || !hasValue(b)) return Number(hasValue(b)) - Number(hasValue(a));
   const comparison = compareValues(a, b);
   return direction === "descending" ? -comparison : comparison;
+}
+
+/** NaN counts as no value: compared as a number, it would leave the whole sort inconsistent. */
+function hasValue(value: TrackSortValue): value is string | number | boolean {
+  return value != null && !Number.isNaN(value);
 }
 
 function compareValues(a: string | number | boolean, b: string | number | boolean) {

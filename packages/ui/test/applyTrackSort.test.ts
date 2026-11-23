@@ -21,10 +21,13 @@ const field = (key: string): TrackSortOption => ({
   value: (track) => track.metadata?.[key],
 });
 
-/** Sorts tracks holding these metadata records and returns the records in their new order. */
+/**
+ * Sorts tracks holding these metadata records and returns the records in their new order. A
+ * rule names a metadata key or gives its own option.
+ */
 function sortRecords(
   records: readonly TrackMetadata[],
-  rules: readonly [key: string, direction: TrackSortDirection][],
+  rules: readonly [by: string | TrackSortOption, direction: TrackSortDirection][],
 ) {
   const tracks = records.map((metadata, index) =>
     signalModule.create({
@@ -36,7 +39,10 @@ function sortRecords(
   const trackStore = createTrackStore({ modules: [signalModule], tracks });
   const result = applyTrackSort(
     trackStore,
-    rules.map(([key, direction]) => ({ option: field(key), direction })),
+    rules.map(([by, direction]) => ({
+      option: typeof by === "string" ? field(by) : by,
+      direction,
+    })),
   );
   expect(result).toEqual({ ok: true });
   return trackStore.getState().tracks.map(({ metadata }) => metadata);
@@ -66,6 +72,20 @@ it("puts tracks without a value last in either direction, in their current order
   const values = [undefined, 2, null, 1, 3];
   expect(sortValues(values, "ascending")).toEqual([1, 2, 3, undefined, null]);
   expect(sortValues(values, "descending")).toEqual([3, 2, 1, undefined, null]);
+});
+
+it("counts NaN from a value reader as no value, so the other tracks still sort", () => {
+  // Metadata can't hold NaN, but a reader that parses text returns it when parsing fails.
+  const parsed: TrackSortOption = {
+    id: "rep",
+    label: "Rep",
+    value: (track) => Number.parseFloat(String(track.metadata?.Rep)),
+  };
+  const records = ["3", "n/a", "1", "?", "2", "0"].map((Rep) => ({ Rep }));
+  const reps = (direction: TrackSortDirection) =>
+    sortRecords(records, [[parsed, direction]]).map((metadata) => metadata?.Rep);
+  expect(reps("ascending")).toEqual(["0", "1", "2", "3", "n/a", "?"]);
+  expect(reps("descending")).toEqual(["3", "2", "1", "0", "n/a", "?"]);
 });
 
 it("breaks ties with each later rule in its own direction", () => {

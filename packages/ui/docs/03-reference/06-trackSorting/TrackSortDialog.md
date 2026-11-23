@@ -49,7 +49,7 @@ export function BrowserWithTrackSorting() {
 
 ### How values order
 
-Each option's `value` reads one value from a track: text, a number, `true` or `false`, or `null` or `undefined` when the track has none. Values order by type:
+Each option's `value` reads one value from a track: text, a number, `true` or `false`, or `null` or `undefined` when the track has none. `NaN`, such as a failed `parseFloat`, also counts as none. Values order by type:
 
 - Numbers in numeric order.
 - Text in natural order, ignoring case, so "rep2" comes before "rep10".
@@ -120,7 +120,7 @@ const byAssay: TrackSortOption = {
 
 ### TrackSortValue
 
-`TrackSortValue` is exported from the package root. It's `string`, `number`, `boolean`, `null`, or `undefined`; `null` and `undefined` mean the track has no value, and it sorts last.
+`TrackSortValue` is exported from the package root. It's `string`, `number`, `boolean`, `null`, or `undefined`; `null`, `undefined`, and `NaN` mean the track has no value, and it sorts last.
 
 ### applyTrackSort
 
