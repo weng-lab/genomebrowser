@@ -69,7 +69,7 @@ async function summarize(sessionId: string, conversationId: string, signal: Abor
     headers: { "x-genomebrowser-session-id": sessionId, "x-genomebrowser-summary": "1" },
   }).sessions.attach(conversationId);
   const delivery = await conversation.send<{ sessionHistory: string; latestThread: string }>(
-    "This conversation is ending. Without calling any tools, summarize it for the next conversation in this session. The browser may change before then, so describe what happened rather than the browser's current state.",
+    "This conversation is ending. Without calling any tools, summarize it for the next conversation in this session. The browser may change before then, so describe what happened rather than the browser's current state. Leave out the user's standing preferences, which are kept separately, and write plain prose whatever style they ask for.",
     { outputSchema: summarySchema, signal },
   );
   const result = await delivery

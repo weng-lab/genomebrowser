@@ -401,10 +401,10 @@ describe.skipIf(!available)("Eve agent chat", () => {
       <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
     );
     await send("what do you know");
-    await vi.waitFor(() => expect(document.body.textContent).toContain("hg38 assembly"), {
+    await vi.waitFor(() => expect(document.body.textContent).toContain("<session>"), {
       timeout: 15_000,
     });
-    expect(document.body.textContent).not.toContain("standing preferences");
+    expect(document.body.textContent).not.toContain("<user-preferences>");
     await authorization!.setPreferences("user_alice", "Always answer in haiku.");
     try {
       await send("what do you know now");

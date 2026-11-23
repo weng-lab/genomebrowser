@@ -30,7 +30,7 @@ const savePreferences = async (body: unknown) => {
   const response = await preferencesRoute.PUT(
     new Request("http://localhost/api/account/agent-preferences", {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   );
   return { status: response.status, body: await response.json() };
@@ -98,11 +98,24 @@ describe.skipIf(!testServerUrl)("account settings route", () => {
       body: { text: "Use hg38. Keep answers short." },
     });
     expect(await read()).toMatchObject({ body: { remoteControl: false } });
+    expect(await savePreferences({ text: "Keep answers short." })).toMatchObject({ status: 200 });
+    expect(await read()).toMatchObject({ body: { remoteControl: false } });
+    expect(await savePreferences({ text: "" })).toEqual({ status: 200, body: { text: "" } });
+    expect(await read()).toMatchObject({ body: { remoteControl: false } });
+    await savePreferences({ text: "Use hg38. Keep answers short." });
+
+    await signIn(null);
+    expect(await readPreferences()).toMatchObject({ status: 401 });
+    expect(await savePreferences({ text: "Signed out" })).toMatchObject({ status: 401 });
 
     await signIn("user_dave");
     expect(await readPreferences()).toMatchObject({ body: { text: "" } });
     expect(await savePreferences({ text: "x".repeat(1_001) })).toMatchObject({ status: 400 });
     expect(await savePreferences({ text: "ok", userId: "user_carol" })).toMatchObject({
+      status: 400,
+    });
+    expect(await savePreferences("{not json")).toMatchObject({ status: 400 });
+    expect(await savePreferences({ text: "ok", padding: "x".repeat(9 * 1024) })).toMatchObject({
       status: 400,
     });
     await signIn("user_carol");

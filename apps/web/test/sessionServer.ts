@@ -1,6 +1,6 @@
 import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { vi } from "vitest";
-import { accountSettingsSchema } from "../features/account/settings";
+import { accountSettingsSchema, agentPreferencesSchema } from "../features/account/settings";
 import {
   maxSessionBytes,
   sessionInputSchema,
@@ -198,8 +198,9 @@ export function installSessionServer() {
       if (!owner) return rejected("UNAUTHENTICATED", 401);
       if (init.method === "PUT") {
         if (typeof init.body !== "string") throw new Error("Expected a JSON preferences body");
-        const { text } = JSON.parse(init.body) as { text: string };
-        server.agentPreferences.set(owner, text.trim());
+        const input = agentPreferencesSchema.safeParse(JSON.parse(init.body));
+        if (!input.success) return rejected("INVALID_INPUT", 400);
+        server.agentPreferences.set(owner, input.data.text.trim());
       }
       return json({ text: server.agentPreferences.get(owner) ?? "" });
     }
