@@ -394,6 +394,27 @@ describe.skipIf(!available)("Eve agent chat", () => {
     expect((await thread()).conversationId).not.toBe(first);
   }, 50_000);
 
+  it("follows the user's preferences from the next message on", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("what do you know");
+    await vi.waitFor(() => expect(document.body.textContent).toContain("<session>"), {
+      timeout: 15_000,
+    });
+    expect(document.body.textContent).not.toContain("<user-preferences>");
+    await authorization!.setPreferences("user_alice", "Always answer in haiku.");
+    try {
+      await send("what do you know now");
+      await vi.waitFor(
+        () => expect(document.body.textContent).toContain("Always answer in haiku."),
+        { timeout: 15_000 },
+      );
+    } finally {
+      await authorization!.setPreferences("user_alice", "");
+    }
+  }, 40_000);
+
   it("reopens the session's thread after the panel remounts", async () => {
     probe = await renderWithProbe(
       <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,

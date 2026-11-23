@@ -3,6 +3,7 @@ import { z } from "zod";
 import { readJsonBody } from "../../../shared/server/readJsonBody";
 import { sessionIdSchema } from "../../sessions/schema";
 import { commandReplySchema } from "../commands/protocol";
+import type { AccountSettingsStore } from "../../account/server/settings";
 import { authorizeRemoteControl, type AgentAccount, type RemoteControlDenial } from "./access";
 import type { CommandRelay } from "./relay";
 import type { AgentThreads } from "./threads";
@@ -210,12 +211,15 @@ export function releaseAgentThread(
 type ContextDependencies = {
   /** The user and session a scoped Eve credential names, or null when it is not valid. */
   credential: (token: string) => Promise<{ userId: string; sessionId: string } | null>;
-  account: (userId: string) => Promise<AgentAccount>;
+  account: (
+    userId: string,
+  ) => Promise<AgentAccount & { settings: Pick<AccountSettingsStore, "get" | "agentPreferences"> }>;
 };
 
 /**
  * What the agent knows about its session before each message: its ID, title,
- * and assembly. Eve asks with the scoped credential it holds for the session.
+ * and assembly, and the user's preferences. Eve asks with the scoped credential
+ * it holds for the session.
  */
 export async function readAgentContext(
   request: Request,
@@ -231,8 +235,14 @@ export async function readAgentContext(
     const denied = await authorizeRemoteControl(acting, sessionId);
     if (denied) return error(statuses[denied.code], denied.code, denied.error);
     const session = await acting.sessions.load(sessionId);
+    const preferences = (await acting.settings.agentPreferences()).text || null;
     return Response.json(
-      { sessionId, title: session.name, assembly: session.snapshot.browser.assembly },
+      {
+        sessionId,
+        title: session.name,
+        assembly: session.snapshot.browser.assembly,
+        preferences,
+      },
       { headers: noStore },
     );
   } catch (cause) {

@@ -20,6 +20,7 @@ const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
 const settings = await import("../app/api/account/settings/route");
+const preferences = await import("../app/api/account/agent-preferences/route");
 
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
 
@@ -405,7 +406,23 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     );
     const allowed = await context(id, token);
     expect(allowed.status).toBe(200);
-    expect(await allowed.json()).toEqual({ sessionId: id, title: "Agent work", assembly: "hg38" });
+    expect(await allowed.json()).toEqual({
+      sessionId: id,
+      title: "Agent work",
+      assembly: "hg38",
+      preferences: null,
+    });
+    await signIn("user_alice");
+    await preferences.PUT(
+      new Request("http://localhost/api/account/agent-preferences", {
+        method: "PUT",
+        body: JSON.stringify({ text: "Explain briefly." }),
+      }),
+    );
+    await signIn(null);
+    expect(await (await context(id, token)).json()).toMatchObject({
+      preferences: "Explain briefly.",
+    });
     await setRemoteControl("user_alice", false);
     try {
       expect((await context(id, token)).status).toBe(403);

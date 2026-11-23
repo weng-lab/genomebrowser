@@ -6,7 +6,7 @@ This page covers who may use the agent and what it may reach. The [agent panel P
 
 The workspace has an Eve chat panel with Stop, served by the Next.js app through `withEve` in every environment. It operates the open session through six MCP tools: `set_region`, `export_image`, which shows the user an image preview with a Download button, `sort_tracks`, `add_tracks_from_urls`, which checks hosted files before adding them as tracks, all or none, `list_tracks`, which lists loaded tracks with their metadata, and `set_track_metadata`, which tags tracks. Eve consumes `/api/mcp` like any external client. External callers authenticate with Clerk identity; OAuth onboarding for them is not built yet.
 
-Each saved session keeps one agent thread, which reopens after a reload and on other devices. A run lives only while a tab holds its session: switching sessions asks first and then stops it, and a run whose tab closes stops within a few seconds. New conversation starts the thread clean, and the agent knows its session's title and assembly. Preferences and the control lock are planned in the PRD.
+Each saved session keeps one agent thread, which reopens after a reload and on other devices. A run lives only while a tab holds its session: switching sessions asks first and then stops it, and a run whose tab closes stops within a few seconds. New conversation starts the thread clean, and the agent knows its session's title and assembly. The agent also reads the user's preferences from the Settings page before every message. The control lock is planned in the PRD.
 
 ## A control surface for the active session
 

@@ -133,6 +133,8 @@ export async function startAgentAuthorizationServer() {
       asUser(userId, async () => (await getSessions()).remove(id)),
     setEnabled: (userId: string, remoteControl: boolean) =>
       asUser(userId, async () => (await getAccountSettings()).update({ remoteControl })),
+    setPreferences: (userId: string, text: string) =>
+      asUser(userId, async () => (await getAccountSettings()).updateAgentPreferences({ text })),
     async close() {
       await getCommandRelay().close();
       server.closeAllConnections();
