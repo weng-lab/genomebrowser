@@ -1,25 +1,14 @@
 "use client";
 
 import Add from "@mui/icons-material/Add";
-import CreateNewFolderOutlined from "@mui/icons-material/CreateNewFolderOutlined";
+import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
-import EditOutlined from "@mui/icons-material/EditOutlined";
-import MoreVert from "@mui/icons-material/MoreVert";
-import RemoveCircleOutline from "@mui/icons-material/RemoveCircleOutline";
-import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
-import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import ListSubheader from "@mui/material/ListSubheader";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import { alpha, type Theme } from "@mui/material/styles";
 import {
@@ -27,18 +16,31 @@ import {
   type BrowserStoreInstance,
   type Highlight,
 } from "@weng-lab/genomebrowser";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState, type Ref, type RefObject } from "react";
 import { useSession } from "../../../sessions/SessionProvider";
 import type { RegionGroup } from "../regionGroupSchema";
 import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
-import { regionName, regionOf, sameRegion, saveRegion, setRegionsHidden } from "../regions";
+import { ColorDot } from "../../../../shared/ui/ColorDot";
+import { EmptyState } from "../../../../shared/ui/EmptyState";
+import { formButtonSx } from "../../../../shared/ui/FormCard";
+import { SectionHeader } from "../../../../shared/ui/SectionHeader";
+import {
+  nextRegionName,
+  positionsOf,
+  regionName,
+  regionOf,
+  sameRegion,
+  saveRegion,
+  setRegionsColor,
+} from "../regions";
+import { AddRegionForm } from "./AddRegionForm";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
-import { GroupDialog } from "./GroupDialog";
+import { NewGroupForm } from "./NewGroupForm";
 import { listSx, RegionGroupSection } from "./RegionGroup";
-import { RegionDialog } from "./RegionDialog";
+import { RegionActions } from "./RegionMenu";
 
 /**
- * The open session's saved regions: save the current view, go to, edit, hide, group, or
+ * The open session's saved regions: add the current view, go to, edit, hide, group, or
  * delete one, and delete them all. Groups collapse and expand.
  */
 export function RegionsPanel() {
@@ -64,28 +66,73 @@ type StoresProps = {
   regionGroupStore: RegionGroupStoreInstance;
 };
 
-type Row = { group: RegionGroup; members: Highlight[] } | { highlight: Highlight };
+/**
+ * Each group's members, and the regions in none, in highlight order. Groups keep the order
+ * they were made in.
+ */
+function sectionsOf(highlights: readonly Highlight[], groups: readonly RegionGroup[]) {
+  const grouped = new Set(groups.flatMap((group) => group.regionIds));
+  return {
+    groups: groups.map((group) => {
+      const members = new Set(group.regionIds);
+      return { group, members: highlights.filter((highlight) => members.has(highlight.id)) };
+    }),
+    ungrouped: highlights.filter((highlight) => !grouped.has(highlight.id)),
+  };
+}
 
 /**
- * The list's rows in highlight order. A group takes its first member's place, with all of
- * its members, in highlight order, under it.
+ * The form open below the section's heading: a new region, or a new group, which starts with
+ * `regionId` when a region's menu opened it. `opener` takes focus back when it closes.
  */
-function rowsOf(highlights: readonly Highlight[], groups: readonly RegionGroup[]): Row[] {
-  const groupOf = new Map(groups.flatMap((group) => group.regionIds.map((id) => [id, group])));
-  const rows: Row[] = [];
-  const placed = new Set<RegionGroup>();
-  for (const highlight of highlights) {
-    const group = groupOf.get(highlight.id);
-    if (!group) rows.push({ highlight });
-    else if (!placed.has(group)) {
-      placed.add(group);
-      rows.push({
-        group,
-        members: highlights.filter((member) => groupOf.get(member.id) === group),
-      });
-    }
-  }
-  return rows;
+type OpenForm =
+  | { kind: "region"; opener: HTMLElement | null }
+  | { kind: "group"; regionId?: string; opener: HTMLElement | null };
+
+/** Opens a new group around a region, from that region's actions button. */
+type AddToNewGroup = (regionId: string, opener: HTMLElement) => void;
+
+/**
+ * Puts focus on the row that takes over from one that leaves its place, which would drop focus
+ * with it: a region that moves into or out of a group mounts again elsewhere, and a deleted
+ * region, group, or every region unmounts. `focusNext` names, before the change, the regions
+ * whose actions buttons may take focus, in order; `actionsRef` records each row's button. When
+ * none is shown, such as in a collapsed group, `list` takes focus, or `fallback` once the list
+ * is gone.
+ */
+function useRowFocus(list: RefObject<HTMLElement | null>, fallback: RefObject<HTMLElement | null>) {
+  const pending = useRef<readonly string[] | null>(null);
+  const buttons = useRef(new Map<string, HTMLButtonElement>());
+  // An effect, so it runs after a closing menu or dialog, unmounting, restores focus to what
+  // opened it.
+  useEffect(() => {
+    const regionIds = pending.current;
+    if (regionIds === null) return;
+    pending.current = null;
+    const row = regionIds.map((id) => buttons.current.get(id)).find((button) => button);
+    (row ?? list.current ?? fallback.current)?.focus();
+  });
+  return {
+    focusNext: (regionIds: readonly string[]) => {
+      pending.current = regionIds;
+    },
+    actionsRef: (regionId: string) => (button: HTMLButtonElement | null) => {
+      if (button) buttons.current.set(regionId, button);
+      else buttons.current.delete(regionId);
+    },
+  };
+}
+
+/**
+ * The regions that take focus when those in `leaving` go from `order`: the ones after them,
+ * then the ones before, nearest first.
+ */
+function neighbors(order: readonly string[], leaving: readonly string[]) {
+  const gone = new Set(leaving);
+  const last = order.findLastIndex((id) => gone.has(id));
+  if (last === -1) return [];
+  const staying = (ids: readonly string[]) => ids.filter((id) => !gone.has(id));
+  return [...staying(order.slice(last + 1)), ...staying(order.slice(0, last)).reverse()];
 }
 
 function Regions({ browserStore, regionGroupStore }: StoresProps) {
@@ -94,62 +141,184 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const highlights = useBrowserStore((state) => state.highlights);
   const groups = useRegionGroupStore((state) => state.groups);
   const stores = { browserStore, regionGroupStore };
+  const [form, setForm] = useState<OpenForm | null>(null);
+  const addRegionButton = useRef<HTMLButtonElement>(null);
+  const addGroupButton = useRef<HTMLButtonElement>(null);
+  const formId = useId();
+  const listRef = useRef<HTMLUListElement>(null);
+  const rowFocus = useRowFocus(listRef, addRegionButton);
+  // Returns focus to what opened the form, which would otherwise be lost with it.
+  const closeForm = () => {
+    form?.opener?.focus();
+    setForm(null);
+  };
+  // A header button closes its own form, but replaces one a region's menu opened.
+  const toggle = (kind: "region" | "group", opener: HTMLButtonElement | null) =>
+    setForm(
+      form?.kind === kind && !(form.kind === "group" && form.regionId !== undefined)
+        ? null
+        : { kind, opener },
+    );
+  const addToNewGroup: AddToNewGroup = (regionId, opener) =>
+    setForm({ kind: "group", regionId, opener });
+  const sections = sectionsOf(highlights, groups);
+  // The regions in the order their rows show.
+  const order = [...sections.groups.flatMap(({ members }) => members), ...sections.ungrouped].map(
+    ({ id }) => id,
+  );
+  const ungrouped = new Set(sections.ungrouped);
+  const empty = highlights.length === 0 && groups.length === 0;
+  const card = (highlight: Highlight) => (
+    <RegionCard
+      key={highlight.id}
+      highlight={highlight}
+      onAddToNewGroup={addToNewGroup}
+      onMove={(regionId) => rowFocus.focusNext([regionId])}
+      onDelete={(regionId) => rowFocus.focusNext(neighbors(order, [regionId]))}
+      actionsRef={rowFocus.actionsRef(highlight.id)}
+      {...stores}
+    />
+  );
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
-      <Typography variant="subtitle2" component="h3" sx={{ px: 1.5, pt: 1.5 }}>
-        Regions
-      </Typography>
-      <Box sx={{ p: 1 }}>
-        <Button
-          fullWidth
-          variant="outlined"
-          color="inherit"
-          startIcon={<Add />}
-          onClick={() => saveRegion(browserStore, browserStore.getState().region)}
-          sx={panelButtonSx}
-        >
-          Save current region
-        </Button>
+      <Box sx={{ px: 1.5, pt: 1.5, pb: 1 }}>
+        <SectionHeader
+          title="Regions"
+          count={highlights.length || undefined}
+          actions={[
+            {
+              label: "Add region",
+              icon: <Add />,
+              onClick: () => toggle("region", addRegionButton.current),
+              expanded: form?.kind === "region",
+              controls: formId,
+              ref: addRegionButton,
+            },
+            {
+              label: "Add group",
+              icon: <CreateNewFolder />,
+              onClick: () => toggle("group", addGroupButton.current),
+              expanded: form?.kind === "group",
+              controls: formId,
+              ref: addGroupButton,
+            },
+          ]}
+        />
       </Box>
+      {form && (
+        <Box sx={{ px: 1.5, pb: 1.5 }}>
+          {form.kind === "region" ? (
+            <AddRegionForm
+              id={formId}
+              browserStore={browserStore}
+              defaultName={nextRegionName(highlights)}
+              onAdd={(name, region) => {
+                saveRegion(browserStore, region, name);
+                closeForm();
+              }}
+              onCancel={closeForm}
+            />
+          ) : (
+            <NewGroupForm
+              // A new opening, such as from another region's menu, starts over.
+              key={form.regionId ?? ""}
+              id={formId}
+              defaults={newGroupDefaults(groups)}
+              // The regions in no group, and the one whose menu opened it, which starts checked.
+              candidates={highlights
+                .filter((highlight) => ungrouped.has(highlight) || highlight.id === form.regionId)
+                .map((highlight) => {
+                  const { start, end } = positionsOf(highlight.region);
+                  return {
+                    id: highlight.id,
+                    name: regionName(highlight),
+                    positions: `${start}-${end}`,
+                  };
+                })}
+              initialRegionIds={form.regionId === undefined ? [] : [form.regionId]}
+              onCreate={({ applyColor, regionIds, ...group }) => {
+                const created = regionGroupStore.getState().createGroup(group, regionIds);
+                // Nothing changed, so the form stays open to show why.
+                if (!created.ok) return created.error;
+                if (applyColor && group.color)
+                  setRegionsColor(browserStore, regionIds, group.color);
+                // The region whose menu opened the form moves into the group, and focus with it.
+                if (form.regionId !== undefined && regionIds.includes(form.regionId)) {
+                  rowFocus.focusNext([form.regionId]);
+                  setForm(null);
+                } else closeForm();
+              }}
+              onCancel={closeForm}
+            />
+          )}
+        </Box>
+      )}
       <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", px: 1 }}>
-        {highlights.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ px: 0.5, py: 1 }}>
-            No saved regions yet.
-          </Typography>
-        ) : (
-          <List aria-label="Saved regions" disablePadding sx={listSx}>
-            {rowsOf(highlights, groups).map((row) =>
-              "group" in row ? (
-                <RegionGroupSection key={row.group.id} group={row.group} {...stores}>
-                  {row.members.map((highlight) => (
-                    <RegionCard key={highlight.id} highlight={highlight} {...stores} />
-                  ))}
+        {!empty && (
+          <Box
+            sx={{
+              mx: 0.5,
+              p: 0.5,
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 2,
+              bgcolor: "background.default",
+            }}
+          >
+            <List
+              ref={listRef}
+              aria-label="Saved regions"
+              // Takes focus when no shown row can take over from one that left.
+              tabIndex={-1}
+              disablePadding
+              sx={listSx}
+            >
+              {sections.groups.map(({ group, members }) => (
+                <RegionGroupSection
+                  key={group.id}
+                  group={group}
+                  onUngroup={() => rowFocus.focusNext(members.map(({ id }) => id))}
+                  onDelete={() => rowFocus.focusNext(neighbors(order, group.regionIds))}
+                  {...stores}
+                >
+                  {members.map(card)}
                 </RegionGroupSection>
-              ) : (
-                <RegionCard key={row.highlight.id} highlight={row.highlight} {...stores} />
-              ),
-            )}
-          </List>
+              ))}
+              {/* The regions in no group follow the groups, with no heading of their own. */}
+              {sections.ungrouped.map(card)}
+            </List>
+          </Box>
+        )}
+        {highlights.length === 0 && (
+          <Box sx={{ px: 1, pt: empty ? 0 : 1 }}>
+            <EmptyState
+              title="No regions yet"
+              description="Add the current view, or enter coordinates, to save a region."
+            />
+          </Box>
         )}
       </Box>
-      <Box sx={{ px: 1, pt: 1 }}>
-        <DeleteAllButton browserStore={browserStore} disabled={highlights.length === 0} />
+      <Box sx={{ p: 1, pb: 1.5 }}>
+        <DeleteAllButton
+          regionGroupStore={regionGroupStore}
+          disabled={empty}
+          onDelete={() => rowFocus.focusNext([])}
+        />
       </Box>
-      <Typography variant="caption" color="text.secondary" sx={{ px: 1.5, py: 1.25 }}>
-        Regions save with this session.
-      </Typography>
     </Box>
   );
 }
 
-/** Deletes every saved region after asking, since it cannot be undone. */
+/** Deletes every saved region and group after asking, since it cannot be undone. */
 function DeleteAllButton({
-  browserStore,
+  regionGroupStore,
   disabled,
-}: {
-  browserStore: BrowserStoreInstance;
+  onDelete,
+}: Pick<StoresProps, "regionGroupStore"> & {
   disabled: boolean;
+  /** Called as it deletes, so focus can leave the button, which it disables. */
+  onDelete: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
   const close = () => setConfirming(false);
@@ -162,7 +331,8 @@ function DeleteAllButton({
         startIcon={<DeleteOutline />}
         disabled={disabled}
         onClick={() => setConfirming(true)}
-        sx={panelButtonSx}
+        // A quiet border, with the form buttons' sentence-case label.
+        sx={{ ...formButtonSx, borderColor: "divider", fontWeight: "fontWeightMedium" }}
       >
         Delete all regions
       </Button>
@@ -171,18 +341,36 @@ function DeleteAllButton({
         title="Delete all regions?"
         text="Every saved region, its highlight, and every group will be removed from this session."
         confirmLabel="Delete all"
-        // Groups follow the highlights, so clearing them deletes every group.
-        onConfirm={() => browserStore.getState().clearHighlights()}
+        onConfirm={() => {
+          onDelete();
+          regionGroupStore.getState().deleteAll();
+        }}
         onClose={close}
       />
     </>
   );
 }
 
-type RegionCardProps = StoresProps & { highlight: Highlight };
+type RegionCardProps = StoresProps & {
+  highlight: Highlight;
+  onAddToNewGroup: AddToNewGroup;
+  /** Called as the region moves into or out of a group. */
+  onMove: (regionId: string) => void;
+  /** Called as the region is deleted. */
+  onDelete: (regionId: string) => void;
+  actionsRef: Ref<HTMLButtonElement>;
+};
 
 /** A saved region: its color, name, and coordinates. Clicking it goes there. */
-function RegionCard({ highlight, browserStore, regionGroupStore }: RegionCardProps) {
+function RegionCard({
+  highlight,
+  browserStore,
+  regionGroupStore,
+  onAddToNewGroup,
+  onMove,
+  onDelete,
+  actionsRef,
+}: RegionCardProps) {
   const useBrowserStore = browserStore;
   const shownChromosome = useBrowserStore((state) => state.region.chromosome);
   // A boolean, so panning re-renders only the cards it moves onto or off of.
@@ -200,6 +388,10 @@ function RegionCard({ highlight, browserStore, regionGroupStore }: RegionCardPro
           highlight={highlight}
           browserStore={browserStore}
           regionGroupStore={regionGroupStore}
+          onAddToNewGroup={onAddToNewGroup}
+          onMove={onMove}
+          onDelete={onDelete}
+          buttonRef={actionsRef}
         />
       }
       sx={{ "& .MuiListItemSecondaryAction-root": { right: 4 } }}
@@ -210,16 +402,27 @@ function RegionCard({ highlight, browserStore, regionGroupStore }: RegionCardPro
         onClick={() => browserStore.getState().setRegion(region)}
         sx={cardSx}
       >
-        <Swatch highlight={highlight} />
+        <ColorDot
+          color={highlight.color}
+          size={10}
+          outlined={highlight.type === "outlined"}
+          faded={hidden}
+          sx={{ mr: 1.5 }}
+        />
         <ListItemText
           primary={regionName(highlight)}
           secondary={`${formatDisplayRegion(region)}${hidden ? " · Hidden" : ""}`}
           slotProps={{
             primary: {
               noWrap: true,
-              sx: { fontWeight: "fontWeightMedium", color: current ? "primary.main" : undefined },
+              sx: { color: current ? "primary.main" : undefined },
             },
-            secondary: { noWrap: true, variant: "caption", display: "block" },
+            secondary: {
+              noWrap: true,
+              variant: "caption",
+              display: "block",
+              sx: { fontFamily: "monospace" },
+            },
           }}
           sx={{ my: 0 }}
         />
@@ -228,223 +431,15 @@ function RegionCard({ highlight, browserStore, regionGroupStore }: RegionCardPro
   );
 }
 
-/** The highlight's color: filled or outlined like the highlight, and faded while hidden. */
-function Swatch({ highlight }: { highlight: Highlight }) {
-  const outlined = highlight.type === "outlined";
-  return (
-    <Box
-      aria-hidden
-      sx={{
-        flexShrink: 0,
-        width: 12,
-        height: 12,
-        mr: 1.25,
-        borderRadius: 0.5,
-        border: 2,
-        borderColor: highlight.color,
-        bgcolor: outlined ? "transparent" : highlight.color,
-        opacity: highlight.hidden ? 0.35 : 1,
-      }}
-    />
-  );
-}
-
-/**
- * A region's more-actions button and menu: edit, hide or show its highlight, add it to a
- * new or existing group or take it out of its group, and delete.
- */
-function RegionActions({
-  highlight,
-  browserStore,
-  regionGroupStore,
-}: StoresProps & { highlight: Highlight }) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [editing, setEditing] = useState(false);
-  const [grouping, setGrouping] = useState(false);
-  const [newGroup, setNewGroup] = useState(() => newGroupDefaults([]));
-  const menuId = useId();
-  const label = `Actions for region ${regionName(highlight)}`;
-  const close = () => setAnchor(null);
-  const hidden = highlight.hidden === true;
-
-  return (
-    <>
-      <IconButton
-        size="small"
-        aria-label={label}
-        title={label}
-        aria-haspopup="menu"
-        aria-controls={anchor ? menuId : undefined}
-        aria-expanded={anchor ? "true" : undefined}
-        onClick={(event) => setAnchor(event.currentTarget)}
-      >
-        <MoreVert fontSize="small" />
-      </IconButton>
-      <Menu
-        id={menuId}
-        anchorEl={anchor}
-        open={anchor !== null}
-        onClose={close}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{ list: { dense: true, "aria-label": label } }}
-      >
-        <MenuItem
-          onClick={() => {
-            close();
-            setEditing(true);
-          }}
-        >
-          <ListItemIcon>
-            <EditOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Edit region" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            setRegionsHidden(browserStore, [highlight.id], !hidden);
-          }}
-        >
-          <ListItemIcon>
-            {hidden ? (
-              <VisibilityOutlined fontSize="small" />
-            ) : (
-              <VisibilityOffOutlined fontSize="small" />
-            )}
-          </ListItemIcon>
-          <ListItemText primary={hidden ? "Show highlight" : "Hide highlight"} />
-        </MenuItem>
-        <Divider />
-        <MenuItem
-          onClick={() => {
-            close();
-            setNewGroup(newGroupDefaults(regionGroupStore.getState().groups));
-            setGrouping(true);
-          }}
-        >
-          <ListItemIcon>
-            <CreateNewFolderOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Add to new group" />
-        </MenuItem>
-        {/* Only while the menu is open, so cards do not follow every group change. */}
-        {anchor ? (
-          <GroupMenuItems
-            regionId={highlight.id}
-            regionGroupStore={regionGroupStore}
-            onChosen={close}
-          />
-        ) : null}
-        <Divider />
-        <MenuItem
-          onClick={() => {
-            close();
-            browserStore.getState().removeHighlight(highlight.id);
-          }}
-          sx={{ color: "error.main" }}
-        >
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <DeleteOutline fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Delete" />
-        </MenuItem>
-      </Menu>
-      <RegionDialog
-        browserStore={browserStore}
-        highlight={highlight}
-        open={editing}
-        onClose={() => setEditing(false)}
-      />
-      <GroupDialog
-        open={grouping}
-        title="New group"
-        submitLabel="Create group"
-        initial={newGroup}
-        onSubmit={(group) => regionGroupStore.getState().addToNewGroup(highlight.id, group)}
-        onClose={() => setGrouping(false)}
-      />
-    </>
-  );
-}
-
-/**
- * The region menu's group items: the groups it can move to, each with its color, and
- * Remove from group while it is in one.
- */
-function GroupMenuItems({
-  regionId,
-  regionGroupStore,
-  onChosen,
-}: {
-  regionId: string;
-  regionGroupStore: RegionGroupStoreInstance;
-  onChosen: () => void;
-}) {
-  const useRegionGroupStore = regionGroupStore;
-  const groups = useRegionGroupStore((state) => state.groups);
-  const current = groups.find((group) => group.regionIds.includes(regionId));
-  const others = groups.filter((group) => group !== current);
-  const { addToGroup, removeFromGroup } = regionGroupStore.getState();
-  return (
-    <>
-      {others.length > 0 ? (
-        <ListSubheader sx={{ lineHeight: 2.5 }}>Add to group</ListSubheader>
-      ) : null}
-      {others.map((group) => (
-        <MenuItem
-          key={group.id}
-          onClick={() => {
-            onChosen();
-            addToGroup(regionId, group.id);
-          }}
-        >
-          <ListItemIcon>
-            <Box
-              aria-hidden
-              sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: group.color, ml: 0.5 }}
-            />
-          </ListItemIcon>
-          <ListItemText primary={group.name} slotProps={{ primary: { noWrap: true } }} />
-        </MenuItem>
-      ))}
-      {current ? (
-        <MenuItem
-          onClick={() => {
-            onChosen();
-            removeFromGroup(regionId);
-          }}
-        >
-          <ListItemIcon>
-            <RemoveCircleOutline fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={`Remove from ${current.name}`} />
-        </MenuItem>
-      ) : null}
-    </>
-  );
-}
-
-/** The panel's full-width buttons: quiet borders and sentence-case labels. */
-const panelButtonSx = {
-  borderColor: "divider",
-  borderRadius: 2,
-  textTransform: "none",
-  fontWeight: "fontWeightMedium",
-} as const;
-
-/** A bordered card, tinted with the primary color while the view shows its region. */
+/** A plain row, tinted with the primary color while the view shows its region. */
 const cardSx = {
   alignItems: "center",
-  py: 1,
+  py: 0.75,
   pl: 1.5,
   // Room for the actions button.
   pr: 5,
-  border: 1,
-  borderColor: "divider",
-  borderRadius: 2,
-  "&.Mui-selected": {
-    borderColor: "primary.main",
-    bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.06),
+  borderRadius: 1.5,
+  "&.Mui-selected, &.Mui-selected:hover": {
+    bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.08),
   },
 } as const;

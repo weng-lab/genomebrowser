@@ -5,6 +5,12 @@ import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 import type { Side } from "../types";
 
+/** Each side panel's width limits, in pixels, and the width it starts at and resets to. */
+export const sidePanelSizes = {
+  left: { defaultWidth: 300, minWidth: 180, maxWidth: 480 },
+  right: { defaultWidth: 360, minWidth: 280, maxWidth: 720 },
+} satisfies Record<Side, { defaultWidth: number; minWidth: number; maxWidth: number }>;
+
 type PanelState = {
   leftOpen: boolean;
   rightOpen: boolean;
@@ -17,8 +23,8 @@ function createPanelState() {
   return createStore<PanelState>((set) => ({
     leftOpen: true,
     rightOpen: true,
-    leftWidth: 240,
-    rightWidth: 360,
+    leftWidth: sidePanelSizes.left.defaultWidth,
+    rightWidth: sidePanelSizes.right.defaultWidth,
     toggle: (side) =>
       set((state) =>
         side === "left" ? { leftOpen: !state.leftOpen } : { rightOpen: !state.rightOpen },

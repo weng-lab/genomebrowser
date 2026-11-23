@@ -6,6 +6,7 @@ import type {
 import { z } from "zod";
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { regionGroupSchema, type RegionGroup } from "./regionGroupSchema";
+import { colorInTurn } from "./regions";
 
 export type RegionGroupErrorCode = "GROUP_NOT_FOUND" | "REGION_NOT_FOUND" | "INVALID_GROUP";
 
@@ -26,17 +27,20 @@ function parseEdit(edit: GroupEdit) {
 }
 
 /**
- * Saved regions can be gathered into named, colored groups, like tabs in a browser window.
- * A group's members are highlight IDs, and a region is in at most one group. The store
- * follows the browser's highlights: a removed highlight leaves its group, and a group left
- * empty is deleted.
+ * Saved regions can be gathered into named groups, like tabs in a browser window, each with a
+ * color or none. A group's members are highlight IDs, and a region is in at most one group.
+ * The store follows the browser's highlights: a removed highlight leaves its group. A group
+ * may be empty, and stays until it is ungrouped or deleted.
  */
 export type RegionGroupState = {
   groups: RegionGroup[];
-  /** Makes a group holding only `regionId`, taken from any other group. */
-  addToNewGroup: (
-    regionId: string,
+  /**
+   * Makes a group after the others, holding `regionIds`, in that order, each taken from any
+   * other group. Without them, the group starts empty.
+   */
+  createGroup: (
     group: GroupEdit,
+    regionIds?: readonly string[],
   ) => { ok: true; id: string } | MutationFailure<RegionGroupErrorCode>;
   /** Moves `regionId` into the group, out of any other. */
   addToGroup: (regionId: string, groupId: string) => RegionGroupResult;
@@ -47,6 +51,8 @@ export type RegionGroupState = {
   ungroup: (groupId: string) => RegionGroupResult;
   /** Deletes the group and its regions' highlights. */
   deleteGroup: (groupId: string) => RegionGroupResult;
+  /** Deletes every group and every region's highlight. */
+  deleteAll: () => void;
 };
 
 export type RegionGroupStoreInstance = UseBoundStore<StoreApi<RegionGroupState>>;
@@ -54,33 +60,23 @@ export type RegionGroupStoreInstance = UseBoundStore<StoreApi<RegionGroupState>>
 /** A session's browser and track stores, with the groups of its saved regions. */
 export type SessionStores = GenomeBrowserStores & { useRegionGroupStore: RegionGroupStoreInstance };
 
-/** Colors new groups take in turn, with the names the color picker announces. */
-export const groupColors = [
-  { name: "Blue", color: "#1a73e8" },
-  { name: "Red", color: "#d93025" },
-  { name: "Yellow", color: "#f9ab00" },
-  { name: "Green", color: "#188038" },
-  { name: "Pink", color: "#d01884" },
-  { name: "Purple", color: "#a142f4" },
-  { name: "Cyan", color: "#007b83" },
-  { name: "Orange", color: "#fa903e" },
-  { name: "Gray", color: "#5f6368" },
-];
-
-/** The name and color a new group starts with: "Group N", and the next color in turn. */
+/**
+ * The name and color a new group starts with: "Group N", and the next color in turn,
+ * starting from blue.
+ */
 export function newGroupDefaults(groups: readonly RegionGroup[]) {
   const names = new Set(groups.map((group) => group.name));
   let number = groups.length + 1;
   while (names.has(`Group ${number}`)) number++;
   return {
     name: `Group ${number}`,
-    color: groupColors[groups.length % groupColors.length].color,
+    color: colorInTurn(groups.length),
   };
 }
 
 /**
- * Keeps only members that are highlights, each in its first group, and drops groups left
- * empty. Returns `groups` itself when they are already clean.
+ * Keeps only members that are highlights, each in its first group. Groups left empty stay.
+ * Returns `groups` itself when they are already clean.
  */
 export function normalizeGroups(
   groups: RegionGroup[],
@@ -89,11 +85,11 @@ export function normalizeGroups(
   // Each highlight leaves this set as the first group to hold it takes it.
   const ungrouped = new Set(highlightIds);
   let changed = false;
-  const normalized = groups.flatMap((group) => {
+  const normalized = groups.map((group) => {
     const regionIds = group.regionIds.filter((id) => ungrouped.delete(id));
-    if (regionIds.length > 0 && regionIds.length === group.regionIds.length) return [group];
+    if (regionIds.length === group.regionIds.length) return group;
     changed = true;
-    return regionIds.length > 0 ? [{ ...group, regionIds }] : [];
+    return { ...group, regionIds };
   });
   return changed ? normalized : groups;
 }
@@ -113,14 +109,12 @@ export function createRegionGroupStore(browserStore: BrowserStoreInstance) {
       ({ ok: false, code: "GROUP_NOT_FOUND", error: `No group has ID ${groupId}.` }) as const;
     const findGroup = (groupId: string) => get().groups.find((group) => group.id === groupId);
 
-    /** The groups with `regionId` taken out, and any group that leaves empty deleted. */
+    /** The groups with `regionId` taken out. */
     const withoutRegion = (regionId: string) =>
-      get()
-        .groups.map((group) => ({
-          ...group,
-          regionIds: group.regionIds.filter((id) => id !== regionId),
-        }))
-        .filter((group) => group.regionIds.length > 0);
+      get().groups.map((group) => ({
+        ...group,
+        regionIds: group.regionIds.filter((id) => id !== regionId),
+      }));
     const editOne = (groupId: string, edit: Partial<RegionGroup>): RegionGroupResult => {
       if (!findGroup(groupId)) return groupNotFound(groupId);
       set({
@@ -130,16 +124,22 @@ export function createRegionGroupStore(browserStore: BrowserStoreInstance) {
     };
     return {
       groups: [],
-      addToNewGroup: (regionId, edit) => {
-        if (!hasRegion(regionId)) return regionNotFound(regionId);
+      createGroup: (edit, regionIds = []) => {
+        const missing = regionIds.find((regionId) => !hasRegion(regionId));
+        if (missing !== undefined) return regionNotFound(missing);
         const parsed = parseEdit(edit);
         if (!parsed.ok) return parsed;
         const id = crypto.randomUUID();
         const { name, color } = parsed.edit;
+        const members = [...new Set(regionIds)];
+        const taken = new Set(members);
         set({
           groups: [
-            ...withoutRegion(regionId),
-            { id, name, color, collapsed: false, regionIds: [regionId] },
+            ...get().groups.map((group) => ({
+              ...group,
+              regionIds: group.regionIds.filter((regionId) => !taken.has(regionId)),
+            })),
+            { id, name, color, collapsed: false, regionIds: members },
           ],
         });
         return { ok: true, id };
@@ -147,16 +147,9 @@ export function createRegionGroupStore(browserStore: BrowserStoreInstance) {
       addToGroup: (regionId, groupId) => {
         if (!hasRegion(regionId)) return regionNotFound(regionId);
         if (!findGroup(groupId)) return groupNotFound(groupId);
-        // The target group is never left empty, since it gains the region.
-        const groups = get()
-          .groups.map((group) => {
-            const regionIds = group.regionIds.filter((id) => id !== regionId);
-            return {
-              ...group,
-              regionIds: group.id === groupId ? [...regionIds, regionId] : regionIds,
-            };
-          })
-          .filter((group) => group.regionIds.length > 0);
+        const groups = withoutRegion(regionId).map((group) =>
+          group.id === groupId ? { ...group, regionIds: [...group.regionIds, regionId] } : group,
+        );
         set({ groups });
         return { ok: true };
       },
@@ -180,9 +173,13 @@ export function createRegionGroupStore(browserStore: BrowserStoreInstance) {
       deleteGroup: (groupId) => {
         const group = findGroup(groupId);
         if (!group) return groupNotFound(groupId);
-        // Removing its members' highlights deletes the group, which is left empty.
+        set({ groups: get().groups.filter(({ id }) => id !== groupId) });
         browserStore.getState().removeHighlights(group.regionIds);
         return { ok: true };
+      },
+      deleteAll: () => {
+        set({ groups: [] });
+        browserStore.getState().clearHighlights();
       },
     };
   });

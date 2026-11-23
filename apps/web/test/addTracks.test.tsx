@@ -82,6 +82,17 @@ function field(row: Element, label: string) {
   )!;
 }
 
+/** Chooses the type of a row's first metadata field, in the editor's menu. */
+async function chooseFieldType(row: Element, type: string) {
+  const menu = row.querySelector('[aria-label="Field 1"] [role="combobox"]')!;
+  await act(async () =>
+    menu.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 })),
+  );
+  await click(
+    [...document.querySelectorAll('[role="option"]')].find((item) => item.textContent === type),
+  );
+}
+
 async function openDialog() {
   await act(async () => root!.render(<WorkspaceApp />));
   const open = await vi.waitFor(() => {
@@ -127,7 +138,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   expect(field(peaks, "Type").value).toBe("bigbed");
   expect(field(peaks, "BED columns").value).toBe("bed6");
   expect(field(peaks, "Color").value).toBe("#008000");
-  expect([field(peaks, "Field").value, field(peaks, "Value").value]).toEqual([
+  expect([field(peaks, "Name").value, field(peaks, "Value").value]).toEqual([
     "Description",
     "Called peaks",
   ]);
@@ -141,18 +152,15 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
   await enter(field(signal, "Title"), "My signal");
   await enter(field(signal, "Visibility"), "dense");
 
-  // A metadata field without a value, or named like a track's own values, stops the add before
-  // any file is checked.
+  // A metadata field the editor can't store yet stops the add before any file is checked.
   const failing = (reason: string) => rows().map((row) => row.textContent?.includes(reason));
-  await click(within(signal, "Add metadata field"));
-  await enter(field(signal, "Field"), "Replicate");
+  await click(within(signal, "Add field"));
+  await enter(field(signal, "Name"), "Replicate");
   await click(button("Add 4 tracks"));
-  expect(failing('Enter a value for "Replicate"')).toEqual([false, true, false, false]);
-  await enter(field(signal, "Field"), "title");
+  expect(failing("Finish or fix the metadata fields above.")).toEqual([false, true, false, false]);
+  // A number field is added as a number, not as text.
+  await chooseFieldType(signal, "Number");
   await enter(field(signal, "Value"), "2");
-  await click(button("Add 4 tracks"));
-  expect(failing("can't be named")).toEqual([false, true, false, false]);
-  await enter(field(signal, "Field"), "Replicate");
 
   // The batch adds nothing while any row fails, and says why on the row.
   await enter(field(peaks, "Color"), "green");
@@ -188,7 +196,7 @@ it("adds pasted URLs and track lines after review, showing each failure on its r
       type: "bigwig",
       base: expect.objectContaining({ title: "My signal", display: "dense" }),
       config: expect.objectContaining({ url: `${host}/signal.bw` }),
-      metadata: { Replicate: "2" },
+      metadata: { Replicate: 2 },
     }),
     expect.objectContaining({
       type: "bigwig",

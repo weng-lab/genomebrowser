@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -8,8 +8,11 @@ import Sort from "@mui/icons-material/Sort";
 import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
 import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
 import { brand, navigation } from "../composition/navigation";
+import { ColorPicker } from "../shared/ui/ColorPicker";
 import { NavRail } from "../shared/ui/NavRail";
 import { StatusTag } from "../shared/ui/StatusTag";
+import { SwatchPicker } from "../shared/ui/SwatchPicker";
+import { swatchColors } from "../shared/ui/color";
 
 // A browser store for the toolbar preview, as in the UI package's ControlToolbar docs.
 const useBrowserStore = createBrowserStore({
@@ -18,7 +21,10 @@ const useBrowserStore = createBrowserStore({
   trackWidth: 900,
 });
 
-/** Every shared/ui component, with the app theme, in the states screens use. */
+/**
+ * The palette and the shared/ui components worth seeing on their own, with the app theme, in
+ * the states screens use.
+ */
 export function Gallery() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 5, p: 3, maxWidth: 1200 }}>
@@ -51,6 +57,19 @@ export function Gallery() {
           <StatusTag label="Unsaved" />
         </Row>
       </Section>
+      <Section title="SwatchPicker" source="shared/ui/SwatchPicker.tsx">
+        <SwatchPickerExample />
+      </Section>
+      <Section title="ColorPicker" source="shared/ui/ColorPicker.tsx">
+        <Box sx={{ bgcolor: "background.paper", borderRadius: 3, boxShadow: 4 }}>
+          <ColorPicker
+            initialColor={swatchColors[1].color}
+            label="Example color"
+            onApply={() => {}}
+            onCancel={() => {}}
+          />
+        </Box>
+      </Section>
       <Section
         title="ControlToolbar"
         source="@weng-lab/genomebrowser-ui, styled by shared/ui/theme.ts"
@@ -77,6 +96,23 @@ export function Gallery() {
           />
         </Box>
       </Section>
+    </Box>
+  );
+}
+
+/** The group color picker, with No color and a custom color. */
+function SwatchPickerExample() {
+  const [color, setColor] = useState<string | null>(swatchColors[1].color);
+  return (
+    <Box sx={{ width: 250 }}>
+      <SwatchPicker
+        label="Group color"
+        colors={swatchColors}
+        value={color}
+        onChange={setColor}
+        allowNone
+        allowCustom
+      />
     </Box>
   );
 }
