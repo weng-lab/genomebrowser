@@ -462,20 +462,62 @@ it("copies the open session with its unsaved edits and opens the copy", async ()
   expect(server.stored.get(alpha)!.snapshot).toEqual(original);
 });
 
-it("brings the agent's conversation into a copy when asked", async () => {
+it("copies the agent's conversation before the copy opens, and opens it even when that fails", async () => {
   const alpha = server.add("Alpha", customized("chr2"));
   await visit(`/browser/${alpha}`);
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const copying = Promise.withResolvers<Response>();
+  const answer = server.agentThread.getMockImplementation()!;
+  server.agentThread.mockImplementation((url, init) =>
+    url.endsWith("/agent-thread/copy") ? copying.promise : answer(url, init),
+  );
   await openSessions();
   await click(button("Actions for session Alpha"));
   await click(actionItem("Save a copy"));
   await confirmCopy({ bringAgent: true });
-  await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+  await vi.waitFor(() =>
+    expect(server.agentThread.mock.calls.some(([url]) => url.endsWith("/copy"))).toBe(true),
+  );
   const copy = [...server.stored.keys()].find((id) => id !== alpha)!;
+  const [url, init] = server.agentThread.mock.calls.find(([url]) => url.endsWith("/copy"))!;
+  expect(url).toBe(`/api/sessions/${copy}/agent-thread/copy`);
+  expect(JSON.parse(init.body as string)).toEqual({ from: alpha });
+  // The copy waits for its agent thread, so its panel never loads an empty one.
+  expect(heading()).toBe("Alpha");
+  copying.resolve(new Response(null, { status: 204 }));
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Alpha"));
+  expect(text()).not.toContain("could not be copied");
+
+  // A failed agent copy still opens the copy, and says the copy's agent starts fresh.
+  server.agentThread.mockImplementation((url, init) =>
+    url.endsWith("/agent-thread/copy")
+      ? Promise.resolve(Response.json({ message: "Unavailable" }, { status: 503 }))
+      : answer(url, init),
+  );
+  await openSessions();
+  await click(button("Actions for session Copy of Alpha"));
+  await click(actionItem("Save a copy"));
+  await confirmCopy({ bringAgent: true });
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Copy of Alpha"));
+  expect(text()).toContain("its agent conversation could not be copied");
+});
+
+it("starts the copy dialog afresh each time it opens", async () => {
+  const alpha = server.add("Alpha", customized("chr2"));
+  await visit(`/browser/${alpha}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const option = () =>
+    document.querySelector<HTMLInputElement>('[role="dialog"] input[type="checkbox"]');
+  await openSessions();
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  await click(option());
+  expect(option()?.checked).toBe(true);
+  await click(withText('[role="dialog"] button', "Cancel"));
   await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull());
-  const copied = server.agentThread.mock.calls.find(([url]) => url.endsWith("/agent-thread/copy"));
-  expect(copied?.[0]).toBe(`/api/sessions/${copy}/agent-thread/copy`);
-  expect(JSON.parse(copied?.[1].body as string)).toEqual({ from: alpha });
+  await click(button("Actions for session Alpha"));
+  await click(actionItem("Save a copy"));
+  expect(option()?.checked).toBe(false);
 });
 
 it("leaves the agent behind in a copy by default", async () => {

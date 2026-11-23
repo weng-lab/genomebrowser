@@ -44,9 +44,14 @@ export type SessionState = {
    * Save a copy of a session, named “Copy of” its name, then open the copy like `open`.
    * A copy of the active session includes its unsaved edits. When they can no longer
    * be saved to it, such as after a conflict or deletion elsewhere, they move to the copy.
+   * `beforeOpen` prepares the saved copy before it opens, such as by copying the
+   * agent's conversation; when it fails, the copy still opens and `error` says so.
    * Resolves to the copy's ID once it is saved, or undefined when it could not be.
    */
-  copy(id: string): Promise<string | undefined>;
+  copy(
+    id: string,
+    options?: { beforeOpen?: (copyId: string) => Promise<void> },
+  ): Promise<string | undefined>;
   /** Rename the active session. The name saves with its next autosave. */
   rename(name: string): void;
   overwrite(): Promise<void>;
@@ -336,7 +341,10 @@ export function createSession({
     name: string,
     stores: SessionStores,
     refused: (error: SessionRequestError) => string,
-    { takeOver = false } = {},
+    {
+      takeOver = false,
+      beforeOpen,
+    }: { takeOver?: boolean; beforeOpen?: (id: string) => Promise<void> } = {},
   ) =>
     Effect.gen(function* () {
       // Save the open session first, so no session is created that it would keep from opening.
@@ -349,7 +357,14 @@ export function createSession({
       if (Result.isFailure(created)) return failed(created.failure, refused(created.failure));
       remember(created.success);
       const { id, name: createdName, revision } = created.success;
+      const prepared = beforeOpen
+        ? yield* Effect.result(Effect.tryPromise(() => beforeOpen(id)))
+        : undefined;
       yield* activate({ id, name: createdName, revision, stores }, { takeOver });
+      if (prepared && Result.isFailure(prepared))
+        set({
+          error: `“${createdName}” opened, but its agent conversation could not be copied. Its agent starts fresh.`,
+        });
       // An edit made while it was created could not be saved, so the previous session stays open.
       if (current === previous && previous && get().error === saveError) {
         saveError = `“${createdName}” was created but not opened: “${get().active?.name}” could not be saved. Its changes are kept here.`;
@@ -415,7 +430,10 @@ export function createSession({
     return run(exclusive({ operation: "create" }, operation))?.done ?? Promise.resolve();
   }
 
-  function copy(id: string): Promise<string | undefined> {
+  function copy(
+    id: string,
+    { beforeOpen }: { beforeOpen?: (copyId: string) => Promise<void> } = {},
+  ): Promise<string | undefined> {
     let copied: string | undefined;
     const operation = Effect.gen(function* () {
       const active = get().active;
@@ -463,7 +481,7 @@ export function createSession({
           error.code === "INVALID_INPUT"
             ? `“${source.name}” is too large to copy.`
             : `Could not copy “${source.name}”. Try again.`,
-        { takeOver },
+        { takeOver, beforeOpen },
       );
       if (typeof created === "string") copied = created;
     });

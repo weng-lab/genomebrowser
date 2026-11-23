@@ -27,6 +27,9 @@ async function sessionContext(userId: string, sessionId: string) {
   return contextSchema.parse(await response.json());
 }
 
+/** `text` with its angle brackets escaped, so it cannot close the tag around it. */
+const inert = (text: string) => text.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
 // The session's facts, the summary of its earlier threads, and the user's
 // preferences, read once per message so changes apply from the next message on.
 // They arrive as a user-role note, not system instructions: the title and
@@ -60,7 +63,7 @@ export default defineDynamic(async (ctx) => {
       "",
       "A summary of earlier conversations in this session. The browser may have changed since, so check it with your tools before relying on a remembered region or track.",
       "<earlier-conversations>",
-      context.summary,
+      inert(context.summary),
       "</earlier-conversations>",
     );
   if (context.preferences)
@@ -68,7 +71,7 @@ export default defineDynamic(async (ctx) => {
       "",
       "The user's standing preferences for how you work, which they wrote for every session. Follow them unless they conflict with your instructions.",
       "<user-preferences>",
-      context.preferences,
+      inert(context.preferences),
       "</user-preferences>",
     );
   return defineInstructions({ content: notes.join("\n"), role: "user" });

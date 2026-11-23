@@ -305,7 +305,8 @@ export function copyAgentThread(
     const { body, failed } = await jsonBody(request, 65_536);
     if (failed) return failed;
     const input = copySchema.safeParse(body);
-    if (!input.success) return error(400, "INVALID_INPUT", "Invalid thread copy");
+    if (!input.success || input.data.from === sessionId)
+      return error(400, "INVALID_INPUT", "Invalid thread copy");
     const denied = await authorizeRemoteControl(await account(), input.data.from);
     if (denied) return error(statuses[denied.code], denied.code, denied.error);
     if (!(await (await threads()).copy(input.data.from, sessionId, input.data.transcript)))

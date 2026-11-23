@@ -1,4 +1,5 @@
-import { Client, transcriptOf } from "eve/client";
+import { transcriptOf } from "eve/client";
+import { readConversation } from "./useAgentThread";
 
 /** Room for the copied conversation within the copy's starting summary. */
 const maxTranscript = 20_000;
@@ -12,11 +13,10 @@ async function transcript(sourceId: string, signal: AbortSignal) {
   if (!response.ok) throw new Error("The agent conversation could not be read");
   const { conversationId } = (await response.json()) as { conversationId: string | null };
   if (!conversationId) return undefined;
-  const client = new Client({
-    baseUrl: "",
-    headers: { "x-genomebrowser-session-id": sourceId },
-  });
-  const { events } = await client.sessions.attach(conversationId).snapshot({ signal });
+  // A conversation Eve no longer has leaves only the source's stored summary to copy.
+  const saved = await readConversation(sourceId, conversationId, signal);
+  if (!saved) return undefined;
+  const { events } = saved;
   const lines = transcriptOf(events, { maxMessages: 80 }).messages.map(
     ({ role, text }) => `${role === "user" ? "User" : "Agent"}: ${text.trim()}`,
   );

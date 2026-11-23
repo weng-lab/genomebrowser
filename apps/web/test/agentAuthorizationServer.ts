@@ -36,6 +36,7 @@ export async function startAgentAuthorizationServer() {
   const { GET } = await import("../app/api/sessions/[id]/agent-auth/route");
   const thread = await import("../app/api/sessions/[id]/agent-thread/route");
   const rollover = await import("../app/api/sessions/[id]/agent-thread/rollover/route");
+  const threadCopy = await import("../app/api/sessions/[id]/agent-thread/copy/route");
   const context = await import("../app/api/sessions/[id]/agent-context/route");
   const { POST: mcp } = await import("../app/api/mcp/route");
   const { getAccountSettings, getCommandRelay, getSessions } =
@@ -101,6 +102,7 @@ export async function startAgentAuthorizationServer() {
         if (path === "/api/mcp") return mcp(request);
         if (path.endsWith("/agent-context")) return context.GET(request, params);
         if (path.endsWith("/agent-thread/rollover")) return rollover.POST(request, params);
+        if (path.endsWith("/agent-thread/copy")) return threadCopy.POST(request, params);
         if (!path.endsWith("/agent-thread")) return GET(request, params);
         if (request.method === "POST") return thread.POST(request, params);
         return thread.GET(request, params);

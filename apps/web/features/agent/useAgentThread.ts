@@ -101,6 +101,34 @@ async function endThread(
     throw new Error("The agent conversation could not be restarted");
 }
 
+/**
+ * What Eve holds of `conversationId` so far, or null when it can never continue
+ * it: gone, expired, ended, or stranded.
+ */
+export async function readConversation(
+  sessionId: string,
+  conversationId: string,
+  signal: AbortSignal,
+): Promise<SessionSnapshot | null> {
+  const conversation = conversations(sessionId).attach(conversationId);
+  try {
+    // A conversation another tab just created can 404 briefly, so retry a little;
+    // Eve's own reads would retry a missing one for most of a minute.
+    const latest = conversation.stream({
+      startIndex: -1,
+      follow: false,
+      signal,
+      reconnect: { maxAttempts: 4, baseDelayMs: 250 },
+    });
+    for await (const _event of latest) break;
+    const saved = await conversation.snapshot({ signal });
+    return saved.events.some((event) => event.type === "session.ended") ? null : saved;
+  } catch (error) {
+    if (isLostConversation(error)) return null;
+    throw error;
+  }
+}
+
 type Loaded =
   | { status: "ready"; saved: SessionSnapshot | null; summarized: boolean }
   | { status: "idle"; conversationId: string };
@@ -114,27 +142,13 @@ async function loadThread(sessionId: string, signal: AbortSignal): Promise<Loade
     summarized: boolean;
   };
   if (!conversationId) return { status: "ready", saved: null, summarized };
-  const conversation = conversations(sessionId).attach(conversationId);
-  try {
-    // A conversation another tab just created can 404 briefly, so retry a little;
-    // Eve's own reads would retry a missing one for most of a minute.
-    const latest = conversation.stream({
-      startIndex: -1,
-      follow: false,
-      signal,
-      reconnect: { maxAttempts: 4, baseDelayMs: 250 },
-    });
-    for await (const _event of latest) break;
-    const saved = await conversation.snapshot({ signal });
-    if (!saved.events.some((event) => event.type === "session.ended")) {
-      // A turn still running or waiting on the user is never cut short by a rollover.
-      const started = saved.events.filter((event) => event.type === "turn.started").length;
-      const settled = saved.events.filter((event) => event.type === "turn.settled").length;
-      const rollable = idle && started === settled;
-      return rollable ? { status: "idle", conversationId } : { status: "ready", saved, summarized };
-    }
-  } catch (error) {
-    if (!isLostConversation(error)) throw error;
+  const saved = await readConversation(sessionId, conversationId, signal);
+  if (saved) {
+    // A turn still running or waiting on the user is never cut short by a rollover.
+    const started = saved.events.filter((event) => event.type === "turn.started").length;
+    const settled = saved.events.filter((event) => event.type === "turn.settled").length;
+    const rollable = idle && started === settled;
+    return rollable ? { status: "idle", conversationId } : { status: "ready", saved, summarized };
   }
   // Eve can no longer continue it, so the next message starts the thread afresh.
   await endThread(sessionId, conversationId, undefined, signal);

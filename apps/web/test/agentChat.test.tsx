@@ -12,7 +12,8 @@ import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { runCommand, type CommandApp } from "../features/agent/commands";
 import { AgentChat } from "../features/agent/components/AgentChat";
-import { issueBindProof } from "../features/agent/server/credential";
+import { issueBindProof, issueCommandCredential } from "../features/agent/server/credential";
+import { copyAgentThread } from "../features/agent/threadCopy";
 import { agentRedisNamespace } from "../features/agent/server/deployment";
 import { createCommandRelay } from "../features/agent/server/relay";
 import { createStores } from "../features/assemblies/assemblies";
@@ -415,6 +416,29 @@ describe.skipIf(!available)("Eve agent chat", () => {
     } finally {
       await authorization!.setPreferences("user_alice", "");
     }
+  }, 40_000);
+
+  it("copies a session's conversation, in words, into its copy's thread", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    const copy = (await authorization!.createSession("user_alice")).id;
+    await copyAgentThread(sessionId, copy, AbortSignal.timeout(15_000));
+    const { token } = await issueCommandCredential("user_alice", copy);
+    const context = await nativeFetch(
+      `${authorization!.origin}/api/sessions/${copy}/agent-context`,
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    const { summary } = (await context.json()) as { summary: string };
+    expect(summary).toContain("User: hello");
+    expect(summary).toContain("Agent: Hello from the genome browser agent.");
+    // The original's thread is unchanged.
+    expect((await thread()).conversationId).toEqual(expect.any(String));
   }, 40_000);
 
   it("rolls a thread idle for too long over when the panel opens", async () => {

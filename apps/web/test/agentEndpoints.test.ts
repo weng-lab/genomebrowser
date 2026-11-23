@@ -472,8 +472,34 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await copyThread(copy, { from: bobs })).status).toBe(404);
     expect((await copyThread(bobs, { from: source })).status).toBe(404);
     expect((await copyThread(copy, { from: source, transcript: "User: hi" })).status).toBe(204);
-    // Once started, a copy's thread cannot be replaced.
+    // Once started, a copy's thread cannot be replaced, nor can a session copy itself.
     expect((await copyThread(copy, { from: source })).status).toBe(409);
+    expect((await copyThread(source, { from: source })).status).toBe(400);
+    const talking = await createSession("user_alice");
+    await signIn("user_alice");
+    await agentThread.POST(
+      new Request(`http://localhost/api/sessions/${talking}/agent-thread`, {
+        method: "POST",
+        headers: {
+          "x-genomebrowser-bind-proof": await issueBindProof(
+            "user_alice",
+            talking,
+            "conversation-talking",
+          ),
+        },
+        body: JSON.stringify({ conversationId: "conversation-talking" }),
+      }),
+      params(talking),
+    );
+    expect((await copyThread(talking, { from: source })).status).toBe(409);
+    expect(
+      await (
+        await agentThread.GET(
+          new Request(`http://localhost/api/sessions/${talking}/agent-thread`),
+          params(talking),
+        )
+      ).json(),
+    ).toEqual({ conversationId: "conversation-talking", idle: false, summarized: false });
     const { token } = await issueCommandCredential("user_alice", copy);
     const context = await agentContext.GET(
       new Request(`http://localhost/api/sessions/${copy}/agent-context`, {

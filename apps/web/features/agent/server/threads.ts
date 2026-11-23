@@ -13,6 +13,9 @@ function idleMs() {
   return (Number.isFinite(minutes) && minutes > 0 ? minutes : 180) * 60_000;
 }
 
+/** The longest summary a thread carries, matching what a rollover accepts. */
+const maxSummary = 40_000;
+
 export type AgentThreadState = {
   /** The current conversation, or null when the next message starts one. */
   conversationId: string | null;
@@ -168,14 +171,13 @@ export function createAgentThreads({
     },
 
     async copy(sourceId, copyId, transcript) {
+      if (sourceId === copyId) return false;
       // One after the other: each reads the request's signed-in user.
       const source = await owned(sourceId);
       const target = await owned(copyId);
-      if (!source || !target || sourceId === copyId) return false;
-      const existing = await row(copyId);
-      if (existing?.conversationId || existing?.summary) return false;
+      if (!source || !target) return false;
       const [from] = await db
-        .select({ id: sessionsTable.id, summary: agentThreadsTable.summary })
+        .select({ summary: agentThreadsTable.summary })
         .from(sessionsTable)
         .leftJoin(agentThreadsTable, eq(agentThreadsTable.sessionId, sessionsTable.id))
         .where(source);
@@ -185,31 +187,27 @@ export function createAgentThreads({
         transcript &&
           `The latest conversation in the session this one was copied from, word for word:\n${transcript}`,
       ].filter(Boolean);
-      if (parts.length === 0) return true;
-      const summary = parts.join("\n\n");
-      await db
+      // The newest text matters most, so a long summary loses its start.
+      const joined = parts.join("\n\n");
+      const summary = joined ? joined.slice(-maxSummary) : null;
+      // Only a copy with no thread at all takes one; the insert refuses any other.
+      const inserted = await db
         .insert(agentThreadsTable)
         .select(
           db
             .select({
               sessionId: sessionsTable.id,
               conversationId: sql<null>`null`.as("conversation_id"),
-              summary: sql<string>`${summary}`.as("summary"),
+              summary: sql<string | null>`${summary}`.as("summary"),
               lastActiveAt: sql<Date>`now()`.as("last_active_at"),
               createdAt: sql<Date>`now()`.as("created_at"),
             })
             .from(sessionsTable)
             .where(target),
         )
-        .onConflictDoUpdate({
-          target: agentThreadsTable.sessionId,
-          set: { summary },
-          setWhere: and(
-            isNull(agentThreadsTable.conversationId),
-            isNull(agentThreadsTable.summary),
-          ),
-        });
-      return (await row(copyId))?.summary === summary;
+        .onConflictDoNothing({ target: agentThreadsTable.sessionId })
+        .returning({ sessionId: agentThreadsTable.sessionId });
+      return inserted.length > 0;
     },
 
     rollOver(sessionId, conversationId, summary) {
