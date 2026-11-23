@@ -1,13 +1,17 @@
 import "server-only";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import type { Identity } from "../../account/server/identity";
 import { sessionIdSchema } from "../../sessions/schema";
 import { sessionsTable } from "../../sessions/server/table";
 import { agentThreadsTable } from "./table";
 
 /** How long a thread may go without a message before it rolls over, when its session's panel next opens. */
-const idleMs = () => (Number(process.env.GB_AGENT_THREAD_IDLE_MINUTES) || 180) * 60_000;
+function idleMs() {
+  const minutes = Number(process.env.GB_AGENT_THREAD_IDLE_MINUTES);
+  return (Number.isFinite(minutes) && minutes > 0 ? minutes : 180) * 60_000;
+}
 
 export type AgentThreadState = {
   /** The current conversation, or null when the next message starts one. */
@@ -41,6 +45,12 @@ export type AgentThreads = {
    */
   rollOver(sessionId: string, conversationId: string, summary?: string): Promise<boolean>;
 };
+
+/** Whether PostgreSQL refused a write for breaking a unique constraint. */
+function uniqueViolation(error: unknown) {
+  const cause = error instanceof Error ? error.cause : undefined;
+  return (cause as { code?: unknown } | undefined)?.code === "23505";
+}
 
 const none: AgentThreadState = { conversationId: null, idle: false, summary: null };
 
@@ -78,15 +88,19 @@ export function createAgentThreads({
   async function whileCurrent(
     sessionId: string,
     conversationId: string,
-    set: Partial<typeof agentThreadsTable.$inferInsert>,
+    set: PgUpdateSetSource<typeof agentThreadsTable>,
   ) {
-    if (!(await owned(sessionId))) return false;
+    const session = await owned(sessionId);
+    if (!session) return false;
     const updated = await db
       .update(agentThreadsTable)
       .set(set)
       .where(
         and(
-          eq(agentThreadsTable.sessionId, sessionId),
+          inArray(
+            agentThreadsTable.sessionId,
+            db.select({ id: sessionsTable.id }).from(sessionsTable).where(session),
+          ),
           eq(agentThreadsTable.conversationId, conversationId),
         ),
       )
@@ -127,8 +141,13 @@ export function createAgentThreads({
         )
         .onConflictDoUpdate({
           target: agentThreadsTable.sessionId,
-          set: { conversationId, lastActiveAt: new Date() },
+          set: { conversationId, lastActiveAt: sql`now()` },
           setWhere: isNull(agentThreadsTable.conversationId),
+        })
+        .catch((error: unknown) => {
+          // Another session's thread already holds this conversation, so this one cannot.
+          if (uniqueViolation(error)) return;
+          throw error;
         });
       return (await row(sessionId))?.conversationId === conversationId;
     },
@@ -138,7 +157,7 @@ export function createAgentThreads({
     },
 
     async touch(sessionId, conversationId) {
-      await whileCurrent(sessionId, conversationId, { lastActiveAt: new Date() });
+      await whileCurrent(sessionId, conversationId, { lastActiveAt: sql`now()` });
     },
 
     rollOver(sessionId, conversationId, summary) {

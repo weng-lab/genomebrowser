@@ -34,8 +34,10 @@ const authorize =
     const stopping = request.method === "POST" && stopPath.test(new URL(request.url).pathname);
     if (stopping) url.searchParams.set("control", "stop");
     if (conversation) url.searchParams.set("conversation", conversation);
-    // Any other POST on a conversation adds to it, so its thread is not idle.
-    if (conversation && request.method === "POST" && !stopping)
+    // Any other POST on a conversation adds to it, so its thread is not idle, except
+    // the summary the panel asks for while the thread rolls over.
+    const summarizing = request.headers.get("x-genomebrowser-summary") === "1";
+    if (conversation && request.method === "POST" && !stopping && !summarizing)
       url.searchParams.set("activity", "1");
     const response = await fetch(url, {
       headers: await forwardedHeaders(request),
