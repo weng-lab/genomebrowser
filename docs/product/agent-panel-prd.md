@@ -42,7 +42,7 @@ Summarizing is invisible to the user. If it fails, the error is logged and the n
 
 Postgres stores, per session: the current Eve session ID, the time the last turn ended, and the summary. It never stores full transcripts.
 
-Private Eve sessions outside development use zero retention: Eve keeps messages while a session is active and deletes them when it ends. The 3-hour rollover is therefore the app's rule, not Eve's `sessionTimeoutMs`. Eve's idle timeout stays far longer (its 30-day default), so the old thread is still readable when the app summarizes it. If a user returns after Eve has already ended the session, the latest thread is lost and the new thread starts from the stored summary alone.
+Private Eve sessions outside development use zero retention: Eve keeps messages while a session is active and deletes them when it ends. The 3-hour rollover is therefore the app's rule, not Eve's `sessionTimeoutMs`. Eve's idle timeout stays at its 30-day default, far longer, so the old thread is still readable when the app summarizes it. If a user returns after Eve has already ended the session, the latest thread is lost and the new thread starts from the stored summary alone.
 
 The current conversation access binding in Redis expires after 24 hours ([conversationAccess.ts](../../apps/web/features/agent/server/conversationAccess.ts)). Persistent threads need that ownership check to follow the session's lifetime instead.
 
@@ -54,13 +54,13 @@ The current conversation access binding in Redis expires after 24 hours ([conver
 
 ## What the agent knows
 
-Each thread starts with fixed context, added to the agent's instructions rather than seeded as conversation history:
+The app adds a few facts to the agent's instructions, rather than seeding them as conversation history. It reads them again before each message, so a renamed session or edited preferences apply from the next message on:
 
-- The session ID, assembly (such as hg38), and session title.
-- The stored summary, when one exists.
+- The session ID, assembly, such as hg38, and session title.
+- The stored summary, when one exists. It changes only at rollover.
 - The user's preferences text.
 
-Preferences are a free-text field on the settings page, about 1,000 characters at most, that works like an `AGENTS.md` for the user: tone, defaults, habits. They apply to every session and take effect on the next message. Preferences are never folded into summaries.
+Preferences are a free-text field on the settings page, about 1,000 characters at most, that works like an `AGENTS.md` for the user: tone, defaults, habits. They apply to every session. Preferences are never folded into summaries.
 
 The agent reads browser state through tools, not injected context. A `get_browser_state` tool is a follow-up; until then `list_tracks` is the only state read.
 
@@ -91,11 +91,11 @@ The lock lives in the app as its own deep module, with `take_control` and `relea
 
 ## Multiple tabs
 
-Multi-tab behavior is deferred. The relay is currently first-tab-wins: a second tab trying to attach to the same session is refused with `409 TAKEN` ([relay.ts](../../apps/web/features/agent/server/relay.ts)).
+Multi-tab behavior is deferred. The relay is currently first-tab-wins: a second tab trying to attach to the same session is refused with `409 TAKEN`. See [relay.ts](../../apps/web/features/agent/server/relay.ts) and [http.ts](../../apps/web/features/agent/server/http.ts).
 
 ## Later
 
-Features that came up while defining this PRD and were deliberately left out:
+Features that came up while defining this PRD and were deliberately left out. The agent's tool list belongs to [MVP scope](mvp.md#the-integrated-agent), not this list.
 
 - Guest agent experience, possibly an ephemeral chat that resets with the browser.
 - Runs that keep working on a session with no open tab, which requires server-side session state.
@@ -104,7 +104,6 @@ Features that came up while defining this PRD and were deliberately left out:
 - Smarter compaction and summaries beyond Eve's defaults and the two-part summary.
 - Reading previous threads' full transcripts.
 - Newest-tab takeover and other multi-tab behavior.
-- A `get_browser_state` tool, and tools for features the agent cannot operate yet.
 - Usage limits per user or per session.
 - Refining the control lock's appearance.
 
