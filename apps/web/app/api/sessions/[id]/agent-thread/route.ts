@@ -1,4 +1,6 @@
 import { getAgentThreads, getTabAccount } from "../../../../../composition/server";
+import { clerkIdentity } from "../../../../../features/account/server/identity";
+import { consumeBindProof } from "../../../../../features/agent/server/credential";
 import {
   bindAgentThread,
   readAgentThread,
@@ -20,7 +22,11 @@ export async function POST(
   { params }: RouteContext<"/api/sessions/[id]/agent-thread">,
 ) {
   const { id } = await params;
-  return bindAgentThread(request, id, dependencies);
+  return bindAgentThread(request, id, {
+    ...dependencies,
+    userId: () => clerkIdentity.userId(),
+    proof: consumeBindProof,
+  });
 }
 
 export async function DELETE(

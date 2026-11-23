@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -31,6 +38,7 @@ export function AgentChat({ sessionId, signal, connected }: ChatProps) {
       signal={signal}
       connected={connected}
       saved={thread.saved}
+      replace={thread.replace}
     />
   );
 }
@@ -40,14 +48,29 @@ function Conversation({
   signal,
   connected,
   saved,
-}: ChatProps & { saved: SessionSnapshot | null }) {
-  const agent = useAgentSession(sessionId, saved, signal);
-  const [draft, setDraft] = useState("");
+  replace,
+}: ChatProps & {
+  saved: SessionSnapshot | null;
+  replace: (conversationId: string) => Promise<void>;
+}) {
   const [failure, setFailure] = useState<string>();
+  // Eve can no longer continue this conversation, such as one stranded by an
+  // upgrade or ended, so start the session's thread afresh.
+  const onLost = useCallback(
+    (conversationId: string) => {
+      replace(conversationId).catch((error: unknown) => {
+        setFailure(error instanceof Error ? error.message : "The agent request failed.");
+      });
+    },
+    [replace],
+  );
+  const agent = useAgentSession(sessionId, saved, signal, onLost);
+  const [draft, setDraft] = useState("");
   const transcript = useRef<HTMLDivElement>(null);
   const pending = openInteractions(agent.view).filter((item) => item.answer === undefined);
   const busy = agent.status !== "idle";
-  const running = busy || activeTurn(agent.view) !== undefined;
+  // Catching up on a saved conversation blocks sending but is not work to stop.
+  const running = agent.status === "busy" || activeTurn(agent.view) !== undefined;
 
   // Switching sessions or leaving the page stops a run, so ask first. Catching up
   // on a saved conversation is not a run.
@@ -218,7 +241,7 @@ function Conversation({
               Stop
             </Button>
           )}
-          {busy && (
+          {running && (
             <Typography component="output" variant="body2" color="text.secondary">
               Working…
             </Typography>

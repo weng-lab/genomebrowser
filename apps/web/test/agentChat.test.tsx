@@ -12,6 +12,7 @@ import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { runCommand, type CommandApp } from "../features/agent/commands";
 import { AgentChat } from "../features/agent/components/AgentChat";
+import { issueBindProof } from "../features/agent/server/credential";
 import { agentRedisNamespace } from "../features/agent/server/deployment";
 import { createCommandRelay } from "../features/agent/server/relay";
 import { createStores } from "../features/assemblies/assemblies";
@@ -324,8 +325,11 @@ describe.skipIf(!available)("Eve agent chat", () => {
     expect(conversationId).toEqual(expect.any(String));
     await act(async () => probe?.unmount());
 
+    // StrictMode runs the chat's effects twice; that must not cancel or restart anything.
     probe = await renderWithProbe(
-      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+      <StrictMode>
+        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />
+      </StrictMode>,
     );
     await vi.waitFor(
       () => {
@@ -348,13 +352,50 @@ describe.skipIf(!available)("Eve agent chat", () => {
     expect(await thread()).toEqual({ conversationId });
   }, 50_000);
 
+  it("starts a new thread when the session's conversation has ended", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    await act(async () => probe?.unmount());
+    const { conversationId: ended } = await thread();
+    const client = new Client({
+      baseUrl: eve,
+      headers: {
+        authorization: `Bearer ${authorization!.token("user_alice")}`,
+        "x-genomebrowser-session-id": sessionId,
+      },
+    });
+    await (await client.sessions.attach(ended!).end()).result();
+
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await vi.waitFor(async () => expect(await thread()).toEqual({ conversationId: null }), {
+      timeout: 15_000,
+    });
+    await send("hello again");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    expect((await thread()).conversationId).not.toBe(ended);
+  }, 50_000);
+
   it("starts a new thread when Eve no longer has the session's conversation", async () => {
     const lost = "00000000-0000-4000-8000-000000000000";
     const bound = await nativeFetch(
       `${authorization!.origin}/api/sessions/${sessionId}/agent-thread`,
       {
         method: "POST",
-        headers: { authorization: `Bearer ${authorization!.token("user_alice")}` },
+        headers: {
+          authorization: `Bearer ${authorization!.token("user_alice")}`,
+          "x-genomebrowser-bind-proof": await issueBindProof("user_alice", sessionId, lost),
+        },
         body: JSON.stringify({ conversationId: lost }),
       },
     );
@@ -464,69 +505,89 @@ describe.skipIf(!available)("Eve agent chat", () => {
     expect(retargeted.status).toBe(403);
   });
 
-  it.each(["unmount", "abort"])(
-    "cancels a first message accepted after %s and releases its stream",
-    async (teardown) => {
-      probe?.unmount();
-      const signal = new AbortController();
-      const accepted = Promise.withResolvers<string>();
-      const releaseAcceptance = Promise.withResolvers<void>();
-      const cancelled = Promise.withResolvers<Response>();
-      const routedFetch = globalThis.fetch;
-      let streamSignal: AbortSignal | null | undefined;
-      vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url =
-          typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-        if (url.includes("/stream")) streamSignal = init?.signal;
-        const response = await routedFetch(input, init);
-        if (url.endsWith("/eve/v1/session") && init?.method === "POST") {
-          const body = (await response.clone().json()) as { sessionId: string };
-          accepted.resolve(body.sessionId);
-          await releaseAcceptance.promise;
-        }
-        if (url.endsWith("/cancel")) cancelled.resolve(response.clone());
-        return response;
-      });
-      try {
-        probe = await renderWithProbe(
-          <StrictMode>
-            <AgentChat sessionId={sessionId} signal={signal.signal} connected />
-          </StrictMode>,
-        );
-        await send("wait for stop");
-        const eveSessionId = await accepted.promise;
-        // Aborting the browser session alone must cancel, with the panel still mounted.
-        await act(async () => {
-          if (teardown === "abort") signal.abort();
-          else probe?.unmount();
-        });
-        releaseAcceptance.resolve();
-        const response = await cancelled.promise;
-        expect(response.ok).toBe(true);
-        const client = new Client({
-          baseUrl: eve,
-          headers: {
-            authorization: `Bearer ${authorization!.token("user_alice")}`,
-            "x-genomebrowser-session-id": sessionId,
-          },
-        });
-        await vi.waitFor(
-          async () => {
-            const snapshot = await client.sessions.attach(eveSessionId).snapshot();
-            expect(
-              snapshot.events.find((event) => event.type === "turn.settled")?.data.outcome,
-            ).toBe("cancelled");
-          },
-          { timeout: 15_000 },
-        );
-        await act(async () => probe?.unmount());
-        await vi.waitFor(() => expect(streamSignal?.aborted).toBe(true));
-      } finally {
-        releaseAcceptance.resolve();
-        probe?.unmount();
-        vi.stubGlobal("fetch", routedFetch);
+  it("keeps a run going when only the panel unmounts, while its session stays open", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("wait for stop");
+    await vi.waitFor(() => expect(document.body.textContent).toContain("Waiting for Stop."), {
+      timeout: 15_000,
+    });
+    const { conversationId } = await thread();
+    await act(async () => probe?.unmount());
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 1_000);
+    });
+    const client = new Client({
+      baseUrl: eve,
+      headers: {
+        authorization: `Bearer ${authorization!.token("user_alice")}`,
+        "x-genomebrowser-session-id": sessionId,
+      },
+    });
+    const conversation = client.sessions.attach(conversationId!);
+    const settled = (await conversation.snapshot()).events.filter(
+      (event) => event.type === "turn.settled",
+    );
+    expect(settled).toEqual([]);
+    await conversation.cancel();
+  }, 30_000);
+
+  it("cancels a first message accepted after the browser session closes and releases its stream", async () => {
+    probe?.unmount();
+    const signal = new AbortController();
+    const accepted = Promise.withResolvers<string>();
+    const releaseAcceptance = Promise.withResolvers<void>();
+    const cancelled = Promise.withResolvers<Response>();
+    const routedFetch = globalThis.fetch;
+    let streamSignal: AbortSignal | null | undefined;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.includes("/stream")) streamSignal = init?.signal;
+      const response = await routedFetch(input, init);
+      if (url.endsWith("/eve/v1/session") && init?.method === "POST") {
+        const body = (await response.clone().json()) as { sessionId: string };
+        accepted.resolve(body.sessionId);
+        await releaseAcceptance.promise;
       }
-    },
-    30_000,
-  );
+      if (url.endsWith("/cancel")) cancelled.resolve(response.clone());
+      return response;
+    });
+    try {
+      probe = await renderWithProbe(
+        <StrictMode>
+          <AgentChat sessionId={sessionId} signal={signal.signal} connected />
+        </StrictMode>,
+      );
+      await send("wait for stop");
+      const eveSessionId = await accepted.promise;
+      // Aborting the browser session alone must cancel, with the panel still mounted.
+      await act(async () => signal.abort());
+      releaseAcceptance.resolve();
+      const response = await cancelled.promise;
+      expect(response.ok).toBe(true);
+      const client = new Client({
+        baseUrl: eve,
+        headers: {
+          authorization: `Bearer ${authorization!.token("user_alice")}`,
+          "x-genomebrowser-session-id": sessionId,
+        },
+      });
+      await vi.waitFor(
+        async () => {
+          const snapshot = await client.sessions.attach(eveSessionId).snapshot();
+          expect(snapshot.events.find((event) => event.type === "turn.settled")?.data.outcome).toBe(
+            "cancelled",
+          );
+        },
+        { timeout: 15_000 },
+      );
+      await act(async () => probe?.unmount());
+      await vi.waitFor(() => expect(streamSignal?.aborted).toBe(true));
+    } finally {
+      releaseAcceptance.resolve();
+      probe?.unmount();
+      vi.stubGlobal("fetch", routedFetch);
+    }
+  }, 30_000);
 });

@@ -2,6 +2,7 @@ import type { RouteHandlerArgs } from "eve/channels";
 import { ForbiddenError, routeAuth, type AuthFn } from "eve/channels/auth";
 import { eveChannel } from "eve/channels/eve";
 import { z } from "zod";
+import { issueBindProof } from "../../features/agent/server/credential";
 import { agentAppOrigin, agentDeploymentHeaders } from "../../features/agent/server/deployment";
 import { sessionIdSchema } from "../../features/sessions/schema";
 
@@ -56,10 +57,21 @@ const authorize =
     };
   };
 
-/** Record a new conversation as its browser session's thread, or refuse it when another one is. */
-async function bindThread(request: Request, browserSessionId: string, conversationId: string) {
+/**
+ * Record a new conversation as its browser session's thread. Resolves the app's
+ * status: 409 when the session already has another thread.
+ */
+async function bindThread(
+  request: Request,
+  { userId, browserSessionId }: { userId: string; browserSessionId: string },
+  conversationId: string,
+) {
   const headers = await forwardedHeaders(request);
   headers.set("content-type", "application/json");
+  headers.set(
+    "x-genomebrowser-bind-proof",
+    await issueBindProof(userId, browserSessionId, conversationId),
+  );
   const url = new URL(`/api/sessions/${browserSessionId}/agent-thread`, agentAppOrigin());
   const response = await fetch(url, {
     method: "POST",
@@ -69,7 +81,7 @@ async function bindThread(request: Request, browserSessionId: string, conversati
     redirect: "error",
     signal: AbortSignal.timeout(10_000),
   });
-  return response.ok;
+  return response.status;
 }
 
 const verified = new WeakMap<Request, Awaited<ReturnType<AuthFn<Request>>>>();
@@ -95,26 +107,37 @@ export default {
           const response = await route.handler(request, context);
           if (response.ok && route.path === "/eve/v1/session" && route.method === "POST") {
             const result = (await response.clone().json()) as { sessionId?: string };
-            const browserSessionId = String(caller.attributes.browserSessionId);
-            const bound =
-              !result.sessionId ||
-              (await bindThread(request, browserSessionId, result.sessionId).catch(() => false));
-            if (!bound) {
-              // The new conversation already holds the first message; end it rather than
-              // leave a run no thread can reach or stop.
-              await context
-                .attachSession(result.sessionId!)
-                .end({ auth: caller, reason: "Not the browser session's thread" })
-                .catch((cause: unknown) => {
-                  console.error("Could not end an unbound agent conversation", cause);
-                });
-              return Response.json(
+            if (result.sessionId) {
+              const status = await bindThread(
+                request,
                 {
-                  error:
-                    "This session already has another agent conversation. Reload to continue it.",
+                  userId: String(caller.attributes.userId),
+                  browserSessionId: String(caller.attributes.browserSessionId),
                 },
-                { status: 409 },
-              );
+                result.sessionId,
+              ).catch(() => 503);
+              if (status < 200 || status >= 300) {
+                // The new conversation already holds the first message; end it rather than
+                // leave a run no thread can reach or stop.
+                await context
+                  .attachSession(result.sessionId)
+                  .end({ auth: caller, reason: "Not the browser session's thread" })
+                  .catch((cause: unknown) => {
+                    console.error("Could not end an unbound agent conversation", cause);
+                  });
+                return status === 409
+                  ? Response.json(
+                      {
+                        error:
+                          "This session already has another agent conversation. Reload to continue it.",
+                      },
+                      { status: 409 },
+                    )
+                  : Response.json(
+                      { error: "The agent conversation could not be saved. Try again." },
+                      { status: 503 },
+                    );
+              }
             }
           }
           return response;

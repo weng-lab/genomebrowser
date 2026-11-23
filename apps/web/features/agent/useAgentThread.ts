@@ -1,25 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Client, ClientError, type SessionSnapshot } from "eve/client";
+import { useCallback, useEffect, useState } from "react";
+import { Client, ClientError, SessionNotActiveError, type SessionSnapshot } from "eve/client";
 
 export type AgentThread =
   | { status: "loading" }
   | { status: "failed"; error: Error }
-  /** `saved` is the thread's conversation so far, or null when the next message starts it. */
-  | { status: "ready"; saved: SessionSnapshot | null };
+  | {
+      status: "ready";
+      /** The thread's conversation so far, or null when the next message starts it. */
+      saved: SessionSnapshot | null;
+      /** Give up a conversation Eve can no longer continue, and start the thread afresh. */
+      replace(conversationId: string): Promise<void>;
+    };
 
-/** Whether Eve answered that it no longer has the conversation, rather than failing in passing. */
-function isLost(error: unknown) {
+/**
+ * Whether `error` means Eve can never continue the conversation, rather than a
+ * passing failure: it is gone, expired, ended, or stranded by an Eve upgrade.
+ */
+export function isLostConversation(error: unknown) {
+  if (error instanceof SessionNotActiveError) return true;
   return (
     ClientError.is(error) &&
     (error.status === 404 || error.code === "session_expired" || error.code === "session_stranded")
   );
 }
 
+const threadUrl = (sessionId: string) =>
+  `/api/sessions/${encodeURIComponent(sessionId)}/agent-thread`;
+
+async function release(sessionId: string, conversationId: string, signal: AbortSignal) {
+  const url = `${threadUrl(sessionId)}?conversation=${encodeURIComponent(conversationId)}`;
+  const response = await fetch(url, { method: "DELETE", signal });
+  if (!response.ok) throw new Error("The expired agent conversation could not be replaced");
+}
+
 async function loadThread(sessionId: string, signal: AbortSignal): Promise<SessionSnapshot | null> {
-  const url = `/api/sessions/${encodeURIComponent(sessionId)}/agent-thread`;
-  const response = await fetch(url, { cache: "no-store", signal });
+  const response = await fetch(threadUrl(sessionId), { cache: "no-store", signal });
   if (!response.ok) throw new Error("The agent conversation could not be loaded");
   const { conversationId } = (await response.json()) as { conversationId: string | null };
   if (!conversationId) return null;
@@ -29,35 +46,37 @@ async function loadThread(sessionId: string, signal: AbortSignal): Promise<Sessi
   });
   const conversation = client.sessions.attach(conversationId);
   try {
-    // Eve's reads retry 404 while a new session becomes visible, so check the latest
-    // line once without that retry before reading the conversation.
+    // A conversation another tab just created can 404 briefly, so retry a little;
+    // Eve's own reads would retry a missing one for most of a minute.
     const latest = conversation.stream({
       startIndex: -1,
       follow: false,
       signal,
-      reconnect: { retryableStatuses: [409, 425, 500, 502, 503, 504] },
+      reconnect: { maxAttempts: 4, baseDelayMs: 250 },
     });
     for await (const _event of latest) break;
-    return await conversation.snapshot({ signal });
+    const saved = await conversation.snapshot({ signal });
+    if (!saved.events.some((event) => event.type === "session.ended")) return saved;
   } catch (error) {
-    if (!isLost(error)) throw error;
+    if (!isLostConversation(error)) throw error;
   }
-  // Eve no longer has the conversation, for example after it expired, so the next
-  // message starts a new thread.
-  const released = await fetch(`${url}?conversation=${encodeURIComponent(conversationId)}`, {
-    method: "DELETE",
-    signal,
-  });
-  if (!released.ok) throw new Error("The expired agent conversation could not be replaced");
+  await release(sessionId, conversationId, signal);
   return null;
 }
 
 /**
  * Load `sessionId`'s agent thread while `signal` is open: the app names the
- * session's conversation, and Eve supplies what it holds so far.
+ * session's conversation, and Eve supplies what it holds so far. A conversation
+ * Eve can no longer continue is replaced, so the next message starts the thread
+ * afresh.
  */
 export function useAgentThread(sessionId: string, signal: AbortSignal): AgentThread {
-  const [thread, setThread] = useState<AgentThread>({ status: "loading" });
+  const [thread, setThread] = useState<
+    | { status: "loading" }
+    | { status: "failed"; error: Error }
+    | { status: "ready"; saved: SessionSnapshot | null }
+  >({ status: "loading" });
+  const [generation, setGeneration] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,7 +92,15 @@ export function useAgentThread(sessionId: string, signal: AbortSignal): AgentThr
         setThread({ status: "failed", error: failure });
       });
     return () => controller.abort();
-  }, [sessionId, signal]);
+  }, [sessionId, signal, generation]);
 
-  return thread;
+  const replace = useCallback(
+    async (conversationId: string) => {
+      await release(sessionId, conversationId, signal);
+      setGeneration((value) => value + 1);
+    },
+    [sessionId, signal],
+  );
+
+  return thread.status === "ready" ? { ...thread, replace } : thread;
 }

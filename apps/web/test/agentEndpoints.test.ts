@@ -5,7 +5,7 @@ import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/cli
 import { readCommandStream, testRedisUrl } from "./redis";
 import { commands as agentCommands } from "../features/agent/commands";
 import { addTracksFromUrls } from "../features/agent/commands/addTracksFromUrls";
-import { issueCommandCredential } from "../features/agent/server/credential";
+import { issueBindProof, issueCommandCredential } from "../features/agent/server/credential";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 // The proxy, Clerk verification, route handlers, authorization, PostgreSQL, and
@@ -275,11 +275,19 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
         params(id),
       );
     const thread = `http://localhost/api/sessions/${id}/agent-thread`;
-    const bind = (conversationId: string) =>
-      agentThread.POST(
-        new Request(thread, { method: "POST", body: JSON.stringify({ conversationId }) }),
+    /** Record `conversationId` with `proof`, by default a valid proof from Eve. */
+    const bind = async (conversationId: string, proof?: string | null) => {
+      const token =
+        proof === undefined ? await issueBindProof("user_alice", id, conversationId) : proof;
+      return agentThread.POST(
+        new Request(thread, {
+          method: "POST",
+          headers: token ? { "x-genomebrowser-bind-proof": token } : {},
+          body: JSON.stringify({ conversationId }),
+        }),
         params(id),
       );
+    };
 
     await signIn(null);
     expect((await auth()).status).toBe(401);
@@ -298,7 +306,18 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await auth("?control=stop")).status).toBe(403);
     expect((await auth("?conversation=conversation-a")).status).toBe(403);
 
-    expect((await bind("conversation-a")).status).toBe(200);
+    // Only Eve's one-use proof for this user, session, and conversation records it.
+    expect((await bind("conversation-a", null)).status).toBe(403);
+    expect(
+      (await bind("conversation-a", await issueBindProof("user_alice", id, "conversation-x")))
+        .status,
+    ).toBe(403);
+    expect(
+      (await bind("conversation-a", await issueBindProof("user_bob", id, "conversation-a"))).status,
+    ).toBe(403);
+    const proof = await issueBindProof("user_alice", id, "conversation-a");
+    expect((await bind("conversation-a", proof)).status).toBe(200);
+    expect((await bind("conversation-a", proof)).status).toBe(403);
     expect((await bind("conversation-a")).status).toBe(200);
     expect((await bind("conversation-b")).status).toBe(409);
     expect(await (await agentThread.GET(new Request(thread), params(id))).json()).toEqual({
@@ -307,8 +326,26 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await auth("?conversation=conversation-a")).status).toBe(200);
     expect((await auth("?conversation=conversation-b")).status).toBe(403);
 
-    // Another session of the same user cannot reach this thread.
+    // Another session of the same user cannot reach or take this thread.
     const other = await createSession("user_alice");
+    expect(
+      (
+        await agentThread.POST(
+          new Request(`http://localhost/api/sessions/${other}/agent-thread`, {
+            method: "POST",
+            headers: {
+              "x-genomebrowser-bind-proof": await issueBindProof(
+                "user_alice",
+                other,
+                "conversation-a",
+              ),
+            },
+            body: JSON.stringify({ conversationId: "conversation-a" }),
+          }),
+          params(other),
+        )
+      ).status,
+    ).not.toBe(200);
     expect(
       (
         await agentAuth.GET(
