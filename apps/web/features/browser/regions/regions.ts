@@ -1,4 +1,5 @@
 import {
+  type AssemblyDefinition,
   type BrowserHighlightMutationResult,
   type BrowserStoreInstance,
   type GenomicRegion,
@@ -97,3 +98,51 @@ export function regionOf(highlight: Highlight, shownChromosome: string): Genomic
 
 export const sameRegion = (a: GenomicRegion, b: GenomicRegion) =>
   a.chromosome === b.chromosome && a.start === b.start && a.end === b.end;
+
+/** Typed start and end positions: one-based and inclusive, as regions show them. */
+export type Positions = { start: string; end: string };
+
+export type PositionsResult =
+  | { ok: true; region: GenomicRegion }
+  | { ok: false; field: keyof Positions; error: string };
+
+/** A position as regions show it, with its digits grouped by commas. */
+export const formatPosition = (position: number) => position.toLocaleString("en-US");
+
+/** Shows `region`'s bounds as the positions a person would type for it. */
+export const positionsOf = (region: GenomicRegion): Positions => ({
+  start: formatPosition(region.start + 1),
+  end: formatPosition(region.end),
+});
+
+/** Reads a typed position: whole digits, which commas may group. */
+function readPosition(text: string) {
+  const digits = text.trim().replaceAll(",", "");
+  return /^\d+$/.test(digits) ? Number(digits) : undefined;
+}
+
+/**
+ * The region on `chromosome` between typed `positions`, or the field at fault and why. The
+ * region must lie within the chromosome.
+ */
+export function regionFromPositions(
+  chromosome: string,
+  positions: Positions,
+  assembly: AssemblyDefinition,
+): PositionsResult {
+  const start = readPosition(positions.start);
+  const end = readPosition(positions.end);
+  const length = assembly.chromosomes[chromosome];
+  if (start === undefined || start < 1)
+    return { ok: false, field: "start", error: "Start must be a position from 1" };
+  if (end === undefined || end < 1)
+    return { ok: false, field: "end", error: "End must be a position from 1" };
+  if (end < start) return { ok: false, field: "end", error: "End must be after start" };
+  if (length !== undefined && end > length)
+    return {
+      ok: false,
+      field: "end",
+      error: `End must be within ${chromosome}, which ends at ${formatPosition(length)}`,
+    };
+  return { ok: true, region: { chromosome, start: start - 1, end } };
+}

@@ -20,6 +20,8 @@ export type SectionAction = {
 
 export type SectionHeaderProps = {
   title: string;
+  /** A count of what the section holds, shown after the title, such as its items. */
+  count?: number;
   /** The heading's level. Defaults to `h3`, for a section inside an `h2` panel. */
   component?: "h2" | "h3" | "h4";
   /** Icon buttons at the right end, in order. */
@@ -27,7 +29,12 @@ export type SectionHeaderProps = {
 };
 
 /** A section's heading, with its named icon actions at the right end. */
-export function SectionHeader({ title, component = "h3", actions = [] }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  count,
+  component = "h3",
+  actions = [],
+}: SectionHeaderProps) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minHeight: 40 }}>
       <Typography
@@ -37,6 +44,14 @@ export function SectionHeader({ title, component = "h3", actions = [] }: Section
         sx={{ flexGrow: 1, fontWeight: "fontWeightMedium" }}
       >
         {title}
+        {count !== undefined && (
+          <Box
+            component="span"
+            sx={{ ml: 1.5, typography: "body2", fontWeight: "fontWeightRegular" }}
+          >
+            {count}
+          </Box>
+        )}
       </Typography>
       {actions.map(({ label, icon, onClick, expanded, controls, ref }) => (
         <Tooltip key={label} title={label}>

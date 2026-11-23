@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -11,9 +11,12 @@ import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
 import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
 import { brand, navigation } from "../composition/navigation";
 import { EmptyState } from "../shared/ui/EmptyState";
+import { FormCard, FormCardActions } from "../shared/ui/FormCard";
 import { NavRail } from "../shared/ui/NavRail";
 import { SectionHeader } from "../shared/ui/SectionHeader";
 import { StatusTag } from "../shared/ui/StatusTag";
+import { SwatchPicker } from "../shared/ui/SwatchPicker";
+import { groupColors } from "../features/browser/regions/regionGroups";
 
 // A browser store for the toolbar preview, as in the UI package's ControlToolbar docs.
 const useBrowserStore = createBrowserStore({
@@ -77,6 +80,17 @@ export function Gallery() {
           />
         </Box>
       </Section>
+      <Section title="SwatchPicker" source="shared/ui/SwatchPicker.tsx">
+        <SwatchPickerExample />
+      </Section>
+      <Section title="FormCard" source="shared/ui/FormCard.tsx">
+        <Box sx={{ width: 280, p: 1.5, bgcolor: "background.paper" }}>
+          <FormCard label="Example" onSubmit={() => {}} onCancel={() => {}}>
+            <SwatchPickerExample />
+            <FormCardActions submitLabel="Create group" onCancel={() => {}} align="end" />
+          </FormCard>
+        </Box>
+      </Section>
       <Section
         title="ControlToolbar"
         source="@weng-lab/genomebrowser-ui, styled by shared/ui/theme.ts"
@@ -103,6 +117,23 @@ export function Gallery() {
           />
         </Box>
       </Section>
+    </Box>
+  );
+}
+
+/** The group color picker, with No color and a custom color. */
+function SwatchPickerExample() {
+  const [color, setColor] = useState<string | null>(groupColors[1].color);
+  return (
+    <Box sx={{ width: 250 }}>
+      <SwatchPicker
+        label="Group color"
+        colors={groupColors}
+        value={color}
+        onChange={setColor}
+        allowNone
+        allowCustom
+      />
     </Box>
   );
 }
