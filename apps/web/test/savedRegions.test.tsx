@@ -43,7 +43,10 @@ const saved = () => server.stored.get(id)!.snapshot.browser;
 const groups = () => server.stored.get(id)!.snapshot.regionGroups;
 const groupForm = () => container!.querySelector<HTMLFormElement>('form[aria-label="New group"]');
 const groupName = () => groupForm()!.querySelector<HTMLInputElement>('[aria-label="Group name"]')!;
-const applyColor = () => groupForm()!.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+const applyColor = () =>
+  [...groupForm()!.querySelectorAll("label")]
+    .find((label) => label.textContent === "Apply color to all regions")!
+    .querySelector("input")!;
 const cards = () => [...container!.querySelectorAll('[aria-label="Saved regions"] li')];
 const first = "chr11:5,225,001-5,305,000";
 const second = `${first} (2)`;
@@ -302,6 +305,62 @@ it("makes an empty group from the heading, with no color, that regions join and 
   await chooseAction(first, "Remove from group");
   await vi.waitFor(() => expect(groups()).toEqual([expect.objectContaining({ regionIds: [] })]));
   expect(saved().highlights[0].color).toBe("#1976d2");
+});
+
+it("starts a new group with the regions checked from those in no group", async () => {
+  const third = `${first} (3)`;
+  await openWithRegions(
+    regionAt("r1", first, "#1976d2"),
+    regionAt("r2", second, "#f59e0b"),
+    regionAt("r3", third, "#2e7d32"),
+  );
+  const choices = () =>
+    [...groupForm()!.querySelectorAll("fieldset label")].map((label) => [
+      label.querySelector(".MuiTypography-body2")?.textContent,
+      label.querySelector<HTMLInputElement>('input[type="checkbox"]')!.checked,
+    ]);
+  const choice = (name: string) =>
+    [...groupForm()!.querySelectorAll("fieldset label")]
+      .find((label) => label.querySelector(".MuiTypography-body2")?.textContent === name)!
+      .querySelector("input")!;
+
+  // From a region's menu, that region starts checked.
+  await moveTo(first, "Move to new group");
+  expect(choices()).toEqual([
+    [first, true],
+    [second, false],
+    [third, false],
+  ]);
+  expect(groupForm()!.querySelector("fieldset label")!.textContent).toContain(
+    "5,225,001-5,305,000",
+  );
+  await click(choice(third));
+  await click(button(groupForm()!, "Create group"));
+  await vi.waitFor(() =>
+    expect(groups()).toEqual([
+      expect.objectContaining({ name: "Group 1", regionIds: ["r1", "r3"] }),
+    ]),
+  );
+
+  // From the heading, only the regions in no group are offered, none checked.
+  await click(container!.querySelector('button[aria-label="Add group"]'));
+  expect(choices()).toEqual([[second, false]]);
+  expect(applyColor().disabled).toBe(true);
+  await click(choice(second));
+  await click(applyColor());
+  await click(button(groupForm()!, "Create group"));
+  await vi.waitFor(() =>
+    expect(groups()).toEqual([
+      expect.objectContaining({ regionIds: ["r1", "r3"] }),
+      expect.objectContaining({ name: "Group 2", regionIds: ["r2"] }),
+    ]),
+  );
+  expect(saved().highlights[1].color).toBe(groups()[1].color);
+
+  // With every region in a group, there are none to offer.
+  await click(container!.querySelector('button[aria-label="Add group"]'));
+  // A text field's outline is a fieldset too, hidden from assistive technology.
+  expect(groupForm()!.querySelector("fieldset:not([aria-hidden])")).toBeNull();
 });
 
 it("deletes every region and group after asking", async () => {

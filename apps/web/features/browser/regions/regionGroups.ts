@@ -33,14 +33,13 @@ function parseEdit(edit: GroupEdit) {
  */
 export type RegionGroupState = {
   groups: RegionGroup[];
-  /** Makes an empty group, after the others. */
+  /**
+   * Makes a group after the others, holding `regionIds`, in that order, each taken from any
+   * other group. Without them, the group starts empty.
+   */
   createGroup: (
     group: GroupEdit,
-  ) => { ok: true; id: string } | MutationFailure<RegionGroupErrorCode>;
-  /** Makes a group holding only `regionId`, taken from any other group. */
-  addToNewGroup: (
-    regionId: string,
-    group: GroupEdit,
+    regionIds?: readonly string[],
   ) => { ok: true; id: string } | MutationFailure<RegionGroupErrorCode>;
   /** Moves `regionId` into the group, out of any other. */
   addToGroup: (regionId: string, groupId: string) => RegionGroupResult;
@@ -136,24 +135,22 @@ export function createRegionGroupStore(browserStore: BrowserStoreInstance) {
     };
     return {
       groups: [],
-      createGroup: (edit) => {
+      createGroup: (edit, regionIds = []) => {
+        const missing = regionIds.find((regionId) => !hasRegion(regionId));
+        if (missing !== undefined) return regionNotFound(missing);
         const parsed = parseEdit(edit);
         if (!parsed.ok) return parsed;
         const id = crypto.randomUUID();
         const { name, color } = parsed.edit;
-        set({ groups: [...get().groups, { id, name, color, collapsed: false, regionIds: [] }] });
-        return { ok: true, id };
-      },
-      addToNewGroup: (regionId, edit) => {
-        if (!hasRegion(regionId)) return regionNotFound(regionId);
-        const parsed = parseEdit(edit);
-        if (!parsed.ok) return parsed;
-        const id = crypto.randomUUID();
-        const { name, color } = parsed.edit;
+        const members = [...new Set(regionIds)];
+        const taken = new Set(members);
         set({
           groups: [
-            ...withoutRegion(regionId),
-            { id, name, color, collapsed: false, regionIds: [regionId] },
+            ...get().groups.map((group) => ({
+              ...group,
+              regionIds: group.regionIds.filter((regionId) => !taken.has(regionId)),
+            })),
+            { id, name, color, collapsed: false, regionIds: members },
           ],
         });
         return { ok: true, id };

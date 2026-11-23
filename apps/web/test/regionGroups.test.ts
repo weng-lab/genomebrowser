@@ -19,12 +19,23 @@ function setup(ids = ["a", "b", "c"]) {
   const actions = stores.useRegionGroupStore.getState();
   /** Makes a group around `regionId` and returns its ID. */
   const newGroup = (regionId: string, name: string, color = "#1a73e8") => {
-    const result = actions.addToNewGroup(regionId, { name, color });
+    const result = actions.createGroup({ name, color }, [regionId]);
     if (!result.ok) throw new Error(result.error);
     return result.id;
   };
   return { ...actions, stores, groups, members, newGroup };
 }
+
+it("makes a group around several regions, taking them from their groups", () => {
+  const { members, newGroup, createGroup } = setup();
+  newGroup("a", "First");
+  const result = createGroup({ name: "Both", color: null }, ["c", "a", "c"]);
+  expect(result).toMatchObject({ ok: true });
+  expect(members()).toEqual([
+    ["First", []],
+    ["Both", ["c", "a"]],
+  ]);
+});
 
 it("keeps each region in at most one group as regions are added and moved", () => {
   const { groups, members, newGroup, addToGroup, removeFromGroup } = setup();
@@ -104,11 +115,11 @@ it("rejects unknown groups and regions and invalid groups without changing state
   });
   expect(actions.addToGroup("a", "no-such-group")).toMatchObject({ code: "GROUP_NOT_FOUND" });
   expect(actions.addToGroup("missing", first)).toMatchObject({ code: "REGION_NOT_FOUND" });
-  expect(actions.addToNewGroup("missing", { name: "Lost", color: "#1a73e8" })).toMatchObject({
+  expect(actions.createGroup({ name: "Lost", color: "#1a73e8" }, ["b", "missing"])).toMatchObject({
     ok: false,
     code: "REGION_NOT_FOUND",
   });
-  expect(actions.addToNewGroup("b", { name: "Red", color: "red" })).toMatchObject({
+  expect(actions.createGroup({ name: "Red", color: "red" }, ["b"])).toMatchObject({
     code: "INVALID_GROUP",
   });
   expect(actions.editGroup(first, { name: "First", color: "red" })).toMatchObject({

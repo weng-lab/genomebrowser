@@ -23,6 +23,7 @@ import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups
 import { EmptyState } from "../../../../shared/ui/EmptyState";
 import { SectionHeader } from "../../../../shared/ui/SectionHeader";
 import {
+  formatPosition,
   nextRegionName,
   regionName,
   regionOf,
@@ -114,6 +115,7 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const addToNewGroup: AddToNewGroup = (regionId, opener) =>
     setForm({ kind: "group", regionId, opener });
   const sections = sectionsOf(highlights, groups);
+  const ungrouped = new Set(sections.ungrouped);
   const empty = highlights.length === 0 && groups.length === 0;
   const card = (highlight: Highlight) => (
     <RegionCard
@@ -169,16 +171,19 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
               key={form.regionId ?? ""}
               id={formId}
               defaults={newGroupDefaults(groups)}
-              hasRegions={form.regionId !== undefined}
-              onCreate={({ applyColor, ...group }) => {
-                const { regionId } = form;
-                const { createGroup, addToNewGroup } = regionGroupStore.getState();
-                if (regionId === undefined) createGroup(group);
-                else {
-                  addToNewGroup(regionId, group);
-                  if (applyColor && group.color)
-                    setRegionsColor(browserStore, [regionId], group.color);
-                }
+              // The regions in no group, and the one whose menu opened it, which starts checked.
+              candidates={highlights
+                .filter((highlight) => ungrouped.has(highlight) || highlight.id === form.regionId)
+                .map((highlight) => ({
+                  id: highlight.id,
+                  name: regionName(highlight),
+                  positions: `${formatPosition(highlight.region.start + 1)}-${formatPosition(highlight.region.end)}`,
+                }))}
+              initialRegionIds={form.regionId === undefined ? [] : [form.regionId]}
+              onCreate={({ applyColor, regionIds, ...group }) => {
+                regionGroupStore.getState().createGroup(group, regionIds);
+                if (applyColor && group.color)
+                  setRegionsColor(browserStore, regionIds, group.color);
                 closeForm();
               }}
               onCancel={closeForm}
