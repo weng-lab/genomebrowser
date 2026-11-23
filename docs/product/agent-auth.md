@@ -1,12 +1,12 @@
 # Agent access and control
 
-This page covers who may use the agent and what it may reach. The [agent panel PRD](agent-panel-prd.md) owns conversation behavior: threads, summaries, runs, and the control lock. The [MVP](mvp.md#the-integrated-agent) owns the list of agent capabilities.
+This page covers who may use the agent and what it may reach. The [agent panel PRD](agent-panel-prd.md) owns conversation behavior: threads, runs, and the control lock. The [MVP](mvp.md#the-integrated-agent) owns the list of agent capabilities.
 
 ## What is implemented
 
 The workspace has an Eve chat panel with Stop, served by the Next.js app through `withEve` in every environment. It operates the open session through six MCP tools: `set_region`, `export_image`, which shows the user an image preview with a Download button, `sort_tracks`, `add_tracks_from_urls`, which checks hosted files before adding them as tracks, all or none, `list_tracks`, which lists loaded tracks with their metadata, and `set_track_metadata`, which tags tracks. Eve consumes `/api/mcp` like any external client. External callers authenticate with Clerk identity; OAuth onboarding for them is not built yet.
 
-Conversations are still ephemeral in the current code: a reload starts a new one. Persistent per-session threads, summaries, preferences, and the control lock are planned in the PRD.
+Conversations are still ephemeral in the current code: a reload starts a new one. Persistent per-session threads, preferences, and the control lock are planned in the PRD.
 
 ## A control surface for the active session
 

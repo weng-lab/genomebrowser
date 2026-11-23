@@ -8,7 +8,7 @@ The open session is app-wide context within a browser tab. Session-aware UI uses
 
 Guests get one session restored in the same browser, with work preserved on sign-in (storage mechanism open). Signed-in sessions support cross-device restoration. "Save a copy" duplicates setup into an independent session. Saved regions use highlights. History/undo is outside the MVP.
 
-Each saved session owns one agent thread and its summary, which the [agent panel PRD](agent-panel-prd.md) defines. Deleting a session deletes them. "Save a copy" lets the user copy the agent history into the new session or start fresh. Agent data is not part of the session snapshot.
+Each saved session owns one agent thread, which the [agent panel PRD](agent-panel-prd.md) defines. Deleting a session deletes it, and "Save a copy" gives the copy a clean thread of its own. Agent data is not part of the session snapshot.
 
 ## What is saved
 

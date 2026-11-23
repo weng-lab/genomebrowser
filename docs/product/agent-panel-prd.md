@@ -12,55 +12,34 @@ The agent stays a control surface for the open session. It operates the browser 
 
 ## Threads
 
-Each saved session has one agent thread at a time, keyed on the session ID. Opening a session, on any device or after a reload, loads that session's current thread and its messages. The panel never shows another session's thread.
+Each saved session has one agent thread, keyed on the session ID. Opening a session, on any device or after a reload, loads that session's thread and its messages. The panel never shows another session's thread.
 
-A thread rolls over into a new one in two cases:
+A thread never rolls over on its own. Eve 1.3 compacts long threads automatically: once a thread nears the model's context window, Eve summarizes its older turns and keeps the most recent ones word for word, so the agent keeps working without the app managing memory. The app sets compaction to start at 75% of the context window.
 
-- **Inactivity.** No turn has ended for 3 hours. The check is lazy: it runs when the user next opens the session's panel or sends a message, not on a timer.
-- **New conversation.** The user presses the panel's "New conversation" button. This uses the same rollover path immediately.
-
-Rollover never happens while a run is in progress. The 3-hour window is a config value.
-
-On rollover, the app summarizes the ending thread, stores the summary, ends the old Eve session, and starts a new one with the summary in its instructions. The panel clears and shows a subtle "previous context loaded" indicator. The user cannot read the old thread's messages afterward; only the summary survives.
-
-Long active threads need no rollover of their own. Eve 1.3 compacts history automatically when a thread reaches 90% of the model's context window.
-
-### Summaries
-
-The app writes a summary once per thread, at rollover. It does not update summaries after each message.
-
-The stored summary is one short document per session with two parts:
-
-- **Session history:** a high-level account of everything before the latest thread. Each rollover rewrites it to stay under about 2,500 words, compressing or dropping the oldest details first.
-- **Latest thread:** a somewhat more detailed account of the thread that just ended.
-
-The summary states that the browser may have changed since it was written, so the agent checks current state with its tools instead of trusting remembered regions or tracks.
-
-Summarizing is invisible to the user. If it fails, the error is logged and the new thread starts from the previous stored summary.
+**New conversation** in the panel starts the session's thread clean: the app ends the current Eve session, and the next message starts a new one with no summary or history from the old one. The old messages are gone from the panel. New conversation is unavailable while a run is in progress.
 
 ### Storage and Eve retention
 
-Postgres stores, per session: the current Eve session ID, the time the last turn ended, and the summary. It never stores full transcripts.
+Postgres stores, per session, only the current Eve session ID. It never stores transcripts or summaries; Eve holds the messages.
 
-Private Eve sessions outside development use zero retention: Eve keeps messages while a session is active and deletes them when it ends. The 3-hour rollover is therefore the app's rule, not Eve's `sessionTimeoutMs`. Eve's idle timeout stays at its 30-day default, far longer, so the old thread is still readable when the app summarizes it. If a user returns after Eve has already ended the session, the latest thread is lost and the new thread starts from the stored summary alone.
+Private Eve sessions outside development use zero retention: Eve keeps messages while a session is active and deletes them when it ends. So the app turns off Eve's idle timeout (`sessionTimeoutMs: false`), and a thread lives as long as its session, until New conversation or deletion ends it. If Eve can no longer continue a thread, such as one stranded by an incompatible Eve upgrade, the panel starts a clean thread instead.
 
-The current conversation access binding in Redis expires after 24 hours ([conversationAccess.ts](../../apps/web/features/agent/server/conversationAccess.ts)). Persistent threads need that ownership check to follow the session's lifetime instead.
+The thread record is also the conversation's access check: Eve's channel asks the app whether a conversation is the session's thread before every read, follow-up, and Stop.
 
 ### Session operations
 
-- **Delete:** deleting a session deletes its summary and thread record and ends its Eve session.
-- **Save a copy:** the copy dialog offers a choice: copy agent history or start fresh. Copying gives the new session its own thread, keyed on the new session ID, seeded with the original's summary plus a summary of the original's current thread. The original session's thread is unchanged.
+- **Delete:** deleting a session deletes its thread record and ends its run.
+- **Save a copy:** the copy is a new session with its own clean thread. Nothing from the original's agent conversation carries over.
 - **Switch session:** the panel loads the new session's thread. See [runs](#runs) for what happens to work in progress.
 
 ## What the agent knows
 
-The app adds a few facts to the agent's instructions, rather than seeding them as conversation history. It reads them again before each message, so a renamed session or edited preferences apply from the next message on:
+The app adds a few facts to the agent's context before each message, so a renamed session or edited preferences apply from the next message on:
 
 - The session ID, assembly, such as hg38, and session title.
-- The stored summary, when one exists. It changes only at rollover.
 - The user's preferences text.
 
-Preferences are a free-text field on the settings page, about 1,000 characters at most, that works like an `AGENTS.md` for the user: tone, defaults, habits. They apply to every session. Preferences are never folded into summaries.
+Preferences are a free-text field on the settings page, about 1,000 characters at most, that works like an `AGENTS.md` for the user: tone, defaults, habits. They apply to every session.
 
 The agent reads browser state through tools, not injected context. A `get_browser_state` tool is a follow-up; until then `list_tracks` is the only state read.
 
@@ -101,8 +80,9 @@ Features that came up while defining this PRD and were deliberately left out. Th
 - Runs that keep working on a session with no open tab, which requires server-side session state.
 - Queuing or steering messages while a run is in progress.
 - Undo for agent actions.
-- Smarter compaction and summaries beyond Eve's defaults and the two-part summary.
-- Reading previous threads' full transcripts.
+- Carrying a summary into a new conversation, or remembering earlier conversations of a session.
+- Bringing the agent's conversation into a session copy.
+- Tuning compaction beyond Eve's defaults.
 - Newest-tab takeover and other multi-tab behavior.
 - Usage limits per user or per session.
 - Refining the control lock's appearance.
