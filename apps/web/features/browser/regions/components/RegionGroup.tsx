@@ -38,6 +38,10 @@ type RegionGroupSectionProps = {
   regionGroupStore: RegionGroupStoreInstance;
   /** The members' rows, shown while the group is expanded. */
   children: ReactNode;
+  /** Called as the group is ungrouped, so focus can go to its regions. */
+  onUngroup: () => void;
+  /** Called as the group and its regions are deleted, so focus can go to another row. */
+  onDelete: () => void;
 };
 
 /**
@@ -51,6 +55,8 @@ export function RegionGroupSection({
   browserStore,
   regionGroupStore,
   children,
+  onUngroup,
+  onDelete,
 }: RegionGroupSectionProps) {
   const theme = useTheme();
   const { collapsed, color } = group;
@@ -95,6 +101,8 @@ export function RegionGroupSection({
             group={group}
             browserStore={browserStore}
             regionGroupStore={regionGroupStore}
+            onUngroup={onUngroup}
+            onDelete={onDelete}
           />
         </>
       }
@@ -242,6 +250,8 @@ function GroupActions({
   group,
   browserStore,
   regionGroupStore,
+  onUngroup,
+  onDelete,
 }: Omit<RegionGroupSectionProps, "children">) {
   const [deleting, setDeleting] = useState(false);
   const { editGroup, ungroup, deleteGroup } = regionGroupStore.getState();
@@ -288,6 +298,7 @@ function GroupActions({
               <MenuItem
                 onClick={() => {
                   close();
+                  onUngroup();
                   ungroup(group.id);
                 }}
               >
@@ -311,7 +322,10 @@ function GroupActions({
         title={`Delete “${group.name}”?`}
         text="The group and every region in it, with their highlights, will be removed from this session. To keep the regions, ungroup it instead."
         confirmLabel="Delete group and regions"
-        onConfirm={() => deleteGroup(group.id)}
+        onConfirm={() => {
+          onDelete();
+          deleteGroup(group.id);
+        }}
         onClose={() => setDeleting(false)}
       />
     </>

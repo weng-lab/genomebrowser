@@ -42,6 +42,8 @@ type RegionMenuProps = {
    * place, so focus can follow it there.
    */
   onMove: (regionId: string) => void;
+  /** Called as the region is deleted, so focus can go to another row. */
+  onDelete: (regionId: string) => void;
 };
 
 /** A region's more-actions button, which opens its menu. */
@@ -70,6 +72,7 @@ function RegionMenu({
   regionGroupStore,
   onAddToNewGroup,
   onMove,
+  onDelete,
   opener,
   onClose,
 }: RegionMenuProps & { opener: HTMLElement | null; onClose: () => void }) {
@@ -164,7 +167,10 @@ function RegionMenu({
         ) : null}
         <Divider />
         <MenuItem
-          onClick={act(() => browserStore.getState().removeHighlight(highlight.id))}
+          onClick={act(() => {
+            onDelete(highlight.id);
+            browserStore.getState().removeHighlight(highlight.id);
+          })}
           sx={{ color: "error.main" }}
         >
           <ListItemText primary="Delete" />

@@ -559,3 +559,49 @@ it("opens the menu of a region saved with a named color, with no color chosen", 
   expect(row.querySelector('[aria-checked="true"]')).toBeNull();
   expect(document.querySelector('[aria-label="Custom color"]')).not.toBeNull();
 });
+
+it("moves focus to the row that takes over when a region or group goes", async () => {
+  await openWithRegions(
+    regionAt("a", "Alpha", "#1976d2"),
+    regionAt("b", "Beta", "#1976d2"),
+    regionAt("c", "Gamma", "#1976d2"),
+    regionAt("d", "Delta", "#1976d2"),
+  );
+  const focused = (element: Element | null | undefined) =>
+    vi.waitFor(() => expect(document.activeElement).toBe(element));
+  async function newGroup(region: string, name: string) {
+    await moveTo(region, "Move to new group");
+    await type(groupName(), name);
+    await click(button(groupForm()!, "Create group"));
+  }
+  async function groupAction(group: string, action: string) {
+    await click(container!.querySelector(`[aria-label="Actions for group ${group}"]`));
+    await click(
+      [...document.querySelectorAll('[role="menuitem"]')].find(
+        (item) => item.textContent === action,
+      ),
+    );
+  }
+
+  // A deleted region passes focus to the next row, or the one before when it was last.
+  await chooseAction("Beta", "Delete");
+  await focused(actionsFor("Gamma"));
+  await chooseAction("Delta", "Delete");
+  await focused(actionsFor("Gamma"));
+
+  // An ungrouped group passes focus to its first region.
+  await newGroup("Alpha", "Kept");
+  await groupAction("Kept", "Ungroup");
+  await focused(actionsFor("Alpha"));
+
+  // A deleted group passes focus to the row after its regions.
+  await newGroup("Gamma", "Gone");
+  await groupAction("Gone", "Delete group and regions");
+  await click(button(document, "Delete group and regions"));
+  await focused(actionsFor("Alpha"));
+
+  // With every region gone, Add region takes focus from the disabled Delete all.
+  await click(button(container!, "Delete all regions"));
+  await click(button(document.querySelector('[role="dialog"]')!, "Delete all"));
+  await focused(container!.querySelector('button[aria-label="Add region"]'));
+});

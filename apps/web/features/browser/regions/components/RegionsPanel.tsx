@@ -93,30 +93,46 @@ type OpenForm =
 type AddToNewGroup = (regionId: string, opener: HTMLElement) => void;
 
 /**
- * Keeps focus on a region as it moves into or out of a group. Its row mounts again in its new
- * place, which would drop focus from the old row's actions button. `keep` marks the region
- * before it moves, and `actionsRef` records each row's actions button. When the row is not
- * shown, such as in a collapsed group, `list` takes focus instead.
+ * Puts focus on the row that takes over from one that leaves its place, which would drop focus
+ * with it: a region that moves into or out of a group mounts again elsewhere, and a deleted
+ * region, group, or every region unmounts. `focusNext` names, before the change, the regions
+ * whose actions buttons may take focus, in order; `actionsRef` records each row's button. When
+ * none is shown, such as in a collapsed group, `list` takes focus, or `fallback` once the list
+ * is gone.
  */
-function useMovedRowFocus(list: RefObject<HTMLElement | null>) {
-  const moving = useRef<string | null>(null);
+function useRowFocus(list: RefObject<HTMLElement | null>, fallback: RefObject<HTMLElement | null>) {
+  const pending = useRef<readonly string[] | null>(null);
   const buttons = useRef(new Map<string, HTMLButtonElement>());
-  // An effect, so it runs after the old row's menu, unmounting, restores focus to its button.
+  // An effect, so it runs after a closing menu or dialog, unmounting, restores focus to what
+  // opened it.
   useEffect(() => {
-    const regionId = moving.current;
-    if (regionId === null) return;
-    moving.current = null;
-    (buttons.current.get(regionId) ?? list.current)?.focus();
+    const regionIds = pending.current;
+    if (regionIds === null) return;
+    pending.current = null;
+    const row = regionIds.map((id) => buttons.current.get(id)).find((button) => button);
+    (row ?? list.current ?? fallback.current)?.focus();
   });
   return {
-    keep: (regionId: string) => {
-      moving.current = regionId;
+    focusNext: (regionIds: readonly string[]) => {
+      pending.current = regionIds;
     },
     actionsRef: (regionId: string) => (button: HTMLButtonElement | null) => {
       if (button) buttons.current.set(regionId, button);
       else buttons.current.delete(regionId);
     },
   };
+}
+
+/**
+ * The regions that take focus when those in `leaving` go from `order`: the ones after them,
+ * then the ones before, nearest first.
+ */
+function neighbors(order: readonly string[], leaving: readonly string[]) {
+  const gone = new Set(leaving);
+  const last = order.findLastIndex((id) => gone.has(id));
+  if (last === -1) return [];
+  const staying = (ids: readonly string[]) => ids.filter((id) => !gone.has(id));
+  return [...staying(order.slice(last + 1)), ...staying(order.slice(0, last)).reverse()];
 }
 
 function Regions({ browserStore, regionGroupStore }: StoresProps) {
@@ -130,7 +146,7 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const addGroupButton = useRef<HTMLButtonElement>(null);
   const formId = useId();
   const listRef = useRef<HTMLUListElement>(null);
-  const rowFocus = useMovedRowFocus(listRef);
+  const rowFocus = useRowFocus(listRef, addRegionButton);
   // Returns focus to what opened the form, which would otherwise be lost with it.
   const closeForm = () => {
     form?.opener?.focus();
@@ -146,6 +162,10 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
   const addToNewGroup: AddToNewGroup = (regionId, opener) =>
     setForm({ kind: "group", regionId, opener });
   const sections = sectionsOf(highlights, groups);
+  // The regions in the order their rows show.
+  const order = [...sections.groups.flatMap(({ members }) => members), ...sections.ungrouped].map(
+    ({ id }) => id,
+  );
   const ungrouped = new Set(sections.ungrouped);
   const empty = highlights.length === 0 && groups.length === 0;
   const card = (highlight: Highlight) => (
@@ -153,7 +173,8 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
       key={highlight.id}
       highlight={highlight}
       onAddToNewGroup={addToNewGroup}
-      onMove={rowFocus.keep}
+      onMove={(regionId) => rowFocus.focusNext([regionId])}
+      onDelete={(regionId) => rowFocus.focusNext(neighbors(order, [regionId]))}
       actionsRef={rowFocus.actionsRef(highlight.id)}
       {...stores}
     />
@@ -224,7 +245,7 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
                   setRegionsColor(browserStore, regionIds, group.color);
                 // The region whose menu opened the form moves into the group, and focus with it.
                 if (form.regionId !== undefined && regionIds.includes(form.regionId)) {
-                  rowFocus.keep(form.regionId);
+                  rowFocus.focusNext([form.regionId]);
                   setForm(null);
                 } else closeForm();
               }}
@@ -248,13 +269,19 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
             <List
               ref={listRef}
               aria-label="Saved regions"
-              // Takes focus when a region moves to a row that is not shown.
+              // Takes focus when no shown row can take over from one that left.
               tabIndex={-1}
               disablePadding
               sx={listSx}
             >
               {sections.groups.map(({ group, members }) => (
-                <RegionGroupSection key={group.id} group={group} {...stores}>
+                <RegionGroupSection
+                  key={group.id}
+                  group={group}
+                  onUngroup={() => rowFocus.focusNext(members.map(({ id }) => id))}
+                  onDelete={() => rowFocus.focusNext(neighbors(order, group.regionIds))}
+                  {...stores}
+                >
                   {members.map(card)}
                 </RegionGroupSection>
               ))}
@@ -273,7 +300,11 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
         )}
       </Box>
       <Box sx={{ p: 1, pb: 1.5 }}>
-        <DeleteAllButton regionGroupStore={regionGroupStore} disabled={empty} />
+        <DeleteAllButton
+          regionGroupStore={regionGroupStore}
+          disabled={empty}
+          onDelete={() => rowFocus.focusNext([])}
+        />
       </Box>
     </Box>
   );
@@ -283,7 +314,12 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
 function DeleteAllButton({
   regionGroupStore,
   disabled,
-}: Pick<StoresProps, "regionGroupStore"> & { disabled: boolean }) {
+  onDelete,
+}: Pick<StoresProps, "regionGroupStore"> & {
+  disabled: boolean;
+  /** Called as it deletes, so focus can leave the button, which it disables. */
+  onDelete: () => void;
+}) {
   const [confirming, setConfirming] = useState(false);
   const close = () => setConfirming(false);
   return (
@@ -305,7 +341,10 @@ function DeleteAllButton({
         title="Delete all regions?"
         text="Every saved region, its highlight, and every group will be removed from this session."
         confirmLabel="Delete all"
-        onConfirm={() => regionGroupStore.getState().deleteAll()}
+        onConfirm={() => {
+          onDelete();
+          regionGroupStore.getState().deleteAll();
+        }}
         onClose={close}
       />
     </>
@@ -317,6 +356,8 @@ type RegionCardProps = StoresProps & {
   onAddToNewGroup: AddToNewGroup;
   /** Called as the region moves into or out of a group. */
   onMove: (regionId: string) => void;
+  /** Called as the region is deleted. */
+  onDelete: (regionId: string) => void;
   actionsRef: Ref<HTMLButtonElement>;
 };
 
@@ -327,6 +368,7 @@ function RegionCard({
   regionGroupStore,
   onAddToNewGroup,
   onMove,
+  onDelete,
   actionsRef,
 }: RegionCardProps) {
   const useBrowserStore = browserStore;
@@ -348,6 +390,7 @@ function RegionCard({
           regionGroupStore={regionGroupStore}
           onAddToNewGroup={onAddToNewGroup}
           onMove={onMove}
+          onDelete={onDelete}
           buttonRef={actionsRef}
         />
       }
