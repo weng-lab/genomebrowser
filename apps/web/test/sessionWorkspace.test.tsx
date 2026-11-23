@@ -606,6 +606,19 @@ it("sorts the open session's tracks and saves the order", async () => {
   expect(titles()).toEqual(["Human cCREs", "GENCODE 50 basic", "Coordinates"]);
 
   await click(withText("button", "Sort tracks"));
+  const picker = document.querySelector<HTMLInputElement>(
+    '[role="dialog"] input[role="combobox"]',
+  )!;
+  await act(async () => {
+    picker.focus();
+    picker.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+  });
+  // Each option shows its label, then the kind of value it holds.
+  await click(
+    [...document.querySelectorAll('[role="option"]')].find(
+      ({ children }) => children[0]?.textContent === "Title",
+    ),
+  );
   await click(withText("button", "Apply order"));
   await vi.waitFor(() => expect(closeTab()).toBe(false));
   expect(titles()).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);

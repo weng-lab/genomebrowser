@@ -26,6 +26,33 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "bas
 // Where each type sorts when one field mixes them, in ascending order.
 const typeRank = { number: 0, string: 1, boolean: 2 } as const;
 
+/** A kind of value tracks hold for an option: `string` is text. */
+export type TrackSortValueType = keyof typeof typeRank;
+
+/**
+ * The kinds of value each option reads from the tracks a sort moves, by option ID, in the
+ * order a field that mixes them sorts ascending. Missing values, including NaN, aren't a kind,
+ * so an option none of those tracks has a value for has no kinds.
+ */
+export function trackSortValueTypes(
+  trackStore: TrackStoreInstance,
+  options: readonly TrackSortOption[],
+): Map<string, TrackSortValueType[]> {
+  const { tracks, pinnedTrackIds } = trackStore.getState();
+  const pinned = new Set(pinnedTrackIds);
+  const sortable = tracks.filter((track) => !pinned.has(track.base.id));
+  return new Map(
+    options.map(({ id, value }) => {
+      const types = new Set<TrackSortValueType>();
+      for (const track of sortable) {
+        const trackValue = value(track);
+        if (hasValue(trackValue)) types.add(typeOf(trackValue));
+      }
+      return [id, [...types].sort((a, b) => typeRank[a] - typeRank[b])];
+    }),
+  );
+}
+
 /**
  * Sorts the store's tracks once and commits the order. The first rule orders the tracks,
  * and each later rule breaks ties left by the ones before it. Pinned tracks keep their
