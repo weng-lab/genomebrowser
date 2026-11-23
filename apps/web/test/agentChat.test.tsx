@@ -9,7 +9,7 @@ import { resolve } from "node:path";
 import { act, StrictMode } from "react";
 import { Client } from "eve/client";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { runCommand, type CommandApp } from "../features/agent/commands";
 import { AgentChat } from "../features/agent/components/AgentChat";
 import { agentRedisNamespace } from "../features/agent/server/deployment";
@@ -74,9 +74,25 @@ async function ready(url: string) {
   );
 }
 
+async function thread() {
+  const response = await nativeFetch(
+    `${authorization!.origin}/api/sessions/${sessionId}/agent-thread`,
+    { headers: { authorization: `Bearer ${authorization!.token("user_alice")}` } },
+  );
+  return (await response.json()) as { conversationId: string | null };
+}
+
 async function send(message: string) {
+  // The panel loads the session's thread before it shows the message box.
+  const input = await vi.waitFor(
+    () => {
+      const element = document.querySelector<HTMLTextAreaElement>("textarea:not([aria-hidden])");
+      if (!element || element.disabled) throw new Error("Waiting for the message box");
+      return element;
+    },
+    { timeout: 15_000 },
+  );
   await act(async () => {
-    const input = document.querySelector<HTMLTextAreaElement>("textarea:not([aria-hidden])")!;
     Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(
       input,
       message,
@@ -123,18 +139,29 @@ describe.skipIf(!available)("Eve agent chat", () => {
       },
     );
     await ready(`${eve}/eve/v1/health`);
-    // Same-origin rewrite boundary, as configured by withEve in Next.js.
+    // Same-origin rewrite boundary, as configured by withEve in Next.js: `/eve` reaches the
+    // agent and `/api` the app.
     vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
-      nativeFetch(typeof input === "string" && input.startsWith("/") ? `${eve}${input}` : input, {
-        ...init,
-        headers: {
-          authorization: `Bearer ${authorization!.token("user_alice")}`,
-          ...Object.fromEntries(new Headers(init?.headers)),
-          origin: proxyOrigin,
+      nativeFetch(
+        typeof input === "string" && input.startsWith("/")
+          ? `${input.startsWith("/api/") ? authorization!.origin : eve}${input}`
+          : input,
+        {
+          ...init,
+          headers: {
+            authorization: `Bearer ${authorization!.token("user_alice")}`,
+            ...Object.fromEntries(new Headers(init?.headers)),
+            origin: proxyOrigin,
+          },
         },
-      }),
+      ),
     );
   }, 90_000);
+
+  // Each test gets its own browser session, so threads from earlier tests do not resume.
+  beforeEach(async () => {
+    sessionId = (await authorization!.createSession("user_alice")).id;
+  });
 
   afterEach(({ task }) => {
     if (task.result?.state === "fail") console.error(logs.slice(-10_000));
@@ -257,6 +284,68 @@ describe.skipIf(!available)("Eve agent chat", () => {
       { timeout: 15_000 },
     );
   }, 50_000);
+
+  it("reopens the session's thread after the panel remounts", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    const { conversationId } = await thread();
+    expect(conversationId).toEqual(expect.any(String));
+    await act(async () => probe?.unmount());
+
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await vi.waitFor(
+      () => {
+        const log = document.querySelector('[role="log"]')?.textContent;
+        expect(log).toContain("hello");
+        expect(log).toContain("Hello from the genome browser agent.");
+      },
+      { timeout: 15_000 },
+    );
+    await send("hello again");
+    await vi.waitFor(
+      () =>
+        expect(
+          document
+            .querySelector('[role="log"]')
+            ?.textContent?.match(/Hello from the genome browser agent/g),
+        ).toHaveLength(2),
+      { timeout: 15_000 },
+    );
+    expect(await thread()).toEqual({ conversationId });
+  }, 50_000);
+
+  it("starts a new thread when Eve no longer has the session's conversation", async () => {
+    const lost = "00000000-0000-4000-8000-000000000000";
+    const bound = await nativeFetch(
+      `${authorization!.origin}/api/sessions/${sessionId}/agent-thread`,
+      {
+        method: "POST",
+        headers: { authorization: `Bearer ${authorization!.token("user_alice")}` },
+        body: JSON.stringify({ conversationId: lost }),
+      },
+    );
+    expect(bound.ok).toBe(true);
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await vi.waitFor(async () => expect(await thread()).toEqual({ conversationId: null }), {
+      timeout: 15_000,
+    });
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    expect((await thread()).conversationId).not.toBe(lost);
+  }, 40_000);
 
   it("rejects requests without a valid browser-session header or credentials", async () => {
     const missingHeader = await nativeFetch(`${eve}/eve/v1/session`, {

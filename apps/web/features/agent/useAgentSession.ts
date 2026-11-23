@@ -1,18 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { SessionStore } from "eve/client";
+import { SessionStore, type SessionSnapshot } from "eve/client";
 import { activeTurn } from "eve/events";
 
 /**
- * One ephemeral Eve conversation bound to `sessionId`. Cancels active work when
+ * The Eve conversation of `sessionId`'s agent thread: `saved` continues it from
+ * what Eve already held, and null starts the thread with the next message. Cancels active work when
  * the browser session aborts or the component unmounts, keeping observation
  * open until cancellation settles so pending submissions are not stranded.
  */
-export function useAgentSession(sessionId: string, signal: AbortSignal) {
+export function useAgentSession(
+  sessionId: string,
+  saved: SessionSnapshot | null,
+  signal: AbortSignal,
+) {
   const [store] = useState(
-    () => new SessionStore({ headers: { "x-genomebrowser-session-id": sessionId } }),
+    () =>
+      new SessionStore({
+        headers: { "x-genomebrowser-session-id": sessionId },
+        ...(saved && { initialEvents: saved.events, initialSession: saved.session }),
+      }),
   );
+  // A saved conversation reads as resuming from the first render, before its catch-up starts.
+  const [resumed, setResumed] = useState(!saved);
+  const caughtUp = useCallback(() => setResumed(true), []);
   const subscribe = useCallback((notify: () => void) => store.subscribe(notify), [store]);
   const snapshot = useSyncExternalStore(
     subscribe,
@@ -22,6 +34,9 @@ export function useAgentSession(sessionId: string, signal: AbortSignal) {
 
   useEffect(() => {
     const release = store.observe();
+    // Follow the saved conversation from where its snapshot ended; failures surface
+    // through the store's `error`.
+    if (saved) store.resume().then(caughtUp, caughtUp);
     let stopping: Promise<unknown> | undefined;
     const stop = () => {
       if (store.snapshot.status === "idle" && !activeTurn(store.snapshot.view)) return;
@@ -42,7 +57,7 @@ export function useAgentSession(sessionId: string, signal: AbortSignal) {
         release();
       }
     };
-  }, [store, signal]);
+  }, [store, saved, signal, caughtUp]);
 
-  return { ...snapshot, store };
+  return { ...snapshot, status: resumed ? snapshot.status : ("resuming" as const), store };
 }

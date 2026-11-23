@@ -5,13 +5,21 @@ import { sessionIdSchema } from "../../sessions/schema";
 import { commandReplySchema } from "../commands/protocol";
 import { authorizeRemoteControl, type AgentAccount, type RemoteControlDenial } from "./access";
 import type { CommandRelay } from "./relay";
+import type { AgentThreads } from "./threads";
 
 /** Resolved for each request, so missing configuration is reported like any other outage. */
 type Dependencies = { account: () => Promise<AgentAccount>; relay: () => CommandRelay };
 type AgentAuthDependencies = {
   userId: () => Promise<string | null>;
   account: () => Promise<AgentAccount>;
+  threads: () => Promise<AgentThreads>;
 };
+type ThreadDependencies = {
+  account: () => Promise<AgentAccount>;
+  threads: () => Promise<AgentThreads>;
+};
+
+const conversationSchema = z.object({ conversationId: z.string().min(1).max(200) });
 
 const noStore = { "Cache-Control": "no-store" };
 const statuses: Record<RemoteControlDenial["code"], number> = {
@@ -95,14 +103,14 @@ export function receiveCommandReply(
 
 /**
  * Authorize the embedded agent to act on `sessionId` for the signed-in account.
- * Stop requests (`control=stop`) require only a signed-in user; Eve checks the
- * conversation's pinned owner so Stop still works after Remote Control is
- * turned off or the browser session is deleted.
+ * A request on an existing conversation names it in `conversation`, which must
+ * be the session's thread. Stop requests (`control=stop`) skip the Remote
+ * Control check, so Stop still works after the preference is turned off.
  */
 export async function authorizeAgentSession(
   request: Request,
   sessionId: string,
-  { userId, account }: AgentAuthDependencies,
+  { userId, account, threads }: AgentAuthDependencies,
 ) {
   const stopping = new URL(request.url).searchParams.get("control") === "stop";
   try {
@@ -114,9 +122,68 @@ export async function authorizeAgentSession(
       const denied = await authorizeRemoteControl(await account(), sessionId);
       if (denied) return error(statuses[denied.code], denied.code, denied.error);
     }
+    // Only a conversation's own session may read, continue, or stop it.
+    const conversation = new URL(request.url).searchParams.get("conversation");
+    const foreign = conversation
+      ? !(await (await threads()).owns(sessionId, conversation))
+      : stopping;
+    if (foreign)
+      return error(403, "FORBIDDEN", "This agent conversation is not this session's thread");
     return Response.json({ userId: actingUser, browserSessionId: sessionId }, { headers: noStore });
   } catch (cause) {
     console.error("Agent session authorization failed", cause);
     return error(503, "UNAVAILABLE", "Remote control is unavailable");
   }
+}
+
+/** The session's current agent conversation, or null before its first message. */
+export function readAgentThread(sessionId: string, { account, threads }: ThreadDependencies) {
+  return authorized(sessionId, account, async () =>
+    Response.json(
+      { conversationId: await (await threads()).current(sessionId) },
+      { headers: noStore },
+    ),
+  );
+}
+
+/**
+ * Record a newly created conversation as the session's thread. Refused with 409
+ * when the session already has another one, such as one another tab started.
+ */
+export function bindAgentThread(
+  request: Request,
+  sessionId: string,
+  { account, threads }: ThreadDependencies,
+) {
+  return authorized(sessionId, account, async () => {
+    let body: unknown;
+    try {
+      body = await readJsonBody(request, {
+        maxBytes: 1_024,
+        tooLarge: () => new SyntaxError(),
+        invalid: () => new SyntaxError(),
+      });
+    } catch {
+      return error(400, "INVALID_INPUT", "The request body must be JSON");
+    }
+    const input = conversationSchema.safeParse(body);
+    if (!input.success) return error(400, "INVALID_INPUT", "Invalid conversation ID");
+    if (!(await (await threads()).bind(sessionId, input.data.conversationId)))
+      return error(409, "CONFLICT", "This session already has another agent conversation");
+    return Response.json(input.data, { headers: noStore });
+  });
+}
+
+/** Release the session's thread named by `conversation`, such as one Eve no longer has. */
+export function releaseAgentThread(
+  request: Request,
+  sessionId: string,
+  { account, threads }: ThreadDependencies,
+) {
+  return authorized(sessionId, account, async () => {
+    const conversation = new URL(request.url).searchParams.get("conversation");
+    if (!conversation) return error(400, "INVALID_INPUT", "Name the conversation to release");
+    await (await threads()).release(sessionId, conversation);
+    return new Response(null, { status: 204, headers: noStore });
+  });
 }

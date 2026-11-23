@@ -7,20 +7,40 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import type { SessionSnapshot } from "eve/client";
 import { activeTurn, openInteractions } from "eve/events";
 import { useAgentSession } from "../useAgentSession";
+import { useAgentThread } from "../useAgentThread";
 
-/** One ephemeral conversation, remounted when the browser session changes. */
-export function AgentChat({
+type ChatProps = { sessionId: string; signal: AbortSignal; connected: boolean };
+
+/** The browser session's agent thread, remounted when the browser session changes. */
+export function AgentChat({ sessionId, signal, connected }: ChatProps) {
+  const thread = useAgentThread(sessionId, signal);
+  if (thread.status === "loading")
+    return (
+      <Typography component="output" variant="body2" color="text.secondary">
+        Loading the conversation…
+      </Typography>
+    );
+  if (thread.status === "failed") return <Alert severity="error">{thread.error.message}</Alert>;
+  return (
+    <Conversation
+      sessionId={sessionId}
+      signal={signal}
+      connected={connected}
+      saved={thread.saved}
+    />
+  );
+}
+
+function Conversation({
   sessionId,
   signal,
   connected,
-}: {
-  sessionId: string;
-  signal: AbortSignal;
-  connected: boolean;
-}) {
-  const agent = useAgentSession(sessionId, signal);
+  saved,
+}: ChatProps & { saved: SessionSnapshot | null }) {
+  const agent = useAgentSession(sessionId, saved, signal);
   const [draft, setDraft] = useState("");
   const [failure, setFailure] = useState<string>();
   const transcript = useRef<HTMLDivElement>(null);

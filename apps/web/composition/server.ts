@@ -12,6 +12,7 @@ import {
 import type { AgentAccount } from "../features/agent/server/access";
 import { readCommandCredential } from "../features/agent/server/credential";
 import { agentRedisNamespace } from "../features/agent/server/deployment";
+import { createAgentThreads, type AgentThreads } from "../features/agent/server/threads";
 import { createCommandRelay, type CommandRelay } from "../features/agent/server/relay";
 import { createMcpEndpoint, type McpCaller } from "../features/mcp/server/mcp";
 import { createSessions, type Sessions } from "../features/sessions/server/sessions";
@@ -21,6 +22,7 @@ type Services = {
   db: NodePgDatabase;
   sessions: Sessions;
   accountSettings: AccountSettingsStore;
+  agentThreads: AgentThreads;
 };
 let services: Promise<Services> | undefined;
 
@@ -46,6 +48,11 @@ export async function getAccountSettings(): Promise<AccountSettingsStore> {
   return (await getServices()).accountSettings;
 }
 
+/** Agent threads of the signed-in user's sessions. */
+export async function getAgentThreads(): Promise<AgentThreads> {
+  return (await getServices()).agentThreads;
+}
+
 /** The signed-in account, as its browser tabs act for it. */
 export async function getTabAccount(): Promise<AgentAccount> {
   const { sessions, accountSettings } = await getServices();
@@ -68,6 +75,7 @@ async function composeServices(): Promise<Services> {
     db,
     sessions: createSessions({ db, identity: clerkIdentity }),
     accountSettings: createAccountSettings({ db, identity: clerkIdentity }),
+    agentThreads: createAgentThreads({ db, identity: clerkIdentity }),
   };
 }
 

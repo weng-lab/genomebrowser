@@ -14,6 +14,7 @@ import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 const mcp = await import("../app/api/mcp/route");
 const agentAuth = await import("../app/api/sessions/[id]/agent-auth/route");
+const agentThread = await import("../app/api/sessions/[id]/agent-thread/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
@@ -266,69 +267,84 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     });
   });
 
-  it("authorizes embedded agent sessions and lets Stop run after RC off or deletion", async () => {
+  it("authorizes embedded agent sessions and their threads, letting Stop run after RC off", async () => {
     const id = await createSession("user_alice");
-    await signIn(null);
-    expect(
-      (
-        await agentAuth.GET(
-          new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-          params(id),
-        )
-      ).status,
-    ).toBe(401);
+    const auth = (query = "") =>
+      agentAuth.GET(
+        new Request(`http://localhost/api/sessions/${id}/agent-auth${query}`),
+        params(id),
+      );
+    const thread = `http://localhost/api/sessions/${id}/agent-thread`;
+    const bind = (conversationId: string) =>
+      agentThread.POST(
+        new Request(thread, { method: "POST", body: JSON.stringify({ conversationId }) }),
+        params(id),
+      );
 
+    await signIn(null);
+    expect((await auth()).status).toBe(401);
     await signIn("user_bob");
-    expect(
-      (
-        await agentAuth.GET(
-          new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-          params(id),
-        )
-      ).status,
-    ).toBe(404);
+    expect((await auth()).status).toBe(404);
+    expect((await bind("conversation-bob")).status).toBe(404);
 
     await signIn("user_alice");
-    const allowed = await agentAuth.GET(
-      new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-      params(id),
-    );
+    const allowed = await auth();
     expect(allowed.status).toBe(200);
     expect(await allowed.json()).toEqual({ userId: "user_alice", browserSessionId: id });
+    expect(await (await agentThread.GET(new Request(thread), params(id))).json()).toEqual({
+      conversationId: null,
+    });
+    // Stop and follow-ups must name the session's thread.
+    expect((await auth("?control=stop")).status).toBe(403);
+    expect((await auth("?conversation=conversation-a")).status).toBe(403);
+
+    expect((await bind("conversation-a")).status).toBe(200);
+    expect((await bind("conversation-a")).status).toBe(200);
+    expect((await bind("conversation-b")).status).toBe(409);
+    expect(await (await agentThread.GET(new Request(thread), params(id))).json()).toEqual({
+      conversationId: "conversation-a",
+    });
+    expect((await auth("?conversation=conversation-a")).status).toBe(200);
+    expect((await auth("?conversation=conversation-b")).status).toBe(403);
+
+    // Another session of the same user cannot reach this thread.
+    const other = await createSession("user_alice");
+    expect(
+      (
+        await agentAuth.GET(
+          new Request(
+            `http://localhost/api/sessions/${other}/agent-auth?conversation=conversation-a`,
+          ),
+          params(other),
+        )
+      ).status,
+    ).toBe(403);
 
     await setRemoteControl("user_alice", false);
     try {
       await signIn("user_alice");
-      expect(
-        (
-          await agentAuth.GET(
-            new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-            params(id),
-          )
-        ).status,
-      ).toBe(403);
-      expect(
-        (
-          await agentAuth.GET(
-            new Request(`http://localhost/api/sessions/${id}/agent-auth?control=stop`),
-            params(id),
-          )
-        ).status,
-      ).toBe(200);
+      expect((await auth("?conversation=conversation-a")).status).toBe(403);
+      expect((await auth("?control=stop&conversation=conversation-a")).status).toBe(200);
     } finally {
       await setRemoteControl("user_alice", true);
     }
 
+    // Releasing a lost conversation lets the next message start a new thread.
     await signIn("user_alice");
+    const release = (conversation: string) =>
+      agentThread.DELETE(
+        new Request(`${thread}?conversation=${conversation}`, { method: "DELETE" }),
+        params(id),
+      );
+    expect((await release("conversation-b")).status).toBe(204);
+    expect((await auth("?conversation=conversation-a")).status).toBe(200);
+    expect((await release("conversation-a")).status).toBe(204);
+    expect((await bind("conversation-b")).status).toBe(200);
+
+    // Deleting the session deletes its thread.
     await sessionById.DELETE(new Request(`http://localhost/api/sessions/${id}`), params(id));
-    expect(
-      (
-        await agentAuth.GET(
-          new Request(`http://localhost/api/sessions/${id}/agent-auth?control=stop`),
-          params(id),
-        )
-      ).status,
-    ).toBe(200);
+    expect((await auth("?control=stop&conversation=conversation-b")).status).toBe(403);
+    expect((await bind("conversation-c")).status).toBe(404);
   });
 
   it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {
