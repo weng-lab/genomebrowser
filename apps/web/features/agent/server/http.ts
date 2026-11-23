@@ -3,6 +3,7 @@ import { z } from "zod";
 import { readJsonBody } from "../../../shared/server/readJsonBody";
 import { sessionIdSchema } from "../../sessions/schema";
 import { commandReplySchema } from "../commands/protocol";
+import type { AccountSettingsStore } from "../../account/server/settings";
 import { authorizeRemoteControl, type AgentAccount, type RemoteControlDenial } from "./access";
 import type { CommandRelay } from "./relay";
 import type { AgentThreads } from "./threads";
@@ -238,13 +239,18 @@ export function rollOverAgentThread(
 type ContextDependencies = {
   /** The user and session a scoped Eve credential names, or null when it is not valid. */
   credential: (token: string) => Promise<{ userId: string; sessionId: string } | null>;
-  account: (userId: string) => Promise<AgentAccount & { threads: AgentThreads }>;
+  account: (userId: string) => Promise<
+    AgentAccount & {
+      settings: Pick<AccountSettingsStore, "get" | "agentPreferences">;
+      threads: AgentThreads;
+    }
+  >;
 };
 
 /**
  * What the agent knows about its session before each message: the session's
- * ID, title, and assembly, and the summary earlier threads left. Eve asks with
- * the scoped credential it holds for the session.
+ * ID, title, and assembly, the summary earlier threads left, and the user's
+ * preferences. Eve asks with the scoped credential it holds for the session.
  */
 export async function readAgentContext(
   request: Request,
@@ -261,8 +267,15 @@ export async function readAgentContext(
     if (denied) return error(statuses[denied.code], denied.code, denied.error);
     const session = await acting.sessions.load(sessionId);
     const { summary } = await acting.threads.read(sessionId);
+    const preferences = (await acting.settings.agentPreferences()).text || null;
     return Response.json(
-      { sessionId, title: session.name, assembly: session.snapshot.browser.assembly, summary },
+      {
+        sessionId,
+        title: session.name,
+        assembly: session.snapshot.browser.assembly,
+        summary,
+        preferences,
+      },
       { headers: noStore },
     );
   } catch (cause) {

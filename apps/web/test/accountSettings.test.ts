@@ -6,6 +6,7 @@ import { createTestDatabase, testServerUrl } from "./sessionFixtures";
 // The proxy, Clerk verification, route handlers, settings operations, and PostgreSQL
 // are real; Clerk users sign in with locally signed session tokens.
 const route = await import("../app/api/account/settings/route");
+const preferencesRoute = await import("../app/api/account/agent-preferences/route");
 
 const read = async () => {
   const response = await route.GET();
@@ -16,6 +17,20 @@ const save = async (body: unknown) => {
     new Request("http://localhost/api/account/settings", {
       method: "PUT",
       body: typeof body === "string" ? body : JSON.stringify(body),
+    }),
+  );
+  return { status: response.status, body: await response.json() };
+};
+
+const readPreferences = async () => {
+  const response = await preferencesRoute.GET();
+  return { status: response.status, body: await response.json() };
+};
+const savePreferences = async (body: unknown) => {
+  const response = await preferencesRoute.PUT(
+    new Request("http://localhost/api/account/agent-preferences", {
+      method: "PUT",
+      body: JSON.stringify(body),
     }),
   );
   return { status: response.status, body: await response.json() };
@@ -68,5 +83,31 @@ describe.skipIf(!testServerUrl)("account settings route", () => {
 
     // Nothing rejected was saved.
     expect(await read()).toMatchObject({ body: { remoteControl: true } });
+  });
+
+  it("keeps each account's agent preferences apart from its other settings", async () => {
+    await signIn("user_carol");
+    expect(await readPreferences()).toEqual({ status: 200, body: { text: "" } });
+    expect(await savePreferences({ text: "  Use hg38. Keep answers short.  " })).toEqual({
+      status: 200,
+      body: { text: "Use hg38. Keep answers short." },
+    });
+    // Saving Remote Control leaves the preferences alone, and the reverse.
+    expect(await save({ remoteControl: false })).toMatchObject({ status: 200 });
+    expect(await readPreferences()).toMatchObject({
+      body: { text: "Use hg38. Keep answers short." },
+    });
+    expect(await read()).toMatchObject({ body: { remoteControl: false } });
+
+    await signIn("user_dave");
+    expect(await readPreferences()).toMatchObject({ body: { text: "" } });
+    expect(await savePreferences({ text: "x".repeat(1_001) })).toMatchObject({ status: 400 });
+    expect(await savePreferences({ text: "ok", userId: "user_carol" })).toMatchObject({
+      status: 400,
+    });
+    await signIn("user_carol");
+    expect(await readPreferences()).toMatchObject({
+      body: { text: "Use hg38. Keep answers short." },
+    });
   });
 });

@@ -36,6 +36,13 @@
       "when": 1795469542221,
       "tag": "0004_agent_thread_rollover",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795470698353,
+      "tag": "0005_agent_preferences",
+      "breakpoints": true
     }
   ]
 }

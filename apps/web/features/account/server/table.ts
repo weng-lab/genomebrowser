@@ -5,4 +5,6 @@ export const accountSettingsTable = pgTable("account_settings", {
   /** Clerk user ID. */
   userId: text("user_id").primaryKey(),
   remoteControl: boolean("remote_control").notNull().default(true),
+  /** The user's standing instructions for the agent, in every session. */
+  agentPreferences: text("agent_preferences"),
 });

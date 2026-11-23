@@ -21,6 +21,7 @@ const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
 const settings = await import("../app/api/account/settings/route");
+const preferences = await import("../app/api/account/agent-preferences/route");
 
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
 
@@ -436,6 +437,18 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
       title: "Agent work",
       assembly: "hg38",
       summary: null,
+      preferences: null,
+    });
+    await signIn("user_alice");
+    await preferences.PUT(
+      new Request("http://localhost/api/account/agent-preferences", {
+        method: "PUT",
+        body: JSON.stringify({ text: "Explain briefly." }),
+      }),
+    );
+    await signIn(null);
+    expect(await (await context(id, token)).json()).toMatchObject({
+      preferences: "Explain briefly.",
     });
     await setRemoteControl("user_alice", false);
     try {

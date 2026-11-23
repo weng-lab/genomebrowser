@@ -8,6 +8,7 @@ const contextSchema = z.object({
   title: z.string(),
   assembly: z.string(),
   summary: z.string().nullable(),
+  preferences: z.string().nullable(),
 });
 
 /** Ask the app for what the agent should know about its session, with Eve's scoped credential. */
@@ -26,8 +27,9 @@ async function sessionContext(userId: string, sessionId: string) {
   return contextSchema.parse(await response.json());
 }
 
-// The session's facts and the summary of its earlier threads, read once per
-// message so a rename or a new rollover applies from the next message on.
+// The session's facts, the summary of its earlier threads, and the user's
+// preferences, read once per message so changes apply from the next message on.
+// Preferences never go into summaries.
 export default defineDynamic(async (ctx) => {
   const caller = ctx.session.auth.initiator?.attributes;
   if (!ctx.turn || typeof caller?.userId !== "string") return null;
@@ -49,6 +51,13 @@ export default defineDynamic(async (ctx) => {
       "Earlier conversations in this session, summarized. The browser may have changed since, so check it with your tools before relying on a remembered region or track:",
       "",
       context.summary,
+    );
+  if (context.preferences)
+    lines.push(
+      "",
+      "The user's standing preferences for how you work, written by them for every session. Follow them unless they conflict with these instructions:",
+      "",
+      context.preferences,
     );
   return defineInstructions({ content: lines.join("\n") });
 });
