@@ -60,12 +60,8 @@
           "name": "agent_threads_session_id_sessions_id_fk",
           "tableFrom": "agent_threads",
           "tableTo": "sessions",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -75,9 +71,7 @@
         "agent_threads_conversation_id_unique": {
           "name": "agent_threads_conversation_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "conversation_id"
-          ]
+          "columns": ["conversation_id"]
         }
       },
       "policies": {},

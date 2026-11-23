@@ -96,10 +96,18 @@ export default {
           if (response.ok && route.path === "/eve/v1/session" && route.method === "POST") {
             const result = (await response.clone().json()) as { sessionId?: string };
             const browserSessionId = String(caller.attributes.browserSessionId);
-            if (
-              result.sessionId &&
-              !(await bindThread(request, browserSessionId, result.sessionId))
-            )
+            const bound =
+              !result.sessionId ||
+              (await bindThread(request, browserSessionId, result.sessionId).catch(() => false));
+            if (!bound) {
+              // The new conversation already holds the first message; end it rather than
+              // leave a run no thread can reach or stop.
+              await context
+                .attachSession(result.sessionId!)
+                .end({ auth: caller, reason: "Not the browser session's thread" })
+                .catch((cause: unknown) => {
+                  console.error("Could not end an unbound agent conversation", cause);
+                });
               return Response.json(
                 {
                   error:
@@ -107,6 +115,7 @@ export default {
                 },
                 { status: 409 },
               );
+            }
           }
           return response;
         } finally {

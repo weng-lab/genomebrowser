@@ -44,7 +44,7 @@ Postgres stores, per session: the current Eve session ID, the time the last turn
 
 Private Eve sessions outside development use zero retention: Eve keeps messages while a session is active and deletes them when it ends. The 3-hour rollover is therefore the app's rule, not Eve's `sessionTimeoutMs`. Eve's idle timeout stays at its 30-day default, far longer, so the old thread is still readable when the app summarizes it. If a user returns after Eve has already ended the session, the latest thread is lost and the new thread starts from the stored summary alone.
 
-The current conversation access binding in Redis expires after 24 hours ([conversationAccess.ts](../../apps/web/features/agent/server/conversationAccess.ts)). Persistent threads need that ownership check to follow the session's lifetime instead.
+The thread record is also the conversation's access check: Eve's channel asks the app whether a conversation is the session's thread before every read, follow-up, and Stop.
 
 ### Session operations
 
