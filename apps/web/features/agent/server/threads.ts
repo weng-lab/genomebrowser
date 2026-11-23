@@ -168,7 +168,9 @@ export function createAgentThreads({
     },
 
     async copy(sourceId, copyId, transcript) {
-      const [source, target] = await Promise.all([owned(sourceId), owned(copyId)]);
+      // One after the other: each reads the request's signed-in user.
+      const source = await owned(sourceId);
+      const target = await owned(copyId);
       if (!source || !target || sourceId === copyId) return false;
       const existing = await row(copyId);
       if (existing?.conversationId || existing?.summary) return false;
