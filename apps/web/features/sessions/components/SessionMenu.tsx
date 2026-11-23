@@ -7,15 +7,15 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { useId, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { SectionLabel } from "../../../shared/ui/SectionLabel";
 import type { SessionState } from "../session";
 import { byRecent } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
 import { useCreateDisabled } from "./NewSessionDialog";
-import { labelSx, listSx, SessionList, SessionListStatus, textSx } from "./SessionList";
+import { listSx, SessionList, SessionListStatus, textSx } from "./SessionList";
 import { itemSx } from "./SessionRow";
 
 /** Other sessions listed beside the open one. */
@@ -37,15 +37,7 @@ export function SessionMenu({ onDone, onNewSession }: SessionMenuProps) {
 
   return (
     <>
-      <Typography
-        id={labelId}
-        variant="caption"
-        display="block"
-        color="text.secondary"
-        sx={labelSx}
-      >
-        Recent sessions
-      </Typography>
+      <SectionLabel id={labelId}>Recent sessions</SectionLabel>
       <SessionList ids={ids} now={now} onOpen={onDone} aria-labelledby={labelId} />
       <SessionListStatus count={ids.length} empty="No saved sessions yet." />
       <MuiLink

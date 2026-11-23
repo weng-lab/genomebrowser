@@ -4,12 +4,26 @@ This guide is for maintainers building app screens. `shared/ui/` holds the app's
 
 ## What lives here
 
-| File            | Contents                                                                                                                                                                                      |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `theme.ts`      | The MUI theme, with the palette and component overrides, including the toolbar's centering, cards, and toggle buttons, and shared styles: `primarySurfaceSx`, `textBoxTrim`, `visuallyHidden` |
-| `NavRail.tsx`   | The navy column of icon links: an optional brand, link groups separated by lines, bottom links, and a footer                                                                                  |
-| `StatusTag.tsx` | A small bordered tag with a dot, or a spinner while busy, a label, and a neutral, success, warning, or error tone                                                                             |
-| `color.ts`      | `swatchColors`, the eight named colors color rows offer, and the six-digit hex helpers that check and read typed and stored colors                                                            |
+| File                    | Contents                                                                                                                                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `theme.ts`              | The MUI theme, with the palette and component overrides, including the toolbar's centering, cards, and toggle buttons, and shared styles: `primarySurfaceSx`, `textBoxTrim`, `visuallyHidden` |
+| `color.ts`              | `swatchColors`, the eight named colors color rows offer, and the six-digit hex helpers that check and read typed and stored colors                                                            |
+| `NavRail.tsx`           | The navy column of icon links: an optional brand, link groups separated by lines, bottom links, and a footer                                                                                  |
+| `StatusTag.tsx`         | A small bordered tag with a dot, or a spinner while busy, a label, and a neutral, success, warning, or error tone                                                                             |
+| `SectionHeader.tsx`     | A panel section's heading, with an optional count and icon buttons at its right end, such as the regions panel's Add region                                                                   |
+| `SectionLabel.tsx`      | Bold gray capitals above a list, lined up with its rows' text, such as Recent in the session menu                                                                                             |
+| `EmptyState.tsx`        | A dashed placeholder, with a title and what to do, where a list or section has nothing yet                                                                                                    |
+| `StatusMessage.tsx`     | A quiet line, or an error, where content would be while it loads, fails, or waits for a session, with an optional action such as Try again                                                    |
+| `ColorDot.tsx`          | A color as a small dot: filled, a ring, faded, or a dotted ring for no color                                                                                                                  |
+| `SwatchPicker.tsx`      | A row of round color swatches that works as a radio group, with optional no color and custom color options                                                                                    |
+| `ColorPicker.tsx`       | Picks any color from an area, a hue bar, and a hex field; `ColorPickerPopover` opens it from a custom color button                                                                            |
+| `MoreActionsButton.tsx` | The more-actions (⋮) button that both action popups below open from                                                                                                                           |
+| `ActionMenu.tsx`        | A ⋮ button and its menu of `MenuAction`s, each an icon and a label, red for deleting                                                                                                          |
+| `ActionsPopover.tsx`    | A ⋮ button and a popover that holds fields as well as menu items, such as a region's name and color                                                                                           |
+| `NameAndColor.tsx`      | The top of an actions popover: a name field and a color row, which apply as they change                                                                                                       |
+| `FormCard.tsx`          | A short form on a bordered card set into a panel, with `FormCardActions` for its submit and Cancel buttons                                                                                    |
+| `DialogForm.tsx`        | A dialog's content as a form: a title, stacked fields, Cancel, and a filled submit button. `dialogLayout.ts` holds the spacing other dialogs share                                            |
+| `ConfirmDialog.tsx`     | Asks before an action, with a red confirm button for ones that cannot be undone and room for more choices                                                                                     |
 
 Components take plain props and render presentation only. A feature or the workspace frame connects them to app state: the workspace's `SideBar` gives `NavRail` Next.js links and the current route, `SaveStatus` maps the session's save status to a `StatusTag`, and the theme styles the browser toolbar, the UI package's `ControlToolbar`, through its `GbControlToolbar` and `GbLabeledGroup` entries.
 
@@ -25,16 +39,20 @@ Ask these in order; the first that applies decides.
 4. **Does it need app state,** such as the session, a browser store, the route, or the server? Split it: the look goes here with plain props, and a small component in the feature connects it to the state, as `StatusTag` and `SaveStatus` do. If it cannot be split, it stays in the feature.
 5. **Does a second screen use it, or is one about to?** Move it here then. Until then, keep it in the feature that uses it. Pieces that set the app's overall look, such as the navigation rail, can come here first, since other screens follow them.
 
-Name a component for what it looks like, not the feature that first used it: `StatusTag`, not `SaveBadge`. Every component here gets a gallery section showing each state screens use; a component that cannot be previewed without app state has not been split as step 4 describes.
+Name a component for what it looks like, not the feature that first used it: `StatusTag`, not `SaveBadge`. Every component here gets stories showing each state screens use; a component that cannot be previewed without app state has not been split as step 4 describes.
 
 ## Preview
 
-The design gallery shows the palette and every component here with the app theme, in the states screens use. It is a standalone Vite page, separate from Next.js, so it needs no sign-in, database, or session. From the repository root:
+Storybook shows the palette and every component here with the app theme, in the states screens use. It runs on its own, separate from Next.js, so it needs no sign-in, database, or session. From the repository root:
 
 ```sh
-pnpm web design
+pnpm web storybook
 ```
 
-Then open `http://localhost:3100`. The gallery is `apps/web/design/Gallery.tsx`. Add a section there when you add a component, showing each state a screen uses.
+Then open `http://localhost:6006`. Its configuration is in `apps/web/.storybook/`, which applies the app theme to every story.
+
+When you add a component, add `<Component>.stories.tsx` beside it with a story for each state a screen uses. Stories in `shared/ui/` follow its import rules, so they use sample data rather than the app's navigation or `@weng-lab` packages. Stories that show the app's own pieces, such as the browser toolbar from the UI package styled by the theme, live in `apps/web/design/`.
+
+`pnpm web storybook:build` builds a static copy in `apps/web/storybook-static/`, which Git ignores.
 
 [Back to the docs home](../README.md)

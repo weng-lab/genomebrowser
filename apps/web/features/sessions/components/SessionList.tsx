@@ -1,7 +1,8 @@
 "use client";
 
 import List from "@mui/material/List";
-import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import { StatusMessage } from "../../../shared/ui/StatusMessage";
 import { useSession } from "../SessionProvider";
 import { SessionRow } from "./SessionRow";
 
@@ -44,15 +45,9 @@ export function SessionListStatus({ count, empty }: { count: number; empty: stri
   else if (count === 0) message = empty;
   if (!message) return null;
   return (
-    <Typography
-      variant="body2"
-      component="output"
-      display="block"
-      color={status === "unavailable" ? "error" : "text.secondary"}
-      sx={{ ...textSx, py: 1.25 }}
-    >
-      {message}
-    </Typography>
+    <Box sx={{ ...textSx, py: 1.25 }}>
+      <StatusMessage message={message} tone={status === "unavailable" ? "error" : "neutral"} />
+    </Box>
   );
 }
 
@@ -61,13 +56,3 @@ export const listSx = { display: "flex", flexDirection: "column", gap: 0.25, py:
 
 /** Text outside a row, lined up with the rows' text. */
 export const textSx = { px: 1.5 } as const;
-
-/** Bold gray capitals above a list. */
-export const labelSx = {
-  ...textSx,
-  pt: 1.25,
-  pb: 0.75,
-  fontWeight: "fontWeightBold",
-  letterSpacing: "0.06em",
-  textTransform: "uppercase",
-} as const;

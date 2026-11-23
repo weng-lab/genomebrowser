@@ -10,6 +10,7 @@ import Typography from "@mui/material/Typography";
 import DownloadIcon from "@mui/icons-material/Download";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import SortIcon from "@mui/icons-material/Sort";
+import { StatusMessage } from "../../../shared/ui/StatusMessage";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions } from "../trackSort";
@@ -67,15 +68,20 @@ function NoSession({ sessionId }: { sessionId?: string }) {
   else if (opening || (sessionId && !failed)) message = "Opening session…";
   else if (status === "loading") message = "Loading sessions…";
   return (
-    <Box component="output" sx={{ display: "block", p: 2 }}>
-      <Typography variant="body2" color="text.secondary">
-        {message}
-      </Typography>
-      {sessionId && failed && !opening && status !== "signed-out" && (
-        <Button size="small" sx={{ mt: 1 }} onClick={() => void open(sessionId)}>
-          Try again
-        </Button>
-      )}
+    <Box sx={{ p: 2 }}>
+      <StatusMessage
+        message={message}
+        action={
+          sessionId &&
+          failed &&
+          !opening &&
+          status !== "signed-out" && (
+            <Button size="small" onClick={() => void open(sessionId)}>
+              Try again
+            </Button>
+          )
+        }
+      />
     </Box>
   );
 }

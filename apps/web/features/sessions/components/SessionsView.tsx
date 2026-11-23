@@ -6,16 +6,16 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { SectionLabel } from "../../../shared/ui/SectionLabel";
 import type { Session } from "../schema";
 import type { SessionState } from "../session";
 import { byRecent, formatSavedPeriod } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
 import { NewSessionDialog, useCreateDisabled } from "./NewSessionDialog";
-import { labelSx, SessionList, SessionListStatus } from "./SessionList";
+import { SessionList, SessionListStatus } from "./SessionList";
 
 /**
  * Every saved session, most recently saved first and grouped by when it was saved,
@@ -72,16 +72,9 @@ export function SessionsView() {
       </Box>
       {groupBy(ids, periods).map(({ period, ids }, index) => (
         <Box component="section" key={period} aria-labelledby={`${headingId}-${index}`}>
-          <Typography
-            id={`${headingId}-${index}`}
-            component="h2"
-            variant="caption"
-            display="block"
-            color="text.secondary"
-            sx={labelSx}
-          >
+          <SectionLabel id={`${headingId}-${index}`} component="h2">
             {period}
-          </Typography>
+          </SectionLabel>
           {/* The heading says when they were saved, so rows leave it out. */}
           <SessionList ids={ids} aria-labelledby={`${headingId}-${index}`} />
         </Box>

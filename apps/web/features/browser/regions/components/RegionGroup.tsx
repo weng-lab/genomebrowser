@@ -24,7 +24,7 @@ import { setRegionsColor, setRegionsHidden } from "../regions";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
 import { swatchColors } from "../../../../shared/ui/color";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
-import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { ConfirmDialog } from "../../../../shared/ui/ConfirmDialog";
 
 /** One column that can shrink below the rows' text, so long names and coordinates truncate. */
 export const listSx = {
@@ -318,7 +318,8 @@ function GroupActions({
           </>
         )}
       </ActionsPopover>
-      <ConfirmDeleteDialog
+      <ConfirmDialog
+        tone="danger"
         open={deleting}
         title={`Delete “${group.name}”?`}
         text="The group and every region in it, with their highlights, will be removed from this session. To keep the regions, ungroup it instead."

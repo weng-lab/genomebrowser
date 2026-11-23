@@ -25,6 +25,7 @@ import {
 } from "@weng-lab/genomebrowser";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { isHexColor } from "../../../shared/ui/color";
+import { dialogActionsSx, dialogFieldsSx } from "../../../shared/ui/dialogLayout";
 import { parseCustomTracks, sortByPriority, type LineError } from "../customTracks";
 import {
   addTracksFromUrls,
@@ -197,7 +198,7 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
   return (
     <>
       <DialogTitle>Add tracks</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, "&&": { pt: 1 } }}>
+      <DialogContent sx={[dialogFieldsSx, { gap: 2 }]}>
         {rows === undefined ? (
           <>
             <Typography variant="body2" color="text.secondary">
@@ -256,7 +257,7 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
         )}
         {error && <Alert severity="error">{error}</Alert>}
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
+      <DialogActions sx={dialogActionsSx}>
         {rows === undefined ? (
           <Button
             startIcon={<UploadFile />}
