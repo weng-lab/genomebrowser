@@ -3,20 +3,13 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useTheme, type PaletteColor } from "@mui/material/styles";
-import Add from "@mui/icons-material/Add";
-import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
 import Download from "@mui/icons-material/Download";
 import Sort from "@mui/icons-material/Sort";
 import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
 import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
 import { brand, navigation } from "../composition/navigation";
-import { ActionsPopover } from "../shared/ui/ActionsPopover";
 import { ColorPicker } from "../shared/ui/ColorPicker";
-import { EmptyState } from "../shared/ui/EmptyState";
-import { FormCard, FormCardActions } from "../shared/ui/FormCard";
-import { NameAndColor } from "../shared/ui/NameAndColor";
 import { NavRail } from "../shared/ui/NavRail";
-import { SectionHeader } from "../shared/ui/SectionHeader";
 import { StatusTag } from "../shared/ui/StatusTag";
 import { SwatchPicker } from "../shared/ui/SwatchPicker";
 import { groupColors } from "../features/browser/regions/regionGroups";
@@ -28,7 +21,10 @@ const useBrowserStore = createBrowserStore({
   trackWidth: 900,
 });
 
-/** Every shared/ui component, with the app theme, in the states screens use. */
+/**
+ * The palette and the shared/ui components worth seeing on their own, with the app theme, in
+ * the states screens use.
+ */
 export function Gallery() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 5, p: 3, maxWidth: 1200 }}>
@@ -61,36 +57,8 @@ export function Gallery() {
           <StatusTag label="Unsaved" />
         </Row>
       </Section>
-      <Section title="SectionHeader" source="shared/ui/SectionHeader.tsx">
-        {/* Closed, then with the first action's part open. */}
-        {[false, true].map((expanded) => (
-          <Box key={String(expanded)} sx={{ width: 280, p: 1.5, bgcolor: "background.paper" }}>
-            <SectionHeader
-              title="Regions"
-              actions={[
-                { label: "Add region", icon: <Add />, expanded },
-                { label: "Add group", icon: <CreateNewFolder /> },
-              ]}
-            />
-          </Box>
-        ))}
-      </Section>
-      <Section title="EmptyState" source="shared/ui/EmptyState.tsx">
-        <Box sx={{ width: 280, p: 1.5, bgcolor: "background.paper" }}>
-          <EmptyState
-            title="No regions yet"
-            description="Add the current view, or enter coordinates, to save a region."
-          />
-        </Box>
-      </Section>
       <Section title="SwatchPicker" source="shared/ui/SwatchPicker.tsx">
         <SwatchPickerExample />
-      </Section>
-      <Section
-        title="ActionsPopover and NameAndColor"
-        source="shared/ui/ActionsPopover.tsx, shared/ui/NameAndColor.tsx"
-      >
-        <ActionsPopoverExample />
       </Section>
       <Section title="ColorPicker" source="shared/ui/ColorPicker.tsx">
         <Box sx={{ bgcolor: "background.paper", borderRadius: 3, boxShadow: 4 }}>
@@ -100,14 +68,6 @@ export function Gallery() {
             onApply={() => {}}
             onCancel={() => {}}
           />
-        </Box>
-      </Section>
-      <Section title="FormCard" source="shared/ui/FormCard.tsx">
-        <Box sx={{ width: 280, p: 1.5, bgcolor: "background.paper" }}>
-          <FormCard label="Example" onSubmit={() => {}} onCancel={() => {}}>
-            <SwatchPickerExample />
-            <FormCardActions submitLabel="Create group" onCancel={() => {}} align="end" />
-          </FormCard>
         </Box>
       </Section>
       <Section
@@ -137,30 +97,6 @@ export function Gallery() {
         </Box>
       </Section>
     </Box>
-  );
-}
-
-/** A group's actions button: its menu starts with the name and color, then its items. */
-function ActionsPopoverExample() {
-  const [color, setColor] = useState<string | null>(groupColors[1].color);
-  return (
-    <ActionsPopover label="Actions for group Promoters">
-      {(close) => (
-        <NameAndColor
-          nameLabel="Group name"
-          initialName="Promoters"
-          onRename={() => {}}
-          onDone={close}
-          color={{
-            label: "Group color",
-            colors: groupColors,
-            value: color,
-            onChange: setColor,
-            allowNone: true,
-          }}
-        />
-      )}
-    </ActionsPopover>
   );
 }
 
