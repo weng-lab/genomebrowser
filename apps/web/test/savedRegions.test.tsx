@@ -223,7 +223,7 @@ it("adds a region by coordinates on the shown chromosome, which start as the vie
   });
   const form = () => container!.querySelector<HTMLFormElement>('form[aria-label="Add region"]');
   const coordinates = () => form()!.querySelector('fieldset[aria-label="Coordinates"]');
-  const position = (index: number) => coordinates()!.querySelectorAll("input")[index]!;
+  const position = (index: number) => coordinates()!.querySelectorAll("input")[index];
 
   await click(add);
   await click(button(form()!, "Add by coordinates"));

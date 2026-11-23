@@ -70,7 +70,7 @@ export function ColorPicker({ initialColor, label, onApply, onCancel }: ColorPic
         max={360}
         value={hsv.h}
         track={false}
-        onChange={(_, h) => pick({ ...hsv, h: h as number })}
+        onChange={(_, h) => pick({ ...hsv, h })}
         sx={{
           height: 12,
           py: 1,

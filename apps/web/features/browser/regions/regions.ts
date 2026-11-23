@@ -1,10 +1,10 @@
-import {
-  type AssemblyDefinition,
-  type BrowserHighlightMutationResult,
-  type BrowserStoreInstance,
-  type GenomicRegion,
-  type Highlight,
-  type MutationFailure,
+import type {
+  AssemblyDefinition,
+  BrowserHighlightMutationResult,
+  BrowserStoreInstance,
+  GenomicRegion,
+  Highlight,
+  MutationFailure,
 } from "@weng-lab/genomebrowser";
 import { hexColorMessage, isHexColor } from "../../../shared/ui/color";
 

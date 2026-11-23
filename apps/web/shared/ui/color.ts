@@ -17,6 +17,7 @@ export const hexColorSchema = z.string().regex(hexColorPattern, hexColorMessage)
 export function readHex(text: string) {
   const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text.trim());
   if (!match) return undefined;
-  const digits = match[1].length === 3 ? [...match[1]].map((d) => d + d).join("") : match[1];
+  // Three digits double each one: #abc is #aabbcc.
+  const digits = match[1].length === 3 ? match[1].replace(/./g, "$&$&") : match[1];
   return `#${digits.toLowerCase()}`;
 }
