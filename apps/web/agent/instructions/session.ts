@@ -10,7 +10,7 @@ const contextSchema = z.object({
 });
 
 /** Ask the app for what the agent should know about its session, with Eve's scoped credential. */
-async function sessionContext(userId: string, sessionId: string) {
+async function sessionContext(userId: string, sessionId: string, signal: AbortSignal) {
   const { token } = await issueCommandCredential(userId, sessionId);
   const response = await fetch(
     new URL(`/api/sessions/${sessionId}/agent-context`, agentAppOrigin()),
@@ -18,7 +18,7 @@ async function sessionContext(userId: string, sessionId: string) {
       headers: { ...(await agentDeploymentHeaders()), authorization: `Bearer ${token}` },
       cache: "no-store",
       redirect: "error",
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
     },
   );
   if (!response.ok) throw new Error(`The session's context is unavailable (${response.status})`);
@@ -41,7 +41,9 @@ export default defineDynamic(async (ctx) => {
     return null;
   const { userId, browserSessionId } = caller;
   const context = await ctx
-    .memo(["session-context", ctx.turn.id], () => sessionContext(userId, browserSessionId))
+    .memo(["session-context", ctx.turn.id], ({ abortSignal }) =>
+      sessionContext(userId, browserSessionId, abortSignal),
+    )
     .catch((error: unknown) => {
       console.error("Could not load the agent's session context", error);
       return null;

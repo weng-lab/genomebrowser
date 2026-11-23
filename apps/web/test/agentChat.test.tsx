@@ -355,44 +355,101 @@ describe.skipIf(!available)("Eve agent chat", () => {
     await vi.waitFor(() => expect(leaving()).toBe(false), { timeout: 15_000 });
   }, 30_000);
 
-  it("starts a clean conversation on request, still knowing its session", async () => {
-    probe = await renderWithProbe(
-      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
-    );
-    await send("hello");
-    await vi.waitFor(
-      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
-      { timeout: 15_000 },
-    );
-    const { conversationId: first } = await thread();
-    await act(async () =>
-      [...document.querySelectorAll("button")]
-        .find((button) => button.textContent === "New conversation")!
-        .click(),
-    );
-    await vi.waitFor(async () => expect(await thread()).toEqual({ conversationId: null }), {
-      timeout: 15_000,
+  it("starts a clean conversation on request, ending the old one first, still knowing its session", async () => {
+    const routed = globalThis.fetch;
+    const requests: string[] = [];
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const response = await routed(input, init);
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.endsWith("/end") || init?.method === "DELETE")
+        requests.push(`${init?.method} ${url.replace(/\?.*/, "")} ${response.status}`);
+      return response;
     });
-    await vi.waitFor(() =>
-      expect(document.querySelector('[role="log"]')?.textContent).not.toContain("hello"),
-    );
+    try {
+      probe = await renderWithProbe(
+        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+      );
+      await send("hello");
+      await vi.waitFor(
+        () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+        { timeout: 15_000 },
+      );
+      const { conversationId: first } = await thread();
+      await act(async () =>
+        [...document.querySelectorAll("button")]
+          .find((button) => button.textContent === "New conversation")!
+          .click(),
+      );
+      await vi.waitFor(async () => expect(await thread()).toEqual({ conversationId: null }), {
+        timeout: 15_000,
+      });
+      // Eve ended the old conversation before the app let go of it.
+      expect(requests).toEqual([
+        `POST /eve/v1/session/${first}/end 202`,
+        `DELETE /api/sessions/${sessionId}/agent-thread 204`,
+      ]);
+      await vi.waitFor(() => {
+        const log = document.querySelector('[role="log"]');
+        expect(log).not.toBeNull();
+        expect(log!.textContent).not.toContain("hello");
+      });
 
-    await send("what do you know");
-    await vi.waitFor(
-      () => {
-        const log = document.querySelector('[role="log"]')?.textContent;
-        expect(log).toContain("<session>");
-        expect(log).toContain(sessionId);
-        expect(log).toContain("hg38");
-      },
-      { timeout: 15_000 },
-    );
-    // Nothing of the earlier conversation carries over.
-    expect(document.querySelector('[role="log"]')?.textContent).not.toContain(
-      "Hello from the genome browser agent.",
-    );
-    expect((await thread()).conversationId).not.toBe(first);
+      await send("what do you know");
+      await vi.waitFor(
+        () => {
+          const log = document.querySelector('[role="log"]')?.textContent;
+          // The session's facts arrive as a user-role note, not system instructions.
+          expect(log).toContain(
+            '"role":"user","content":[{"type":"text","text":"Notes about this session',
+          );
+          expect(log).toContain(sessionId);
+          expect(log).toContain("Agent auth");
+          expect(log).toContain("hg38");
+        },
+        { timeout: 15_000 },
+      );
+      // Nothing of the earlier conversation carries over.
+      expect(document.querySelector('[role="log"]')?.textContent).not.toContain(
+        "Hello from the genome browser agent.",
+      );
+      expect((await thread()).conversationId).not.toBe(first);
+    } finally {
+      vi.stubGlobal("fetch", routed);
+    }
   }, 50_000);
+
+  it("keeps the thread when its conversation cannot be ended for New conversation", async () => {
+    const routed = globalThis.fetch;
+    vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      return url.endsWith("/end")
+        ? Promise.resolve(Response.json({ error: "Unavailable" }, { status: 503 }))
+        : routed(input, init);
+    });
+    try {
+      probe = await renderWithProbe(
+        <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+      );
+      await send("hello");
+      await vi.waitFor(
+        () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+        { timeout: 15_000 },
+      );
+      const before = await thread();
+      await act(async () =>
+        [...document.querySelectorAll("button")]
+          .find((button) => button.textContent === "New conversation")!
+          .click(),
+      );
+      await vi.waitFor(() => expect(document.querySelector('[role="alert"]')).not.toBeNull(), {
+        timeout: 15_000,
+      });
+      expect(await thread()).toEqual(before);
+      expect(document.body.textContent).toContain("Hello from the genome browser agent.");
+    } finally {
+      vi.stubGlobal("fetch", routed);
+    }
+  }, 40_000);
 
   it("reopens the session's thread after the panel remounts", async () => {
     probe = await renderWithProbe(

@@ -19,7 +19,8 @@ export type AgentThread =
  * passing failure: it is gone, expired, ended, or stranded by an Eve upgrade.
  */
 export function isLostConversation(error: unknown) {
-  if (error instanceof SessionNotActiveError) return true;
+  // A session still starting is not lost; Eve says it may be retried.
+  if (error instanceof SessionNotActiveError) return !error.retryable;
   return (
     ClientError.is(error) &&
     (error.status === 404 || error.code === "session_expired" || error.code === "session_stranded")
