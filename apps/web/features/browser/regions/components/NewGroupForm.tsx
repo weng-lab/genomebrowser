@@ -5,7 +5,7 @@ import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { FormCard, FormCardActions } from "../../../../shared/ui/FormCard";
 import { SwatchPicker } from "../../../../shared/ui/SwatchPicker";
 import type { RegionGroup } from "../regionGroupSchema";
@@ -27,7 +27,8 @@ type NewGroupFormProps = {
   candidates: readonly GroupCandidate[];
   /** The IDs of the candidates checked when it opens. */
   initialRegionIds: readonly string[];
-  onCreate: (group: NewGroup) => void;
+  /** Creates the group, or returns why it could not, which the form shows, staying open. */
+  onCreate: (group: NewGroup) => string | undefined;
   onCancel: () => void;
 };
 
@@ -47,6 +48,8 @@ export function NewGroupForm({
   const [color, setColor] = useState<string | null>(defaults.color);
   const [checked, setChecked] = useState(() => new Set(initialRegionIds));
   const [applyColor, setApplyColor] = useState(false);
+  const [error, setError] = useState<string>();
+  const errorId = useId();
   // In list order, whatever order they were checked in.
   const regionIds = candidates.filter((region) => checked.has(region.id)).map(({ id }) => id);
   // Without a color, or regions to take it, there is nothing to apply.
@@ -62,13 +65,16 @@ export function NewGroupForm({
       id={id}
       label="New group"
       onSubmit={() =>
-        onCreate({
-          name: name.trim() || defaults.name,
-          color,
-          regionIds,
-          applyColor: canApply && applyColor,
-        })
+        setError(
+          onCreate({
+            name: name.trim() || defaults.name,
+            color,
+            regionIds,
+            applyColor: canApply && applyColor,
+          }),
+        )
       }
+      describedBy={error ? errorId : undefined}
       onCancel={onCancel}
     >
       <TextField
@@ -151,6 +157,11 @@ export function NewGroupForm({
         }
         sx={{ ml: 0, gap: 0.5 }}
       />
+      {error ? (
+        <Typography id={errorId} role="alert" variant="body2" color="error">
+          {error}
+        </Typography>
+      ) : null}
       <FormCardActions submitLabel="Create group" onCancel={onCancel} align="end" />
     </FormCard>
   );

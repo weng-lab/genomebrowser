@@ -212,7 +212,9 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
                 }))}
               initialRegionIds={form.regionId === undefined ? [] : [form.regionId]}
               onCreate={({ applyColor, regionIds, ...group }) => {
-                regionGroupStore.getState().createGroup(group, regionIds);
+                const created = regionGroupStore.getState().createGroup(group, regionIds);
+                // Nothing changed, so the form stays open to show why.
+                if (!created.ok) return created.error;
                 if (applyColor && group.color)
                   setRegionsColor(browserStore, regionIds, group.color);
                 // The region whose menu opened the form moves into the group, and focus with it.

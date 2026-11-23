@@ -10,6 +10,8 @@ type FormCardProps = {
   onSubmit: () => void;
   /** Called by Escape, and by the actions' Cancel button. */
   onCancel: () => void;
+  /** The ID of text describing the form, such as why it could not be submitted. */
+  describedBy?: string;
   children: ReactNode;
 };
 
@@ -17,13 +19,14 @@ type FormCardProps = {
  * A short form on a bordered card, set into a panel below what opened it, such as a section
  * header's add button. Escape cancels.
  */
-export function FormCard({ id, label, onSubmit, onCancel, children }: FormCardProps) {
+export function FormCard({ id, label, onSubmit, onCancel, describedBy, children }: FormCardProps) {
   return (
     <Paper
       id={id}
       component="form"
       variant="outlined"
       aria-label={label}
+      aria-describedby={describedBy}
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
