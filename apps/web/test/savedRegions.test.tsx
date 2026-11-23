@@ -275,7 +275,13 @@ it("makes an empty group from the heading, with no color, that regions join and 
   // The + opens the color picker; Escape and Cancel close it alone, choosing nothing.
   const picker = () => document.querySelector('form[aria-label="Custom color"]');
   const hex = () => picker()!.querySelector<HTMLInputElement>("input:not([type='range'])")!;
-  const custom = groupForm()!.querySelector('[role="radio"][aria-label="Custom color"]')!;
+  const custom = groupForm()!.querySelector<HTMLButtonElement>(
+    'button[aria-label^="Custom color"]',
+  )!;
+  // The + is a button of its own after the color radios, so Tab reaches it.
+  expect(custom.closest('[role="radiogroup"]')).toBeNull();
+  expect(custom.tabIndex).toBe(0);
+  expect(custom.getAttribute("aria-haspopup")).toBe("dialog");
   await click(custom);
   expect(hex().value).toBe("#1F6FE5");
   await act(async () =>
@@ -290,7 +296,10 @@ it("makes an empty group from the heading, with no color, that regions join and 
   await type(hex(), "#0A6");
   await click(button(picker()!, "Apply"));
   await vi.waitFor(() => expect(picker()).toBeNull());
-  expect(custom.getAttribute("aria-checked")).toBe("true");
+  // The + shows the custom color, and no radio is checked.
+  expect(custom.getAttribute("aria-label")).toBe("Custom color, #00AA66");
+  expect(groupForm()!.querySelector('[role="radio"][aria-checked="true"]')).toBeNull();
+  expect(groupForm()!.querySelector('[role="radio"]')!.getAttribute("tabindex")).toBe("0");
   await click(groupForm()!.querySelector('[role="radio"][aria-label="No color"]'));
   await click(button(groupForm()!, "Create group"));
   expect(groupForm()).toBeNull();
