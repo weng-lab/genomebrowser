@@ -5,6 +5,7 @@ import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/cli
 import { readCommandStream, testRedisUrl } from "./redis";
 import { commands as agentCommands } from "../features/agent/commands";
 import { addTracksFromUrls } from "../features/agent/commands/addTracksFromUrls";
+import { issueCommandCredential } from "../features/agent/server/credential";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 // The proxy, Clerk verification, route handlers, authorization, PostgreSQL, and
@@ -12,8 +13,10 @@ import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 // commands route's stream that replies through the same route, as the browser does.
 
 const mcp = await import("../app/api/mcp/route");
+const agentAuth = await import("../app/api/sessions/[id]/agent-auth/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
+const sessionById = await import("../app/api/sessions/[id]/route");
 const settings = await import("../app/api/account/settings/route");
 
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
@@ -261,5 +264,136 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect(await reply("user_alice", id, { commandId: "nope", result })).toMatchObject({
       status: 400,
     });
+  });
+
+  it("authorizes embedded agent sessions and lets Stop run after RC off or deletion", async () => {
+    const id = await createSession("user_alice");
+    await signIn(null);
+    expect(
+      (
+        await agentAuth.GET(
+          new Request(`http://localhost/api/sessions/${id}/agent-auth`),
+          params(id),
+        )
+      ).status,
+    ).toBe(401);
+
+    await signIn("user_bob");
+    expect(
+      (
+        await agentAuth.GET(
+          new Request(`http://localhost/api/sessions/${id}/agent-auth`),
+          params(id),
+        )
+      ).status,
+    ).toBe(404);
+
+    await signIn("user_alice");
+    const allowed = await agentAuth.GET(
+      new Request(`http://localhost/api/sessions/${id}/agent-auth`),
+      params(id),
+    );
+    expect(allowed.status).toBe(200);
+    expect(await allowed.json()).toEqual({ userId: "user_alice", browserSessionId: id });
+
+    await setRemoteControl("user_alice", false);
+    try {
+      await signIn("user_alice");
+      expect(
+        (
+          await agentAuth.GET(
+            new Request(`http://localhost/api/sessions/${id}/agent-auth`),
+            params(id),
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await agentAuth.GET(
+            new Request(`http://localhost/api/sessions/${id}/agent-auth?control=stop`),
+            params(id),
+          )
+        ).status,
+      ).toBe(200);
+    } finally {
+      await setRemoteControl("user_alice", true);
+    }
+
+    await signIn("user_alice");
+    await sessionById.DELETE(new Request(`http://localhost/api/sessions/${id}`), params(id));
+    expect(
+      (
+        await agentAuth.GET(
+          new Request(`http://localhost/api/sessions/${id}/agent-auth?control=stop`),
+          params(id),
+        )
+      ).status,
+    ).toBe(200);
+  });
+
+  it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {
+    const id = await createSession("user_alice");
+    const other = await createSession("user_alice");
+    const { token } = await issueCommandCredential("user_alice", id);
+
+    const connectWithToken = async (bearer: string) => {
+      const client = new Client({ name: "eve-test", version: "0.0.0" });
+      await client.connect(
+        new StreamableHTTPClientTransport(new URL("http://localhost/api/mcp"), {
+          fetch: async (url, init) => {
+            await authenticate();
+            const headers = new Headers(init?.headers);
+            headers.set("authorization", `Bearer ${bearer}`);
+            return mcp.POST(new Request(url, { ...init, headers }));
+          },
+        }),
+      );
+      return client;
+    };
+
+    const client = await connectWithToken(token);
+    expect(await client.callTool(navigate(other))).toMatchObject({
+      isError: true,
+      content: [{ text: expect.stringMatching(/^FORBIDDEN:/) }],
+    });
+
+    const tab = await openTab("user_alice", id);
+    if (!("command" in tab)) throw new Error(`Tab was refused: ${tab.status}`);
+    const call = client.callTool(navigate(id));
+    const command = await tab.command();
+    const value = { region: { chromosome: "chr1", start: 1000, end: 2000 }, clamped: false };
+    await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } });
+    expect(await call).toMatchObject({ structuredContent: value });
+
+    await setRemoteControl("user_alice", false);
+    try {
+      expect(await client.callTool(navigate(id))).toMatchObject({
+        isError: true,
+        content: [{ text: expect.stringMatching(/^REMOTE_CONTROL_DISABLED:/) }],
+      });
+    } finally {
+      await setRemoteControl("user_alice", true);
+    }
+    tab.close();
+    await client.close();
+
+    // A credential issued in another deployment's namespace must be rejected.
+    const previousDeployment = process.env.VERCEL_DEPLOYMENT_ID;
+    let foreignToken: string;
+    vi.stubEnv("VERCEL_DEPLOYMENT_ID", `other-${crypto.randomUUID()}`);
+    try {
+      ({ token: foreignToken } = await issueCommandCredential("user_alice", id));
+    } finally {
+      vi.stubEnv("VERCEL_DEPLOYMENT_ID", previousDeployment ?? "");
+    }
+    await authenticate();
+    const rejected = await mcp.POST(
+      new Request("http://localhost/api/mcp", {
+        method: "POST",
+        headers: { authorization: `Bearer ${foreignToken}` },
+        body: "{}",
+      }),
+    );
+    expect(rejected.status).toBe(401);
   });
 });

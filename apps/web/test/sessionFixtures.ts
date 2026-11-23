@@ -1,4 +1,5 @@
 import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
+import { resolve } from "node:path";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client, DatabaseError, Pool } from "pg";
@@ -40,7 +41,7 @@ export async function createTestDatabase() {
   const migrations = droppablePool(url.toString());
   try {
     await migrate(drizzle({ client: migrations }), {
-      migrationsFolder: new URL("../drizzle", import.meta.url).pathname,
+      migrationsFolder: resolve(import.meta.dirname, "../drizzle"),
     });
   } finally {
     await migrations.end();
