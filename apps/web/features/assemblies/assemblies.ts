@@ -24,6 +24,8 @@ const starters = {
         config: { url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed" },
       }),
     ],
+    // The ruler stays on top when tracks are sorted or dragged.
+    pinnedTrackIds: ["ruler"],
   },
 };
 
@@ -35,7 +37,7 @@ export const supportedAssemblies = Object.values(starters).map(({ assembly, labe
 
 /**
  * New browser, track, and region-group stores for an assembly, starting at its default
- * view and tracks with no groups, or undefined for an unsupported assembly. Every
+ * view, tracks, and pins with no groups, or undefined for an unsupported assembly. Every
  * first-party track module is registered so a restored session can contain any of their tracks.
  */
 export function createStores(assemblyId: string): SessionStores | undefined {
@@ -47,7 +49,11 @@ export function createStores(assemblyId: string): SessionStores | undefined {
   });
   return {
     useBrowserStore,
-    useTrackStore: createTrackStore({ modules: firstPartyTrackModules, tracks: starter.tracks() }),
+    useTrackStore: createTrackStore({
+      modules: firstPartyTrackModules,
+      tracks: starter.tracks(),
+      pinnedTrackIds: starter.pinnedTrackIds,
+    }),
     useRegionGroupStore: createRegionGroupStore(useBrowserStore),
   };
 }

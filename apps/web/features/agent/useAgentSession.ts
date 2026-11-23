@@ -4,11 +4,15 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { SessionStore, type SessionSnapshot } from "eve/client";
 import { activeTurn } from "eve/events";
 
+/** How long an unmounted panel keeps its stream open for Stop to reach a turn that is starting. */
+const stopWaitMs = 10_000;
+
 /**
  * The Eve conversation of `sessionId`'s agent thread: `saved` continues it from
- * what Eve already held, and null starts the thread with the next message. Cancels active work when
- * the browser session aborts or the component unmounts, keeping observation
- * open until cancellation settles so pending submissions are not stranded.
+ * what Eve already held, and null starts the thread with the next message.
+ * Cancels active work when the browser session aborts or the component
+ * unmounts, keeping observation open until cancellation settles, within a
+ * bound, so pending submissions are not stranded.
  */
 export function useAgentSession(
   sessionId: string,
@@ -50,12 +54,16 @@ export function useAgentSession(
       signal.removeEventListener("abort", stop);
       stop();
       // cancel() may await a pending send's acceptance and turn.started event.
-      // Detaching first aborts that wait and leaves server work running.
-      if (stopping) {
-        stopping.then(release, release).catch(() => {});
-      } else {
-        release();
-      }
+      // Detaching first aborts that wait and leaves server work running, so keep
+      // observing until it settles, but no longer than the bound.
+      if (!stopping) return release();
+      const bound = setTimeout(release, stopWaitMs);
+      stopping
+        .finally(() => {
+          clearTimeout(bound);
+          release();
+        })
+        .catch(() => {});
     };
   }, [store, saved, signal, caughtUp]);
 

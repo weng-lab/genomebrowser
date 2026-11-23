@@ -5,14 +5,9 @@ import Typography from "@mui/material/Typography";
 import { useId } from "react";
 import { titleRowSx } from "../frame/layout";
 import { primarySurfaceSx } from "../../ui/theme";
-import { usePanelState } from "./panelState";
+import { sidePanelSizes, usePanelState } from "./panelState";
 import { Resizable } from "./Resizable";
 import type { Side, WorkspacePanel } from "../types";
-
-const sidePanelSizes = {
-  left: { defaultWidth: 240, minWidth: 180, maxWidth: 480 },
-  right: { defaultWidth: 360, minWidth: 280, maxWidth: 720 },
-} satisfies Record<Side, { defaultWidth: number; minWidth: number; maxWidth: number }>;
 
 type SidePanelProps = {
   side: Side;
@@ -59,7 +54,15 @@ export function SidePanel({ side, panel, open, animate, onClose }: SidePanelProp
               pr: onClose ? 0.5 : 1.5,
             }}
           >
-            <Typography id={titleId} variant="subtitle2" component="h2" noWrap>
+            {panel.icon && (
+              <Box
+                aria-hidden
+                sx={{ display: "flex", flexShrink: 0, mr: 1, "& svg": { fontSize: 20 } }}
+              >
+                {panel.icon}
+              </Box>
+            )}
+            <Typography id={titleId} variant="h6" component="h2" noWrap>
               {panel.title}
             </Typography>
             {onClose && (

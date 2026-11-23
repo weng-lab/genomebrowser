@@ -61,7 +61,7 @@ An account-wide setting disables all LLM operations. It closes the MCP connectio
 
 Opening a session makes it the active context across the app within that browser tab. Other pages show which session is active and use it as the default destination for actions such as adding collection tracks. Page navigation preserves the session and its authorized MCP connection, subject to the agent-off setting. Explicit actions on inactive sessions may be added without silently switching the active session; their details remain open.
 
-Signed-in users can save and reopen sessions across devices. "Save a copy" duplicates the current setup into a new independent session, including tracks, settings, and saved regions. Once history exists, copies should include it too. The user chooses whether the copy keeps the agent's history or starts fresh.
+Signed-in users can save and reopen sessions across devices. "Save a copy" duplicates the current setup into a new independent session, including tracks, settings, and saved regions. Once undo history exists, copies should include it too. The user chooses whether the copy keeps the agent's history or starts fresh.
 
 Each saved session keeps one agent conversation, which survives reloads and follows the session across devices. After a long idle gap, or when the user starts a new conversation, the agent continues from a short summary instead of the full history. The agent remembers nothing across sessions. The [agent panel PRD](agent-panel-prd.md) defines threads, summaries, and runs.
 

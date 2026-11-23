@@ -117,6 +117,7 @@ describe.skipIf(!available)("Eve agent chat", () => {
     await cp(resolve("test/fixtures/eve-model.ts"), resolve(directory, "agent/agent.ts"));
     await symlink(resolve("node_modules"), resolve(directory, "node_modules"), "dir");
     await symlink(resolve("features"), resolve(directory, "features"), "dir");
+    await symlink(resolve("shared"), resolve(directory, "shared"), "dir");
     const evePort = await freePort();
     eve = `http://127.0.0.1:${evePort}`;
     start(
@@ -469,9 +470,10 @@ describe.skipIf(!available)("Eve agent chat", () => {
         );
         await send("wait for stop");
         const eveSessionId = await accepted.promise;
+        // Aborting the browser session alone must cancel, with the panel still mounted.
         await act(async () => {
           if (teardown === "abort") signal.abort();
-          probe?.unmount();
+          else probe?.unmount();
         });
         releaseAcceptance.resolve();
         const response = await cancelled.promise;
@@ -492,6 +494,7 @@ describe.skipIf(!available)("Eve agent chat", () => {
           },
           { timeout: 15_000 },
         );
+        await act(async () => probe?.unmount());
         await vi.waitFor(() => expect(streamSignal?.aborted).toBe(true));
       } finally {
         releaseAcceptance.resolve();

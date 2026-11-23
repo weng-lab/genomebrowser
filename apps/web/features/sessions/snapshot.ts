@@ -1,6 +1,7 @@
 import { regionSchema } from "../browser/region";
 import { regionGroupSchema } from "../browser/regions/regionGroupSchema";
 import { z } from "zod";
+import { hexColorSchema } from "../../shared/ui/color";
 
 const highlightStyleSchema = z.strictObject({
   color: z.string().min(1),
@@ -49,7 +50,7 @@ export const sessionSnapshotSchema = z.strictObject({
         title: z.string().min(1),
         display: z.string().min(1),
         height: z.number().positive(),
-        color: z.string().regex(/^#[0-9a-f]{6}$/i),
+        color: hexColorSchema,
       }),
       config: z.record(z.string(), z.json()),
       source: z.enum(["host", "user"]),

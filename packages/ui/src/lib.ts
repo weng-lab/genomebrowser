@@ -34,8 +34,13 @@ export type { HighlightFormProps } from "./HighlightDialog/highlightForm";
 // Track Sort
 export { TrackSortDialog } from "./TrackSort/TrackSortDialog";
 export type { TrackSortDialogProps } from "./TrackSort/TrackSortDialog";
-export { getSortedTrackIds } from "./TrackSort/trackSortOrder";
-export type { TrackSortOption } from "./TrackSort/trackSortOrder";
+export { applyTrackSort } from "./TrackSort/trackSortOrder";
+export type {
+  TrackSortDirection,
+  TrackSortOption,
+  TrackSortRule,
+  TrackSortValue,
+} from "./TrackSort/trackSortOrder";
 
 // Cytoband
 export { Cytobands } from "./cytobands/cytobands";

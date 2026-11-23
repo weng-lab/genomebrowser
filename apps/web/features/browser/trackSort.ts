@@ -1,58 +1,96 @@
 import type { AnyTrackInstance, TrackStoreInstance } from "@weng-lab/genomebrowser";
-import { getSortedTrackIds, type TrackSortOption } from "@weng-lab/genomebrowser-ui";
+import {
+  applyTrackSort,
+  type TrackSortDirection,
+  type TrackSortOption,
+  type TrackSortRule,
+  type TrackSortValue,
+} from "@weng-lab/genomebrowser-ui";
 
-type TrackSortField = TrackSortOption<AnyTrackInstance>;
-
-// Natural, case-insensitive order, so "rep2" sorts before "rep10".
-const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
-
-const titleField: TrackSortField = {
+const titleField: TrackSortOption = {
   id: "title",
   label: "Title",
-  compare: (a, b) => collator.compare(a.base.title, b.base.title),
+  value: (track) => track.base.title,
 };
 
-const typeField: TrackSortField = {
+const typeField: TrackSortOption = {
   id: "type",
   label: "Track type",
-  compare: (a, b) => collator.compare(a.type, b.type),
+  value: (track) => track.type,
 };
 
-/** Every field tracks can be sorted by. Every track has a title and a type. */
-const trackSortFields: readonly TrackSortField[] = [titleField, typeField];
+/** A metadata field, named as typed. `meta:` IDs can't clash with `title` and `type`. */
+const metadataField = (name: string): TrackSortOption => ({
+  id: `meta:${name}`,
+  label: name,
+  // Only the track's own fields: every object inherits names such as `constructor`.
+  value: ({ metadata }) => (metadata && Object.hasOwn(metadata, name) ? metadata[name] : undefined),
+});
 
-/**
- * The fields the Sort tracks dialog offers for the given tracks. A field is offered
- * only when sorting by it could change the order, so Track type needs at least two
- * types among them.
- */
-export function getTrackSortOptions(tracks: readonly AnyTrackInstance[]): TrackSortField[] {
-  const options = [titleField];
-  if (new Set(tracks.map(({ type }) => type)).size > 1) options.push(typeField);
-  return options;
+// Field names in natural order, ignoring case, as text values sort.
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+
+/** Every field the tracks can be sorted by: Title, Track type, then their metadata fields. */
+function sortFields(tracks: readonly AnyTrackInstance[]) {
+  const names = new Set(tracks.flatMap((track) => Object.keys(track.metadata ?? {})));
+  return [titleField, typeField, ...[...names].toSorted(collator.compare).map(metadataField)];
 }
 
-/** Every unpinned track takes part in a sort; pinned tracks keep their positions. */
-export const getTrackSortValues = (track: AnyTrackInstance) => track;
+/**
+ * The fields the Sort tracks dialog offers for the session's tracks: Title, then each other
+ * field whose sort could change the order. That takes at least two different values among
+ * the unpinned tracks, since pinned tracks keep their positions. A track without the field
+ * counts as one value, so a single tagged track is enough.
+ */
+export function getTrackSortOptions({
+  tracks,
+  pinnedTrackIds,
+}: {
+  tracks: readonly AnyTrackInstance[];
+  pinnedTrackIds: readonly string[];
+}): TrackSortOption[] {
+  const pinned = new Set(pinnedTrackIds);
+  const unpinned = tracks.filter((track) => !pinned.has(track.base.id));
+  return sortFields(tracks).filter(
+    (field) => field === titleField || distinctValues(unpinned, field) > 1,
+  );
+}
+
+function distinctValues(tracks: readonly AnyTrackInstance[], field: TrackSortOption) {
+  return new Set(tracks.map((track) => valueKey(field.value(track)))).size;
+}
+
+// `1` and `"1"` are different values, while `null` and a missing field both mean none.
+function valueKey(value: TrackSortValue) {
+  return value === null || value === undefined ? "none" : `${typeof value}:${value}`;
+}
+
+/** One level of a sort by field ID. Ascending when no direction is given. */
+export type TrackSortRequest = { field: string; direction?: TrackSortDirection };
 
 type SortOutcome = { ok: true } | { ok: false; code: string; error: string };
 
 /**
- * Sort the store's tracks once by the given field IDs in priority order, as the
- * dialog's Apply order does. Fails without changing the order when a field is unknown.
+ * Sort the store's tracks once by the given fields in priority order, as the dialog's
+ * Apply order does. The fields are `title`, `type`, and `meta:<name>` for any metadata
+ * field a loaded track has. Fails without changing the order when a field is unknown.
  */
 export function sortTracks(
   trackStore: TrackStoreInstance,
-  fieldIds: readonly string[],
+  sort: readonly TrackSortRequest[],
 ): SortOutcome {
-  const fields = fieldIds.map((id) => trackSortFields.find((field) => field.id === id));
-  const unknown = fieldIds.filter((_, index) => !fields[index]);
+  const available = sortFields(trackStore.getState().tracks);
+  const rules: TrackSortRule[] = [];
+  const unknown: string[] = [];
+  for (const { field, direction = "ascending" } of sort) {
+    const option = available.find(({ id }) => id === field);
+    if (option) rules.push({ option, direction });
+    else unknown.push(`"${field}"`);
+  }
   if (unknown.length > 0) {
-    const available = trackSortFields.map(({ id }) => `"${id}"`).join(", ");
-    const error = `Unknown sort field ${unknown.map((id) => `"${id}"`).join(", ")}. Available fields: ${available}`;
+    const ids = available.map(({ id }) => `"${id}"`).join(", ");
+    const error = `Unknown sort field ${unknown.join(", ")}. Available fields: ${ids}`;
     return { ok: false, code: "UNKNOWN_SORT_FIELD", error };
   }
-  const { tracks, pinnedTrackIds, reorderTracks } = trackStore.getState();
-  const comparators = fields.map((field) => field!.compare);
-  return reorderTracks(getSortedTrackIds(tracks, pinnedTrackIds, getTrackSortValues, comparators));
+  return applyTrackSort(trackStore, rules);
 }
