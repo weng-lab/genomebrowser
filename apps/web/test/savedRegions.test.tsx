@@ -551,3 +551,11 @@ it("shows regions saved before regions had names by their IDs", async () => {
     expect(cards().map((card) => card.textContent)).toEqual(["HS2chr11:5,280,601-5,281,000"]),
   );
 });
+
+it("opens the menu of a region saved with a named color, with no color chosen", async () => {
+  await openWithRegions(regionAt("named", "Named", "tomato"));
+  await click(document.querySelector('[aria-label="Actions for region Named"]'));
+  const row = document.querySelector('[role="radiogroup"][aria-label="Region color"]')!;
+  expect(row.querySelector('[aria-checked="true"]')).toBeNull();
+  expect(document.querySelector('[aria-label="Custom color"]')).not.toBeNull();
+});

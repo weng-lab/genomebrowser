@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import { alpha, type Theme } from "@mui/material/styles";
 import { useState, type KeyboardEvent } from "react";
+import { isHexColor } from "./color";
 import { colorDotSx } from "./ColorDot";
 import { ColorPickerPopover, defaultPickerColor } from "./ColorPicker";
 
@@ -12,7 +13,10 @@ export type SwatchPickerProps = {
   /** The color row's accessible name. */
   label: string;
   colors: readonly Swatch[];
-  /** A six-digit hex color, or null for no color. */
+  /**
+   * A color, or null for no color. A color that is not six-digit hex, such as `tomato`, shows
+   * with nothing chosen.
+   */
   value: string | null;
   onChange: (value: string | null) => void;
   /** Starts the row with a dotted option for null. */
@@ -42,13 +46,16 @@ export function SwatchPicker({
 }: SwatchPickerProps) {
   // The + while it has the color picker open.
   const [customAnchor, setCustomAnchor] = useState<HTMLElement | null>(null);
+  // Only hex can be shown as a custom color: MUI's color helpers throw on named colors.
   const custom =
-    value !== null && !colors.some(({ color }) => sameColor(color, value)) ? value : null;
+    value !== null && isHexColor(value) && !colors.some(({ color }) => sameColor(color, value))
+      ? value
+      : null;
   const options: { label: string; value: string | null }[] = [
     ...(allowNone ? [{ label: noneLabel, value: null }] : []),
     ...colors.map(({ name, color }) => ({ label: name, value: color })),
   ];
-  // None is checked while a custom color is chosen, which the + shows.
+  // None is checked while a custom color is chosen, which the + shows, or one it cannot read.
   const checked =
     custom === null
       ? options.findIndex((option) =>

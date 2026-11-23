@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 /**
- * Colors as tracks, highlights, and region groups store them: six-digit hex, such as #1f6fe5.
- * The app checks and reads every typed or saved color here.
+ * Colors as the app's color controls make them and region groups store them: six-digit hex,
+ * such as #1f6fe5. A highlight saved through the sessions API may hold any CSS color, so code
+ * that passes a stored color to MUI's color helpers checks it with `isHexColor` first.
  */
 const hexColorPattern = /^#[0-9a-f]{6}$/i;
 
