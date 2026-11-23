@@ -73,6 +73,16 @@ async function type(input: HTMLInputElement, value: string) {
   });
 }
 
+/** Moves a region to a group, or to a new one, from its menu's Move to group. */
+async function moveTo(region: string, group: string) {
+  await chooseAction(region, "Move to group");
+  await click(
+    [
+      ...document.querySelectorAll('[role="menu"][aria-label="Move to group"] [role="menuitem"]'),
+    ].find((item) => item.textContent === group),
+  );
+}
+
 async function chooseAction(region: string, action: string) {
   await click(document.querySelector(`[aria-label="Actions for region ${region}"]`));
   await click(
@@ -80,57 +90,64 @@ async function chooseAction(region: string, action: string) {
   );
 }
 
-it("edits, hides, visits, and deletes regions, saving them with the session", async () => {
+it("renames, recolors, moves, hides, visits, and deletes regions, saving them", async () => {
   await openWithRegions(regionAt("r1", first, "#1976d2"));
   expect(cards().map((card) => card.textContent)).toEqual([first + first]);
   expect(cards()[0].querySelector('[aria-current="location"]')).not.toBeNull();
   const regionId = "r1";
+  const menu = () => document.querySelector('[role="dialog"][aria-label^="Actions for region"]');
+  const nameField = () =>
+    menu()!.querySelector<HTMLInputElement>('input[aria-label="Region name"]')!;
+  const swatch = (name: string) =>
+    menu()!.querySelector(`[aria-label="Region color"] [aria-label="${name}"]`);
 
-  await chooseAction("chr11:5,225,001-5,305,000", "Edit region");
-  const field = (label: string) =>
-    document.getElementById(
-      [...document.querySelectorAll('[role="dialog"] label')]
-        .find((element) => element.textContent?.startsWith(label))!
-        .getAttribute("for")!,
-    ) as HTMLInputElement;
-  await type(field("Name"), "HS2");
-  await type(field("Region"), "chr11:5,280,601-5,281,000");
-  await type(field("Color"), "#ff0000");
-  await type(field("Opacity"), "50");
-  await act(async () => field("Name").form!.requestSubmit());
+  // The name and color apply as they change, and the menu starts at the name.
+  await click(document.querySelector(`[aria-label="Actions for region ${first}"]`));
+  expect(document.activeElement).toBe(nameField());
+  await type(nameField(), "HS2");
+  expect(cards()[0].textContent).toBe(`HS2${first}`);
+  // A blank name keeps the last one.
+  await type(nameField(), "");
+  expect(cards()[0].textContent).toBe(`HS2${first}`);
+  await type(nameField(), "HS2");
+  await click(swatch("Red"));
+  expect(swatch("Red")!.getAttribute("aria-checked")).toBe("true");
+  await click(
+    [...menu()!.querySelectorAll('[role="menuitem"]')].find(
+      (item) => item.textContent === "Edit coordinates",
+    ),
+  );
+  const coordinates = () => menu()!.querySelector('form[aria-label="Edit coordinates"]')!;
+  const positions = () => [...coordinates().querySelectorAll("input")];
+  expect(positions().map((input) => input.value)).toEqual(["5,225,001", "5,305,000"]);
+  await type(positions()[0], "5,280,601");
+  await type(positions()[1], "5,281,000");
+  await click(button(coordinates(), "Apply"));
+  await vi.waitFor(() => expect(menu()).toBeNull());
   const hs2 = { chromosome: "chr11", start: 5_280_600, end: 5_281_000 };
   expect(cards().map((card) => card.textContent)).toEqual(["HS2chr11:5,280,601-5,281,000"]);
   expect(cards()[0].querySelector('[aria-current="location"]')).toBeNull();
-  await vi.waitFor(() =>
-    expect(saved().highlights).toEqual([
-      { id: regionId, name: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled" },
-    ]),
-  );
+  const shown = { id: regionId, name: "HS2", region: hs2, color: "#c8362b", type: "filled" };
+  await vi.waitFor(() => expect(saved().highlights).toEqual([shown]));
 
-  // Hiding keeps the region's own opacity, and showing it again restores it.
-  await chooseAction("HS2", "Hide highlight");
+  // Hiding keeps the region's color, and showing it again restores it.
+  await chooseAction("HS2", "Hide on tracks");
   expect(cards()[0].textContent).toContain("Hidden");
-  await vi.waitFor(() =>
-    expect(saved().highlights).toEqual([
-      {
-        id: regionId,
-        name: "HS2",
-        region: hs2,
-        color: "#ff0000",
-        opacity: 0.5,
-        type: "filled",
-        hidden: true,
-      },
-    ]),
-  );
-  await chooseAction("HS2", "Show highlight");
+  await vi.waitFor(() => expect(saved().highlights).toEqual([{ ...shown, hidden: true }]));
+  await chooseAction("HS2", "Show on tracks");
   expect(cards()[0].textContent).not.toContain("Hidden");
-  await vi.waitFor(() =>
-    expect(saved().highlights).toEqual([
-      { id: regionId, name: "HS2", region: hs2, color: "#ff0000", opacity: 0.5, type: "filled" },
-    ]),
+  await vi.waitFor(() => expect(saved().highlights).toEqual([shown]));
+  // The dotted swatch hides it as well, and a color shows it.
+  await click(document.querySelector('[aria-label="Actions for region HS2"]'));
+  await click(swatch("Hidden"));
+  await vi.waitFor(() => expect(saved().highlights).toEqual([{ ...shown, hidden: true }]));
+  await click(swatch("Blue"));
+  await vi.waitFor(() => expect(saved().highlights).toEqual([{ ...shown, color: "#1f6fe5" }]));
+  await act(async () =>
+    nameField().dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
   );
-  await chooseAction("HS2", "Hide highlight");
+  await vi.waitFor(() => expect(menu()).toBeNull());
+  await chooseAction("HS2", "Hide on tracks");
 
   await click(cards()[0].querySelector("[role='button']"));
   expect(cards()[0].querySelector('[aria-current="location"]')).not.toBeNull();
@@ -187,7 +204,7 @@ it("adds a region by coordinates on the shown chromosome, which start as the vie
     return found!;
   });
   const form = () => container!.querySelector<HTMLFormElement>('form[aria-label="Add region"]');
-  const coordinates = () => form()!.querySelector('[role="group"][aria-label="Coordinates"]');
+  const coordinates = () => form()!.querySelector('fieldset[aria-label="Coordinates"]');
   const position = (index: number) => coordinates()!.querySelectorAll("input")[index]!;
 
   await click(add);
@@ -247,9 +264,9 @@ it("makes an empty group from the heading, with no color, that regions join and 
     ]),
   );
 
-  await chooseAction(first, "Group 1");
+  await moveTo(first, "Group 1");
   await vi.waitFor(() => expect(groups()[0].regionIds).toEqual(["r1"]));
-  await chooseAction(first, "Remove from Group 1");
+  await chooseAction(first, "Remove from group");
   await vi.waitFor(() => expect(groups()).toEqual([expect.objectContaining({ regionIds: [] })]));
   expect(saved().highlights[0].color).toBe("#1976d2");
 });
@@ -281,7 +298,7 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   const dialog = () => document.querySelector('[role="dialog"]')!;
   const nameField = () => dialog().querySelector("input") as HTMLInputElement;
 
-  await chooseAction(first, "Add to new group");
+  await moveTo(first, "Move to new group");
   expect(groupName().placeholder).toBe("Group 1 (optional)");
   await type(groupName(), "Locus control");
   // The group's region takes its color.
@@ -304,7 +321,7 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   );
   expect(saved().highlights.map(({ color }) => color)).toEqual(["#1f6fe5", "#f59e0b"]);
 
-  await chooseAction(second, "Locus control");
+  await moveTo(second, "Locus control");
   expect(members("Locus control")).toEqual([first, second]);
 
   await click(header());
@@ -340,7 +357,7 @@ it("groups regions, collapses and edits a group, and saves groups with the sessi
   await click(container!.querySelector('[aria-label="Show highlights in Enhancers"]'));
   await vi.waitFor(() => expect(hidden()).toEqual([false, false]));
 
-  await chooseAction(second, "Remove from Enhancers");
+  await chooseAction(second, "Remove from group");
   expect(members("Enhancers")).toEqual([first]);
   await click(container!.querySelector('[aria-label="Actions for group Enhancers"]'));
   await click(
@@ -362,10 +379,10 @@ async function chooseGroupAction(group: string, action: string) {
 
 it("recolors every highlight in a group, keeping each one's other settings", async () => {
   await openWithRegions(regionAt("r1", first, "#1976d2"), regionAt("r2", second, "#f59e0b"));
-  await chooseAction(first, "Add to new group");
+  await moveTo(first, "Move to new group");
   await click(button(groupForm()!, "Create group"));
-  await chooseAction(second, "Group 1");
-  await chooseAction(second, "Hide highlight");
+  await moveTo(second, "Group 1");
+  await chooseAction(second, "Hide on tracks");
   await vi.waitFor(() => expect(saved().highlights[1]).toMatchObject({ hidden: true }));
   const before = server.stored.get(id)!.snapshot;
 

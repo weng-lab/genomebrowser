@@ -81,13 +81,49 @@ export function setRegionsColor(
   ids: readonly string[],
   color: string,
 ): SetRegionsColorResult {
-  if (!/^#[0-9a-f]{6}$/i.test(color))
+  if (!isHexColor(color))
     return {
       ok: false,
       code: "INVALID_COLOR",
       error: `Expected a hex color like #1a73e8: ${color}`,
     };
   return updateRegions(browserStore, ids, (highlight) => ({ ...highlight, color }));
+}
+
+const isHexColor = (color: string) => /^#[0-9a-f]{6}$/i.test(color);
+
+/** Renames a region. A blank name is ignored, keeping the one it has. */
+export function renameRegion(browserStore: BrowserStoreInstance, id: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return { ok: true } as const;
+  return updateRegions(browserStore, [id], (highlight) => ({ ...highlight, name: trimmed }));
+}
+
+/** Moves a region to `region`, keeping its name and style. */
+export function moveRegion(browserStore: BrowserStoreInstance, id: string, region: GenomicRegion) {
+  return updateRegions(browserStore, [id], (highlight) => ({ ...highlight, region }));
+}
+
+/**
+ * Colors a region's highlight and shows it, or, given null, hides it and keeps its color for
+ * showing it again.
+ */
+export function setRegionColor(
+  browserStore: BrowserStoreInstance,
+  id: string,
+  color: string | null,
+): SetRegionsColorResult {
+  if (color === null) return setRegionsHidden(browserStore, [id], true);
+  if (!isHexColor(color))
+    return {
+      ok: false,
+      code: "INVALID_COLOR",
+      error: `Expected a hex color like #1a73e8: ${color}`,
+    };
+  return updateRegions(browserStore, [id], ({ hidden: _hidden, ...shown }) => ({
+    ...shown,
+    color,
+  }));
 }
 
 /** A highlight without a chromosome is drawn on whichever chromosome is shown. */

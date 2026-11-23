@@ -2,25 +2,13 @@
 
 import Add from "@mui/icons-material/Add";
 import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
-import CreateNewFolderOutlined from "@mui/icons-material/CreateNewFolderOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
-import EditOutlined from "@mui/icons-material/EditOutlined";
-import MoreVert from "@mui/icons-material/MoreVert";
-import RemoveCircleOutline from "@mui/icons-material/RemoveCircleOutline";
-import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
-import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import ListSubheader from "@mui/material/ListSubheader";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import { alpha, type Theme } from "@mui/material/styles";
 import {
@@ -41,13 +29,12 @@ import {
   sameRegion,
   saveRegion,
   setRegionsColor,
-  setRegionsHidden,
 } from "../regions";
 import { AddRegionForm } from "./AddRegionForm";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { NewGroupForm } from "./NewGroupForm";
 import { listSx, RegionGroupSection, UngroupedSection } from "./RegionGroup";
-import { RegionDialog } from "./RegionDialog";
+import { RegionActions } from "./RegionMenu";
 
 /**
  * The open session's saved regions: add the current view, go to, edit, hide, group, or
@@ -358,181 +345,6 @@ function Swatch({ highlight }: { highlight: Highlight }) {
         opacity: highlight.hidden ? 0.35 : 1,
       }}
     />
-  );
-}
-
-/**
- * A region's more-actions button and menu: edit, hide or show its highlight, add it to a
- * new or existing group or take it out of its group, and delete.
- */
-function RegionActions({
-  highlight,
-  browserStore,
-  regionGroupStore,
-  onAddToNewGroup,
-}: StoresProps & { highlight: Highlight; onAddToNewGroup: AddToNewGroup }) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [editing, setEditing] = useState(false);
-  const menuId = useId();
-  const label = `Actions for region ${regionName(highlight)}`;
-  const close = () => setAnchor(null);
-  const hidden = highlight.hidden === true;
-
-  return (
-    <>
-      <IconButton
-        size="small"
-        aria-label={label}
-        title={label}
-        aria-haspopup="menu"
-        aria-controls={anchor ? menuId : undefined}
-        aria-expanded={anchor ? "true" : undefined}
-        onClick={(event) => setAnchor(event.currentTarget)}
-      >
-        <MoreVert fontSize="small" />
-      </IconButton>
-      <Menu
-        id={menuId}
-        anchorEl={anchor}
-        open={anchor !== null}
-        onClose={close}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{ list: { dense: true, "aria-label": label } }}
-      >
-        <MenuItem
-          onClick={() => {
-            close();
-            setEditing(true);
-          }}
-        >
-          <ListItemIcon>
-            <EditOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Edit region" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            setRegionsHidden(browserStore, [highlight.id], !hidden);
-          }}
-        >
-          <ListItemIcon>
-            {hidden ? (
-              <VisibilityOutlined fontSize="small" />
-            ) : (
-              <VisibilityOffOutlined fontSize="small" />
-            )}
-          </ListItemIcon>
-          <ListItemText primary={hidden ? "Show highlight" : "Hide highlight"} />
-        </MenuItem>
-        <Divider />
-        <MenuItem
-          onClick={() => {
-            close();
-            if (anchor) onAddToNewGroup(highlight.id, anchor);
-          }}
-        >
-          <ListItemIcon>
-            <CreateNewFolderOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Add to new group" />
-        </MenuItem>
-        {/* Only while the menu is open, so cards do not follow every group change. */}
-        {anchor ? (
-          <GroupMenuItems
-            regionId={highlight.id}
-            regionGroupStore={regionGroupStore}
-            onChosen={close}
-          />
-        ) : null}
-        <Divider />
-        <MenuItem
-          onClick={() => {
-            close();
-            browserStore.getState().removeHighlight(highlight.id);
-          }}
-          sx={{ color: "error.main" }}
-        >
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <DeleteOutline fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Delete" />
-        </MenuItem>
-      </Menu>
-      <RegionDialog
-        browserStore={browserStore}
-        highlight={highlight}
-        open={editing}
-        onClose={() => setEditing(false)}
-      />
-    </>
-  );
-}
-
-/**
- * The region menu's group items: the groups it can move to, each with its color, and
- * Remove from group while it is in one.
- */
-function GroupMenuItems({
-  regionId,
-  regionGroupStore,
-  onChosen,
-}: {
-  regionId: string;
-  regionGroupStore: RegionGroupStoreInstance;
-  onChosen: () => void;
-}) {
-  const useRegionGroupStore = regionGroupStore;
-  const groups = useRegionGroupStore((state) => state.groups);
-  const current = groups.find((group) => group.regionIds.includes(regionId));
-  const others = groups.filter((group) => group !== current);
-  const { addToGroup, removeFromGroup } = regionGroupStore.getState();
-  return (
-    <>
-      {others.length > 0 ? (
-        <ListSubheader sx={{ lineHeight: 2.5 }}>Add to group</ListSubheader>
-      ) : null}
-      {others.map((group) => (
-        <MenuItem
-          key={group.id}
-          onClick={() => {
-            onChosen();
-            addToGroup(regionId, group.id);
-          }}
-        >
-          <ListItemIcon>
-            <Box
-              aria-hidden
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                ml: 0.5,
-                // A dotted ring for a group with no color, as the color picker shows it.
-                ...(group.color
-                  ? { bgcolor: group.color }
-                  : { border: 1.5, borderStyle: "dotted", borderColor: "text.secondary" }),
-              }}
-            />
-          </ListItemIcon>
-          <ListItemText primary={group.name} slotProps={{ primary: { noWrap: true } }} />
-        </MenuItem>
-      ))}
-      {current ? (
-        <MenuItem
-          onClick={() => {
-            onChosen();
-            removeFromGroup(regionId);
-          }}
-        >
-          <ListItemIcon>
-            <RemoveCircleOutline fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={`Remove from ${current.name}`} />
-        </MenuItem>
-      ) : null}
-    </>
   );
 }
 

@@ -14,8 +14,10 @@ export type SwatchPickerProps = {
   /** A six-digit hex color, or null for no color. */
   value: string | null;
   onChange: (value: string | null) => void;
-  /** Starts the row with a dotted "No color" option. */
+  /** Starts the row with a dotted option for null. */
   allowNone?: boolean;
+  /** The dotted option's accessible name. Defaults to "No color". */
+  noneLabel?: string;
   /** Ends the row with a + that opens the system color picker for any other color. */
   allowCustom?: boolean;
 };
@@ -30,12 +32,13 @@ export function SwatchPicker({
   value,
   onChange,
   allowNone = false,
+  noneLabel = "No color",
   allowCustom = false,
 }: SwatchPickerProps) {
   const customInput = useRef<HTMLInputElement>(null);
   const isCustom = value !== null && !colors.some(({ color }) => sameColor(color, value));
   const options: { label: string; value: string | null; kind: "none" | "color" | "custom" }[] = [
-    ...(allowNone ? [{ label: "No color", value: null, kind: "none" as const }] : []),
+    ...(allowNone ? [{ label: noneLabel, value: null, kind: "none" as const }] : []),
     ...colors.map(({ name, color }) => ({ label: name, value: color, kind: "color" as const })),
     ...(allowCustom
       ? [{ label: "Custom color", value: isCustom ? value : null, kind: "custom" as const }]
