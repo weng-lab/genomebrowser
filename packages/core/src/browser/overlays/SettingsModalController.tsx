@@ -1,5 +1,6 @@
 import { TrackDownloadControls } from "../download/TrackDownloadControls";
 import { DefaultSettingsModal } from "../settings/DefaultSettingsModal";
+import { TrackMetadataControls } from "../settings/metadata/TrackMetadataControls";
 import type { ReadonlyTrackInstance, TrackSettingsComponent } from "../../modules/types";
 import {
   useSettingsStore,
@@ -44,6 +45,7 @@ export function SettingsModalController() {
               displayOptions={Object.keys(module.render)}
             />
           ) : null}
+          <TrackMetadataControls trackId={trackId} />
           <TrackDownloadControls trackId={trackId} />
         </fieldset>
       </DefaultSettingsModal>
