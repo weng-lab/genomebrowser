@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import {
   exportBrowserImage,
   getDefaultImageFilename,
@@ -11,6 +19,7 @@ import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { changeTrackMetadata } from "../browser/trackMetadata";
 import { sortTracks } from "../browser/trackSort";
 import { addTracksFromUrls } from "../browser/urlTracks";
+import { createAgentControl, type AgentControl } from "./agentControl";
 import type { CommandApp } from "./commands";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
@@ -21,6 +30,7 @@ import {
 
 type RemoteControl = { state: RemoteControlState; preference: RemoteControlPreference };
 const RemoteControlContext = createContext<RemoteControl | null>(null);
+const AgentControlContext = createContext<AgentControl | null>(null);
 
 /**
  * Agent control through the app's MCP endpoint, allowed by the account's saved
@@ -41,6 +51,7 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
   const id = useSession((session) => session.active?.id);
   const stores = useSession((session) => session.active?.stores);
   const signal = useSession((session) => session.active?.signal);
+  const [control] = useState(createAgentControl);
   const remoteControl = useMemo(() => ({ state, preference }), [state, preference]);
 
   useEffect(() => {
@@ -64,13 +75,22 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
       showImage: (image) => setPreview({ image, open: true }),
       addTracksFromUrls: (requests, signal) =>
         addTracksFromUrls(stores.useTrackStore, requests, signal),
+      control,
     };
-    return connectRemoteControl(`/api/sessions/${id}/commands`, app, signal, setState);
-  }, [enabled, id, stores, signal, svgRef]);
+    const disconnect = connectRemoteControl(`/api/sessions/${id}/commands`, app, signal, setState);
+    // The agent cannot act on a session it no longer reaches, so it holds nothing: not
+    // once the session ends, even while it stays open, and not once this detaches.
+    signal.addEventListener("abort", control.release, { once: true });
+    return () => {
+      signal.removeEventListener("abort", control.release);
+      disconnect();
+      control.release();
+    };
+  }, [enabled, id, stores, signal, svgRef, control]);
 
   return (
     <RemoteControlContext value={remoteControl}>
-      {children}
+      <AgentControlContext value={control}>{children}</AgentControlContext>
       <ImagePreviewDialog
         image={preview?.image ?? null}
         open={preview?.open ?? false}
@@ -86,4 +106,25 @@ export function useRemoteControl() {
   const remoteControl = useContext(RemoteControlContext);
   if (!remoteControl) throw new Error("RemoteControlProvider is required");
   return remoteControl;
+}
+
+/**
+ * Whether the agent holds the browser, and the control it holds: Stop ends its
+ * run and gives control back.
+ */
+export function useAgentControl() {
+  const control = useAgentControlHandle();
+  const held = useSyncExternalStore(control.subscribe, control.held, control.held);
+  return { held, control };
+}
+
+// Outside the provider no agent reaches the browser, so control is never taken.
+const unreached = createAgentControl();
+
+/**
+ * The agent's control, without following whether it is held, for code that only
+ * releases or stops it. Outside `RemoteControlProvider` it is never held.
+ */
+export function useAgentControlHandle(): AgentControl {
+  return useContext(AgentControlContext) ?? unreached;
 }
