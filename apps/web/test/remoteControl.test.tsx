@@ -321,6 +321,31 @@ const runCommand = (name: string, params: object) =>
 const savedMetadata = () =>
   server.stored.get(alpha)!.snapshot.tracks.map(({ base, metadata }) => [base.id, metadata]);
 
+it("sorts tracks by a metadata field for the agent", async () => {
+  await enableRemoteControl();
+  await runCommand("set_track_metadata", { trackIds: ["genes"], set: { Replicate: 10 } });
+  await runCommand("set_track_metadata", { trackIds: ["ccres"], set: { Replicate: 2 } });
+
+  await runCommand("sort_tracks", { by: [{ field: "meta:Donor" }] });
+  expect(reply(2).result).toEqual({
+    ok: false,
+    code: "UNKNOWN_SORT_FIELD",
+    error: 'Unknown sort field "meta:Donor". Available fields: "title", "type", "meta:Replicate"',
+  });
+
+  await runCommand("sort_tracks", { by: [{ field: "meta:Replicate" }] });
+  expect(reply(3).result).toEqual({
+    ok: true,
+    value: {
+      tracks: [
+        { id: "ruler", title: "Coordinates" },
+        { id: "ccres", title: "Human cCREs" },
+        { id: "genes", title: "GENCODE 50 basic" },
+      ],
+    },
+  });
+});
+
 it("lists and tags tracks for the agent, replies with their metadata, and saves it", async () => {
   await enableRemoteControl();
 
