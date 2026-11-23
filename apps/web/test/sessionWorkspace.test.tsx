@@ -209,7 +209,8 @@ it("asks before another session replaces a held one, and stays or switches", asy
   act(() => hold(undefined));
   await act(async () => route.push(`/browser/${b}`));
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
-  expect(dialog()).toBeNull();
+  // The dialog closed by Stay may still be fading out.
+  await vi.waitFor(() => expect(dialog()).toBeNull());
 });
 
 it("renames the open session from its title and saves the name", async () => {
