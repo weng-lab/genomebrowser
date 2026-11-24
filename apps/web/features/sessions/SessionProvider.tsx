@@ -30,10 +30,19 @@ const HoldContext = createContext<(reason: string | undefined) => void>(() => {}
  * Owns saved sessions and the open session for as long as the workspace stays
  * mounted for one account, across its pages. A session URL opens that session,
  * whether it was typed, linked, or reached through history. While the open
- * session is held, the user confirms before another one replaces it.
+ * session is held, the user confirms before another one replaces it, however
+ * that was requested: a session URL, a new session, or a copy.
  */
 export function SessionProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  // Why the open session should not be replaced without asking, while something holds it.
+  const hold = useRef<string | undefined>(undefined);
+  const setHold = useCallback((reason: string | undefined) => {
+    hold.current = reason;
+  }, []);
+  // Requests to replace a held session, each waiting for the user's one choice.
+  const waiting = useRef<((replace: boolean) => void)[]>([]);
+  const [prompt, setPrompt] = useState<string>();
   const [session] = useState(() =>
     createSession({
       transport: createSessionTransport(),
@@ -47,37 +56,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           if (pathname !== href) router.replace(href);
         },
       },
+      confirmReplace() {
+        const reason = hold.current;
+        if (!reason) return undefined;
+        setPrompt(reason);
+        return new Promise<boolean>((resolve) => {
+          waiting.current.push(resolve);
+        });
+      },
     }),
   );
   const { sessionId } = useParams<{ sessionId?: string }>();
   const requested = sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
-  const active = useStore(session.store, (state) => state.active?.id);
-  // Why the open session should not be replaced without asking, while something holds it.
-  const hold = useRef<string | undefined>(undefined);
-  const setHold = useCallback((reason: string | undefined) => {
-    hold.current = reason;
-  }, []);
-  // A session URL that would replace a held session, waiting for the user's choice.
-  const [prompt, setPrompt] = useState<{ to: string; reason: string }>();
 
   useEffect(() => session.start(), [session]);
   useEffect(() => {
     if (!requested) return;
-    const current = session.store.getState().active?.id;
-    const reason = hold.current;
-    if (reason && current && requested !== current) {
-      setPrompt({ to: requested, reason });
-      return;
-    }
-    setPrompt(undefined);
     // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
     void session.store.getState().open(requested);
   }, [session, requested]);
 
-  function stay() {
+  /** Give every waiting request the user's choice. Those told to stay restore the URL. */
+  function answer(replace: boolean) {
     setPrompt(undefined);
-    if (active) router.replace(`/browser/${active}`);
+    for (const resolve of waiting.current.splice(0)) resolve(replace);
   }
+  const stay = () => answer(false);
 
   return (
     <SessionContext value={session.store}>
@@ -85,18 +89,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       <Dialog open={prompt !== undefined} onClose={stay} maxWidth="xs">
         <DialogTitle>Switch sessions?</DialogTitle>
         <DialogContent>
-          <DialogContentText>{prompt?.reason}</DialogContentText>
+          <DialogContentText>{prompt}</DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={stay}>Stay</Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setPrompt(undefined);
-              // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
-              if (prompt) void session.store.getState().open(prompt.to);
-            }}
-          >
+          <Button variant="contained" onClick={() => answer(true)}>
             Switch
           </Button>
         </DialogActions>

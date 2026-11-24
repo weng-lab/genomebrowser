@@ -79,6 +79,9 @@ export function useAgentThread(sessionId: string, signal: AbortSignal): AgentThr
   >({ status: "loading" });
   const [generation, setGeneration] = useState(0);
 
+  // The load is aborted on cleanup and its result is dropped once aborted, so it cannot
+  // race or leak. The app has no data-fetching layer for it to move to.
+  // react-doctor-disable-next-line react-doctor/no-fetch-in-effect
   useEffect(() => {
     const controller = new AbortController();
     const aborted = AbortSignal.any([signal, controller.signal]);
