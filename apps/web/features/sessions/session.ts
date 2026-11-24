@@ -229,7 +229,11 @@ export function createSession({
    */
   function replacing(replace: () => Promise<void>): Promise<void> {
     const asked = current ? confirmReplace?.() : undefined;
-    if (!asked) return replace();
+    if (!asked) {
+      // Replacing at once also settles an older request the user was still asked about.
+      asking = undefined;
+      return replace();
+    }
     const request = {};
     asking = request;
     return asked.then((confirmed) => {

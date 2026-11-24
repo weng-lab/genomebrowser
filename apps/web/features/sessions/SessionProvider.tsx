@@ -58,9 +58,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       },
       confirmReplace() {
         const reason = hold.current;
-        if (!reason) return undefined;
-        // The session store drops an older request once a newer one asks.
+        // The session store drops an older request once a newer one arrives, asked or not.
         waiting.current?.(false);
+        waiting.current = undefined;
+        if (!reason) {
+          setPrompt(undefined);
+          return undefined;
+        }
         setPrompt(reason);
         return new Promise<boolean>((resolve) => {
           waiting.current = resolve;
