@@ -35,7 +35,7 @@ Call in through the smallest interface consumers use and keep everything between
 | `apps/web` | The client session lifecycle against a contract-correct session server      | Saved state, conflicts, rendered data       |
 | `create`   | The executable in a temporary directory                                     | Generated files, exit code, output          |
 
-Serve remote data from fixture files, replace auth providers with a test server, and control time with fake timers. A contract-correct fake is fine at an explicit boundary outside the behavior under test. Do not mock first-party modules or a collaborator whose behavior the test claims to verify. When valuable behavior is hard to reach from its interface, improve the interface; do not add test-only exports or switches.
+Serve remote data from fixture files, replace auth providers with a test server, and control time with fake timers. A contract-correct fake is fine at an explicit boundary outside the behavior under test. Do not mock a collaborator whose behavior the test claims to verify. When valuable behavior is hard to reach from its interface, improve the interface; do not add test-only exports or switches.
 
 ## Rules
 

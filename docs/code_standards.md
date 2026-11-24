@@ -20,7 +20,6 @@ Do not add aliases, shims, or deprecated re-exports for older versions unless as
 
 - A prop that is read once is named `initial*` or `default*`. Every other prop stays current: do not copy it into state and ignore later changes.
 - Browser instances are independent unless the host passes them the same stores. Scope providers and mutable resources to one instance.
-- Zustand store instances used as hooks are named `use*`.
 - When a change in core, tracks, or UI could change renders, measure it with the verify-renders skill instead of reasoning about it.
 
 ## Embedded UI

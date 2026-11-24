@@ -345,13 +345,13 @@ function renderSettings(
 }
 
 function BulkBedSettingsHarness({
-  trackStore,
+  trackStore: useTrackStore,
   updateTrack,
 }: {
   trackStore: TrackStoreInstance;
   updateTrack: (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult;
 }) {
-  const track = trackStore((state) => state.getTrack("bulkbed")) as
+  const track = useTrackStore((state) => state.getTrack("bulkbed")) as
     | TrackInstance<BulkBedConfig, BulkBedRect>
     | undefined;
   if (!track) throw new Error("BulkBed track not found");

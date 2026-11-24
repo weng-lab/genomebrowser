@@ -2,6 +2,7 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "ignorePatterns": ["**/dist/**", "**/node_modules/**"],
   "plugins": ["unicorn", "typescript", "oxc", "react", "jsx-a11y", "vitest", "import"],
+  "jsPlugins": ["./tools/lint/oxlint-plugin.mjs"],
   "rules": {
     "react/rules-of-hooks": "error",
     "react/jsx-key": "error",
@@ -24,10 +25,7 @@
     "import/no-self-import": "error",
     "react/exhaustive-deps": "error",
     "typescript/await-thenable": "error",
-    "typescript/consistent-type-imports": [
-      "error",
-      { "disallowTypeAnnotations": false }
-    ],
+    "typescript/consistent-type-imports": ["error", { "disallowTypeAnnotations": false }],
     "typescript/no-array-delete": "error",
     "typescript/no-confusing-non-null-assertion": "error",
     "typescript/no-duplicate-type-constituents": "error",
@@ -62,7 +60,9 @@
         "ignoreVoid": false
       }
     ],
-    "typescript/unbound-method": "off"
+    "typescript/unbound-method": "off",
+    "genomebrowser/no-own-source-mock": "error",
+    "genomebrowser/store-hook-name": "error"
   },
   "overrides": [
     {

@@ -23,6 +23,10 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
   };
   try {
     write(".oxlintrc.json", config);
+    write(
+      "tools/lint/oxlint-plugin.mjs",
+      readFileSync(join(root, "tools/lint/oxlint-plugin.mjs"), "utf8"),
+    );
     mkdirSync(join(fixture, "node_modules"));
     symlinkSync(
       join(root, "node_modules/oxlint-tsgolint"),
@@ -174,6 +178,31 @@ listen(async () => {});
       result.stdout,
     );
     rmSync(join(fixture, "apps/web/features/handled.ts"));
+    write(
+      "packages/ui/test/probe.test.ts",
+      `
+declare const vi: { mock(path: string): void };
+declare function trackStore(selector: (state: number) => number): number;
+declare function useTrackStore(selector: (state: number) => number): number;
+declare function createStore(init: () => number): number;
+vi.mock("../src/internal");
+vi.mock("@weng-lab/genomic-reader");
+export const values = [trackStore((s) => s), useTrackStore((s) => s), createStore(() => 1)];
+`,
+    );
+    result = spawnSync(oxlint, [".", "--format", "json"], {
+      cwd: join(fixture, "packages/ui"),
+      encoding: "utf8",
+    });
+    assert.deepEqual(
+      JSON.parse(result.stdout)
+        .diagnostics.filter((diagnostic) => diagnostic.code.startsWith("genomebrowser("))
+        .map((diagnostic) => diagnostic.code)
+        .sort(),
+      ["genomebrowser(no-own-source-mock)", "genomebrowser(store-hook-name)"],
+      result.stdout,
+    );
+    rmSync(join(fixture, "packages/ui/test/probe.test.ts"));
     write("apps/web/features/a.ts", 'import { b } from "./b"; export const a = () => b;\n');
     write("apps/web/features/b.ts", 'import { a } from "./a"; export const b = () => a;\n');
     result = spawnSync(oxlint, [".", "--format", "json"], {
