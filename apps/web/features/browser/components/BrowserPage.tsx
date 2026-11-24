@@ -1,7 +1,7 @@
 "use client";
 
 import AutoAwesome from "@mui/icons-material/AutoAwesome";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { usePanelState } from "../../../shared/workspace/panels/panelState";
 import { WorkspacePage } from "../../../shared/workspace/WorkspacePage";
 import { AgentPanel } from "../../agent/components/AgentPanel";
@@ -17,17 +17,32 @@ import { BrowserTools } from "./BrowserTools";
  * between sessions, such as when the open session is deleted. The left panel shows either
  * the browser's tools, named for the side bar's Browser entry: the open session's card, then
  * saved regions; or every saved session, which the session menu's All sessions also shows.
+ * The menu's New session shows them with the New session form open.
  */
 export function BrowserPage({ children }: { children: ReactNode }) {
   const showLeft = usePanelState((state) => state.showLeft);
+  const [creating, setCreating] = useState(false);
+  const showSessions = () => showLeft(browserPanels.sessions);
   return (
     <WorkspacePage
       title="Browser"
-      heading={<SessionSwitcher onAllSessions={() => showLeft(browserPanels.sessions)} />}
+      heading={
+        <SessionSwitcher
+          onAllSessions={showSessions}
+          onNewSession={() => {
+            showSessions();
+            setCreating(true);
+          }}
+        />
+      }
       actions={<SaveStatus />}
       left={[
         { id: browserPanels.tools, title: "Genome Browser", children: <BrowserTools /> },
-        { id: browserPanels.sessions, title: "Sessions", children: <SessionsPanel /> },
+        {
+          id: browserPanels.sessions,
+          title: "Sessions",
+          children: <SessionsPanel creating={creating} onCreatingChange={setCreating} />,
+        },
       ]}
       right={{ title: "AI Assist", icon: <AutoAwesome />, children: <AgentPanel /> }}
     >

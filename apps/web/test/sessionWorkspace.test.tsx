@@ -66,6 +66,7 @@ const railButton = (label: string) =>
     `nav[aria-label="Workspace"] button[aria-label="${label}"]`,
   );
 const leftPanelTitle = () => document.querySelector("#left-panel h2")?.textContent;
+const newSessionForm = () => document.querySelector('form[aria-label="New session"]');
 const withText = (selector: string, content: string) =>
   [...document.querySelectorAll(selector)].find((element) => element.textContent === content);
 const savedRegion = (id: string) => server.stored.get(id)!.snapshot.browser.region;
@@ -108,24 +109,26 @@ it("creates a session, saves edits, and keeps it open across workspace pages", a
   await openSessions();
   await vi.waitFor(() => expect(text()).toContain("No saved sessions yet."));
 
-  // New session asks for a name and an assembly, starting at the only supported one.
+  // New session shows the Sessions panel with a form asking for a name and an assembly,
+  // starting at the only supported one.
   await click(menuItem("New session"));
-  const dialog = () => document.querySelector('[role="dialog"]');
-  const name = () => dialog()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
+  expect(leftPanelTitle()).toBe("Sessions");
+  const name = () => newSessionForm()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
   await vi.waitFor(() => expect(name()).toBeTruthy());
-  expect(dialog()!.querySelector("h2")?.textContent).toBe("New session");
   expect(name()!.placeholder).toBe("New session");
   expect(document.activeElement).toBe(name());
-  expect(dialog()!.querySelector('[role="combobox"]')?.textContent).toBe("Human (GRCh38/hg38)");
+  expect(newSessionForm()!.querySelector('[role="combobox"]')?.textContent).toBe(
+    "Human (GRCh38/hg38)",
+  );
   expect(server.writes()).toEqual([]);
 
   await type(name()!, "Promoter scan");
-  await click(withText('[role="dialog"] button', "Create"));
+  await click(withText('form[aria-label="New session"] button', "Create"));
   await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
   const [id] = server.stored.keys();
   expect(route.pathname()).toBe(`/browser/${id}`);
   expect(server.stored.get(id)).toMatchObject({ name: "Promoter scan", snapshot: defaults() });
-  await vi.waitFor(() => expect(dialog()).toBeNull());
+  expect(newSessionForm()).toBeNull();
   await openSessions();
   expect(sessionNames()).toEqual(["Promoter scan"]);
 
@@ -255,7 +258,7 @@ it("lists every saved session to search in the left panel, and creates one", asy
   // Saved long before now, they share one group.
   const groups = () =>
     [...document.querySelectorAll("#left-panel section")].map((section) => [
-      section.querySelector("h3")?.textContent,
+      section.querySelector("h4")?.textContent,
       section.querySelectorAll("li").length,
     ]);
   expect(groups()).toEqual([["More than a month ago", 5]]);
@@ -271,16 +274,29 @@ it("lists every saved session to search in the left panel, and creates one", asy
   expect(names()).toEqual([]);
   expect(text()).toContain("No sessions match “zeta”.");
   await type(search, "");
+  // The heading counts the sessions listed.
+  expect(document.querySelector("#left-panel h3")?.textContent).toBe("Sessions5");
 
-  await click(withText("#left-panel button", "New session"));
-  const name = () =>
-    document.querySelector<HTMLInputElement>('[role="dialog"] input:not([aria-hidden])');
+  // The heading's New session opens the form below it, and Escape closes it.
+  const add = button("New session")!;
+  await click(add);
+  expect(add.getAttribute("aria-expanded")).toBe("true");
+  const name = () => newSessionForm()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
   await vi.waitFor(() => expect(name()).toBeTruthy());
+  await act(async () =>
+    name()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  expect(newSessionForm()).toBeNull();
+  expect(document.activeElement).toBe(add);
+
+  await click(add);
   await type(name()!, "Promoter scan");
-  await click(withText('[role="dialog"] button', "Create"));
+  await click(withText('form[aria-label="New session"] button', "Create"));
   await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
   const created = [...server.stored.keys()].find((id) => !ids.includes(id));
   expect(route.pathname()).toBe(`/browser/${created}`);
+  expect(newSessionForm()).toBeNull();
+  expect(document.activeElement).toBe(add);
 
   // The panel stays, and the new session, saved today, heads it.
   expect(leftPanelTitle()).toBe("Sessions");

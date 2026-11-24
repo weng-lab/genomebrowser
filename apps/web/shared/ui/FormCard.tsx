@@ -53,16 +53,30 @@ export const formCardSx = {
 
 type FormCardActionsProps = {
   submitLabel: string;
+  /** Disables the submit button, such as while what it does cannot be done. */
+  submitDisabled?: boolean;
   onCancel: () => void;
   /** Which end of the card the buttons sit at. Defaults to the start. */
   align?: "start" | "end";
 };
 
 /** The card's submit button, then Cancel. */
-export function FormCardActions({ submitLabel, onCancel, align = "start" }: FormCardActionsProps) {
+export function FormCardActions({
+  submitLabel,
+  submitDisabled,
+  onCancel,
+  align = "start",
+}: FormCardActionsProps) {
   return (
     <Box sx={{ display: "flex", justifyContent: `flex-${align}`, gap: 1 }}>
-      <Button type="submit" variant="contained" size="small" disableElevation sx={formButtonSx}>
+      <Button
+        type="submit"
+        variant="contained"
+        size="small"
+        disableElevation
+        disabled={submitDisabled}
+        sx={formButtonSx}
+      >
         {submitLabel}
       </Button>
       <Button size="small" onClick={onCancel} sx={{ ...formButtonSx, color: "text.primary" }}>

@@ -13,7 +13,7 @@ import { useShallow } from "zustand/react/shallow";
 import type { SessionState } from "../session";
 import { byRecent } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
-import { useCreateDisabled } from "./NewSessionDialog";
+import { useCreateDisabled } from "./NewSessionForm";
 import { labelSx, listSx, SessionList, SessionListStatus, textSx } from "./SessionList";
 import { itemSx } from "./SessionRow";
 

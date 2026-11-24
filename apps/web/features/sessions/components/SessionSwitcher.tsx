@@ -6,16 +6,21 @@ import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
 import { useId, useRef, useState } from "react";
 import { narrowTitleRow } from "../../../shared/workspace/frame/layout";
-import { NewSessionDialog } from "./NewSessionDialog";
 import { SessionMenu } from "./SessionMenu";
 import { SessionTitle } from "./SessionTitle";
 
+type SessionSwitcherProps = {
+  /** Called when the menu's All sessions is chosen, to show every saved session. */
+  onAllSessions: () => void;
+  /** Called when the menu's New session is chosen, to ask for the session's name and assembly. */
+  onNewSession: () => void;
+};
+
 /**
  * The browser's title: the open session's name, which renames it when clicked,
- * and an arrow that opens the menu of recent sessions and the New session dialog.
- * `onAllSessions` shows every saved session, from the menu's All sessions.
+ * and an arrow that opens the menu of recent sessions.
  */
-export function SessionSwitcher({ onAllSessions }: { onAllSessions: () => void }) {
+export function SessionSwitcher({ onAllSessions, onNewSession }: SessionSwitcherProps) {
   // The whole title, so the menu lines up with the name's left edge. Set only while the
   // menu is open: Popover reads its anchor's document, which the server render lacks.
   const title = useRef<HTMLDivElement>(null);
@@ -23,7 +28,6 @@ export function SessionSwitcher({ onAllSessions }: { onAllSessions: () => void }
   const menuOpen = anchor !== null;
   const close = () => setAnchor(null);
   const menuId = useId();
-  const [creating, setCreating] = useState(false);
   return (
     <Box ref={title} sx={switcherSx}>
       <SessionTitle />
@@ -51,12 +55,11 @@ export function SessionSwitcher({ onAllSessions }: { onAllSessions: () => void }
           onDone={close}
           onNewSession={() => {
             close();
-            setCreating(true);
+            onNewSession();
           }}
           onAllSessions={onAllSessions}
         />
       </Popover>
-      <NewSessionDialog open={creating} onClose={() => setCreating(false)} />
     </Box>
   );
 }

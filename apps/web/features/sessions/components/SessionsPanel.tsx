@@ -3,29 +3,40 @@
 import Add from "@mui/icons-material/Add";
 import Search from "@mui/icons-material/Search";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { Session } from "../schema";
 import type { SessionState } from "../session";
 import { byRecent, formatSavedPeriod } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
-import { NewSessionDialog, useCreateDisabled } from "./NewSessionDialog";
+import { SectionHeader } from "../../../shared/ui/SectionHeader";
+import { NewSessionForm } from "./NewSessionForm";
 import { labelSx, SessionList, SessionListStatus } from "./SessionList";
+
+type SessionsPanelProps = {
+  /** Whether the New session form is open below the heading. */
+  creating: boolean;
+  onCreatingChange: (creating: boolean) => void;
+};
 
 /**
  * Every saved session, most recently saved first and grouped by when it was saved,
- * narrowed by a search of names and assemblies, for the browser's left panel. New session
- * creates one and opens it.
+ * narrowed by a search of names and assemblies, for the browser's left panel. The heading's
+ * New session opens a form below it that creates a session and opens it.
  */
-export function SessionsPanel() {
+export function SessionsPanel({ creating, onCreatingChange }: SessionsPanelProps) {
   const [query, setQuery] = useState("");
-  const [creating, setCreating] = useState(false);
-  const disabled = useCreateDisabled();
+  const addButton = useRef<HTMLButtonElement>(null);
+  const formId = useId();
   const headingId = useId();
+  // Returns focus to the heading's button, which would otherwise be lost with the form.
+  const closeForm = () => {
+    addButton.current?.focus();
+    onCreatingChange(false);
+  };
   // Groups read relative to when the panel opened.
   const [now] = useState(() => new Date());
   const search = query.trim().toLowerCase();
@@ -39,7 +50,7 @@ export function SessionsPanel() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
-      <Box component="search" sx={barSx}>
+      <Box component="search" sx={{ px: 1.5, pt: 1.5 }}>
         <TextField
           type="search"
           size="small"
@@ -58,22 +69,34 @@ export function SessionsPanel() {
             },
           }}
         />
-        <Button
-          variant="outlined"
-          fullWidth
-          startIcon={<Add />}
-          disabled={disabled}
-          onClick={() => setCreating(true)}
-        >
-          New session
-        </Button>
       </Box>
+      <Box sx={{ px: 1.5, pt: 1, pb: 1 }}>
+        <SectionHeader
+          title="Sessions"
+          count={ids.length || undefined}
+          actions={[
+            {
+              label: "New session",
+              icon: <Add />,
+              onClick: () => onCreatingChange(!creating),
+              expanded: creating,
+              controls: formId,
+              ref: addButton,
+            },
+          ]}
+        />
+      </Box>
+      {creating && (
+        <Box sx={{ px: 1.5, pb: 1.5 }}>
+          <NewSessionForm id={formId} onClose={closeForm} />
+        </Box>
+      )}
       <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", px: 1, pb: 1 }}>
         {groupBy(ids, periods).map(({ period, ids }, index) => (
           <Box component="section" key={period} aria-labelledby={`${headingId}-${index}`}>
             <Typography
               id={`${headingId}-${index}`}
-              component="h3"
+              component="h4"
               variant="caption"
               display="block"
               color="text.secondary"
@@ -90,7 +113,6 @@ export function SessionsPanel() {
           empty={search ? `No sessions match “${query.trim()}”.` : "No saved sessions yet."}
         />
       </Box>
-      <NewSessionDialog open={creating} onClose={() => setCreating(false)} />
     </Box>
   );
 }
@@ -109,6 +131,3 @@ function groupBy(ids: readonly string[], periods: readonly string[]) {
 
 const matches = ({ name, assembly }: Session, search: string) =>
   name.toLowerCase().includes(search) || assembly.toLowerCase().includes(search);
-
-/** The search field, with New session below it, above the list that scrolls. */
-const barSx = { display: "flex", flexDirection: "column", gap: 1, p: 1.5, pb: 0.5 } as const;
