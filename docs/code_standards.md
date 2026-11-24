@@ -31,8 +31,4 @@ Settings apply live; add Apply and Cancel only when the workflow needs a draft. 
 
 Keep labels visible, name icon actions, and never use color as the only signal of state. On narrow screens, wrap or stack rather than shrinking controls.
 
-## Examples
-
-In examples, docs, and test harnesses, use `YOUR_URL_HERE` or a URL already in the repository. Never invent data hosts.
-
 Tests follow the [testing policy](contributing/testing.md).

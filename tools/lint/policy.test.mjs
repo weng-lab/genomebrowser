@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import { findBrokenLinks } from "./doc-links.mjs";
 import { findCaseCollisions } from "./path-case.mjs";
+import { findUnknownHosts } from "./url-hosts.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const oxlint = join(root, "node_modules/.bin/oxlint");
@@ -236,4 +237,18 @@ test("doc link policy reports links to missing files and headings", () => {
       ["docs/README.md", "guide.md#old-heading"],
     ],
   );
+});
+
+test("URL host policy accepts reserved and known hosts and reports invented ones", () => {
+  const files = new Map([
+    [
+      "docs/example.md",
+      [
+        "https://example.test/a.bigWig https://data.example.test/b.bb http://localhost:3000",
+        "https://users.wenglab.org/x.bigWig https://example.org/y YOUR_URL_HERE",
+        "https://encode-data.org/signal.bigWig https://Example.COM/z",
+      ].join("\n"),
+    ],
+  ]);
+  assert.deepEqual(findUnknownHosts(files), [["docs/example.md", "encode-data.org"]]);
 });
