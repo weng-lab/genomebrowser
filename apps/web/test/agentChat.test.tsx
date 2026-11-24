@@ -141,6 +141,8 @@ describe.skipIf(!available)("Eve agent chat", () => {
       },
     );
     await ready(`${eve}/eve/v1/health`);
+    // The app reaches Eve's routes through its own origin, which here is Eve itself.
+    vi.stubEnv("GB_AGENT_APP_ORIGIN", eve);
     // Same-origin rewrite boundary, as configured by withEve in Next.js: `/eve` reaches the
     // agent and `/api` the app.
     vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
@@ -359,6 +361,50 @@ describe.skipIf(!available)("Eve agent chat", () => {
       { timeout: 15_000 },
     );
     expect((await thread()).conversationId).not.toBe(ended);
+  }, 50_000);
+
+  it("ends the session's conversation in Eve when the session is deleted", async () => {
+    probe = await renderWithProbe(
+      <AgentChat sessionId={sessionId} signal={lifetime.signal} connected />,
+    );
+    await send("hello");
+    await vi.waitFor(
+      () => expect(document.body.textContent).toContain("Hello from the genome browser agent."),
+      { timeout: 15_000 },
+    );
+    await act(async () => probe?.unmount());
+    const { conversationId } = await thread();
+    const headers = { authorization: `Bearer ${authorization!.token("user_alice")}` };
+    const client = new Client({
+      baseUrl: eve,
+      headers: { ...headers, "x-genomebrowser-session-id": sessionId },
+    });
+    // Follow the conversation from before the deletion: afterwards it has no thread to read through.
+    const following = new AbortController();
+    const events = client.sessions
+      .attach(conversationId!)
+      .stream({ signal: following.signal })
+      [Symbol.asyncIterator]();
+    await events.next();
+
+    const deleted = await nativeFetch(`${authorization!.origin}/api/sessions/${sessionId}`, {
+      method: "DELETE",
+      headers,
+    });
+    expect(deleted.status).toBe(204);
+    let ended = false;
+    for (let next = await events.next(); !next.done; next = await events.next()) {
+      if (next.value.type !== "session.ended") continue;
+      ended = true;
+      break;
+    }
+    following.abort();
+    expect(ended).toBe(true);
+    const authorized = await nativeFetch(
+      `${authorization!.origin}/api/sessions/${sessionId}/agent-auth`,
+      { headers },
+    );
+    expect(authorized.status).toBe(404);
   }, 50_000);
 
   it("starts a new thread when Eve no longer has the session's conversation", async () => {
