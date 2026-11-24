@@ -105,11 +105,11 @@ function Conversation({
       agent.store.cancel().catch(report);
     });
   }, [running, control, agent.store, report]);
-  const [wasRunning, setWasRunning] = useState(running);
-  if (running !== wasRunning) {
-    setWasRunning(running);
-    if (!running) control.release();
-  }
+  const wasRunning = useRef(running);
+  useEffect(() => {
+    if (wasRunning.current && !running) control.release();
+    wasRunning.current = running;
+  }, [running, control]);
 
   // Switching sessions or leaving the page stops a run, so ask first.
   useHoldSession(

@@ -11,7 +11,9 @@ import { useAgentControl } from "../RemoteControlProvider";
  * Part of the page that changes the open session, such as the browser or its
  * tools. While the agent holds control, it is tinted and inert, so neither
  * pointer, keyboard, nor focus can change the session under the agent, and
- * `banner` offers Stop. Reading it, as by scrolling the page, still works.
+ * `banner` offers the way out: Stop for a run of the agent panel, which it
+ * ends, and Take back control for an agent this tab cannot stop, which keeps
+ * working. Reading it, as by scrolling the page, still works.
  */
 export function AgentControlBoundary({
   children,
@@ -19,12 +21,12 @@ export function AgentControlBoundary({
   sx,
 }: {
   children: ReactNode;
-  /** Show the "agent has control" notice with Stop above this part. */
+  /** Show the "agent has control" notice and its way out above this part. */
   banner?: boolean;
   /** Layout for the box around `children`, such as letting it grow in a flex column. */
   sx?: SxProps<Theme>;
 }) {
-  const { held, control } = useAgentControl();
+  const { held, stops, control } = useAgentControl();
   return (
     <>
       {held && banner && (
@@ -41,10 +43,12 @@ export function AgentControlBoundary({
           }}
         >
           <Typography component="output" variant="body2" sx={{ flex: 1 }}>
-            The agent has control of the browser while it works.
+            {stops
+              ? "The agent has control of the browser while it works."
+              : "An agent has control of the browser. Taking it back does not stop the agent."}
           </Typography>
           <Button size="small" onClick={() => control.stop()}>
-            Stop
+            {stops ? "Stop" : "Take back control"}
           </Button>
         </Box>
       )}

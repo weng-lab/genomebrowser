@@ -237,7 +237,7 @@ it("applies a region command in the browser, replies with the region, and saves 
   );
 });
 
-it("locks the browser while the agent holds control, until it releases it or Stop", async () => {
+it("locks the browser while an agent holds control, until it releases it or the user takes it back", async () => {
   await enableRemoteControl();
   await act(async () => route.back());
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
@@ -254,7 +254,10 @@ it("locks the browser while the agent holds control, until it releases it or Sto
 
   await control("take_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e01");
   await vi.waitFor(() => expect(locked()).toBe(true));
-  expect(text()).toContain("The agent has control of the browser while it works.");
+  // No run of the agent panel took it, so the tab cannot stop this agent and says so.
+  expect(text()).toContain(
+    "An agent has control of the browser. Taking it back does not stop the agent.",
+  );
   expect(reply()).toMatchObject({ result: { ok: true, value: { held: true } } });
   // The agent's own commands still reach the browser while it holds control.
   await setRegion("chr1", 1000);
@@ -278,7 +281,7 @@ it("locks the browser while the agent holds control, until it releases it or Sto
   await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull());
   await act(async () =>
     [...document.querySelectorAll("button")]
-      .find((button) => button.textContent === "Stop")!
+      .find((button) => button.textContent === "Take back control")!
       .click(),
   );
   await vi.waitFor(() => expect(unlocked()).toBe(true));
