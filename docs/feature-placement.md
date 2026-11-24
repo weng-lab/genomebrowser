@@ -32,7 +32,7 @@ For a new app component, the first of these that applies decides where it goes:
 
 Name `shared/ui/` components for how they look, not the feature that first used them, and give each a section in the design gallery (`apps/web/design/Gallery.tsx`).
 
-Import and cycle rules are enforced by `.oxlintrc.json` and `tools/lint/policy.test.mjs`. When changing a boundary, update the lint rule and fixtures together. Behavioral invariants belong in schemas, runtime checks, and tests, not new prose rules. Product scope: [product](product/README.md).
+Import and cycle rules are enforced by `.oxlintrc.json` and `tools/lint/policy.test.mjs`. When changing a boundary, update the lint rule and fixtures together. Behavioral invariants belong in schemas, runtime checks, and tests, not new prose rules.
 
 ## Open example: grouped tracks
 

@@ -23,4 +23,4 @@ Core and reader are independent foundations. Tracks combines them. UI wraps the 
 
 Within core, keep sizing, data-controller lifetime, and SVG/paint ownership with `GenomeBrowser`, `BrowserProvider`, and `BrowserCanvas` respectively so callers do not coordinate those lifetimes. Details live in code and in core's packaged docs.
 
-For where a new capability belongs, see [feature placement](feature-placement.md). For app product intent, see [product](product/README.md). For runbooks, see `apps/web/README.md`.
+For where a new capability belongs, see [feature placement](feature-placement.md). For runbooks, see `apps/web/README.md`.

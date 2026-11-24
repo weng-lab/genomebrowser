@@ -1,6 +1,6 @@
 # Architecture decision records
 
-ADRs record decisions about the **repository and system shape** that should change only when we deliberately change those decisions. Ordinary implementation detail stays in code. Product scope lives under [product](../product/README.md).
+ADRs record decisions about the **repository and system shape** that should change only when we deliberately change those decisions. Ordinary implementation detail stays in code.
 
 ## Decisions
 

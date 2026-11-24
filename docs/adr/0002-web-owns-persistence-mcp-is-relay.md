@@ -16,4 +16,4 @@ Agents need to drive a live browser tab. Sessions must persist for signed-in use
 
 ## Consequences
 
-Cloud MCP needs auth/authorization and careful single-instance/SSE operational limits (see [product limitations](../product/limitations.md)). Adding session queries to the MCP server would violate this split. New agent commands add a contract + web handler; the server registers tools from contracts without knowing persistence.
+Cloud MCP needs auth/authorization and careful single-instance/SSE operational limits. Adding session queries to the MCP server would violate this split. New agent commands add a contract + web handler; the server registers tools from contracts without knowing persistence.

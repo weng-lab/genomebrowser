@@ -12,6 +12,13 @@ An owner gives callers one coherent operation: start, temporary state, commit, i
 
 A seam needs real variation or a testing need, as the track-module boundary has. If removing a layer only removes handoffs, remove it. Generalize a shared API after a second concrete use, not before. Existing package contents are history, not a boundary to preserve.
 
+## Agent features
+
+- Every agent operation is also available in the UI, and both change the same session state. There is no separate agent copy of the browser.
+- Turning agents off in an account's settings stops all agent access, not just the panel. Manual browsing keeps working whether agents are off, unavailable, or rate-limited.
+- Images an agent exports go to the user, never into the model's context.
+- Knowing a session ID grants nothing: every agent request is authorized against the signed-in owner.
+
 ## No compatibility layers
 
 Do not add aliases, shims, or deprecated re-exports for older versions unless asked.
