@@ -26,6 +26,12 @@ type BindDependencies = ThreadDependencies & {
   ) => Promise<{ userId: string; sessionId: string; conversationId: string } | null>;
 };
 
+type EndDependencies = {
+  threads: () => Promise<AgentThreads>;
+  /** End a conversation in Eve as the request's user, rejecting when Eve cannot confirm it. */
+  end: (request: Request, sessionId: string, conversationId: string) => Promise<void>;
+};
+
 const conversationSchema = z.object({ conversationId: z.string().min(1).max(200) });
 
 const noStore = { "Cache-Control": "no-store" };
@@ -204,4 +210,20 @@ export function releaseAgentThread(
     await (await threads()).release(sessionId, conversation);
     return new Response(null, { status: 204, headers: noStore });
   });
+}
+
+/**
+ * End the agent conversation of a session about to be deleted, if the acting
+ * user owns the session and it has one. Eve keeps a conversation's messages
+ * until it ends, and the thread record that names it is deleted with the
+ * session. Rejects when Eve cannot confirm the end, so the caller keeps the
+ * session and the deletion can be retried.
+ */
+export async function endAgentThread(
+  request: Request,
+  sessionId: string,
+  { threads, end }: EndDependencies,
+) {
+  const conversationId = await (await threads()).current(sessionId);
+  if (conversationId) await end(request, sessionId, conversationId);
 }
