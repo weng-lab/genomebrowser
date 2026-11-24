@@ -5,14 +5,23 @@
 ```mermaid
 flowchart LR
   User([Researcher]) -->|uses| Client[Web client]
-  Agent([AI agent]) -->|MCP tool calls| Server[Next.js server]
-  Client <-->|saves sessions, receives agent commands| Server
-  Server -->|sessions and account settings| Postgres[(PostgreSQL)]
-  Server <-->|agent commands and replies| Redis[(Redis)]
-  Server -->|sign-in| Clerk[Clerk]
+  Agent([AI agent]) -->|calls a tool| MCP
+
+  subgraph Next[Next.js server]
+    Sessions[Session routes]
+    MCP[MCP endpoint]
+    Stream[Command stream]
+  end
+
+  Client -->|saves sessions| Sessions
+  Sessions -->|stores sessions| Postgres[(PostgreSQL)]
+  MCP -->|publishes the command| Redis[(Redis)]
+  Redis -->|delivers the command| Stream
+  Stream -->|pushes the command| Client
+  Client -->|signs in| Clerk[Clerk]
 ```
 
-The web client holds the open session's live state, and agent commands change it through the same stores the UI uses. An agent's MCP call and the client's command connection can reach different server instances, so Redis passes each command, and its reply, between them.
+An agent's command reaches the web client only through Redis and the command stream, and the client's reply takes the same route back. The MCP call and the client's stream can be on different server instances, which is why Redis sits between them. The client applies commands to the same stores the UI uses.
 
 ## Run locally
 
