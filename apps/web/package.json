@@ -17,6 +17,7 @@
     "db:stop": "docker compose stop",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "templates": "uv run scripts/trackTemplates.py",
     "sessions:import-sqlite": "node --env-file-if-exists=.env.local scripts/importSqliteSessions.ts"
   },
   "dependencies": {

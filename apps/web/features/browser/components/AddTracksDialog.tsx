@@ -86,8 +86,8 @@ type Row = {
   failure?: string;
 };
 
-// TEMPORARY (#471): the app serves the spreadsheet template and example until the lab's
-// download server hosts them; then these point there and `public/templates` goes.
+// The spreadsheet template and example, from `public/templates`. `pnpm web templates` writes
+// them with `scripts/trackTemplates.py`.
 const templateUrl = "/templates/genome-browser-tracks-template.xlsx";
 const exampleUrl = "/templates/genome-browser-tracks-example.xlsx";
 
