@@ -22,9 +22,17 @@ Put product pages and workflows in `apps/web`. Routes stay thin; features own UI
 
 Each agent command is one definition in `features/agent/commands/`, which the tab runs and the MCP endpoint in `features/mcp/` publishes as a tool. Command delivery between server instances and tabs lives in `features/agent/server/` ([ADR 0007](adr/0007-app-owned-mcp-redis-relay.md)).
 
-Import and cycle rules are enforced by `.oxlintrc.json` and `tools/lint/policy.test.mjs`. When changing a boundary, update the lint rule and fixtures together. Behavioral invariants belong in schemas, runtime checks, and tests, not new prose rules.
+For a new app component, the first of these that applies decides where it goes:
 
-How to run and extend the app: `apps/web/README.md`. Product scope: [product](product/README.md).
+1. It only restyles an MUI component everywhere: a theme override in `shared/ui/theme.ts`, not a component.
+2. Other embedding sites, such as SCREEN, would want it: `@weng-lab/genomebrowser-ui`, styled only from the host's theme.
+3. It is part of the frame's layout (panels, title rows, the header): `shared/workspace/`.
+4. It needs app state (the session, a store, the route, the server): split it. The look goes in `shared/ui/` with plain props, and a small component in the feature connects it, as `StatusTag` and `SaveStatus` do.
+5. A second screen uses it: move it to `shared/ui/`. Until then it stays in its feature.
+
+Name `shared/ui/` components for how they look, not the feature that first used them, and give each a section in the design gallery (`apps/web/design/Gallery.tsx`).
+
+Import and cycle rules are enforced by `.oxlintrc.json` and `tools/lint/policy.test.mjs`. When changing a boundary, update the lint rule and fixtures together. Behavioral invariants belong in schemas, runtime checks, and tests, not new prose rules. Product scope: [product](product/README.md).
 
 ## Open example: grouped tracks
 

@@ -2,7 +2,7 @@
 
 Repository guidance for maintainers and coding agents. These pages hold context the code cannot: decisions about the repo, shared vocabulary, product intent, contribution judgment, and principles that structure and lint do not enforce.
 
-Consumer API documentation lives in each package's `docs/` and changes with the code. Application how-to lives in `apps/*/README.md` and `apps/web/docs/`.
+Consumer API documentation lives in each package's `docs/` and changes with the code. Running the app lives in `apps/web/README.md`; deploying it in `apps/web/docs/deployment.md`.
 
 ## Authority order
 
