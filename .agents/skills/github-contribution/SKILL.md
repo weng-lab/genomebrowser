@@ -5,20 +5,22 @@ description: Help draft new genomebrowser feature requests through simple Q&A, a
 
 # GitHub contribution
 
-Read [contribution guidance](../../../docs/contributing/README.md) and the relevant template in `.github/`. For PR handoff, also read [verification](../../../docs/contributing/verify.md).
+Follow [contributing](../../../docs/contributing/README.md) and the matching template in `.github/`.
 
-1. Identify the operation, diff, and related issue or PR. Load only needed context. For user-facing features use `.github/ISSUE_TEMPLATE/feature.md` (user stories, designs, additional context). One parent feature issue; optional task checkboxes or sub-issues. Focused technical changes can use `change.md`.
-2. Use the native issue Type (Feature, Task, Bug), not the retired feature label. January MVP milestone for agreed launch work. Resolve the contributor's GitHub account per the contributing guide before setting assignee metadata. Ask only when evidence is unclear.
-3. Prepare the commit, issue, or PR from actual scope. For a PR, write the body by following the comments in `.github/pull_request_template.md`. Follow verification guidance at handoff.
-4. Perform only operations the user authorized. Implementing code does not by itself authorize posting issues, opening PRs, or merging. When updating an existing contribution, preserve unrelated content and metadata.
-5. Check text and metadata against the final change; report links when applicable.
+1. Prepare the commit, issue, or PR from the actual change. For a PR, fill the body by following the template's comments.
+2. Before setting an assignee, resolve the contributor's GitHub login:
+   - Use a login the user named for this work.
+   - Otherwise compare `git var GIT_AUTHOR_IDENT` with `gh api user --jq '{login, name, type}'`. Use that login only when it plausibly belongs to the person asking; a matching name is evidence, not proof.
+   - If the account is a bot or shared, the identities conflict, or it stays unclear, ask and leave the assignee unset. Never assume the repository owner or PR creator, and never change auth or Git identity to make them match.
+   - Assign with `gh pr create --assignee LOGIN` or `gh pr edit N --add-assignee LOGIN`, keep existing assignees, and confirm with `gh pr view N --json assignees`.
+3. Post, open, or merge only what the user authorized; implementing code does not authorize any of them. When updating an existing issue or PR, keep unrelated content and metadata.
 
 ## New feature requests
 
-Keep the walkthrough conversational. Use what the user already said, check for an existing issue, and ask one short question at a time when information is missing:
+Use what the user already said and check for an existing issue. Ask one short question at a time for what is missing:
 
 - What should the user be able to do?
 - Is there a Figma link or mockup? A placeholder is fine.
 - Any other context or open questions?
 
-Draft title plus User stories, Designs, and Additional context. Leave undecided details as questions. Show the draft before posting unless the user already approved wording and authorized posting.
+Draft a title with User stories, Designs, and Additional context, leaving undecided details as questions. Show the draft before posting unless the user already approved the wording and posting.
