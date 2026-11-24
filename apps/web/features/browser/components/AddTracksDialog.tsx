@@ -207,8 +207,8 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
             <Typography variant="body2" color="text.secondary">
               Paste hosted file URLs or UCSC track lines, one per line, or cells copied from a
               spreadsheet whose first row names the columns, starting with URL. Or upload a .txt,
-              .tsv, or .csv file of them. BigWig, BigBed, BigGenePred, and BAM files can be added;
-              you can review each track before adding.
+              .tsv, .csv, or .xlsx file of them. BigWig, BigBed, BigGenePred, and BAM files can be
+              added; you can review each track before adding.
             </Typography>
             <TextField
               // oxlint-disable-next-line jsx-a11y/no-autofocus -- The dialog opens to paste.
@@ -227,7 +227,7 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
               type="file"
               hidden
               aria-label="File of URLs, track lines, or a table of tracks"
-              accept=".txt,.tsv,.csv,text/plain,text/tab-separated-values,text/csv"
+              accept=".txt,.tsv,.csv,.xlsx,text/plain,text/tab-separated-values,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               onChange={(event) => void upload(event.target)}
             />
             {failedLines && (

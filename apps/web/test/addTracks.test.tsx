@@ -2,6 +2,8 @@
 
 // Import first: it mocks the Next.js router before the app's modules load.
 import { route, stubLayout, WorkspaceApp } from "./workspaceApp";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -332,4 +334,34 @@ it("reads an uploaded CSV as a table, and says why a file can't be read", async 
   // The paste box holds the table as copied cells, to fix and review again.
   await click(button("Back to text"));
   expect(pasteBox().value).toBe(`URL\tTitle\n${host}/peaks.bb\tPeaks, rep 1`);
+});
+
+it("reads the first sheet of an uploaded Excel workbook, taking each formula's last result", async () => {
+  server.files.set(`${host}/signal.bw`, bigWig);
+  server.files.set(`${host}/peaks.bb`, bed6);
+  await openDialog();
+  await upload("broken.xlsx", "URL\tTitle");
+  // The workbook reader loads only when a workbook is chosen.
+  await vi.waitFor(() =>
+    expect(dialog()!.querySelector('[role="alert"]')?.textContent).toContain(
+      "could not be read as an Excel workbook",
+    ),
+  );
+
+  const workbook = readFileSync(join(import.meta.dirname, "fixtures/tracks.xlsx"));
+  await upload("tracks.xlsx", new Uint8Array(workbook));
+  await vi.waitFor(() => expect(rows()).toHaveLength(2));
+  expect(rows().map((row) => field(row, "Title").value)).toEqual(["Signal", "Peaks"]);
+  await click(button("Add 2 tracks"));
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await vi.waitFor(() => expect(savedTracks()).toHaveLength(startingTitles.length + 2));
+  // Number and true/false cells keep their column's type, and a date reads as an ISO date.
+  expect(
+    savedTracks()
+      .slice(startingTitles.length)
+      .map(({ base, metadata }) => [base.title, base.display, metadata]),
+  ).toEqual([
+    ["Signal", "dense", { Replicate: 2, Treated: true, Released: "2024-03-20" }],
+    ["Peaks", expect.anything(), { Replicate: 1.5, Treated: false }],
+  ]);
 });
