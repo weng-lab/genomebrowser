@@ -2,6 +2,21 @@
 
 `@weng-lab/web` is the Next.js genome browser application: saved sessions in PostgreSQL, accounts in Clerk, and agent commands delivered to browser tabs through an MCP endpoint and Redis.
 
+```mermaid
+flowchart LR
+  Agent[MCP client] -->|tool call| Next
+  subgraph Server[Next.js server]
+    Next[Session routes and MCP endpoint]
+  end
+  Tab[Browser tab: live stores and tracks] -->|load and autosave sessions| Next
+  Next -->|commands| Redis[(Redis)] -->|command stream| Tab
+  Next --> Postgres[(PostgreSQL)]
+  Next --> Clerk[Clerk]
+  Tab -->|genomic data| Files[Remote track files]
+```
+
+The browser tab owns the live browser state. The server saves and loads session snapshots and relays agent commands to the tab, which applies them to the same stores the UI uses. Track data goes straight from the file hosts to the tab, never through the server.
+
 ## Run locally
 
 You need Node.js 24 or newer and Docker. From the repository root:
