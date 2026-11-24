@@ -44,6 +44,11 @@ async function advance(ms: number) {
     await vi.advanceTimersByTimeAsync(Math.min(50, ms - elapsed));
   }
 }
+/** List the saved sessions again, as focusing the window does, until there are `count`. */
+async function listAll(count: number) {
+  window.dispatchEvent(new Event("focus"));
+  await vi.waitFor(() => expect(state().sessions).toHaveLength(count));
+}
 /** Whether closing the tab now asks for confirmation. */
 function closeTab() {
   const event = new Event("beforeunload", { cancelable: true });
@@ -478,6 +483,58 @@ it("resumes saving when deleting the active session fails", async () => {
   server.stored.delete(id);
   setRegion(5000);
   await vi.waitFor(() => expect(state().active!.signal.aborted).toBe(true));
+});
+
+it("deletes every session, the active one last after its outstanding write", async () => {
+  const a = server.add("A", defaults());
+  const b = server.add("B", defaults());
+  const c = server.add("C", defaults());
+  await listAll(3);
+  await state().open(b);
+  const write = server.hold("PUT");
+  setRegion(1000);
+  await vi.waitFor(() => expect(puts()).toHaveLength(1));
+  const removing = state().removeAll();
+  await advance(500);
+  // The others go while the active session's write is still out.
+  expect(server.writes().map(({ method, id }) => [method, id])).toEqual([
+    ["PUT", b],
+    ["DELETE", a],
+    ["DELETE", c],
+  ]);
+
+  write.release();
+  await removing;
+  expect(server.writes().map(({ method, id }) => [method, id])).toEqual([
+    ["PUT", b],
+    ["DELETE", a],
+    ["DELETE", c],
+    ["DELETE", b],
+  ]);
+  expect(server.stored.size).toBe(0);
+  expect(state()).toMatchObject({ active: undefined, saveStatus: undefined, sessions: [] });
+  expect(state().error).toBeUndefined();
+  expect(shown.at(-1)).toBeUndefined();
+});
+
+it("stops deleting every session at the first failure, keeping the active one open", async () => {
+  const a = server.add("A", defaults());
+  const b = server.add("B", defaults());
+  const c = server.add("C", defaults());
+  await listAll(3);
+  await state().open(a);
+  const first = server.hold("DELETE");
+  server.fail("DELETE");
+  const removing = state().removeAll();
+  first.release();
+  await removing;
+  expect(writes()).toEqual(["DELETE", "DELETE"]);
+  expect([...server.stored.keys()]).toEqual([a, c]);
+  expect(state().sessions.map(({ id }) => id)).toEqual([a, c]);
+  expect(state().active!.id).toBe(a);
+  expect(state().active!.signal.aborted).toBe(false);
+  expect(state().error).toBe("Could not delete every session. Try again.");
+  expect(server.stored.has(b)).toBe(false);
 });
 
 it("keeps edits to a session deleted elsewhere unsaved until they are discarded", async () => {

@@ -308,6 +308,35 @@ it("lists every saved session to search in the left panel, and creates one", asy
   );
 });
 
+it("deletes every session from the Sessions panel after asking", async () => {
+  const a = server.add("Alpha", defaults());
+  server.add("Beta", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await click(railButton("Sessions"));
+  const deleteAll = () =>
+    withText("#left-panel button", "Delete all sessions") as HTMLButtonElement | undefined;
+  await vi.waitFor(() => expect(deleteAll()?.disabled).toBe(false));
+  const confirmation = () => document.querySelector('[role="dialog"]');
+
+  // Cancel keeps them.
+  await click(deleteAll());
+  expect(confirmation()?.querySelector("h2")?.textContent).toBe("Delete all sessions?");
+  await click(withText('[role="dialog"] button', "Cancel"));
+  await vi.waitFor(() => expect(confirmation()).toBeNull());
+  expect(server.stored.size).toBe(2);
+
+  await click(deleteAll());
+  await click(withText('[role="dialog"] button', "Delete all"));
+  await vi.waitFor(() => expect(heading()).toBe("No session open"));
+  expect(route.pathname()).toBe("/browser");
+  expect(server.stored.size).toBe(0);
+  expect(text()).toContain("No saved sessions yet.");
+  expect(deleteAll()?.disabled).toBe(true);
+  // Focus leaves the disabled button for the heading's New session.
+  expect(document.activeElement).toBe(button("New session"));
+});
+
 it("shows and hides the browser's left panels from the side bar", async () => {
   const a = server.add("Alpha", defaults());
   await visit(`/browser/${a}`);

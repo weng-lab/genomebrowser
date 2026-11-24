@@ -24,7 +24,7 @@ import { setRegionsColor, setRegionsHidden } from "../regions";
 import { ActionsPopover } from "../../../../shared/ui/ActionsPopover";
 import { swatchColors } from "../../../../shared/ui/color";
 import { NameAndColor } from "../../../../shared/ui/NameAndColor";
-import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { ConfirmDeleteDialog } from "../../../../shared/ui/ConfirmDeleteDialog";
 
 /** One column that can shrink below the rows' text, so long names and coordinates truncate. */
 export const listSx = {

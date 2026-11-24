@@ -12,6 +12,7 @@ import type { Session } from "../schema";
 import type { SessionState } from "../session";
 import { byRecent, formatSavedPeriod } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
+import { DeleteAllButton } from "../../../shared/ui/DeleteAllButton";
 import { SectionHeader } from "../../../shared/ui/SectionHeader";
 import { NewSessionForm } from "./NewSessionForm";
 import { labelSx, SessionList, SessionListStatus } from "./SessionList";
@@ -25,7 +26,8 @@ type SessionsPanelProps = {
 /**
  * Every saved session, most recently saved first and grouped by when it was saved,
  * narrowed by a search of names and assemblies, for the browser's left panel. The heading's
- * New session opens a form below it that creates a session and opens it.
+ * New session opens a form below it that creates a session and opens it. Delete all sessions,
+ * at the foot, deletes every one after asking.
  */
 export function SessionsPanel({ creating, onCreatingChange }: SessionsPanelProps) {
   const [query, setQuery] = useState("");
@@ -113,7 +115,37 @@ export function SessionsPanel({ creating, onCreatingChange }: SessionsPanelProps
           empty={search ? `No sessions match “${query.trim()}”.` : "No saved sessions yet."}
         />
       </Box>
+      <Box sx={{ p: 1, pb: 1.5 }}>
+        {/* Focus leaves the button, which deleting disables. */}
+        <DeleteAllSessions onDelete={() => addButton.current?.focus()} />
+      </Box>
     </Box>
+  );
+}
+
+/**
+ * Deletes every saved session, whatever the search shows, after asking. Disabled while there
+ * are none, or while sessions are unavailable or another operation runs.
+ */
+function DeleteAllSessions({ onDelete }: { onDelete: () => void }) {
+  const disabled = useSession(
+    (session) =>
+      session.sessions.length === 0 || session.status !== "ready" || session.pending !== undefined,
+  );
+  const removeAll = useSession((session) => session.removeAll);
+  return (
+    <DeleteAllButton
+      label="Delete all sessions"
+      disabled={disabled}
+      confirmTitle="Delete all sessions?"
+      confirmText="Every saved session will be deleted, including the one open in the browser."
+      confirmLabel="Delete all"
+      onDelete={() => {
+        onDelete();
+        // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
+        void removeAll();
+      }}
+    />
   );
 }
 
