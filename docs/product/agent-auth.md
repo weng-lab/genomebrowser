@@ -28,7 +28,7 @@ Agent features start enabled. The agent can read browser state, track metadata, 
 
 The account-wide setting disables all LLM operations. It closes MCP connections and prevents reconnection, new reads, and commands across the user's tabs, and stops active agent work from applying further changes. Hiding the panel alone does not meet this requirement. Turning it off cannot recall data already sent or reverse completed changes.
 
-The setting is saved per account and starts on. Each tab stops connecting when it is off, and the server refuses tool calls, tab connections, and replies for the account from the moment it is saved off. A command already running in a tab can still finish, and other open tabs close their connections when their window regains focus or reloads. Stop keeps working after the setting is turned off or the session is deleted, so the user can always end a run. Manual browsing remains available whether the agent is off or unavailable.
+The setting is saved per account and starts on. Each tab stops connecting when it is off, and the server refuses tool calls, tab connections, and replies for the account from the moment it is saved off. A command already running in a tab can still finish, and other open tabs close their connections when their window regains focus or reloads. Stop keeps working after the setting is turned off, so the user can always end a run. Deleting the open session closes it in the tab, which ends its run. Manual browsing remains available whether the agent is off or unavailable.
 
 ## External agents
 
