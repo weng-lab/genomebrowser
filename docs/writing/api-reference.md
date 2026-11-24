@@ -2,42 +2,50 @@
 
 ## Reading experience
 
-References support lookup and should retain complete technical contracts, including types, defaults, validation, and edge cases. Guides carry the step-by-step teaching flow. Improve reference readability without turning every API section into a tutorial or removing details needed to use it correctly.
+Reference pages are for lookup. Keep the full technical contract intact, including types, defaults, validation, and edge cases. Leave step-by-step teaching to guides so reference pages stay easy to scan without dropping details readers need to get things right.
 
-Connect related sections so readers understand how built-in options lead to customization, or how parsing leads to validation.
+Link related sections when one leads naturally to another, such as built-in options linking to custom extensions, or parsing linking to validation.
 
-Explain import paths when choosing among entry points matters. When similar names refer to different APIs, explain their purpose, ownership, and required context directly rather than warning readers not to confuse them.
+Call out import paths whenever choosing the right entry point matters. When two APIs have similar names, state what each one does, what owns it, and what context it needs instead of warning readers not to mix them up.
 
-## Ownership and coverage
+## Coverage and organization
 
-Every public export needs a canonical page and heading, not a separate file. Maintain an export-to-reference index in `docs/03-reference/README.md`, including exported types, aliases, public subpaths, and related runtime symbols. Include public CLI commands and shipped schemas in reference navigation as applicable. Inspect package export maps and their source entry points; root exports alone do not include every public API.
+Every public export needs one canonical page and heading, not necessarily its own file. Keep `docs/03-reference/README.md` current as an index from every public export to its reference heading, covering functions, hooks, components, types, aliases, subpath exports, CLI commands, and shipped schemas. Check `package.json` export maps and every entry point, because the root entry point rarely exports everything.
 
-Give independently useful functions, hooks, and components focused pages when that improves lookup. Keep store actions together and supporting types with their owning capability. Each page should make sense when opened directly, with its purpose, import path, required context, and a focused example; link to other contracts instead of assuming the reader visited them first.
+Give standalone functions, hooks, and components their own pages when that makes lookup faster. Keep store actions together, and keep supporting types on the page of the capability that owns them. Every page should make sense if opened directly: state its purpose, import path, and required context, show a focused example, and link to related contracts rather than assuming the reader came from another page.
 
-Group APIs by reader-facing capability:
+Group APIs by what the reader is trying to do:
 
-- Core: `browserSetup`, `assembliesAndRegions`, `trackDefinition`, `rendererIntegration`, and `collectionsAndSchemas`. These areas contain focused pages for stores, hooks, components, module contracts, and tooling.
-- Tracks: one reference per track module, plus focused shared references for coordinates/layout, signal processing, BED schemas, settings components, and tooltips.
-- UI: independently usable components, with their related helpers and types.
-- Reader: one reference per file format or data source, plus the common regional file contract.
-- Starter: command usage, generated output, and constraints; generated application guides own running, customization, architecture, and deployment instructions.
+- **Core:** `browserSetup`, `assembliesAndRegions`, `trackDefinition`, `rendererIntegration`, and `collectionsAndSchemas`, with focused pages for stores, hooks, components, module contracts, and tooling.
+- **Tracks:** one page per track module, plus shared pages for coordinates and layout, signal processing, BED schemas, settings components, and tooltips.
+- **UI:** one page per standalone component, alongside its helpers and types.
+- **Reader:** one page per file format or data source, plus the shared regional file contract.
+- **Starter (`create-genomebrowser`):** CLI usage, generated files, and constraints. Guides inside the generated app cover running, customizing, architecture, and deployment.
 
-These are grouping guidelines, not a fixed list of exports. Reconcile them with the current public exports during each package pass. Document public exports even when they are specialized; flag questionable exports separately rather than silently omitting them or changing the API during a docs cleanup.
+Treat these groupings as guidelines and reconcile them with the package's actual exports on each pass. Document specialized public exports too. If an export looks accidental or questionable, flag it separately rather than quietly omitting it or changing the API during a docs edit.
 
-For functions, hooks, stores, and modules, document signatures, inputs, defaults, results, failures, required context, lifetime, and important interactions. Store reference includes initialization options, observable public state, actions, and mutation-result semantics. Module reference includes creation, configuration, displays, source requirements, interactions, and related types. Keep each supporting type with its owning capability and link from other uses.
+### What to document by API kind
+
+- **Functions and hooks:** signature, inputs, defaults, return value, errors, required context, lifetime, and key interactions.
+- **Stores:** initialization options, public state, actions, and what mutations return.
+- **Track modules:** creation, configuration, display modes, source requirements, interactions, and supporting types.
+
+Keep each supporting type with its owning capability and link there from other pages.
 
 ## Component pages
 
-Give each independently usable public component its own reference page. Small cooperating parts may share a capability page, with a named section and complete API for every part. Do not duplicate a component's API table on a second page. Use this structure and omit sections that do not apply:
+Give each standalone public component its own reference page. Small cooperating parts can share a capability page if each part gets a named section and its full API. Never repeat a component's prop table on a second page.
+
+Use this layout and omit sections that do not apply:
 
 ```md
 # ComponentName
 
-One or two sentences describing what the component does and when to use it.
+One or two sentences explaining what the component does and when to use it.
 
 ## Usage
 
-Minimal runnable example.
+Minimal working example.
 
 ## Examples
 
@@ -56,29 +64,29 @@ Verified semantics, keyboard behavior, labeling, and focus behavior.
 Limitations, constraints, or behavior that may surprise users.
 ```
 
-The first example must be the smallest realistic example that works. Include required imports and props, enough surrounding code to understand it, and only public APIs. Do not lead with advanced configuration.
+Make the first example the smallest realistic setup that actually runs. Include required imports, props, and surrounding context, use only public APIs, and hold advanced configuration for later examples.
 
-Add focused examples for important concepts such as variants, loading or disabled states, controlled behavior, callbacks, composition, styling, and responsive behavior. Each example should teach one main idea; do not document trivial prop combinations.
-
-For components made from multiple parts, show the expected structure early. Explain which parts are required and optional.
+Add focused examples for behaviors that matter, such as variants, loading or disabled states, controlled usage, callbacks, composition, styling, and responsive layout. Teach one main idea per example and skip trivial prop combinations. For multi-part components, show the expected structure early and state which parts are required or optional.
 
 ### API tables
 
-Document every package-owned public prop and option that a user can interact with. For compound components, document the public props for each part. Do not enumerate all standard DOM attributes when a component forwards them; state what element receives them and note any exceptions.
+List every package-owned public prop and option users can pass. For compound components, include a table for each part. When a component forwards standard DOM attributes, state which element receives them and note any exceptions instead of listing every HTML attribute.
 
-Use this table shape:
+Use these columns:
 
 | Prop | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
 
-Include required props, behaviorally significant defaults, callbacks and when they run, controlled and uncontrolled relationships, non-obvious prop interactions, and deprecated props with replacements. Descriptions must explain behavior rather than repeat the prop name.
+Cover required props, meaningful defaults, when callbacks run, controlled and uncontrolled behavior, non-obvious prop interactions, and deprecated props with their replacements. Explain what the prop actually does instead of rephrasing its name.
 
-Use generated type information when reliable tooling exists, but do not publish an unreviewed type dump. Otherwise compare the table manually against the exported types. The table must remain exhaustive even when handwritten.
+Generated type output is a fine starting point, but review it before publishing rather than dumping raw output. When writing tables by hand, compare them directly against the exported types so nothing is missed.
 
-Check table structure after formatting: every row must retain the intended columns. Escape literal pipes in cells, including TypeScript unions inside inline code, or write alternatives as separate code spans joined by "or". Formatter success alone does not prove a table renders correctly.
+Check rendered table structure after formatting so every row keeps four columns. Escape literal `|` characters in cells, including TypeScript unions inside inline code, or split alternatives into separate code spans joined by "or". A clean formatter run does not guarantee the table renders properly.
 
 ### Accessibility
 
-Document only behavior verified in the implementation or tests. Cover accessible names, semantic HTML or ARIA roles, keyboard interactions, focus placement and restoration, and disabled or read-only behavior when relevant. Never infer or promise unsupported accessibility behavior.
+Document only behavior verified in the implementation or tests. Cover accessible names, HTML or ARIA roles, keyboard controls, focus placement and restoration, and disabled or read-only behavior where relevant. Never infer or promise accessibility behavior you have not verified.
 
-Before finishing, reconcile affected export-index entries and API sections with current entry points, types, defaults, and behavior. For a full package pass, cover the entire public API, including subpaths; for a focused change, cover the affected APIs.
+## Before finishing
+
+Reconcile affected entries in `docs/03-reference/README.md` and every touched API section against the current entry points, types, defaults, and behavior. For a full package pass, verify the entire public API including subpaths; for a targeted edit, verify the affected APIs.
