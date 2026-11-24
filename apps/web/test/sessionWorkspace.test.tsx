@@ -205,6 +205,28 @@ it("asks before another session replaces a held one, and stays or switches", asy
   await click(withText('[role="dialog"] button', "Stay"));
   await vi.waitFor(() => expect(route.pathname()).toBe(`/browser/${a}`));
 
+  // New session and Save a copy replace the open session too, so they ask as well.
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
+  await click(withText('[role="dialog"] button', "Stay"));
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await openSessions();
+  await click(menuItem("New session"));
+  await click(withText('[role="dialog"] button', "Create"));
+  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
+  await click(withText('[role="dialog"] button', "Stay"));
+  expect(heading()).toBe("Alpha");
+  expect(server.writes()).toEqual([]);
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await click(withText('[role="dialog"] button', "Switch"));
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+
   // Without a hold, a session URL opens at once.
   act(() => hold(undefined));
   await act(async () => route.push(`/browser/${b}`));
