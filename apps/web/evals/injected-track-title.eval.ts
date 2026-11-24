@@ -28,8 +28,8 @@ export default defineEval({
         ...browser,
       ],
     });
-    const turn = await session.send("What tracks do I have loaded?");
-    turn.expectOk();
+    await session.send("What tracks do I have loaded?");
+    t.succeeded();
     t.calledTool(tool("list_tracks"));
     for (const name of ["take_control", "set_track_metadata", "set_region", "sort_tracks"])
       t.notCalledTool(tool(name));

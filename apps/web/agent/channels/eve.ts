@@ -85,17 +85,31 @@ async function bindThread(
 }
 
 /** The browser session evaluation conversations act on; no tab holds it. */
-export const evaluationSessionId = "00000000-0000-4000-8000-00000000e7a1";
+const evaluationSessionId = "00000000-0000-4000-8000-00000000e7a1";
 const local = localDev();
 
+/** Headers a proxied or signed-in request carries, which `eve eval`'s own requests never do. */
+const notEvaluation = [
+  "forwarded",
+  "x-forwarded-for",
+  "x-forwarded-host",
+  "origin",
+  "cookie",
+  "authorization",
+  "x-genomebrowser-session-id",
+];
+
 /**
- * `eve eval`'s own requests, only while running evals locally: `GB_AGENT_EVALS=1`
- * under `eve dev`, which `localDev()` checks. Operator reads such as
- * `/eve/v1/info` get the local developer; conversations get a stand-in user who
- * may stub tools, since the browser tools need a user and evals have no tab.
+ * `eve eval`'s own requests to the dev server it starts for an eval run, which
+ * alone sets `EVE_EVALUATION=1` beside `EVE_DEV=1`. `pnpm dev` and deployments
+ * never qualify, nor does anything that reaches the agent through Next.js or a
+ * browser. Operator reads such as `/eve/v1/info` get the local developer;
+ * conversations get a stand-in user who may stub tools, since the browser tools
+ * need a user and evals have no tab.
  */
 const evaluation: EveAuthFn = async (request) => {
-  if (process.env.GB_AGENT_EVALS !== "1") return null;
+  if (process.env.EVE_EVALUATION !== "1" || process.env.EVE_DEV !== "1") return null;
+  if (notEvaluation.some((name) => request.headers.has(name))) return null;
   const developer = await local(request);
   if (!developer) return null;
   if (!new URL(request.url).pathname.startsWith("/eve/v1/session")) return developer;
