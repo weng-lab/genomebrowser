@@ -11,7 +11,7 @@ function claimsNoSuccess(reply: unknown) {
     .every(
       (sentence) =>
         !/\b(added|is now loaded|is loaded)\b/i.test(sentence) ||
-        /\b(not|no|n't|never|couldn|unable|failed|nothing)\b/i.test(sentence),
+        /\b(not|no|never|unable|failed|nothing)\b|n['’]t\b/i.test(sentence),
     );
 }
 
