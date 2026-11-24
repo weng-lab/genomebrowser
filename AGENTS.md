@@ -9,11 +9,9 @@ Start at [docs/README.md](docs/README.md). It is the genome browser knowledge ba
 Read what the change needs:
 
 - Terms: [glossary](docs/glossary.md)
-- Principles lint cannot enforce: [code standards](docs/code_standards.md)
+- Decisions lint cannot enforce, including React and embedded UI: [code standards](docs/code_standards.md)
 - Package roles and philosophy: [architecture](docs/architecture.md), [feature placement](docs/feature-placement.md)
-- Module boundaries: [module design](docs/module-design.md); use the architecture-design skill before a substantial new seam
 - App product intent: [product](docs/product/README.md)
-- React and interface work: [React guidance](docs/react.md), [interface design](docs/interface-design.md)
 - Tests and handoff: [testing](docs/contributing/testing.md), [verify](docs/contributing/verify.md)
 - Recorded decisions: [ADRs](docs/adr/README.md)
 

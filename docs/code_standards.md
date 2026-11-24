@@ -1,37 +1,38 @@
 # Code standards
 
-Principles that **code structure and lint cannot fully enforce**. Prefer fixing ownership in the type/module graph, then a lint rule whose error states the fix, before adding a bullet here. Keep this file short.
+Decisions and requirements the code and lint cannot show. Take patterns and implementation details from the code itself. When nearby code disagrees with this page, follow this page in new code.
 
-See also [module design](module-design.md), [feature placement](feature-placement.md), and [testing](contributing/testing.md).
+## Extend the owner that exists
 
-## Integrate into the existing system
-
-New behavior should extend the owners that already exist (stores, track modules, feature operations, public hooks). Do **not** add an onion layer: module-level registries, wrapper types that only add a field, globals, or a high-level type re-wrapped for convenience.
-
-Pass the thing itself: props, refs, and plain functions over DOM or data. Prefer an optional `svgRef` on `GenomeBrowser` and `exportBrowserImage(svg, …)` over a `WeakMap` registry keyed by browser store (`browserRegistry` / `MountedBrowser` pattern rejected on PR #379).
-
-If a capability needs coordination, put it on the owner that already manages that lifetime (`GenomeBrowser`, `BrowserProvider`, `BrowserCanvas`, a feature module), not a new side channel.
+New behavior extends the owners that already exist: stores, track modules, feature operations, and public hooks. Do not add module-level registries, globals, side channels, or wrapper types that only add a field. For example, image export takes the browser's SVG through an optional `svgRef` on `GenomeBrowser` and `exportBrowserImage(svg, …)`, not through a registry keyed by browser store (rejected in #379).
 
 ## Own the complete operation
 
-Callers should request one coherent outcome, not assemble initiation, temporary state, commit, interruption, and cleanup. Session open/switch/save and browser pan are examples: UI and agent paths call the same owner. See [module design](module-design.md).
+An owner gives callers one coherent operation: start, temporary state, commit, interruption, and cleanup. Callers do not assemble it or duplicate its state. The UI and the agent call the same owner, as session open and save, browser pan, and track sorting do.
 
-## No compatibility layers by default
+A seam needs real variation or a testing need, as the track-module boundary has. If removing a layer only removes handoffs, remove it. Generalize a shared API after a second concrete use, not before. Existing package contents are history, not a boundary to preserve.
 
-Do not add aliases, shims, or temporary exports for older package versions unless explicitly asked. If compatibility would help, explain why before proposing it.
+## No compatibility layers
 
-## Do not invent track URLs
+Do not add aliases, shims, or deprecated re-exports for older versions unless asked.
 
-In examples, docs, and harnesses use `YOUR_URL_HERE` or a URL already in the repository. Never fabricate genomic data hosts.
+## React
 
-## Zustand stores look like hooks
+- A prop that is read once is named `initial*` or `default*`. Every other prop stays current: do not copy it into state and ignore later changes.
+- Browser instances are independent unless the host passes them the same stores. Scope providers and mutable resources to one instance.
+- Zustand store instances used as hooks are named `use*`.
+- When a change in core, tracks, or UI could change renders, measure it with the verify-renders skill instead of reasoning about it.
 
-Bound store instances used as React hooks must have names starting with `use` (for example `useBrowserStore`) so the React compiler and tooling treat them as hooks. Prefer encoding this in lint when practical.
+## Embedded UI
 
-## Test through public boundaries
+The packages render inside host sites, mostly scientific ones. Use MUI, take colors, spacing, and type from the host's theme, and never set global styles or a theme in a package. Track colors come from track configuration, independent of the chrome.
 
-Exercise supported behavior through the interfaces consumers use. Assert outcomes they depend on. Render budgets are an intentional exception (implementation-sensitive). Private-code tests need a short suite comment naming the risk public tests cannot cover. Details: [testing](contributing/testing.md).
+Settings apply live; add Apply and Cancel only when the workflow needs a draft. Keep entered values when validation fails. Track modules own their settings forms; core owns the dialog around them.
 
-## Experience justifies abstraction
+Keep labels visible, name icon actions, and never use color as the only signal of state. On narrow screens, wrap or stack rather than shrinking controls.
 
-Start from a concrete need. Generalize a shared API only after integrating it and seeing a clear shared responsibility. Existing package contents are evidence of history, not a duty to preserve a bad boundary. See [architecture](architecture.md) and [ADR 0001](adr/0001-embeddable-package-boundaries.md).
+## Examples
+
+In examples, docs, and test harnesses, use `YOUR_URL_HERE` or a URL already in the repository. Never invent data hosts.
+
+Tests follow the [testing policy](contributing/testing.md).
