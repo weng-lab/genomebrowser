@@ -1,6 +1,6 @@
 # Agent access and control
 
-This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. The current app has a connection-information panel and six tools: `set_region`, `export_image`, which shows the user an image preview with a Download button, `sort_tracks`, `add_tracks_from_urls`, which checks hosted files before adding them as tracks, all or none, `list_tracks`, which lists loaded tracks with their metadata, and `set_track_metadata`, which tags tracks. MCP requires the session owner's Clerk identity. Integrated chat, OAuth onboarding for external clients, and exclusive human/agent control are not implemented yet.
+This page describes the intended agent behavior for the [MVP](mvp.md) and the implementation decisions still open. Today's tools are the command definitions in `apps/web/features/agent/commands/`. Integrated chat, OAuth onboarding for external clients, and exclusive human/agent control are not implemented yet.
 
 ## A control surface for the active session
 
@@ -32,7 +32,7 @@ Agent features start enabled. The agent can read browser state, track metadata, 
 
 The account-wide setting disables all LLM operations. It closes MCP connections and prevents reconnection, new reads, and commands across the user's tabs. It also stops active agent work from applying further changes. Hiding the panel alone does not meet this requirement. Disabling access cannot recall data already sent or reverse completed changes.
 
-The setting is saved per account and starts on. Each tab stops connecting when it is off, and the server refuses tool calls, tab connections, and replies for the account from the moment it is saved off. A command already running in a tab can still finish, and other open tabs close their connections when their window regains focus or reloads. Guest preference storage and enforcement details belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited.
+The setting is saved per account and starts on. Guest preference storage and enforcement belong with the guest access design. Manual browsing remains available whether agents are disabled, unavailable, or rate-limited. Current enforcement gaps are in [limitations](limitations.md#remote-control).
 
 ## Integration choices still open
 
