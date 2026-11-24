@@ -106,7 +106,7 @@ We'll learn through lab testing before adding much analytics. If we add usage ev
 
 ## Try this before calling it ready
 
-Have someone start as a guest, add reference and URL tracks, save a region, and return to the same browser. Then have them sign in and keep their work. Let them try the agent for lookup, navigation, track setup, and highlighting. Check that stopping it returns control, and disabling it prevents further agent access while manual browsing still works.
+Have someone start as a guest, add reference and URL tracks, save a region, and return to the same browser. Then have them sign in and keep their work. Once signed in, let them try the agent for lookup, navigation, track setup, and highlighting. Check that stopping it returns control, and disabling it prevents further agent access while manual browsing still works.
 
 Then have them create and reuse a personal collection, copy a session, export an image, and reopen their saved setup. Watch where they get stuck and ask what would still make them go back to their usual browser.
 
