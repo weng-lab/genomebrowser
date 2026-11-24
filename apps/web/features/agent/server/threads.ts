@@ -1,5 +1,6 @@
 import "server-only";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { and, eq, inArray, sql, type SQL } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Identity } from "../../account/server/identity";
 import { sessionIdSchema } from "../../sessions/schema";
@@ -19,6 +20,14 @@ export type AgentThreads = {
    * Returns whether `conversationId` is now the session's thread.
    */
   bind(sessionId: string, conversationId: string): Promise<boolean>;
+  /**
+   * Stop the session from gaining a thread, as before it is deleted, and return
+   * the conversation it has, or null when it had none. A conversation created
+   * afterwards is refused like one that lost the race to another tab. Until
+   * the session is deleted, `current` then names a conversation no one has,
+   * which `release` clears.
+   */
+  close(sessionId: string): Promise<string | null>;
   /** Whether `conversationId` is the thread of a session the acting user owns. */
   owns(sessionId: string, conversationId: string): Promise<boolean>;
   /**
@@ -27,6 +36,9 @@ export type AgentThreads = {
    */
   release(sessionId: string, conversationId: string): Promise<void>;
 };
+
+/** Starts the thread name of a session closed before it had a conversation. Eve names none this way. */
+const closedPrefix = "closed:";
 
 export function createAgentThreads({
   db,
@@ -53,28 +65,45 @@ export function createAgentThreads({
     return row?.conversationId ?? null;
   }
 
+  /**
+   * Make `conversationId` the thread of the session `session` matches, unless it has one.
+   * Inserting from the owned session row keeps a deleted or foreign session from
+   * gaining a thread, and the conflict rule keeps the first conversation bound.
+   */
+  async function insert(session: SQL | undefined, conversationId: string) {
+    await db
+      .insert(agentThreadsTable)
+      .select(
+        db
+          .select({
+            sessionId: sessionsTable.id,
+            conversationId: sql<string>`${conversationId}`.as("conversation_id"),
+            createdAt: sql<Date>`now()`.as("created_at"),
+          })
+          .from(sessionsTable)
+          .where(session),
+      )
+      .onConflictDoNothing();
+  }
+
   return {
     current,
 
     async bind(sessionId, conversationId) {
       const session = await owned(sessionId);
       if (!session) return false;
-      // Inserting from the owned session row keeps a deleted or foreign session from
-      // gaining a thread, and the conflict rule keeps the first conversation bound.
-      await db
-        .insert(agentThreadsTable)
-        .select(
-          db
-            .select({
-              sessionId: sessionsTable.id,
-              conversationId: sql<string>`${conversationId}`.as("conversation_id"),
-              createdAt: sql<Date>`now()`.as("created_at"),
-            })
-            .from(sessionsTable)
-            .where(session),
-        )
-        .onConflictDoNothing();
+      await insert(session, conversationId);
       return (await current(sessionId)) === conversationId;
+    },
+
+    async close(sessionId) {
+      const session = await owned(sessionId);
+      if (!session) return null;
+      // Taking the empty slot with a name no conversation has makes every later bind lose.
+      const nobody = `${closedPrefix}${randomUUID()}`;
+      await insert(session, nobody);
+      const conversationId = await current(sessionId);
+      return conversationId?.startsWith(closedPrefix) ? null : conversationId;
     },
 
     async owns(sessionId, conversationId) {

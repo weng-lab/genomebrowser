@@ -261,16 +261,16 @@ export async function readAgentContext(
 
 /**
  * End the agent conversation of a session about to be deleted, if the acting
- * user owns the session and it has one. Eve keeps a conversation's messages
- * until it ends, and the thread record that names it is deleted with the
- * session. Rejects when Eve cannot confirm the end, so the caller keeps the
- * session and the deletion can be retried.
+ * user owns the session and it has one, and keep it from gaining another. Eve
+ * keeps a conversation's messages until it ends, and the thread record that
+ * names it is deleted with the session. Rejects when Eve cannot confirm the
+ * end, so the caller keeps the session and the deletion can be retried.
  */
 export async function endAgentThread(
   request: Request,
   sessionId: string,
   { threads, end }: EndDependencies,
 ) {
-  const conversationId = await (await threads()).current(sessionId);
+  const conversationId = await (await threads()).close(sessionId);
   if (conversationId) await end(request, sessionId, conversationId);
 }

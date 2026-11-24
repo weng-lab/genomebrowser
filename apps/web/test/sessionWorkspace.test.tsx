@@ -242,8 +242,15 @@ it("asks before another session replaces a held one, and stays or switches", asy
   await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
   await vi.waitFor(() => expect(dialog()).toBeNull());
 
-  // Without a hold, a session URL opens at once.
+  // Once the hold clears, a newer request opens at once and withdraws the question still open.
+  await act(async () => route.push(`/browser/${b}`));
+  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
   act(() => hold(undefined));
+  await act(async () => route.push(`/browser/${c}`));
+  await vi.waitFor(() => expect(heading()).toBe("Gamma"));
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+
+  // Without a hold, a session URL opens at once.
   await act(async () => route.push(`/browser/${b}`));
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
   // The dialog closed by Stay may still be fading out.
