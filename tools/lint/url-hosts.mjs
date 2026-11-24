@@ -38,6 +38,7 @@ export const knownHosts = new Set([
   "iamcredentials.googleapis.com",
   "sts.googleapis.com",
   "www.googleapis.com",
+  "api.clerk.com",
 ]);
 
 /** Lists `[path, host]` for URLs in `files` (path to text) whose host is neither reserved nor known. */

@@ -19,6 +19,8 @@ Consumer docs live in `packages/*/docs/` and ship with packages. Update them whe
 
 Skills under `.agents/skills/` route into the knowledge base and add agent-only steps. Load the ones that match the task, including `github-contribution` before opening, editing, or commenting on any GitHub issue or PR.
 
-When you run into an unrelated bug, flaky check, or agent/tooling snag while working, leave it out of the current PR, check open issues first, and suggest filing a GitHub issue at handoff. Skip minor style nits and speculative refactors.
+When you run into an unrelated bug, flaky check, or agent/tooling snag while working (including while driving the app with `verify-web`), leave it out of the current PR, check open issues first, and suggest filing a GitHub issue at handoff. Skip minor style nits and speculative refactors.
+
+When user-facing features in `@weng-lab/web` are added, changed, or removed, update `.agents/skills/verify-web/` (especially its `features/` map) in the same change so it reflects the **product** from the user's point of view, not internal code.
 
 Before including changes from outside this session in a commit, ask the user whether to include them.
