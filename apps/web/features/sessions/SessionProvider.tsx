@@ -40,8 +40,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const setHold = useCallback((reason: string | undefined) => {
     hold.current = reason;
   }, []);
-  // Requests to replace a held session, each waiting for the user's one choice.
-  const waiting = useRef<((replace: boolean) => void)[]>([]);
+  // The newest request to replace a held session, waiting for the user's choice.
+  const waiting = useRef<((replace: boolean) => void) | undefined>(undefined);
   const [prompt, setPrompt] = useState<string>();
   const [session] = useState(() =>
     createSession({
@@ -58,10 +58,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       },
       confirmReplace() {
         const reason = hold.current;
-        if (!reason) return undefined;
+        // The session store drops an older request once a newer one arrives, asked or not.
+        waiting.current?.(false);
+        waiting.current = undefined;
+        if (!reason) {
+          setPrompt(undefined);
+          return undefined;
+        }
         setPrompt(reason);
         return new Promise<boolean>((resolve) => {
-          waiting.current.push(resolve);
+          waiting.current = resolve;
         });
       },
     }),
@@ -70,18 +76,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const requested = sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
 
   useEffect(() => session.start(), [session]);
+  /** Give the waiting request the user's choice. Told to stay, it restores the URL. */
+  const answer = useCallback((replace: boolean) => {
+    setPrompt(undefined);
+    const resolve = waiting.current;
+    waiting.current = undefined;
+    resolve?.(replace);
+  }, []);
+  const stay = () => answer(false);
+
   useEffect(() => {
     if (!requested) return;
+    // Returning to the open session's URL, as with Back, answers a question still open.
+    if (requested === session.store.getState().active?.id) answer(false);
     // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
     void session.store.getState().open(requested);
-  }, [session, requested]);
-
-  /** Give every waiting request the user's choice. Those told to stay restore the URL. */
-  function answer(replace: boolean) {
-    setPrompt(undefined);
-    for (const resolve of waiting.current.splice(0)) resolve(replace);
-  }
-  const stay = () => answer(false);
+  }, [session, requested, answer]);
 
   return (
     <SessionContext value={session.store}>
