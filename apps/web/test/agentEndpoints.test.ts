@@ -416,6 +416,41 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await bind("conversation-c")).status).toBe(404);
   });
 
+  it("refuses a conversation created while its session is being deleted", async () => {
+    const id = await createSession("user_alice");
+    const thread = `http://localhost/api/sessions/${id}/agent-thread`;
+    const bind = async (conversationId: string) =>
+      agentThread.POST(
+        new Request(thread, {
+          method: "POST",
+          headers: {
+            "x-genomebrowser-bind-proof": await issueBindProof("user_alice", id, conversationId),
+          },
+          body: JSON.stringify({ conversationId }),
+        }),
+        params(id),
+      );
+    const { getAgentThreads } = await import("../composition/server");
+
+    // Deletion closes the thread before it removes the session, so a first message
+    // sent in between cannot leave a conversation in Eve that nothing names.
+    await signIn("user_alice");
+    expect(await (await getAgentThreads()).close(id)).toBeNull();
+    expect((await bind("conversation-late")).status).toBe(409);
+
+    // If the deletion then fails, the tab releases the closed thread and the session works again.
+    const { conversationId: closed } = (await (
+      await agentThread.GET(new Request(thread), params(id))
+    ).json()) as { conversationId: string };
+    await agentThread.DELETE(
+      new Request(`${thread}?conversation=${encodeURIComponent(closed)}`, { method: "DELETE" }),
+      params(id),
+    );
+    expect((await bind("conversation-next")).status).toBe(200);
+    // A session that has a conversation keeps it for the deletion to end.
+    expect(await (await getAgentThreads()).close(id)).toBe("conversation-next");
+  });
+
   it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {
     const id = await createSession("user_alice");
     const other = await createSession("user_alice");
