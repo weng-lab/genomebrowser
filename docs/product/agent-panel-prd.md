@@ -41,7 +41,7 @@ The app adds a few facts to the agent's context before each message, so a rename
 
 Preferences are a free-text field on the settings page, about 1,000 characters at most, that works like an `AGENTS.md` for the user: tone, defaults, habits. They apply to every session.
 
-The agent reads browser state through tools, not injected context. A `get_browser_state` tool is a follow-up; until then `list_tracks` is the only state read.
+The agent reads browser state through tools, not injected context. The [MVP](mvp.md#the-integrated-agent) has it read the locus as well as the tracks; the `get_browser_state` tool for that is still to be built, and until then `list_tracks` is the only state read.
 
 ## Runs
 
