@@ -42,17 +42,17 @@ it.each([
   {
     read: "other columns as metadata fields, typed by their names, leaving out empty cells",
     text: [
-      row("URL", "Assay", "Replicate (number)", "Treated (true/false)"),
-      row(`${host}/a.bw`, "DNase-seq", "2", "TRUE"),
-      row(`${host}/b.bw`, "", " 1.5 ", "false"),
-      row(`${host}/c.bw`, "", "", ""),
+      row("URL", "Assay", "Replicate (number)", "Treated (true/false)", "Batch (text)"),
+      row(`${host}/a.bw`, "DNase-seq", "2", "TRUE", "007"),
+      row(`${host}/b.bw`, "", " 1.5 ", "false", ""),
+      row(`${host}/c.bw`, "", "", "", ""),
     ].join("\n"),
     tracks: [
       {
         line: 2,
         request: {
           url: `${host}/a.bw`,
-          metadata: { Assay: "DNase-seq", Replicate: 2, Treated: true },
+          metadata: { Assay: "DNase-seq", Replicate: 2, Treated: true, Batch: "007" },
         },
       },
       { line: 3, request: { url: `${host}/b.bw`, metadata: { Replicate: 1.5, Treated: false } } },
@@ -60,17 +60,19 @@ it.each([
     ],
   },
   {
-    read: "type IDs and the dialog's type names, R,G,B colors, and BED column counts",
+    read: "type IDs, the dialog's and UCSC's type names, R,G,B colors, and BED column counts",
     text: [
       row("URL", "Type", "Color", "BED columns"),
       row(`${host}/g.bb`, "gene (biggenepred)", "0,128,0", ""),
       row(`${host}/c.bb`, "ccre-bigbed", "", ""),
       row(`${host}/f.bb`, "", "", "9"),
+      row(`${host}/u.bb`, "bigGenePred", "", ""),
     ].join("\n"),
     tracks: [
       { line: 2, request: { url: `${host}/g.bb`, type: "gene", color: "#008000" } },
       { line: 3, request: { url: `${host}/c.bb`, type: "ccre-bigbed" } },
       { line: 4, request: { url: `${host}/f.bb`, bedSchema: "bed9" } },
+      { line: 5, request: { url: `${host}/u.bb`, type: "gene" } },
     ],
   },
   {

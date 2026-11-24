@@ -38,17 +38,19 @@ const fieldsByHeader = new Map(
 const headersByField = new Map(requestColumns.map(([header, field]) => [field, header]));
 
 // A metadata column's name may end in its type; without one, it holds text.
-const typedHeader = /^(.*?)\s*\((number|true\/false)\)$/i;
+const typedHeader = /^(.*?)\s*\((text|number|true\/false)\)$/i;
 // Names a metadata field can't have: the track's own fields, and one that would replace an
 // object's prototype.
 const reservedNames = new Set([...builtInTrackFields, "__proto__"]);
 
-const types = new Map<string, UrlTrackType>(
-  urlTrackTypeSchema.options.flatMap((type) => [
+const types = new Map<string, UrlTrackType>([
+  ...urlTrackTypeSchema.options.flatMap((type): [string, UrlTrackType][] => [
     [type, type],
     [urlTrackTypeLabels[type].toLowerCase(), type],
   ]),
-);
+  // UCSC's name for gene files, as track lines use it. Its other names match the type IDs.
+  ["biggenepred", "gene"],
+]);
 const presets = new Map<string, BigBedPreset>(
   bigBedPresetSchema.options.flatMap((preset) => [
     [preset, preset],
@@ -63,11 +65,12 @@ const choices = (values: readonly string[]) => disjunction.format(values);
  * Reads a table of tracks, as a spreadsheet lays it out. The first row that isn't blank names
  * the columns: `URL`, which every row needs, then any of `Title`, `Type`, `Visibility`, `Color`,
  * `BED columns`, and `BAI index URL`, matched without case. Each other column is a metadata
- * field named by its header, holding text, or a number or true or false when the name ends in
- * `(number)` or `(true/false)`. Each row below it is one track:
+ * field named by its header, typed by a `(text)`, `(number)`, or `(true/false)` ending, and
+ * holding text without one. Each row below it is one track:
  *
  * - An empty cell leaves the choice to the file or the type, and gives the track no field.
- * - `Type` takes the Add tracks dialog's names or the type IDs, such as `bigwig`.
+ * - `Type` takes the Add tracks dialog's names, the type IDs, such as `bigwig`, or UCSC's names,
+ *   such as `bigGenePred`.
  * - `Color` takes `#RRGGBB` or `R,G,B`, and `BED columns` a preset or its count, such as `6`.
  * - Cells are trimmed, and numbers read as the metadata editor reads them.
  *
@@ -125,7 +128,7 @@ function readHeader(
     columns.push(column);
   }
   if (!columns.some((column) => column?.field === "url"))
-    return "A table's first row names its columns, and one must be URL. The others can be Title, Type, Visibility, Color, BED columns, and BAI index URL. Any other column is a metadata field, holding text unless its name ends in (number) or (true/false).";
+    return "A table's first row names its columns, and one must be URL. The others can be Title, Type, Visibility, Color, BED columns, and BAI index URL. Any other column is a metadata field, typed by a (text), (number), or (true/false) ending, and holding text without one.";
   return columns;
 }
 
@@ -134,7 +137,8 @@ function readColumn(header: string): Column {
   if (field) return { field };
   const typed = typedHeader.exec(header);
   if (!typed) return { field: "metadata", name: header, kind: "text" };
-  const kind = typed[2].toLowerCase() === "number" ? "number" : "boolean";
+  const ending = typed[2].toLowerCase();
+  const kind = ending === "true/false" ? "boolean" : ending === "number" ? "number" : "text";
   return { field: "metadata", name: typed[1], kind };
 }
 
