@@ -24,7 +24,7 @@ Do not add aliases, shims, or deprecated re-exports for older versions unless as
 
 ## Embedded UI
 
-The packages render inside host sites, mostly scientific ones. Use MUI, take colors, spacing, and type from the host's theme, and never set global styles or a theme in a package. Track colors come from track configuration, independent of the chrome.
+The packages render inside host sites, mostly scientific ones. Use MUI and take colors, spacing, and type from the host's theme. Track colors come from track configuration, independent of the chrome.
 
 Settings apply live; add Apply and Cancel only when the workflow needs a draft. Keep entered values when validation fails. Track modules own their settings forms; core owns the dialog around them.
 

@@ -25,7 +25,12 @@
     "import/no-self-import": "error",
     "react/exhaustive-deps": "error",
     "typescript/await-thenable": "error",
-    "typescript/consistent-type-imports": ["error", { "disallowTypeAnnotations": false }],
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "disallowTypeAnnotations": false
+      }
+    ],
     "typescript/no-array-delete": "error",
     "typescript/no-confusing-non-null-assertion": "error",
     "typescript/no-duplicate-type-constituents": "error",
@@ -97,6 +102,40 @@
               {
                 "regex": "^@weng-lab/[^/]+/(?:src|dist)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:reader|tracks|ui)/(?:src|dist)(?:/|$)",
                 "message": "Import other libraries through their public package exports."
+              }
+            ],
+            "paths": [
+              {
+                "name": "@mui/material",
+                "importNames": [
+                  "CssBaseline",
+                  "ScopedCssBaseline",
+                  "GlobalStyles",
+                  "ThemeProvider"
+                ],
+                "message": "Packages render inside host sites: take styles from the host's theme instead of setting global styles or a theme."
+              },
+              {
+                "name": "@mui/material/styles",
+                "importNames": ["ThemeProvider"],
+                "message": "Packages render inside host sites: take styles from the host's theme instead of setting a theme."
+              },
+              {
+                "name": "@mui/material/CssBaseline",
+                "message": "Packages render inside host sites: do not reset the host's global styles."
+              },
+              {
+                "name": "@mui/material/ScopedCssBaseline",
+                "message": "Packages render inside host sites: do not reset the host's styles."
+              },
+              {
+                "name": "@mui/material/GlobalStyles",
+                "message": "Packages render inside host sites: do not set global styles."
+              },
+              {
+                "name": "@emotion/react",
+                "importNames": ["Global", "ThemeProvider"],
+                "message": "Packages render inside host sites: do not set global styles or a theme."
               }
             ]
           }
@@ -174,6 +213,40 @@
                 "regex": "^@weng-lab/[^/]+/(?:src|dist)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:core|reader|ui)/(?:src|dist)(?:/|$)",
                 "message": "Import other libraries through their public package exports."
               }
+            ],
+            "paths": [
+              {
+                "name": "@mui/material",
+                "importNames": [
+                  "CssBaseline",
+                  "ScopedCssBaseline",
+                  "GlobalStyles",
+                  "ThemeProvider"
+                ],
+                "message": "Packages render inside host sites: take styles from the host's theme instead of setting global styles or a theme."
+              },
+              {
+                "name": "@mui/material/styles",
+                "importNames": ["ThemeProvider"],
+                "message": "Packages render inside host sites: take styles from the host's theme instead of setting a theme."
+              },
+              {
+                "name": "@mui/material/CssBaseline",
+                "message": "Packages render inside host sites: do not reset the host's global styles."
+              },
+              {
+                "name": "@mui/material/ScopedCssBaseline",
+                "message": "Packages render inside host sites: do not reset the host's styles."
+              },
+              {
+                "name": "@mui/material/GlobalStyles",
+                "message": "Packages render inside host sites: do not set global styles."
+              },
+              {
+                "name": "@emotion/react",
+                "importNames": ["Global", "ThemeProvider"],
+                "message": "Packages render inside host sites: do not set global styles or a theme."
+              }
             ]
           }
         ]
@@ -205,6 +278,40 @@
               {
                 "regex": "^@weng-lab/[^/]+/(?:src|dist)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:core|reader|tracks)/(?:src|dist)(?:/|$)",
                 "message": "Import other libraries through their public package exports."
+              }
+            ],
+            "paths": [
+              {
+                "name": "@mui/material",
+                "importNames": [
+                  "CssBaseline",
+                  "ScopedCssBaseline",
+                  "GlobalStyles",
+                  "ThemeProvider"
+                ],
+                "message": "Packages render inside host sites: take styles from the host's theme instead of setting global styles or a theme."
+              },
+              {
+                "name": "@mui/material/styles",
+                "importNames": ["ThemeProvider"],
+                "message": "Packages render inside host sites: take styles from the host's theme instead of setting a theme."
+              },
+              {
+                "name": "@mui/material/CssBaseline",
+                "message": "Packages render inside host sites: do not reset the host's global styles."
+              },
+              {
+                "name": "@mui/material/ScopedCssBaseline",
+                "message": "Packages render inside host sites: do not reset the host's styles."
+              },
+              {
+                "name": "@mui/material/GlobalStyles",
+                "message": "Packages render inside host sites: do not set global styles."
+              },
+              {
+                "name": "@emotion/react",
+                "importNames": ["Global", "ThemeProvider"],
+                "message": "Packages render inside host sites: do not set global styles or a theme."
               }
             ]
           }
