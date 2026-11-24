@@ -1,9 +1,33 @@
-import { defineEval } from "eve/evals";
+import { defineEval, type ToolStub } from "eve/evals";
 import { satisfies } from "eve/evals/expect";
 import { calls } from "eve/events";
-import { browser, tool } from "./stubs";
+import { browser, tool, tracks } from "./stubs";
 
 const url = "https://users.wenglab.org/niship/hg38_ucsc_std_rmsk.bb";
+
+// The browser answers as if the track was added as asked, so an agent that checks
+// its work sees the track instead of a browser that disagrees with it.
+const added = { id: "added", title: "RepeatMasker", type: "bigbed" };
+const workflow: ToolStub[] = [
+  {
+    id: "add-repeatmasker",
+    tool: tool("add_tracks_from_urls"),
+    outcome: { response: { tracks: [added] } },
+  },
+  {
+    id: "list-with-repeatmasker",
+    tool: tool("list_tracks"),
+    outcome: { response: { tracks: [...tracks, { ...added, pinned: false, metadata: {} }] } },
+  },
+  {
+    id: "sort-with-repeatmasker",
+    tool: tool("sort_tracks"),
+    outcome: {
+      response: { tracks: [...tracks, added].map(({ id, title }) => ({ id, title })) },
+    },
+  },
+  ...browser,
+];
 
 type AddInput = { tracks?: { url?: string; title?: string; metadata?: Record<string, unknown> }[] };
 type TagInput = { trackIds?: string[]; set?: Record<string, unknown> };
@@ -16,7 +40,7 @@ function tagsTheTrack(made: readonly { name: string; input?: unknown }[]) {
       return (input as AddInput).tracks?.[0]?.metadata?.project === "eval";
     if (name !== tool("set_track_metadata")) return false;
     const { trackIds, set } = input as TagInput;
-    return trackIds?.includes("added") === true && set?.project === "eval";
+    return trackIds?.length === 1 && trackIds[0] === "added" && set?.project === "eval";
   });
 }
 
@@ -24,7 +48,7 @@ export default defineEval({
   description:
     "Decides to hold the browser for a multi-step workflow, does each step as asked, and gives it back at the end.",
   async test(t) {
-    const session = await t.session({ stubs: browser });
+    const session = await t.session({ stubs: workflow });
     const turn = await session.send(
       `Add the bigbed track at ${url} titled "RepeatMasker", tag it project=eval, then sort the tracks by title.`,
     );
@@ -41,7 +65,6 @@ export default defineEval({
         const { by } = input as SortInput;
         return by?.length === 1 && by[0].field === "title";
       },
-      count: 1,
     });
     t.check(
       calls(turn.view, { kind: "tool" }),
