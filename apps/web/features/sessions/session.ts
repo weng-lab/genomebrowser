@@ -108,7 +108,9 @@ export function createSession({
   /**
    * Asked whenever `open`, `create`, or `copy` would replace the open session.
    * Returns undefined to replace it at once, or resolves whether to replace it
-   * once the user has chosen. Without it, sessions are replaced without asking.
+   * once the user has chosen. Only the newest request waits for an answer: an
+   * older one is dropped whatever its answer, so one choice replaces the
+   * session at most once. Without it, sessions are replaced without asking.
    */
   confirmReplace?: () => Promise<boolean> | undefined;
 }) {
@@ -116,6 +118,8 @@ export function createSession({
   let current: Current | undefined;
   let opening: { pending: Pending; done: Promise<void>; fiber: Fiber.Fiber<void> } | undefined;
   let listing: Fiber.Fiber<void> | undefined;
+  // The one replacement waiting for the user's answer. A newer request takes its place.
+  let asking: object | undefined;
   // The shown error, while it is about edits the active session has not saved.
   let saveError: string | undefined;
   const lock = Semaphore.makeUnsafe(1);
@@ -220,12 +224,19 @@ export function createSession({
 
   /**
    * Run `replace`, which opens another session in place of the open one, unless
-   * `confirmReplace` asks the user and they keep the open one.
+   * `confirmReplace` asks the user and they keep the open one. While the user is
+   * asked, a newer request takes over the question and this one does nothing.
    */
   function replacing(replace: () => Promise<void>): Promise<void> {
     const asked = current ? confirmReplace?.() : undefined;
     if (!asked) return replace();
-    return asked.then((confirmed) => (confirmed ? replace() : stay()));
+    const request = {};
+    asking = request;
+    return asked.then((confirmed) => {
+      if (asking !== request) return;
+      asking = undefined;
+      return confirmed ? replace() : stay();
+    });
   }
 
   /**
