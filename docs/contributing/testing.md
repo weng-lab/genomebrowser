@@ -8,7 +8,7 @@ State the decision and its reason in one line in the PR, such as "No test: copy 
 
 ## The two-edit check
 
-Keep a test only if it fails when you **break the behavior** (wrong value, skipped effect, done twice) and passes when you **change only the internals**. That rules out tests that restate the code or a style constant, and `toHaveBeenCalled` on first-party helpers. Calls handed to consumers, sent to other services, or crossing a package boundary are contract and may be asserted.
+Keep a test only if it fails when you **break the behavior** (wrong value, skipped effect, done twice) and passes when you **change only the internals**. Before finalizing a new test, break the behavior on purpose to confirm it fails with the expected wrong value, then restore the code. That rules out tests that restate the code or a style constant, and `toHaveBeenCalled` on first-party helpers. Calls handed to consumers, sent to other services, or crossing a package boundary are contract and may be asserted.
 
 ## Where tests call in
 

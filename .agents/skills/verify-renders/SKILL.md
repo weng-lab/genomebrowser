@@ -1,6 +1,6 @@
 ---
 name: verify-renders
-description: Use whenever changing, refactoring, or reviewing React components, hooks, contexts, or Zustand store subscriptions in core, tracks, or UI where render behavior could change, when doing performance work, or when asked about re-renders, render counts, or render budgets. Measure and update render budgets with the render-probe package instead of reasoning about renders by inspection.
+description: Ad-hoc render verification with render-probe. Use only when render count or re-render behavior is an important part of a change (such as render performance work, store subscription changes, or failing render-budget snapshots), or when asked to investigate or validate re-renders.
 ---
 
 # Verify renders
