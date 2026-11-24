@@ -1,6 +1,6 @@
 import type { RouteHandlerArgs } from "eve/channels";
-import { ForbiddenError, routeAuth, type AuthFn } from "eve/channels/auth";
-import { eveChannel } from "eve/channels/eve";
+import { ForbiddenError, localDev, routeAuth, type AuthFn } from "eve/channels/auth";
+import { eveChannel, type EveAuthFn } from "eve/channels/eve";
 import { z } from "zod";
 import { issueBindProof } from "../../features/agent/server/credential";
 import { agentAppOrigin, agentDeploymentHeaders } from "../../features/agent/server/deployment";
@@ -51,7 +51,7 @@ const authorize =
       throw new Error("Agent session authorization mismatch");
     return {
       authenticator: "app-session",
-      principalType: "user",
+      principalType: "user" as const,
       principalId: `${caller.userId}:${session.data}`,
       attributes: { browserSessionId: session.data, userId: caller.userId },
     };
@@ -84,9 +84,33 @@ async function bindThread(
   return response.status;
 }
 
-const verified = new WeakMap<Request, Awaited<ReturnType<AuthFn<Request>>>>();
+/** The browser session evaluation conversations act on; no tab holds it. */
+export const evaluationSessionId = "00000000-0000-4000-8000-00000000e7a1";
+const local = localDev();
+
+/**
+ * `eve eval`'s own requests, only while running evals locally: `GB_AGENT_EVALS=1`
+ * under `eve dev`, which `localDev()` checks. Operator reads such as
+ * `/eve/v1/info` get the local developer; conversations get a stand-in user who
+ * may stub tools, since the browser tools need a user and evals have no tab.
+ */
+const evaluation: EveAuthFn = async (request) => {
+  if (process.env.GB_AGENT_EVALS !== "1") return null;
+  const developer = await local(request);
+  if (!developer) return null;
+  if (!new URL(request.url).pathname.startsWith("/eve/v1/session")) return developer;
+  return {
+    authenticator: "genomebrowser-eval",
+    principalType: "user" as const,
+    principalId: "eval-user",
+    attributes: { userId: "eval-user", browserSessionId: evaluationSessionId, evaluation: "true" },
+    allowToolStubs: true,
+  };
+};
+
+const verified = new WeakMap<Request, Awaited<ReturnType<EveAuthFn>>>();
 const channel = eveChannel({
-  auth: [(request) => verified.get(request) ?? authorize()(request)],
+  auth: [(request) => verified.get(request) ?? authorize()(request), evaluation],
 });
 
 // Eve authenticates routes but supplies no per-conversation ACL. The app keeps
@@ -100,14 +124,19 @@ export default {
       ...route,
       async handler(request: Request, context: RouteHandlerArgs) {
         const conversation = context.params.sessionId ?? context.params.parentSessionId;
-        const caller = await routeAuth(request, authorize(conversation));
+        const caller = await routeAuth(
+          request,
+          async (incoming) =>
+            (await authorize(conversation)(incoming)) ?? (await evaluation(incoming)),
+        );
         if (caller instanceof Response) return caller;
         verified.set(request, caller);
         try {
           const response = await route.handler(request, context);
           if (response.ok && route.path === "/eve/v1/session" && route.method === "POST") {
             const result = (await response.clone().json()) as { sessionId?: string };
-            if (result.sessionId) {
+            // Evaluation conversations belong to no saved session, so no thread holds them.
+            if (result.sessionId && caller.attributes.evaluation !== "true") {
               const status = await bindThread(
                 request,
                 {

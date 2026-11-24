@@ -36,7 +36,7 @@ export default defineDynamic(async (ctx) => {
   const caller = ctx.session.auth.initiator?.attributes;
   const current = ctx.session.auth.current?.attributes;
   if (!ctx.turn || typeof caller?.userId !== "string") return null;
-  if (typeof caller.browserSessionId !== "string") return null;
+  if (typeof caller.browserSessionId !== "string" || caller.evaluation === "true") return null;
   // Only the user and session that started the conversation see its context.
   if (current?.userId !== caller.userId || current.browserSessionId !== caller.browserSessionId)
     return null;

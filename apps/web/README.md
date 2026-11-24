@@ -20,6 +20,10 @@ Open `http://localhost:3000/browser`. With no session open, the browser asks you
 
 `pnpm dev` starts the Eve agent with `eve dev --resume` and Next.js pointed at it through `EVE_BASE_URL`, so a session's agent conversation survives restarting the dev server, as it does on Vercel. Without `--resume`, Eve leaves conversations from an earlier dev server dormant and messages to them fail. Set `GB_EVE_DEV_PORT` to pin the agent's port.
 
+### Agent evals
+
+`evals/` holds a few model evals of the agent's judgment: coordinates, not inventing sources, honest failures, the control lock, prompt injection through track data, and image export. Each stubs every browser tool, so no tab is needed, but the agent still lists its tools from the app, so start `pnpm dev` first and then run `pnpm web eval` from the repository root. They call the real model, so they cost tokens and are not part of `pnpm verify`; use `--repeat` to see how stable a result is. `GB_AGENT_EVALS=1`, which the script sets, lets `eve eval`'s own local requests in as a stand-in user that may stub tools; it has no effect outside `eve dev`.
+
 Redis at `REDIS_URL` carries agent commands to browser tabs. Sessions load and save without it; only remote control and MCP need it.
 
 ## Sessions
