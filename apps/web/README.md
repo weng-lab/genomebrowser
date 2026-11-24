@@ -84,6 +84,8 @@ Bodies are limited to 1 MB. Rejections are `{ code, message }` with status 400 `
 
 `GET /api/account/settings` returns the signed-in user's `{ remoteControl }`, with `true` for an account that never saved a choice. `PUT` replaces it with a body of the same shape, at most 1 KB, and returns what was saved. The server derives the account; a body naming one, or any other field, is rejected with 400 `INVALID_INPUT`. Signed-out requests get 401 `UNAUTHENTICATED`. The preference is stored in the `account_settings` table. When it is off, tabs do not connect, and the server refuses MCP tool calls, tab streams, and replies.
 
+`GET /api/account/agent-preferences` returns the signed-in user's `{ text }`, their standing instructions for the agent, empty until they save some. `PUT` replaces it with a body of the same shape and returns what was saved, trimmed; text over 1,000 characters is rejected with 400 `INVALID_INPUT`. It is saved on its own, so it and Remote control never overwrite each other. Eve reads the text with the session's facts through `/api/sessions/<id>/agent-context` before each message, and the agent receives it as a labeled note from the user.
+
 Server code can use the same operations directly. `composition/server.ts` exposes `getSessions()`, which only server code may import:
 
 ```ts
