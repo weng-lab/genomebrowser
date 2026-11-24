@@ -12,9 +12,10 @@ export type StatusMessageProps = {
 };
 
 /**
- * A line of status where content would be, such as while it loads, after it fails to, or
- * before a session is open. Screen readers announce changes to it politely. The caller places it, with
- * padding that lines it up with the content it replaces.
+ * A quiet line of status where content would be, such as while it loads, after it fails to,
+ * or before a session is open, with an optional action such as Try again. Screen readers
+ * announce changes to it politely. The caller places it, with padding that lines it up with
+ * the content it replaces. For a list or section that is empty, use `EmptyState`.
  */
 export function StatusMessage({ message, tone = "neutral", action }: StatusMessageProps) {
   return (

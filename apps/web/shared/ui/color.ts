@@ -25,8 +25,10 @@ export const swatchColors = [
 /** Why a color was refused. */
 export const hexColorMessage = "Expected a color in #RRGGBB format";
 
+/** Whether a color is six-digit hex, which the app's color controls can show. */
 export const isHexColor = (value: string) => hexColorPattern.test(value);
 
+/** A six-digit hex color, for schemas that store one. */
 export const hexColorSchema = z.string().regex(hexColorPattern, hexColorMessage);
 
 /** A typed hex color, with or without #, in three or six digits, as lowercase #rrggbb. */

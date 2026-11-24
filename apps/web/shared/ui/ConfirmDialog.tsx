@@ -23,7 +23,10 @@ export type ConfirmDialogProps = {
   onClose: () => void;
 };
 
-/** Asks before an action. Confirming closes the dialog, then runs the action. */
+/**
+ * A dialog that asks before an action, such as a delete: a title, a sentence or two, Cancel,
+ * and a filled confirm button. Confirming closes the dialog, then runs the action.
+ */
 export function ConfirmDialog({
   open,
   title,

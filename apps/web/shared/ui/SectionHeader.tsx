@@ -28,7 +28,10 @@ export type SectionHeaderProps = {
   actions?: readonly SectionAction[];
 };
 
-/** A section's heading, with its named icon actions at the right end. */
+/**
+ * A panel section's heading, with an optional count and named icon actions at its right end,
+ * such as the regions panel's Add region. For a small label above a list, use `SectionLabel`.
+ */
 export function SectionHeader({
   title,
   count,

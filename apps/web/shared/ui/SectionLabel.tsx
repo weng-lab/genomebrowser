@@ -11,7 +11,8 @@ export type SectionLabelProps = {
 
 /**
  * Bold gray capitals above a list, such as "Recent sessions". Its padding lines it up with
- * the text of dense list rows below it.
+ * the text of dense list rows below it. For a section's heading with a count or actions, use
+ * `SectionHeader`.
  */
 export function SectionLabel({ id, component = "span", children }: SectionLabelProps) {
   return (

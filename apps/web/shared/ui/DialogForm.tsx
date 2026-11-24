@@ -21,7 +21,8 @@ export type DialogFormProps = {
 /**
  * A dialog's content as a form: a title, stacked fields, then Cancel and a filled submit
  * button. Render it inside a component that holds the fields' state, placed in a `Dialog`.
- * The dialog unmounts its content once closed, so each opening starts from fresh state.
+ * The dialog unmounts its content once closed, so each opening starts from fresh state. For
+ * a short form set into a panel, use `FormCard`; to ask before an action, `ConfirmDialog`.
  */
 export function DialogForm({
   title,
