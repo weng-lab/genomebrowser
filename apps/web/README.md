@@ -3,42 +3,14 @@
 `@weng-lab/web` is the Next.js genome browser application: saved sessions in PostgreSQL, accounts in Clerk, and agent commands delivered to browser tabs through an MCP endpoint and Redis.
 
 ```mermaid
-flowchart TB
-  subgraph Actors
-    User([Researcher])
-    Agent([AI agent, an MCP client])
-  end
-
-  subgraph Browser[Browser tab]
-    App[Genome browser app<br/>live browser and track stores]
-  end
-
-  subgraph Server[Next.js server]
-    Routes[Session and settings routes]
-    MCP[MCP endpoint]
-    Stream[Command stream route]
-  end
-
-  subgraph Services[External services]
-    Postgres[(PostgreSQL<br/>saved sessions, account settings)]
-    Redis[(Redis<br/>command relay)]
-    Clerk[Clerk<br/>accounts and sign-in]
-    Files[Track file hosts<br/>BigWig, BigBed, BAM]
-  end
-
-  User -->|browses and edits| App
-  Agent -->|tool calls| MCP
-
-  App -->|loads and autosaves sessions| Routes
-  App <-->|receives commands, sends replies| Stream
-  App -->|reads track data directly| Files
-  App -->|signs in| Clerk
-
-  Routes -->|reads and writes| Postgres
-  MCP & Stream -->|check session owner and Remote control| Postgres
-  MCP <-->|commands and replies| Redis
-  Stream <-->|commands and replies| Redis
-  Server -->|verifies identity| Clerk
+flowchart LR
+  User([Researcher]) -->|uses| Tab[Browser tab]
+  Agent([AI agent]) -->|MCP tool calls| Server[Next.js server]
+  Tab <-->|sessions and agent commands| Server
+  Tab -->|track data| Files[Track file hosts]
+  Server -->|saved sessions| Postgres[(PostgreSQL)]
+  Server -->|command relay| Redis[(Redis)]
+  Server -->|sign-in| Clerk[Clerk]
 ```
 
 The browser tab owns the live browser state. The server saves and loads session snapshots and relays agent commands to the tab, which applies them to the same stores the UI uses. Track data goes straight from the file hosts to the tab, never through the server.
