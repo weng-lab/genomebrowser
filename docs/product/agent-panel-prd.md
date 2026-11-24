@@ -36,7 +36,7 @@ The thread record is also the conversation's access check: Eve's channel asks th
 
 The app adds a few facts to the agent's context before each message, so a renamed session or edited preferences apply from the next message on:
 
-- The session ID, assembly, such as hg38, and session title.
+- The session ID, assembly, such as hg38, and session title. The ID is a fact the agent can refer to, not a way to reach a session: tools receive their session from the caller's scoped credential, outside model input, as [agent access](agent-auth.md#identity-and-access) describes.
 - The user's preferences text.
 
 Preferences are a free-text field on the settings page, about 1,000 characters at most, that works like an `AGENTS.md` for the user: tone, defaults, habits. They apply to every session.
@@ -66,7 +66,7 @@ The agent can lock the browser while it runs a multi-step workflow so the user a
 - **Release:** control is released when the agent calls `release_control` or when the run ends for any reason: completion, error, Stop, cancellation, or tab disconnect. A lock cannot outlive its run.
 - **Appearance:** a subtle tint over the browser. Revisit after real use.
 
-The lock lives in the app as its own deep module, with `take_control` and `release_control` defined as app MCP commands next to the existing ones. It does not change `packages/core`. Agent commands and user actions call the same store actions, so the app blocks the user's controls while the lock is held instead of gating the stores, and the agent's commands keep working. Design the module with the architecture-design skill before building it. The lock is separable: if it proves complicated, it ships as a follow-up without blocking the rest of this PRD.
+The lock lives in the app as its own deep module, with `take_control` and `release_control` defined as app MCP commands next to the existing ones. It does not change `packages/core`. Agent commands and user actions call the same store actions, so the app blocks the user's controls while the lock is held instead of gating the stores, and the agent's commands keep working. Design the module with the architecture-design skill before building it.
 
 ## Multiple tabs
 
