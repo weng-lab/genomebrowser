@@ -1,19 +1,18 @@
 # Web app
 
-`@weng-lab/web` is the Next.js genome browser application: saved sessions in PostgreSQL, accounts in Clerk, and agent commands delivered to browser tabs through an MCP endpoint and Redis.
+`@weng-lab/web` is the Next.js genome browser application: saved sessions in PostgreSQL, accounts in Clerk, and an MCP endpoint through which AI agents control the open session.
 
 ```mermaid
 flowchart LR
-  User([Researcher]) -->|uses| Tab[Browser tab]
+  User([Researcher]) -->|uses| Client[Web client]
   Agent([AI agent]) -->|MCP tool calls| Server[Next.js server]
-  Tab <-->|sessions and agent commands| Server
-  Tab -->|track data| Files[Track file hosts]
-  Server -->|saved sessions| Postgres[(PostgreSQL)]
-  Server -->|command relay| Redis[(Redis)]
+  Client <-->|saves sessions, receives agent commands| Server
+  Server -->|sessions and account settings| Postgres[(PostgreSQL)]
+  Server <-->|agent commands and replies| Redis[(Redis)]
   Server -->|sign-in| Clerk[Clerk]
 ```
 
-The browser tab owns the live browser state. The server saves and loads session snapshots and relays agent commands to the tab, which applies them to the same stores the UI uses. Track data goes straight from the file hosts to the tab, never through the server.
+The web client holds the open session's live state, and agent commands change it through the same stores the UI uses. An agent's MCP call and the client's command connection can reach different server instances, so Redis passes each command, and its reply, between them.
 
 ## Run locally
 
