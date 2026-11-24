@@ -161,7 +161,8 @@ it("opens the session in the URL, from links, and from history", async () => {
   expect(route.pathname()).toBe(`/browser/${a}`);
 });
 
-it("asks before another session replaces a held one, and stays or switches", async () => {
+/** Sessions Alpha, Beta, and Gamma with Alpha open, and a way to hold the open session. */
+async function openHeldSessions() {
   const a = server.add("Alpha", defaults());
   const b = server.add("Beta", defaults());
   const c = server.add("Gamma", defaults());
@@ -172,7 +173,6 @@ it("asks before another session replaces a held one, and stays or switches", asy
     useHoldSession(reason);
     return null;
   }
-  const dialog = () => document.querySelector('[role="dialog"]');
   route.reset(`/browser/${a}`);
   probe = await renderWithProbe(
     <WorkspaceApp>
@@ -181,80 +181,101 @@ it("asks before another session replaces a held one, and stays or switches", asy
   );
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   act(() => hold("The agent is working."));
+  return { a, b, c, hold: (reason: string | undefined) => act(() => hold(reason)) };
+}
+const switchDialog = () => document.querySelector('[role="dialog"]');
+const asked = () =>
+  vi.waitFor(() => expect(switchDialog()?.textContent).toContain("The agent is working."));
+const answer = (choice: "Stay" | "Switch") => click(withText('[role="dialog"] button', choice));
+const dialogClosed = () => vi.waitFor(() => expect(switchDialog()).toBeNull());
+
+it("asks before another session replaces a held one, and stays or switches", async () => {
+  const { a, b, hold } = await openHeldSessions();
 
   await act(async () => route.push(`/browser/${b}`));
-  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
+  await asked();
   expect(heading()).toBe("Alpha");
-  await click(withText('[role="dialog"] button', "Stay"));
-  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await answer("Stay");
+  await dialogClosed();
   expect(route.pathname()).toBe(`/browser/${a}`);
   expect(heading()).toBe("Alpha");
 
   await act(async () => route.push(`/browser/${b}`));
-  await click(withText('[role="dialog"] button', "Switch"));
+  await answer("Switch");
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
-  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await dialogClosed();
 
   // Every switch while held asks again, including back to a session switched to before.
   await act(async () => route.push(`/browser/${a}`));
-  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
-  await click(withText('[role="dialog"] button', "Switch"));
+  await asked();
+  await answer("Switch");
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   await act(async () => route.push(`/browser/${b}`));
-  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
+  await asked();
   expect(heading()).toBe("Alpha");
-  await click(withText('[role="dialog"] button', "Stay"));
+  await answer("Stay");
   await vi.waitFor(() => expect(route.pathname()).toBe(`/browser/${a}`));
 
-  // A newer request takes over the question: one choice replaces the session once.
-  await act(async () => route.push(`/browser/${b}`));
-  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
-  await act(async () => route.push(`/browser/${c}`));
-  const loads = sessionLoads().length;
-  await click(withText('[role="dialog"] button', "Switch"));
-  await vi.waitFor(() => expect(heading()).toBe("Gamma"));
-  expect(sessionLoads().slice(loads)).toMatchObject([{ id: c }]);
-  await vi.waitFor(() => expect(dialog()).toBeNull());
-  await act(async () => route.push(`/browser/${a}`));
-  await click(withText('[role="dialog"] button', "Switch"));
-  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
-  await vi.waitFor(() => expect(dialog()).toBeNull());
-
-  // New session and Save a copy replace the open session too, so they ask as well.
-  await openSessions();
-  await click(button("Actions for session Beta"));
-  await click(actionItem("Save a copy"));
-  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
-  await click(withText('[role="dialog"] button', "Stay"));
-  await vi.waitFor(() => expect(dialog()).toBeNull());
-  await openSessions();
-  await click(menuItem("New session"));
-  await click(withText('[role="dialog"] button', "Create"));
-  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
-  await click(withText('[role="dialog"] button', "Stay"));
-  expect(heading()).toBe("Alpha");
-  expect(server.writes()).toEqual([]);
-  await vi.waitFor(() => expect(dialog()).toBeNull());
-  await openSessions();
-  await click(button("Actions for session Beta"));
-  await click(actionItem("Save a copy"));
-  await click(withText('[role="dialog"] button', "Switch"));
-  await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
-  await vi.waitFor(() => expect(dialog()).toBeNull());
-
-  // Once the hold clears, a newer request opens at once and withdraws the question still open.
-  await act(async () => route.push(`/browser/${b}`));
-  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
-  act(() => hold(undefined));
-  await act(async () => route.push(`/browser/${c}`));
-  await vi.waitFor(() => expect(heading()).toBe("Gamma"));
-  await vi.waitFor(() => expect(dialog()).toBeNull());
-
   // Without a hold, a session URL opens at once.
+  hold(undefined);
   await act(async () => route.push(`/browser/${b}`));
   await vi.waitFor(() => expect(heading()).toBe("Beta"));
   // The dialog closed by Stay may still be fading out.
-  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await dialogClosed();
+});
+
+it("asks before a new session or a copy replaces a held one", async () => {
+  await openHeldSessions();
+
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await asked();
+  await answer("Stay");
+  await dialogClosed();
+  await openSessions();
+  await click(menuItem("New session"));
+  await click(withText('[role="dialog"] button', "Create"));
+  await asked();
+  await answer("Stay");
+  expect(heading()).toBe("Alpha");
+  expect(server.writes()).toEqual([]);
+  await dialogClosed();
+
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await answer("Switch");
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
+});
+
+it("keeps one question open for the newest request to replace a held session", async () => {
+  const { a, b, c, hold } = await openHeldSessions();
+
+  // A newer request takes over the question: one choice replaces the session once.
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  await act(async () => route.push(`/browser/${c}`));
+  const loads = sessionLoads().length;
+  await answer("Switch");
+  await vi.waitFor(() => expect(heading()).toBe("Gamma"));
+  expect(sessionLoads().slice(loads)).toMatchObject([{ id: c }]);
+  await dialogClosed();
+
+  // Returning to the open session's URL, as with Back, withdraws the question.
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  await act(async () => route.push(`/browser/${c}`));
+  await dialogClosed();
+  expect(heading()).toBe("Gamma");
+
+  // Once the hold clears, a newer request opens at once and withdraws the question still open.
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  hold(undefined);
+  await act(async () => route.push(`/browser/${a}`));
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await dialogClosed();
 });
 
 it("saves agent preferences from Settings, and discards an unsaved draft", async () => {

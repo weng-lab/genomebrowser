@@ -76,20 +76,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const requested = sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
 
   useEffect(() => session.start(), [session]);
-  useEffect(() => {
-    if (!requested) return;
-    // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
-    void session.store.getState().open(requested);
-  }, [session, requested]);
-
   /** Give the waiting request the user's choice. Told to stay, it restores the URL. */
-  function answer(replace: boolean) {
+  const answer = useCallback((replace: boolean) => {
     setPrompt(undefined);
     const resolve = waiting.current;
     waiting.current = undefined;
     resolve?.(replace);
-  }
+  }, []);
   const stay = () => answer(false);
+
+  useEffect(() => {
+    if (!requested) return;
+    // Returning to the open session's URL, as with Back, answers a question still open.
+    if (requested === session.store.getState().active?.id) answer(false);
+    // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
+    void session.store.getState().open(requested);
+  }, [session, requested, answer]);
 
   return (
     <SessionContext value={session.store}>
