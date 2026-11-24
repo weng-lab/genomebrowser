@@ -59,7 +59,7 @@ if (import.meta.main) {
     encoding: "utf8",
   })
     .split("\0")
-    .filter(Boolean);
+    .filter((path) => path && existsSync(path));
   const files = new Map(paths.map((path) => [path, readFileSync(path, "utf8")]));
   const broken = findBrokenLinks(files, existsSync);
   if (broken.length > 0) {

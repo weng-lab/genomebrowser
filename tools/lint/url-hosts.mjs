@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 /** Hosts that never resolve to real data, for examples and tests. */
 const reserved =
@@ -76,7 +76,7 @@ if (import.meta.main) {
     { encoding: "utf8" },
   )
     .split("\0")
-    .filter(Boolean);
+    .filter((path) => path && existsSync(path));
   const unknown = findUnknownHosts(
     new Map(paths.map((path) => [path, readFileSync(path, "utf8")])),
   );
