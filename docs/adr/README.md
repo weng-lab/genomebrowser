@@ -2,22 +2,12 @@
 
 ADRs record decisions about the **repository and system shape** that should change only when we deliberately change those decisions. Ordinary implementation detail stays in code.
 
-## Decisions
-
-- [0001: Embeddable package boundaries](0001-embeddable-package-boundaries.md)
-- [0002: Web owns persistence; MCP is a relay](0002-web-owns-persistence-mcp-is-relay.md) (superseded by 0007)
-- [0003: Private contracts package](0003-private-contracts-package.md) (superseded by 0007)
-- [0004: Web app feature layering](0004-web-app-feature-layering.md)
-- [0005: Independent package releases](0005-independent-package-releases.md)
-- [0006: Internal zero-based half-open coordinates](0006-internal-zero-based-coordinates.md)
-- [0007: The app owns MCP; Redis relays commands](0007-app-owned-mcp-redis-relay.md)
-
 ## When to write one
 
-Write an ADR when maintainers choose among meaningful alternatives for package boundaries, persistence, release policy, coordinate conventions, or similar. Skip ADRs for routine refactors and for principles better enforced by lint or covered in [code standards](../code_standards.md).
+Write an ADR when maintainers choose among meaningful alternatives for package boundaries, persistence, release policy, coordinate conventions, or similar. Skip ADRs for routine refactors and for principles better enforced by lint or covered in [code standards](../code_standards.md). Edit ADRs only when asked.
 
 ## Format and status
 
-Each ADR is short: context, decision, consequences. Optional: alternatives considered (only if real). Status: **accepted**, **superseded** (link forward), **historical**, or **proposed** (not yet accepted).
+Each ADR is short: context, decision, consequences. Optional: alternatives considered (only if real). Status: **accepted** or **proposed** (not yet accepted).
 
-Do not silently rewrite history; supersede and link.
+To supersede an ADR, write a new ADR with `Supersedes: ADR 000X` that records why the old design was replaced, then delete the old ADR file. Keep existing numbers permanent; check git history if you ever need a retired ADR.
