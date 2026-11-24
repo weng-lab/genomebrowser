@@ -25,7 +25,8 @@ import {
 } from "@weng-lab/genomebrowser";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { isHexColor } from "../../../shared/ui/color";
-import { parseCustomTracks, sortByPriority, type LineError } from "../customTracks";
+import { sortByPriority, type LineError } from "../customTracks";
+import { readTrackFile, readTracks } from "../trackInput";
 import {
   addTracksFromUrls,
   defaultColor,
@@ -37,6 +38,7 @@ import {
 import {
   bigBedPresetSchema,
   trackVisibilitySchema,
+  urlTrackTypeLabels,
   urlTrackTypeSchema,
   type BigBedPreset,
   type TrackVisibility,
@@ -46,9 +48,9 @@ import {
 type AddTracksDialogProps = { trackStore: TrackStoreInstance; open: boolean; onClose: () => void };
 
 /**
- * Adds tracks from pasted or uploaded file URLs and UCSC track lines. Reviewing reads the text
- * into one row per track, which can be edited; adding checks every file and adds all the rows or
- * none, showing each failure on its row.
+ * Adds tracks from pasted or uploaded file URLs, UCSC track lines, or a table of tracks. Reviewing
+ * reads the text into one row per track, which can be edited; adding checks every file and adds
+ * all the rows or none, showing each failure on its row.
  */
 export function AddTracksDialog({ trackStore, open, onClose }: AddTracksDialogProps) {
   // The add in progress. Every way of closing stops it at once, since the content stays mounted
@@ -85,8 +87,6 @@ type Row = {
 
 // Empty text means no choice, so the file or the type decides.
 const optionalText = (value: string) => value.trim() || undefined;
-// Far more than the URLs and track lines of a session's most tracks.
-const maxUploadBytes = 1_000_000;
 
 type AddTracksFormProps = {
   trackStore: TrackStoreInstance;
@@ -97,7 +97,8 @@ type AddTracksFormProps = {
 
 function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
   const [text, setText] = useState("");
-  const [lineErrors, setLineErrors] = useState<LineError[]>([]);
+  // The lines or table rows that can't be tracks, which stop the review.
+  const [failedLines, setFailedLines] = useState<{ unit: "Line" | "Row"; errors: LineError[] }>();
   // Undefined while pasting; the rows to add once the text is reviewed.
   const [rows, setRows] = useState<Row[]>();
   const [adding, setAdding] = useState(false);
@@ -105,12 +106,24 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   function review(content: string) {
-    const { tracks, errors } = parseCustomTracks(content);
-    setLineErrors(errors);
+    const reading = readTracks(content);
+    setFailedLines(undefined);
     setError(undefined);
-    if (errors.length > 0) return;
+    if (!reading.ok) {
+      setError(reading.error);
+      return;
+    }
+    const { tracks, errors, unit } = reading;
+    if (errors.length > 0) {
+      setFailedLines({ unit, errors });
+      return;
+    }
     if (tracks.length === 0) {
-      setError("Paste at least one file URL or track line.");
+      setError(
+        unit === "Row"
+          ? "Add a row for each track below the table's first row, which names its columns."
+          : "Paste at least one file URL or track line.",
+      );
       return;
     }
     setRows(
@@ -124,29 +137,20 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
     );
   }
 
-  // Reads the chosen file as if its text were pasted, then reviews it.
+  // Reads the chosen file into the paste box, as if its text or cells were pasted, then reviews it.
   async function upload(input: HTMLInputElement) {
     const file = input.files?.[0];
     // Choosing the same file again, after editing it, reads it again.
     input.value = "";
     if (!file) return;
-    if (file.size > maxUploadBytes) {
-      setLineErrors([]);
-      setError(
-        `${file.name} is larger than 1 MB. Upload a file of URLs or track lines, not the track data itself.`,
-      );
+    const read = await readTrackFile(file);
+    if (!read.ok) {
+      setFailedLines(undefined);
+      setError(read.error);
       return;
     }
-    let content: string;
-    try {
-      content = await file.text();
-    } catch {
-      setLineErrors([]);
-      setError(`${file.name} could not be read. Choose the file again, or paste its text.`);
-      return;
-    }
-    setText(content);
-    review(content);
+    setText(read.text);
+    review(read.text);
   }
 
   // Editing a row clears its failure, since the next add checks it again.
@@ -201,16 +205,17 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
         {rows === undefined ? (
           <>
             <Typography variant="body2" color="text.secondary">
-              Paste hosted file URLs or UCSC track lines, one per line, or upload a .txt or .csv
-              file of them. BigWig, BigBed, BigGenePred, and BAM files can be added; you can review
-              each track before adding.
+              Paste hosted file URLs or UCSC track lines, one per line, or cells copied from a
+              spreadsheet whose first row names the columns, starting with URL. Or upload a .txt,
+              .tsv, or .csv file of them. BigWig, BigBed, BigGenePred, and BAM files can be added;
+              you can review each track before adding.
             </Typography>
             <TextField
               // oxlint-disable-next-line jsx-a11y/no-autofocus -- The dialog opens to paste.
               autoFocus
               multiline
               minRows={6}
-              label="URLs or track lines"
+              label="URLs, track lines, or spreadsheet cells"
               value={text}
               onChange={(event) => setText(event.target.value)}
               slotProps={{
@@ -221,15 +226,19 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
               ref={fileInput}
               type="file"
               hidden
-              aria-label="File of URLs or track lines"
-              accept=".txt,.csv,text/plain,text/csv"
+              aria-label="File of URLs, track lines, or a table of tracks"
+              accept=".txt,.tsv,.csv,text/plain,text/tab-separated-values,text/csv"
               onChange={(event) => void upload(event.target)}
             />
-            {lineErrors.length > 0 && (
-              <Box component="ul" aria-label="Lines that can't be added" sx={{ m: 0, pl: 3 }}>
-                {lineErrors.map(({ line, message }) => (
+            {failedLines && (
+              <Box
+                component="ul"
+                aria-label={`${failedLines.unit}s that can't be added`}
+                sx={{ m: 0, pl: 3 }}
+              >
+                {failedLines.errors.map(({ line, message }) => (
                   <Typography key={line} component="li" variant="body2" color="error">
-                    Line {line}: {message}
+                    {failedLines.unit} {line}: {message}
                   </Typography>
                 ))}
               </Box>
@@ -317,14 +326,6 @@ function rowRequest({ request, fields }: Row): TrackRequest | string {
   return Object.keys(metadata).length > 0 ? { ...request, metadata } : request;
 }
 
-const typeLabels: Record<UrlTrackType, string> = {
-  bigwig: "BigWig",
-  bigbed: "BigBed",
-  gene: "Gene (BigGenePred)",
-  "ccre-bigbed": "cCRE (BigBed)",
-  bam: "BAM",
-};
-
 type RequestRowProps = {
   index: number;
   row: Row;
@@ -397,8 +398,8 @@ function RequestRow({
             label="Type"
             value={request.type}
             disabled={disabled}
-            empty={inferred ? `From the URL: ${typeLabels[inferred]}` : "Choose a type"}
-            options={urlTrackTypeSchema.options.map((value) => [value, typeLabels[value]])}
+            empty={inferred ? `From the URL: ${urlTrackTypeLabels[inferred]}` : "Choose a type"}
+            options={urlTrackTypeSchema.options.map((value) => [value, urlTrackTypeLabels[value]])}
             onChange={(value) => onChange({ type: value })}
           />
           <Choice<TrackVisibility>
