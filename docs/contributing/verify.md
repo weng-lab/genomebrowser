@@ -4,7 +4,7 @@ Run `pnpm verify` from the repository root before handing off a PR. It runs the 
 
 Direct checks are useful while iterating. For example, `pnpm core test` runs core's tests. Use the affected package's configured commands for focused feedback, then use `pnpm verify` for the workspace check before handoff.
 
-Web database tests are skipped locally unless `GB_TEST_DATABASE_URL` is set, so a passing local run does not cover them. Set it up as described in the [web app guide](../../apps/web/README.md#database) when a change touches persistence. CI always runs them.
+Web database tests are skipped locally unless `GB_TEST_DATABASE_URL` is set, so a passing local run does not cover them. Set it up as described in the [web app guide](../../apps/web/README.md#tests) when a change touches persistence. CI always runs them.
 
 ## Lint policy
 
