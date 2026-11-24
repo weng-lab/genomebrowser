@@ -17,6 +17,8 @@ Before handing off a change, run `pnpm format`, `pnpm verify`, and `pnpm run doc
 
 Consumer docs live in `packages/*/docs/` and ship with packages. Update them when public behavior changes (see [writing docs](docs/writing/README.md)). Before changing the Next.js app, read its installed `apps/web/node_modules/next/dist/docs/index.md` and follow that version.
 
-Skills under `.agents/skills/` route into the knowledge base and add agent-only steps. Load the ones that match the task.
+Skills under `.agents/skills/` route into the knowledge base and add agent-only steps. Load the ones that match the task, including `github-contribution` before opening, editing, or commenting on any GitHub issue or PR.
+
+When you run into an unrelated bug, flaky check, or agent/tooling snag while working, leave it out of the current PR, check open issues first, and suggest filing a GitHub issue at handoff. Skip minor style nits and speculative refactors.
 
 Before including changes from outside this session in a commit, ask the user whether to include them.

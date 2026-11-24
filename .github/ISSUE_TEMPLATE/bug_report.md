@@ -9,7 +9,7 @@ assignees: ""
 
 ## Problem
 
-<!-- What happened? -->
+<!-- What happened? Include a screenshot or short video for visual bugs, or concrete output/values for non-visual ones. -->
 
 ## Reproduction
 
