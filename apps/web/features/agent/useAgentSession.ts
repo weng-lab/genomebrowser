@@ -23,6 +23,8 @@ export function useAgentSession(sessionId: string, signal: AbortSignal) {
     () => store.snapshot,
   );
 
+  // The cleanup always releases the observation, at once or after a pending cancel settles.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
   useEffect(() => {
     const release = store.observe();
     let stopping: Promise<unknown> | undefined;
