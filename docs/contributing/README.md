@@ -43,6 +43,6 @@ Use a short, specific title in the same style as a commit message. Open a draft 
 
 Write the description by following the comments in the [PR template](../../.github/pull_request_template.md). The template is the single source of truth for what a PR body contains. Before handoff, follow [verification guidance](verify.md) and update the description, labels, and assignee to reflect the final scope. Maintainers handle merging.
 
-For changes to shared dependencies, follow the [dependency policy](../tooling/dependencies.md).
+For changes to shared dependencies, follow the [dependency policy](../tooling/README.md#dependencies).
 
 Return to [Knowledge base](../README.md).
