@@ -380,8 +380,40 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await release("conversation-a")).status).toBe(204);
     expect((await bind("conversation-b")).status).toBe(200);
 
-    // Deleting the session deletes its thread.
-    await sessionById.DELETE(new Request(`http://localhost/api/sessions/${id}`), params(id));
+    // Deleting the session ends its conversation in Eve, then deletes its thread. Eve's
+    // route on the app's origin is stood in for: it records each request and answers.
+    const offline = globalThis.fetch;
+    const eve = { status: 503, body: {} as object, requests: [] as object[] };
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      eve.requests.push({
+        method: request.method,
+        url: request.url,
+        session: request.headers.get("x-genomebrowser-session-id"),
+      });
+      return Response.json(eve.body, { status: eve.status });
+    });
+    try {
+      const remove = () =>
+        sessionById.DELETE(
+          new Request(`http://localhost/api/sessions/${id}`, { method: "DELETE" }),
+          params(id),
+        );
+      // While Eve cannot confirm the end, the session keeps its thread.
+      expect((await remove()).status).toBe(500);
+      expect((await auth("?conversation=conversation-b")).status).toBe(200);
+      // A conversation Eve no longer holds active has nothing left to end.
+      Object.assign(eve, { status: 409, body: { ok: false, code: "session_not_active" } });
+      expect((await remove()).status).toBe(204);
+      const end = {
+        method: "POST",
+        url: "http://localhost:3000/eve/v1/session/conversation-b/end",
+        session: id,
+      };
+      expect(eve.requests).toEqual([end, end]);
+    } finally {
+      vi.stubGlobal("fetch", offline);
+    }
     expect((await auth("?control=stop&conversation=conversation-b")).status).toBe(403);
     expect((await bind("conversation-c")).status).toBe(404);
   });
