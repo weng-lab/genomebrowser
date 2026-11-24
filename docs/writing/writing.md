@@ -5,7 +5,7 @@
 - Every public export needs a reference destination, not a separate file. Keep related types with the owning API and small cooperating components together. Add a page when it serves a distinct reader task or capability. A new PR or option alone does not justify a new page.
 - Packages that ship a `docs/` directory must use their READMEs to point readers and coding agents to `node_modules/<package-name>/docs/README.md` in the consuming application. Explain that bundled docs describe the installed version. Keep these paths and the starter's `AGENTS.md` current when reorganizing docs.
 - Package docs must work from an installed package. Use package-local relative links; never link upward into repository-only docs or across to sibling package directories. Cross-package links need verified published destinations, with enough local context to follow the example.
-- Examples use public exports. For track URLs use `YOUR_URL_HERE` or an existing repository URL. Do not invent data sources or APIs to simplify examples.
+- Examples use public exports. Do not invent data sources or APIs to simplify examples.
 - Installation and starter commands must select a release that provides the documented APIs. Verify the intended release channel rather than assuming `@latest` contains the documented version. Keep actual minimum runtime requirements explicit where relevant; documentation edits do not change publication policy.
 
 ## Current behavior and rationale
@@ -32,7 +32,7 @@ Write for someone using or changing the genome browser. Be direct and concrete w
 
 - Start with what the feature does or when to use it, then explain how. Avoid abstract introductions about application domains or demonstrating capabilities. Guides build a workflow; references need only a short introduction before the complete contract.
 - Define unfamiliar terms with an example. A sequence name identifies a chromosome or contig, such as `chr1`. Preserve API names and use consistent terminology.
-- Call a span on a chromosome a "region" or "genomic region." Use "locus" (plural "loci") when referring to a biological location. Do not alternate with "interval" or invent context such as "candidate interval" for a generic example. Preserve actual API identifiers and data-field names, such as `intervals`, when discussing those contracts.
+- Use the [glossary](../glossary.md)'s terms, such as region and locus rather than "interval", except in actual API names.
 - Assume familiarity with ordinary genome-browser behavior. State once in the first-browser introduction that tracks share the viewport; do not repeat that navigation moves all tracks or that browser actions affect the whole display. Explain package-specific contracts such as request invalidation, error handling, and linked browser instances where they matter.
 - Use a manual-style voice: "To add a track, register its module..." or "Create a browser store..." rather than "You can..." or "You will learn..." Name who does what: the application owns the store, the module fetches data, and the browser renders tracks.
 - Explain behavior in concrete terms. Write "when every request finishes" instead of "when the batch settles," and "create stores once per component" instead of "establish an ownership boundary." Retain precise API and technical terms where they help.

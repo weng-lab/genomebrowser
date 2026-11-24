@@ -10,12 +10,6 @@ Packaging is an intentional exception to Turbo-managed ordering. Library `prepac
 
 Collection schemas are generated from module definitions. Change the inputs and regenerate the JSON; see [schema regeneration](collection-schemas.md) for commands and checks.
 
-## Application development servers
+## Applications
 
-The active application is `apps/web`. Archived applications in `legacy/playground` and `legacy/standalone` are excluded from the pnpm workspace and Turbo tasks.
-
-Run `pnpm dev` for the Next.js app on port 3000, including its MCP endpoint. The filtered Turbo `dev` task depends on `^build`, so a clean checkout builds dependency outputs first. Development tasks are persistent and uncached.
-
-Build with `pnpm exec turbo run build --filter=@weng-lab/web`. See the [web guide](../../apps/web/README.md) for configuration, commands, and deployment.
-
-The web app contains its workspace layout and domain pages directly. It has no separate workspace application dependency. Local and cloud deployments build the same Next.js app, which serves the UI, saved sessions, and the MCP endpoint together.
+The active application is `apps/web`; see [its README](../../apps/web/README.md). Archived applications in `legacy/` are outside the pnpm workspace and Turbo tasks.
