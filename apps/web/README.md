@@ -65,4 +65,4 @@ The endpoint is `http://localhost:3000/api/mcp`. Send the session owner's Clerk 
 
 ## Deploy
 
-See [Deploy to Vercel](docs/deployment.md).
+[Deployment](docs/deployment.md) lists the services each environment uses and how to connect them.

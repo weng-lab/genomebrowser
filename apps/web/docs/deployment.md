@@ -1,22 +1,46 @@
-# Deploy to Vercel
+# Deployment
 
-This guide sets up the web app on Vercel with sessions stored in Google Cloud SQL, accounts in Clerk, and agent commands relayed through Redis, and explains how to apply database migrations. It covers the Google Cloud, Vercel, Clerk, and Redis configuration, the local tools for maintenance, and the errors each misconfiguration produces. One deployment serves the UI, saved sessions, and the MCP endpoint, previews included.
+The web app runs as one Vercel project. Each deployment serves the UI, saved sessions, and the MCP endpoint together. There are two environments:
 
-## How the pieces connect
+- **Preview** (development): one deployment per PR branch, with a URL that stays the same across pushes.
+- **Production**: currently a beta on the project's `vercel.app` domain. It still uses the development database and service account; [Before real users](#before-real-users) lists what to replace.
 
-A Vercel function reaches Cloud SQL without a stored Google key. Vercel issues each deployment an OIDC token for the team. Google's Workload Identity Federation exchanges that token for credentials of a Google service account, and Google's Cloud SQL connector uses those credentials to open an encrypted connection to the instance's public IP. The app then logs into PostgreSQL with an ordinary database username and password. Google decides whether the deployment may connect; PostgreSQL decides what the login may do.
+Both are behind Vercel Authentication, so viewers need a Vercel team login. The current values of every setting below are in the Vercel project's environment variables (**Settings → Environment Variables**) and the Google Cloud console. Keep them out of this repository, which is public.
 
-Clerk is independent of that chain. The browser loads Clerk from the instance named by the publishable key, and the server verifies sessions with the secret key from the same instance.
+## Services
 
-Redis is independent too. An MCP tool call and the tab's command stream may run in different function instances, so the app publishes commands and replies through Redis. It stores no application state there, only short-lived leases naming each session's attached connection. Every key and channel starts with the deployment's `VERCEL_DEPLOYMENT_ID`, so Preview and Production can share one Redis server without one deployment's agents reaching another's tabs.
+| Service                | Used for                              | Preview                               | Production today                                                 | Production before real users       |
+| ---------------------- | ------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- | ---------------------------------- |
+| Vercel                 | Hosting the app                       | One URL per PR branch                 | The project's `vercel.app` domain                                | A `wenglab.org` subdomain          |
+| Cloud SQL (PostgreSQL) | Saved sessions and account settings   | The development instance and database | Same as Preview                                                  | Its own database and login         |
+| Google service account | Letting Vercel connect to Cloud SQL   | The development service account       | Same as Preview                                                  | Its own service account            |
+| Clerk                  | Accounts and sign-in                  | The development instance              | The lab's production instance, which works only on `wenglab.org` | Same, on a `wenglab.org` subdomain |
+| Redis                  | Relaying agent commands to the client | The server set as `REDIS_URL`         | Its own `REDIS_URL`, which may be Preview's server               | Same as today                      |
 
-Preview and Production currently share one Cloud SQL database and one service account, while each environment can use its own Clerk instance. [Production deployment](../../../docs/product/production.md) lists what to replace before launch.
+## Vercel
 
-The commands below use placeholders such as `PROJECT_ID` and `INSTANCE_CONNECTION_NAME`. The values for the current deployment are in the Vercel project's environment variables, which team members can read under **Settings → Environment Variables**, and in the Google Cloud console. Keep them out of this repository, which is public.
+The project's Root Directory is `apps/web`, with files outside it included so the build reaches the workspace packages; `vercel.json` builds through Turbo. Under **Settings → Security**, OIDC federation is on in **Team** issuer mode, which is what Google trusts for Cloud SQL. Keep the maximum function duration at 300 seconds or more for the command stream.
 
-## Set up Google Cloud
+Each environment has its own copy of the variables below. Vercel applies a change only to new deployments, so redeploy the environment after changing one. A push to a PR branch also creates a new preview.
 
-These steps create the Google side of the connection. They are already done for the beta; follow them for a new environment or project. Replace `PROJECT_ID`, `PROJECT_NUMBER`, `SERVICE_ACCOUNT`, and `TEAM_SLUG`, using the team slug from the Vercel dashboard URL rather than the team's display name.
+## Cloud SQL
+
+A deployment reaches Cloud SQL without a stored Google key. Vercel gives each deployment an OIDC token, Google's Workload Identity Federation exchanges it for a service account's credentials, and the Cloud SQL connector uses those to open an encrypted connection to the instance's public IP. The app then logs into PostgreSQL with an ordinary username and password. Google decides whether a deployment may connect; PostgreSQL decides what the login may do.
+
+| Variable                                                                  | Value                                                                  |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `INSTANCE_CONNECTION_NAME`                                                | `PROJECT_ID:REGION:INSTANCE`                                           |
+| `DB_NAME`                                                                 | The database name                                                      |
+| `DB_USER`, `DB_PASSWORD`                                                  | The app's PostgreSQL login. Enter the password as is, not URL-encoded. |
+| `GCP_PROJECT_NUMBER`                                                      | The Google Cloud project number                                        |
+| `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | The pool and provider IDs                                              |
+| `GCP_SERVICE_ACCOUNT_EMAIL`                                               | The service account's email                                            |
+
+When one is missing, session requests fail with an error naming it rather than falling back to another database.
+
+### Set up Google access
+
+This is already done for the development resources. Follow it for a new environment or project, replacing `PROJECT_ID`, `PROJECT_NUMBER`, `SERVICE_ACCOUNT`, and `TEAM_SLUG` (the team slug from the Vercel dashboard URL, not its display name).
 
 Enable the Cloud SQL Admin, IAM Credentials, and Security Token Service APIs, then create the service account and allow it to connect to Cloud SQL:
 
@@ -45,7 +69,7 @@ gcloud iam workload-identity-pools providers create-oidc vercel \
   --attribute-mapping="google.subject=assertion.sub"
 ```
 
-Finally, allow deployments to act as the service account. A token's subject names the team, project, and environment, so each Vercel environment that connects needs its own binding. Run this once for `preview` and once for `production`:
+Then allow deployments to act as the service account. A token's subject names the team, project, and environment, so each Vercel environment that connects needs its own binding. Run this once for `preview` and once for `production`:
 
 ```sh
 gcloud iam service-accounts add-iam-policy-binding \
@@ -54,48 +78,30 @@ gcloud iam service-accounts add-iam-policy-binding \
   --member="principal://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/vercel/subject/owner:TEAM_SLUG:project:genomebrowser:environment:preview"
 ```
 
-## Create the database
+### Create a database
 
-The Cloud SQL instance needs a public IP. The connector authorizes connections through Google, so the instance needs no authorized networks. Create the database and a PostgreSQL login for the app in the Cloud SQL console, then [apply the migrations](#apply-migrations) to create the tables.
+The instance needs a public IP but no authorized networks, since the connector authorizes connections through Google. Create the database and a login for the app in the Cloud SQL console, then [apply the migrations](#apply-migrations).
 
-The login the app uses needs to read and write the `sessions` and `account_settings` tables. If a different user creates the tables, grant the app's login access, for example with `GRANT SELECT, INSERT, UPDATE, DELETE ON sessions, account_settings TO app_user;`. Migrations also need a login allowed to change the schema and to use the `drizzle` schema, where Drizzle records applied migrations.
+The app's login reads and writes the `sessions` and `account_settings` tables. If another user creates them, grant access, for example `GRANT SELECT, INSERT, UPDATE, DELETE ON sessions, account_settings TO app_user;`. Migrations need a login that may change the schema and use the `drizzle` schema, where Drizzle records applied migrations.
 
-## Configure Vercel
+## Clerk
 
-In the project settings, set the Root Directory to `apps/web` and include files outside it, so the build can reach workspace packages. Under **Settings → Security**, enable OIDC federation in **Team** issuer mode, which is the issuer the Google provider trusts.
+Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` from the same instance.
 
-Set these environment variables for each environment that should save sessions. The database password and Clerk secret key are secrets; the rest are configuration.
+- **Preview:** the development instance's `pk_test_` and `sk_test_` keys. It accepts any domain, keeps sign-in separate for each preview URL, and shows a development badge.
+- **Production:** the lab's production instance's `pk_live_` keys. It accepts only `wenglab.org` and its subdomains, so on `vercel.app` every Clerk request fails with `host_invalid`. To use it, add a `wenglab.org` subdomain to the project for Production, create the DNS record Vercel shows, and open the app there.
 
-| Variable                                                                  | Value                                                                  |
-| ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `INSTANCE_CONNECTION_NAME`                                                | `PROJECT_ID:REGION:INSTANCE`                                           |
-| `DB_NAME`                                                                 | The database name                                                      |
-| `DB_USER`, `DB_PASSWORD`                                                  | The app's PostgreSQL login. Enter the password as is, not URL-encoded. |
-| `GCP_PROJECT_NUMBER`                                                      | The Google Cloud project number                                        |
-| `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | The pool and provider IDs                                              |
-| `GCP_SERVICE_ACCOUNT_EMAIL`                                               | The service account's email                                            |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`                   | Keys from one Clerk instance; see [Configure Clerk](#configure-clerk)  |
-| `REDIS_URL`                                                               | A Redis server's URL; see [Configure Redis](#configure-redis)          |
+Sessions belong to Clerk user IDs, so users of one instance never see sessions saved under the other.
 
-Vercel applies variable changes only to new deployments. After changing a variable, redeploy the affected environment; pushing a commit to a PR branch also creates a new preview. When Cloud SQL settings are incomplete, session requests fail with an error naming the missing variable rather than falling back to another database.
+## Redis
 
-## Configure Clerk
+Set `REDIS_URL` to a Redis server that supports publish/subscribe and Lua scripts over TCP, such as a Redis database from the Vercel Marketplace. HTTP-only Redis APIs do not work. Use `rediss://` when the provider requires TLS.
 
-A Clerk development instance accepts requests from any domain, so its `pk_test_` and `sk_test_` keys work on preview URLs and the project's `vercel.app` production domain. Its users are separate from the production instance's users, and Clerk shows a development badge.
-
-A Clerk production instance accepts requests only from its own domain and that domain's subdomains. The lab's production instance belongs to `wenglab.org`, so its `pk_live_` keys work only for the app on `wenglab.org` or a subdomain such as `genomebrowser.wenglab.org`. On a `vercel.app` domain, every Clerk request fails with `host_invalid`. To use the production instance, add a `wenglab.org` subdomain to the Vercel project for Production, create the DNS record Vercel shows, and open the app on that domain.
-
-Always set the publishable and secret keys from the same instance. Sessions belong to Clerk user IDs, so changing instances changes which sessions a person sees.
-
-## Configure Redis
-
-Remote control and MCP need a Redis server that supports publish/subscribe and Lua scripts over a TCP connection, such as a Redis database added through the Vercel Marketplace. HTTP-only Redis APIs do not work. Set its connection URL as `REDIS_URL`, using `rediss://` when the provider requires TLS. Sessions load and save without Redis; without it, the AI Assist panel keeps reconnecting and MCP calls fail with `RELAY_UNAVAILABLE`.
-
-The tab command stream route allows up to 300 seconds and ends each stream after four minutes, then the tab reconnects. Keep the project's maximum function duration at 300 seconds or more.
+An agent's MCP call and the client's command stream can run in different function instances, and Redis passes commands and replies between them. It holds no application data, only short-lived leases naming each session's connection. Every key starts with the deployment's ID, so Preview and Production can share a server without one deployment's agents reaching another's clients. Without Redis, sessions still save, but MCP calls fail with `RELAY_UNAVAILABLE`.
 
 ## Apply migrations
 
-Builds do not run migrations. Apply reviewed migrations before deploying code that needs them. Preview and Production share one database, so a migration takes effect for both immediately; prefer changes that the currently deployed code tolerates, such as adding columns.
+Builds do not run migrations. Apply reviewed migrations before deploying code that needs them. While Preview and Production share one database, a migration takes effect for both at once, so prefer changes the deployed code tolerates, such as adding columns.
 
 ### Install the tools
 
@@ -143,6 +149,15 @@ VALUES ('<sha256 of the file>', <when from the journal>);
 ```
 
 Run the migration and the insert in one transaction, as a user that owns the tables.
+
+## Before real users
+
+Set these on Production only and leave Preview on the development resources.
+
+1. **Database.** Create a production database and a login with only the privileges the app needs, and apply the migrations to it before deploying. Decide whether to copy beta sessions over; nothing does it automatically. Check the instance's connection limit against expected traffic: each server process holds up to five connections.
+2. **Google access.** Create a production service account with `roles/cloudsql.client`, grant `roles/iam.workloadIdentityUser` on it to `owner:TEAM_SLUG:project:genomebrowser:environment:production`, and remove that subject from the development service account.
+3. **Clerk.** Serve Production on a `wenglab.org` subdomain and configure sign-in methods on the production instance.
+4. **Access.** Decide whether Production stays behind Vercel Authentication or opens to the public.
 
 ## Check a deployment
 

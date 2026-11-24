@@ -10,4 +10,3 @@ These pages distinguish **intended** behavior from **implemented** behavior. Git
 - [Sessions](sessions.md): save invariants
 - [Agent access and control](agent-auth.md)
 - [Limitations](limitations.md)
-- [Production deployment](production.md): beta vs real production resources
