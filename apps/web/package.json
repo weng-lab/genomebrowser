@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname localhost",
+    "dev": "node scripts/dev.mjs",
     "design": "vite design --port 3100",
     "build": "node -e \"if (!process.env.VERCEL) require('node:child_process').execFileSync(process.execPath, ['node_modules/eve/bin/eve.js', 'build'], { stdio: 'inherit' })\" && next build",
     "start": "next start --hostname localhost",
