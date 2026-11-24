@@ -109,13 +109,14 @@ export function useRemoteControl() {
 }
 
 /**
- * Whether the agent holds the browser, and the control it holds: Stop ends its
- * run and gives control back.
+ * Whether the agent holds the browser, whether taking control back also stops
+ * its run, and the control it holds.
  */
 export function useAgentControl() {
   const control = useAgentControlHandle();
   const held = useSyncExternalStore(control.subscribe, control.held, control.held);
-  return { held, control };
+  const stops = useSyncExternalStore(control.subscribe, control.stops, control.stops);
+  return { held, stops, control };
 }
 
 // Outside the provider no agent reaches the browser, so control is never taken.

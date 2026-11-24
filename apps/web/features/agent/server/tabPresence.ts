@@ -46,9 +46,11 @@ export async function tabPresence(
           if (signal.aborted) return "unknown";
         }
       },
-      { timeoutMs: graceMs + 5_000 },
+      { timeoutMs: graceMs + 5_000, signal },
     );
   } catch (error) {
+    // A check cut short by `signal` is not a Redis failure.
+    if (signal.aborted) return "unknown";
     console.error("Could not check whether the session's tab is open", error);
     return "unknown";
   }

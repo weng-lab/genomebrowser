@@ -36,6 +36,7 @@ export async function startAgentAuthorizationServer() {
   const { GET } = await import("../app/api/sessions/[id]/agent-auth/route");
   const thread = await import("../app/api/sessions/[id]/agent-thread/route");
   const context = await import("../app/api/sessions/[id]/agent-context/route");
+  const session = await import("../app/api/sessions/[id]/route");
   const { POST: mcp } = await import("../app/api/mcp/route");
   const { getAccountSettings, getCommandRelay, getSessions } =
     await import("../composition/server");
@@ -99,6 +100,8 @@ export async function startAgentAuthorizationServer() {
         if (request.nextUrl.pathname === "/api/mcp") return mcp(request);
         if (request.nextUrl.pathname.endsWith("/agent-context"))
           return context.GET(request, params);
+        if (request.method === "DELETE" && request.nextUrl.pathname === `/api/sessions/${id}`)
+          return session.DELETE(request, params);
         if (!request.nextUrl.pathname.endsWith("/agent-thread")) return GET(request, params);
         if (request.method === "POST") return thread.POST(request, params);
         if (request.method === "DELETE") return thread.DELETE(request, params);

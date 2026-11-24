@@ -35,7 +35,9 @@ export type SessionState = {
   /**
    * Restore a saved session after saving every edit to the active one. If either
    * step fails, the active session stays open with its edits. A newer request
-   * to open a session supersedes an older one.
+   * to open a session supersedes an older one. When it would replace the open
+   * session and the user is asked and declines, nothing changes; the same holds
+   * for `create` and `copy`.
    */
   open(id: string): Promise<void>;
   /** Create a session for a supported assembly, then open it like `open`. */
@@ -96,12 +98,19 @@ export function createSession({
   transport,
   createStores,
   navigation,
+  confirmReplace,
 }: {
   transport: SessionTransport;
   /** Fresh stores at an assembly's defaults, or undefined when it is not supported. */
   createStores: (assembly: string) => SessionStores | undefined;
   /** Show the active session, or none, once an operation settles. */
   navigation: { show(id: string | undefined): void };
+  /**
+   * Asked whenever `open`, `create`, or `copy` would replace the open session.
+   * Returns undefined to replace it at once, or resolves whether to replace it
+   * once the user has chosen. Without it, sessions are replaced without asking.
+   */
+  confirmReplace?: () => Promise<boolean> | undefined;
 }) {
   let scope: Scope.Closeable | undefined;
   let current: Current | undefined;
@@ -204,9 +213,19 @@ export function createSession({
     current = next;
   }
 
-  /** After a failed operation, show the session that is still open. */
+  /** After a failed or declined operation, show the session that is still open. */
   function stay() {
     if (current) navigation.show(current.id);
+  }
+
+  /**
+   * Run `replace`, which opens another session in place of the open one, unless
+   * `confirmReplace` asks the user and they keep the open one.
+   */
+  function replacing(replace: () => Promise<void>): Promise<void> {
+    const asked = current ? confirmReplace?.() : undefined;
+    if (!asked) return replace();
+    return asked.then((confirmed) => (confirmed ? replace() : stay()));
   }
 
   /**
@@ -357,6 +376,12 @@ export function createSession({
     });
 
   function open(id: string): Promise<void> {
+    // The open session, or one already opening, replaces nothing more, so it never asks.
+    const replaces = current && current.id !== id && opening?.pending.id !== id;
+    return replaces ? replacing(() => openNow(id)) : openNow(id);
+  }
+
+  function openNow(id: string): Promise<void> {
     if (opening?.pending.id === id) return opening.done;
     if (!opening && get().active?.id === id) return Promise.resolve();
     // The newest request wins. Saving the active session continues regardless.
@@ -410,7 +435,9 @@ export function createSession({
           : "Could not create the session. Try again.",
       );
     });
-    return run(exclusive({ operation: "create" }, operation))?.done ?? Promise.resolve();
+    return replacing(
+      () => run(exclusive({ operation: "create" }, operation))?.done ?? Promise.resolve(),
+    );
   }
 
   function copy(id: string): Promise<void> {
@@ -463,7 +490,9 @@ export function createSession({
         { takeOver },
       );
     });
-    return run(exclusive({ operation: "copy", id }, operation))?.done ?? Promise.resolve();
+    return replacing(
+      () => run(exclusive({ operation: "copy", id }, operation))?.done ?? Promise.resolve(),
+    );
   }
 
   function rename(name: string): void {

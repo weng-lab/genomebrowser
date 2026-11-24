@@ -14,10 +14,14 @@ export function createAgentControl() {
   let cancelRun: (() => void) | undefined;
   const listeners = new Set<() => void>();
 
+  function notify() {
+    for (const listener of listeners) listener();
+  }
+
   function set(next: boolean) {
     if (held === next) return;
     held = next;
-    for (const listener of listeners) listener();
+    notify();
   }
 
   function release() {
@@ -38,16 +42,24 @@ export function createAgentControl() {
       set(true);
     },
     release,
-    /** Stop the agent's run, as the panel's Stop does, and give control back. */
+    /**
+     * Whether `stop` also stops the agent's run. Only a run of the agent panel
+     * can be stopped from here; an agent connected another way keeps working.
+     */
+    stops: () => cancelRun !== undefined,
+    /** Give control back, stopping the agent's run when `stops` says it can be. */
     stop() {
       cancelRun?.();
       release();
     },
-    /** While the agent panel is open, Stop cancels its run with `cancel`. */
+    /** While the agent panel has a run, Stop cancels it with `cancel`. */
     onStop(cancel: () => void) {
       cancelRun = cancel;
+      notify();
       return () => {
-        if (cancelRun === cancel) cancelRun = undefined;
+        if (cancelRun !== cancel) return;
+        cancelRun = undefined;
+        notify();
       };
     },
   };
