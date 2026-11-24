@@ -164,6 +164,7 @@ it("opens the session in the URL, from links, and from history", async () => {
 it("asks before another session replaces a held one, and stays or switches", async () => {
   const a = server.add("Alpha", defaults());
   const b = server.add("Beta", defaults());
+  const c = server.add("Gamma", defaults());
   let hold: (reason: string | undefined) => void = () => {};
   function Holder() {
     const [reason, setReason] = useState<string>();
@@ -204,6 +205,20 @@ it("asks before another session replaces a held one, and stays or switches", asy
   expect(heading()).toBe("Alpha");
   await click(withText('[role="dialog"] button', "Stay"));
   await vi.waitFor(() => expect(route.pathname()).toBe(`/browser/${a}`));
+
+  // A newer request takes over the question: one choice replaces the session once.
+  await act(async () => route.push(`/browser/${b}`));
+  await vi.waitFor(() => expect(dialog()?.textContent).toContain("The agent is working."));
+  await act(async () => route.push(`/browser/${c}`));
+  const loads = sessionLoads().length;
+  await click(withText('[role="dialog"] button', "Switch"));
+  await vi.waitFor(() => expect(heading()).toBe("Gamma"));
+  expect(sessionLoads().slice(loads)).toMatchObject([{ id: c }]);
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await act(async () => route.push(`/browser/${a}`));
+  await click(withText('[role="dialog"] button', "Switch"));
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await vi.waitFor(() => expect(dialog()).toBeNull());
 
   // New session and Save a copy replace the open session too, so they ask as well.
   await openSessions();

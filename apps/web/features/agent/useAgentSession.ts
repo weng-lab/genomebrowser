@@ -49,6 +49,8 @@ export function useAgentSession(
     return () => store.setCallbacks({});
   }, [store, onLost]);
 
+  // The cleanup always releases the observation, at once or after a pending cancel settles.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
   useEffect(() => {
     const release = store.observe();
     // Follow the saved conversation from where its snapshot ended; failures surface
