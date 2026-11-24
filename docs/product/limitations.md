@@ -30,7 +30,7 @@ These are current implementation constraints and deployment gaps. They do not re
 
 ## Agent panel
 
-- A session's agent thread never rolls over yet: it grows until Eve compacts it, and only a conversation Eve no longer has, such as one that expired after 30 idle days, starts a new thread. The [agent panel PRD](agent-panel-prd.md) plans rollover with summaries.
+- A session's agent thread lasts until deleting the session ends it; there is no New conversation yet. It grows until Eve compacts it, and only a conversation Eve can no longer continue, such as one stranded by an incompatible Eve upgrade, starts a new thread.
 - Two tabs that send a session's first message at the same moment can each start a conversation. The app keeps the first one and ends the other; the second tab must reload to continue the session's thread.
 - Only the first tab attached to a session receives agent commands. Another tab is refused until the first one closes.
 - A run stops before its next model call once no tab has held its session for 5 seconds, so a reply already streaming finishes first. Turning Remote Control off closes the tab's connection, which stops the run the same way.
