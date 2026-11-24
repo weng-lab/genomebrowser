@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
+import { findBrokenLinks } from "./doc-links.mjs";
 import { findCaseCollisions } from "./path-case.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -208,5 +209,31 @@ test("path policy reports names that differ only in letter case", () => {
       "apps/web/agent.ts",
     ]),
     [],
+  );
+});
+
+test("doc link policy reports links to missing files and headings", () => {
+  const files = new Map([
+    [
+      "docs/README.md",
+      [
+        "[ok](guide.md#set-up-a-track) [code heading](guide.md#trackprops)",
+        "[same page](#docs) [external](https://example.test/missing) [asset](../tools/x.mjs)",
+        "[gone](removed.md) [stale](guide.md#old-heading)",
+        "`[in code](nowhere.md)`",
+        "```md",
+        "[in a fence](nowhere.md)",
+        "```",
+        "# Docs",
+      ].join("\n"),
+    ],
+    ["docs/guide.md", "# Guide\n\n## Set up a track\n\n### `TrackProps`\n"],
+  ]);
+  assert.deepEqual(
+    findBrokenLinks(files, (path) => path === "tools/x.mjs"),
+    [
+      ["docs/README.md", "removed.md"],
+      ["docs/README.md", "guide.md#old-heading"],
+    ],
   );
 });
