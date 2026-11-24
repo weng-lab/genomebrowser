@@ -8,7 +8,10 @@ export type EmptyStateProps = {
   description?: ReactNode;
 };
 
-/** A dashed placeholder where a list or section would show content it does not have yet. */
+/**
+ * A dashed placeholder, with a title and what to do, where a list or section has nothing yet.
+ * For a line of status while content loads or after it fails to, use `StatusMessage`.
+ */
 export function EmptyState({ title, description }: EmptyStateProps) {
   return (
     <Box

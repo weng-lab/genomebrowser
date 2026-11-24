@@ -3,16 +3,11 @@
 import Check from "@mui/icons-material/Check";
 import ContentCopy from "@mui/icons-material/ContentCopy";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
-import MoreVert from "@mui/icons-material/MoreVert";
-import IconButton from "@mui/material/IconButton";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Link from "next/link";
-import { useId, useState } from "react";
+import { ActionMenu, MenuAction } from "../../../shared/ui/ActionMenu";
 import type { SessionState } from "../session";
 import { formatSavedAt, formatTrackCount } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
@@ -78,62 +73,20 @@ function SessionActions({ id, name }: { id: string; name: string | undefined }) 
   const busy = useSession((session) => session.pending !== undefined);
   const copy = useSession((session) => session.copy);
   const remove = useSession((session) => session.remove);
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const menuId = useId();
-  const label = `Actions for session ${name}`;
-  const close = () => setAnchor(null);
-
   return (
-    <>
-      <IconButton
-        edge="end"
-        size="small"
-        aria-label={label}
-        title={label}
-        aria-haspopup="menu"
-        aria-controls={anchor ? menuId : undefined}
-        aria-expanded={anchor ? "true" : undefined}
-        disabled={busy}
-        onClick={(event) => setAnchor(event.currentTarget)}
-      >
-        <MoreVert fontSize="small" />
-      </IconButton>
-      <Menu
-        id={menuId}
-        anchorEl={anchor}
-        open={anchor !== null}
-        onClose={close}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{ list: { dense: true, "aria-label": label } }}
-      >
-        <MenuItem
-          onClick={() => {
-            close();
-            // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
-            void copy(id);
-          }}
-        >
-          <ListItemIcon>
-            <ContentCopy fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Save a copy" />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            close();
-            // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
-            void remove(id);
-          }}
-          sx={{ color: "error.main" }}
-        >
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <DeleteOutline fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Delete" />
-        </MenuItem>
-      </Menu>
-    </>
+    <ActionMenu label={`Actions for session ${name}`} edge="end" disabled={busy}>
+      <MenuAction
+        icon={<ContentCopy fontSize="small" />}
+        label="Save a copy"
+        onClick={() => void copy(id)}
+      />
+      <MenuAction
+        icon={<DeleteOutline fontSize="small" />}
+        label="Delete"
+        tone="danger"
+        onClick={() => void remove(id)}
+      />
+    </ActionMenu>
   );
 }
 

@@ -17,7 +17,8 @@ type FormCardProps = {
 
 /**
  * A short form on a bordered card, set into a panel below what opened it, such as a section
- * header's add button. Escape cancels.
+ * header's add button. Escape cancels. End it with `FormCardActions`. For a form in a dialog,
+ * use `DialogForm`.
  */
 export function FormCard({ id, label, onSubmit, onCancel, describedBy, children }: FormCardProps) {
   return (

@@ -3,17 +3,13 @@
 import { UserAvatar, useAuth, useClerk } from "@clerk/nextjs";
 import LoginOutlined from "@mui/icons-material/LoginOutlined";
 import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Tooltip from "@mui/material/Tooltip";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 import { useSession } from "../../sessions/SessionProvider";
 import { signInPath } from "../signIn";
 
@@ -40,22 +36,17 @@ export function AccountControls() {
   return (
     <>
       <ClerkControls leaving={leaving} leave={leave} />
-      <Dialog open={unsaved !== undefined} onClose={() => setUnsaved(undefined)}>
-        <DialogTitle>Changes not saved</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            The open session&apos;s latest changes could not be saved. Stay to keep them, or discard
-            them and continue.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUnsaved(undefined)}>Stay</Button>
-          <Button onClick={() => void leave(unsaved!)}>Try again</Button>
-          <Button color="error" onClick={() => void leave(unsaved!, true)}>
-            Discard changes
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={unsaved !== undefined}
+        title="Changes not saved"
+        text="The open session’s latest changes could not be saved. Stay to keep them, or discard them and continue."
+        cancelLabel="Stay"
+        actions={<Button onClick={() => void leave(unsaved!)}>Try again</Button>}
+        confirmLabel="Discard changes"
+        tone="danger"
+        onConfirm={() => void leave(unsaved!, true)}
+        onClose={() => setUnsaved(undefined)}
+      />
     </>
   );
 }

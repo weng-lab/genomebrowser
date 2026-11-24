@@ -10,7 +10,7 @@ These guides are for maintainers of the Next.js browser application.
 
 - [Pages and panels](02-guides/pages.md): add a route and compose its content.
 - [Routing](02-guides/routing.md): keep providers and layout stable across navigation.
-- [Design system](02-guides/designSystem.md): the theme and shared components in `shared/ui/`, and the design gallery.
+- [Design system](02-guides/designSystem.md): the theme and shared components in `shared/ui/`, and their Storybook.
 - [Styling and text](02-guides/styling.md): theme, icon colors, and text trimming.
 - [Deploy to Vercel](02-guides/deployment.md): connect Vercel to Cloud SQL and Clerk, apply migrations, and diagnose deployment errors.
 

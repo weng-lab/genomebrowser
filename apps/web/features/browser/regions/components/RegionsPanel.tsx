@@ -9,7 +9,6 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
 import { alpha, type Theme } from "@mui/material/styles";
 import {
   formatDisplayRegion,
@@ -24,6 +23,7 @@ import { ColorDot } from "../../../../shared/ui/ColorDot";
 import { EmptyState } from "../../../../shared/ui/EmptyState";
 import { formButtonSx } from "../../../../shared/ui/FormCard";
 import { SectionHeader } from "../../../../shared/ui/SectionHeader";
+import { StatusMessage } from "../../../../shared/ui/StatusMessage";
 import {
   nextRegionName,
   positionsOf,
@@ -34,7 +34,7 @@ import {
   setRegionsColor,
 } from "../regions";
 import { AddRegionForm } from "./AddRegionForm";
-import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { ConfirmDialog } from "../../../../shared/ui/ConfirmDialog";
 import { NewGroupForm } from "./NewGroupForm";
 import { listSx, RegionGroupSection } from "./RegionGroup";
 import { RegionActions } from "./RegionMenu";
@@ -48,9 +48,9 @@ export function RegionsPanel() {
   const stores = useSession((session) => session.active?.stores);
   if (!stores)
     return (
-      <Typography variant="body2" color="text.secondary" sx={{ p: 1.5 }}>
-        Open a session to save regions.
-      </Typography>
+      <Box sx={{ p: 1.5 }}>
+        <StatusMessage message="Open a session to save regions." />
+      </Box>
     );
   return (
     <Regions
@@ -336,7 +336,8 @@ function DeleteAllButton({
       >
         Delete all regions
       </Button>
-      <ConfirmDeleteDialog
+      <ConfirmDialog
+        tone="danger"
         open={confirming}
         title="Delete all regions?"
         text="Every saved region, its highlight, and every group will be removed from this session."
