@@ -108,7 +108,7 @@ The border of a side panel that faces the center panel, used to resize it.
 
 ### Navigation entry
 
-A sidebar link. It describes a destination and contains no page or panel components.
+A sidebar link. It describes a destination, and may name one of that page's left panels to show, but contains no page or panel components.
 
 ### Route
 

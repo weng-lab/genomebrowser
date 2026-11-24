@@ -32,7 +32,8 @@ function click(element: Element | null | undefined) {
 }
 /** Open the session menu beside the title, unless it is open. */
 async function openSessions() {
-  if (button("Sessions")?.getAttribute("aria-expanded") !== "true") await click(button("Sessions"));
+  if (button("Session menu")?.getAttribute("aria-expanded") !== "true")
+    await click(button("Session menu"));
 }
 /** The open actions menu's item named `label`. */
 const actionItem = (label: string) => withText('[role="menu"] [role="menuitem"]', label);
@@ -59,6 +60,12 @@ const link = (name: string) =>
   );
 const button = (label: string) =>
   document.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
+/** The side bar's button named `label`, which shows or hides a left panel on its page. */
+const railButton = (label: string) =>
+  document.querySelector<HTMLButtonElement>(
+    `nav[aria-label="Workspace"] button[aria-label="${label}"]`,
+  );
+const leftPanelTitle = () => document.querySelector("#left-panel h2")?.textContent;
 const withText = (selector: string, content: string) =>
   [...document.querySelectorAll(selector)].find((element) => element.textContent === content);
 const savedRegion = (id: string) => server.stored.get(id)!.snapshot.browser.region;
@@ -221,35 +228,41 @@ it("lists the open session and the three most recently saved others", async () =
     /^hg38 • .+ • 3 tracks$/,
   );
 
-  // Below them, a link goes to the Sessions page, which lists all five.
-  await click(link("All sessions"));
-  expect(route.pathname()).toBe("/sessions");
-  expect(document.querySelectorAll("main section li")).toHaveLength(5);
+  // Below them, All sessions shows the Sessions panel, which lists all five.
+  await click(withText('[role="presentation"] button', "All sessions"));
+  expect(route.pathname()).toBe(`/browser/${ids[0]}`);
+  expect(leftPanelTitle()).toBe("Sessions");
+  expect(document.querySelectorAll("#left-panel section li")).toHaveLength(5);
+  expect(railButton("Sessions")?.getAttribute("aria-expanded")).toBe("true");
 });
 
-it("lists every saved session to search, and creates one into the browser", async () => {
+it("lists every saved session to search in the left panel, and creates one", async () => {
   const day = (n: number) => new Date(Date.UTC(2026, 0, n));
   const ids = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"].map((name) =>
     server.add(name, defaults()),
   );
   ids.forEach((id, index) => (server.stored.get(id)!.updatedAt = day(index + 1)));
-  await visit("/sessions");
+  // From another page, Sessions goes to the browser with the Sessions panel shown.
+  await visit("/settings");
+  await click(document.querySelector('nav a[aria-label="Sessions"]'));
+  expect(route.pathname()).toBe("/browser");
+  expect(leftPanelTitle()).toBe("Sessions");
   const names = () =>
-    [...document.querySelectorAll("main section nav .MuiListItemText-primary")].map(
+    [...document.querySelectorAll("#left-panel section nav .MuiListItemText-primary")].map(
       (name) => name.textContent,
     );
   await vi.waitFor(() => expect(names()).toEqual(["Epsilon", "Delta", "Gamma", "Beta", "Alpha"]));
   // Saved long before now, they share one group.
   const groups = () =>
-    [...document.querySelectorAll("main section")].map((section) => [
-      section.querySelector("h2")?.textContent,
+    [...document.querySelectorAll("#left-panel section")].map((section) => [
+      section.querySelector("h3")?.textContent,
       section.querySelectorAll("li").length,
     ]);
   expect(groups()).toEqual([["More than a month ago", 5]]);
   // The heading says when each was saved; rows show the assembly and track count.
-  expect(document.querySelector("main section .MuiListItemText-secondary")?.textContent).toBe(
-    "hg38 • 3 tracks",
-  );
+  expect(
+    document.querySelector("#left-panel section .MuiListItemText-secondary")?.textContent,
+  ).toBe("hg38 • 3 tracks");
 
   const search = document.querySelector<HTMLInputElement>('input[aria-label="Search sessions"]')!;
   await type(search, "ta");
@@ -257,8 +270,9 @@ it("lists every saved session to search, and creates one into the browser", asyn
   await type(search, "zeta");
   expect(names()).toEqual([]);
   expect(text()).toContain("No sessions match “zeta”.");
+  await type(search, "");
 
-  await click(withText("button", "New session"));
+  await click(withText("#left-panel button", "New session"));
   const name = () =>
     document.querySelector<HTMLInputElement>('[role="dialog"] input:not([aria-hidden])');
   await vi.waitFor(() => expect(name()).toBeTruthy());
@@ -268,14 +282,42 @@ it("lists every saved session to search, and creates one into the browser", asyn
   const created = [...server.stored.keys()].find((id) => !ids.includes(id));
   expect(route.pathname()).toBe(`/browser/${created}`);
 
-  // Saved today, it heads the list.
-  await click(document.querySelector('nav a[aria-label="Sessions"]'));
+  // The panel stays, and the new session, saved today, heads it.
+  expect(leftPanelTitle()).toBe("Sessions");
   await vi.waitFor(() =>
     expect(groups()).toEqual([
       ["Today", 1],
       ["More than a month ago", 5],
     ]),
   );
+});
+
+it("shows and hides the browser's left panels from the side bar", async () => {
+  const a = server.add("Alpha", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const hidden = () => document.querySelector("#left-panel")?.hasAttribute("inert");
+  // The browser's tools show first, so Browser is pressed and Sessions is not.
+  expect(leftPanelTitle()).toBe("Genome Browser");
+  expect(railButton("Browser")?.getAttribute("aria-expanded")).toBe("true");
+  expect(railButton("Sessions")?.getAttribute("aria-expanded")).toBe("false");
+
+  // Sessions switches the open panel, then hides it.
+  await click(railButton("Sessions"));
+  expect(leftPanelTitle()).toBe("Sessions");
+  expect(railButton("Browser")?.getAttribute("aria-expanded")).toBe("false");
+  await click(railButton("Sessions"));
+  expect(hidden()).toBe(true);
+  expect(railButton("Sessions")?.getAttribute("aria-expanded")).toBe("false");
+
+  // Browser shows its tools again, opening the panel.
+  await click(railButton("Browser"));
+  expect(hidden()).toBe(false);
+  expect(leftPanelTitle()).toBe("Genome Browser");
+  // The header's toggle hides whichever panel is shown, and Browser follows it.
+  await click(button("Hide left panel"));
+  expect(hidden()).toBe(true);
+  expect(railButton("Browser")?.getAttribute("aria-expanded")).toBe("false");
 });
 
 it("returns to the open session when another cannot be opened", async () => {
@@ -319,7 +361,7 @@ it("deletes the open session and shows the empty browser", async () => {
   expect(heading()).toBe("No session open");
   expect(text()).toContain("Open a recent session or create one from the menu beside the title.");
   // The menu stays open to switch to or create another session.
-  expect(button("Sessions")?.getAttribute("aria-expanded")).toBe("true");
+  expect(button("Session menu")?.getAttribute("aria-expanded")).toBe("true");
   expect(sessionNames()).toEqual(["Beta"]);
   expect(server.stored.has(a)).toBe(false);
 });
@@ -785,4 +827,24 @@ it("budgets session readers when the open session changes", async () => {
       "SessionTitle": 2,
     }
   `);
+});
+
+// Switching the left panel renders the frame around the browser, not the browser itself.
+it("budgets the browser when the side bar switches the left panel", async () => {
+  const a = server.add("Alpha", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const report = await probe!.measure(async () => {
+    railButton("Sessions")!.click();
+    await vi.waitFor(() => expect(leftPanelTitle()).toBe("Sessions"));
+  });
+  expect(report.pick("SideBar", "SessionSwitcher", "BrowserView", "BrowserContent"))
+    .toMatchInlineSnapshot(`
+      {
+        "BrowserContent": 0,
+        "BrowserView": 0,
+        "SessionSwitcher": 0,
+        "SideBar": 1,
+      }
+    `);
 });

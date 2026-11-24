@@ -13,8 +13,9 @@ import { SessionTitle } from "./SessionTitle";
 /**
  * The browser's title: the open session's name, which renames it when clicked,
  * and an arrow that opens the menu of recent sessions and the New session dialog.
+ * `onAllSessions` shows every saved session, from the menu's All sessions.
  */
-export function SessionSwitcher() {
+export function SessionSwitcher({ onAllSessions }: { onAllSessions: () => void }) {
   // The whole title, so the menu lines up with the name's left edge. Set only while the
   // menu is open: Popover reads its anchor's document, which the server render lacks.
   const title = useRef<HTMLDivElement>(null);
@@ -30,7 +31,7 @@ export function SessionSwitcher() {
         size="small"
         color="primary"
         sx={{ flexShrink: 0, ml: 1 }}
-        aria-label="Sessions"
+        aria-label="Session menu"
         aria-haspopup="dialog"
         aria-expanded={menuOpen}
         aria-controls={menuOpen ? menuId : undefined}
@@ -52,6 +53,7 @@ export function SessionSwitcher() {
             close();
             setCreating(true);
           }}
+          onAllSessions={onAllSessions}
         />
       </Popover>
       <NewSessionDialog open={creating} onClose={() => setCreating(false)} />

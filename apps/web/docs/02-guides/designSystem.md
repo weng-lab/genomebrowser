@@ -7,11 +7,11 @@ This guide is for maintainers building app screens. `shared/ui/` holds the app's
 | File            | Contents                                                                                                                                                                                      |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `theme.ts`      | The MUI theme, with the palette and component overrides, including the toolbar's centering, cards, and toggle buttons, and shared styles: `primarySurfaceSx`, `textBoxTrim`, `visuallyHidden` |
-| `NavRail.tsx`   | The navy column of icon links: an optional brand, link groups separated by lines, bottom links, and a footer                                                                                  |
+| `NavRail.tsx`   | The navy column of icon links and panel buttons: an optional brand, groups separated by lines, bottom items, and a footer                                                                     |
 | `StatusTag.tsx` | A small bordered tag with a dot, or a spinner while busy, a label, and a neutral, success, warning, or error tone                                                                             |
 | `color.ts`      | `swatchColors`, the eight named colors color rows offer, and the six-digit hex helpers that check and read typed and stored colors                                                            |
 
-Components take plain props and render presentation only. A feature or the workspace frame connects them to app state: the workspace's `SideBar` gives `NavRail` Next.js links and the current route, `SaveStatus` maps the session's save status to a `StatusTag`, and the theme styles the browser toolbar, the UI package's `ControlToolbar`, through its `GbControlToolbar` and `GbLabeledGroup` entries.
+Components take plain props and render presentation only. A feature or the workspace frame connects them to app state: the workspace's `SideBar` gives `NavRail` Next.js links, the current route, and buttons for the shown left panel, `SaveStatus` maps the session's save status to a `StatusTag`, and the theme styles the browser toolbar, the UI package's `ControlToolbar`, through its `GbControlToolbar` and `GbLabeledGroup` entries.
 
 Lint keeps `shared/ui/` below everything else in the app. It must not import features, routes, composition, session or server code, the workspace frame, or `@weng-lab` packages. The workspace and features import from it.
 

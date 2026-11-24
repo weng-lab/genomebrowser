@@ -21,21 +21,19 @@ export const useCreateDisabled = () =>
 type NewSessionDialogProps = {
   open: boolean;
   onClose: () => void;
-  /** Called after the dialog closes, once creating the session has started. */
-  onCreate?: () => void;
 };
 
 /** Asks for a new session's name and assembly, then creates and opens it. */
-export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogProps) {
+export function NewSessionDialog({ open, onClose }: NewSessionDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       {/* The dialog unmounts its content once closed, so each opening starts empty. */}
-      <NewSessionForm onClose={onClose} onCreate={onCreate} />
+      <NewSessionForm onClose={onClose} />
     </Dialog>
   );
 }
 
-function NewSessionForm({ onClose, onCreate }: Omit<NewSessionDialogProps, "open">) {
+function NewSessionForm({ onClose }: Omit<NewSessionDialogProps, "open">) {
   const create = useSession((session) => session.create);
   const disabled = useCreateDisabled();
   const [name, setName] = useState("");
@@ -46,7 +44,6 @@ function NewSessionForm({ onClose, onCreate }: Omit<NewSessionDialogProps, "open
     onClose();
     // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
     void create({ name: name.trim() || DEFAULT_NAME, assembly });
-    onCreate?.();
   }
 
   return (

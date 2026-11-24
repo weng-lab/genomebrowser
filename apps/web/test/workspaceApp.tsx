@@ -1,4 +1,4 @@
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useSyncExternalStore, type MouseEventHandler, type ReactNode } from "react";
 import { beforeEach, vi } from "vitest";
 import { AccountControls } from "../features/account/components/AccountControls";
 import { AppProviders } from "../composition/AppProviders";
@@ -7,7 +7,6 @@ import { BrowserView } from "../features/browser/components/BrowserView";
 import BrowserIndexPage from "../app/(workspace)/browser/page";
 import CollectionsPage from "../app/(workspace)/collections/page";
 import { navigation } from "../composition/navigation";
-import SessionsPage from "../app/(workspace)/sessions/page";
 import SettingsPage from "../app/(workspace)/settings/page";
 import { Workspace } from "../shared/workspace/Workspace";
 
@@ -58,11 +57,22 @@ vi.mock("next/navigation", async () => {
   };
 });
 vi.mock("next/link", () => ({
-  default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
+  // Like Next's, it calls the link's own `onClick` before navigating.
+  default: ({
+    href,
+    children,
+    onClick,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+    onClick?: MouseEventHandler<HTMLAnchorElement>;
+  }) => (
     <a
       {...props}
       href={href}
       onClick={(event) => {
+        onClick?.(event);
         event.preventDefault();
         history.push(href);
       }}
@@ -131,7 +141,6 @@ function Page() {
         <BrowserIndexPage />
       </BrowserPage>
     );
-  if (pathname === "/sessions") return <SessionsPage />;
   if (pathname === "/settings") return <SettingsPage />;
   return <CollectionsPage />;
 }

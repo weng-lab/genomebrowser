@@ -20,7 +20,7 @@ export default function ReportsPage() {
 }
 ```
 
-Add the route's link to `composition/navigation.tsx` with `href`, `label`, and `icon`. Put it in the `sections` group of the links it belongs beside, or in `bottom`; the side bar draws a line between groups. Entries appear in list order. Titles and panel elements stay in the feature page or its thin route composition. No central page registry or export is required.
+Add the route's link to `composition/navigation.tsx` with `href`, `label`, and `icon`. To let side bar entries choose between a page's left panels, give each panel an `id` and each entry the `panel` it shows; see the [reference](../03-reference.md#workspace). Put it in the `sections` group of the links it belongs beside, or in `bottom`; the side bar draws a line between groups. Entries appear in list order. Titles and panel elements stay in the feature page or its thin route composition. No central page registry or export is required.
 
 Every route has center content. Use a left panel for navigation within the page and a right panel for a tool used alongside it. An absent side panel has no toggle. A supplied panel can be collapsed and reopened by the user.
 
