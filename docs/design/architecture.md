@@ -2,9 +2,9 @@
 
 Genomebrowser is built primarily for embedding in Weng Lab websites. It also supports developers building their own applications. Real integration needs should guide design. Application-specific behavior should not require changes to browser internals.
 
-Prefer modules that give callers useful behavior through understandable interfaces ([code standards](code_standards.md#own-the-complete-operation)). Keep responsibilities focused: core for general browser capabilities, first-party tracks for broadly useful formats, applications for product workflows. Experience justifies abstractions; existing package contents are evidence, not sacred boundaries.
+Prefer modules that give callers useful behavior through understandable interfaces ([code standards](code-standards.md#own-the-complete-operation)). Keep responsibilities focused: core for general browser capabilities, first-party tracks for broadly useful formats, applications for product workflows. Experience justifies abstractions; existing package contents are evidence, not sacred boundaries.
 
-Recorded decisions: [ADR index](adr/README.md).
+Recorded decisions: [ADR index](../adr/README.md).
 
 ## Package roles
 

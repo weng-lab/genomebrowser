@@ -4,7 +4,7 @@ ADRs record decisions about the **repository and system shape** that should chan
 
 ## When to write one
 
-Write an ADR when maintainers choose among meaningful alternatives for package boundaries, persistence, release policy, coordinate conventions, or similar. Skip ADRs for routine refactors and for principles better enforced by lint or covered in [code standards](../code_standards.md). Edit ADRs only when asked.
+Write an ADR when maintainers choose among meaningful alternatives for package boundaries, persistence, release policy, coordinate conventions, or similar. Skip ADRs for routine refactors and for principles better enforced by lint or covered in [code standards](../design/code-standards.md). Edit ADRs only when asked.
 
 ## Format and status
 
