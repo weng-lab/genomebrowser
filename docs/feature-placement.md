@@ -18,7 +18,7 @@ UI holds controls useful to embedding apps (SCREEN, PsychSCREEN, Factorbook, and
 
 ## Web app
 
-Put product pages and workflows in `apps/web`. Routes stay thin; features own UI and operations; composition wires providers and navigation; `shared/workspace` stays free of domain imports and browser state, and `shared/ui` holds the theme and presentational components that the workspace and features both build on. Features must not import composition.
+Put product pages and workflows in `apps/web`. Routes stay thin; features own UI and operations; composition wires providers and navigation; `shared/workspace` stays free of domain imports and browser state, and `shared/ui` holds the theme and presentational components that the workspace and features both build on. Features compose those components rather than restyling MUI parts of their own ([design system](../apps/web/docs/02-guides/designSystem.md#compose-screens-from-these-components)). Features must not import composition.
 
 Each agent command is one definition in `features/agent/commands/`, which the tab runs and the MCP endpoint in `features/mcp/` publishes as a tool. Command delivery between server instances and tabs lives in `features/agent/server/` ([ADR 0007](adr/0007-app-owned-mcp-redis-relay.md)).
 

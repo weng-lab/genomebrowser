@@ -29,6 +29,25 @@ Components take plain props and render presentation only. A feature or the works
 
 Lint keeps `shared/ui/` below everything else in the app. It must not import features, routes, composition, session or server code, the workspace frame, or `@weng-lab` packages. The workspace and features import from it.
 
+## Compose screens from these components
+
+Build a feature's interface from these components and the theme, not from restyled MUI parts. A feature's components connect state to these; they don't redraw a button, field, form, dialog, menu, or message the app already has. When a screen needs one of these and it doesn't exist yet, add it here first, with stories, then build the feature on it. Copying a dialog's layout or a button's `sx` into a feature, even once, is how screens drift apart.
+
+| A screen needs                                         | Use                                                                     |
+| ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| A form in a dialog                                     | `DialogForm` inside a MUI `Dialog`                                      |
+| To ask before an action, such as a delete              | `ConfirmDialog`, with `tone="danger"` for one that can't be undone      |
+| A short form set into a panel                          | `FormCard` and `FormCardActions`                                        |
+| A row's actions                                        | `ActionMenu` and `MenuAction`; `ActionsPopover` when it also has fields |
+| A section's heading, with a count or add buttons       | `SectionHeader`                                                         |
+| A small label above a list in a menu or page           | `SectionLabel`                                                          |
+| A list or section with nothing in it yet               | `EmptyState`                                                            |
+| Loading, a failure, or a wait for a session, in a line | `StatusMessage`                                                         |
+| A save state or other short status                     | `StatusTag`                                                             |
+| A color shown, or chosen                               | `ColorDot`; `SwatchPicker`, which opens `ColorPicker` for any color     |
+
+Signs a feature is rebuilding one of these: it imports `Dialog`, `DialogActions`, `Menu`, or `Popover` from MUI, or it imports a shared style such as `formButtonSx` to make its own button look like one here. Use the component instead, or, if it doesn't fit, change or add one here so every screen gets the change.
+
 ## Deciding what goes here
 
 Ask these in order; the first that applies decides.
@@ -37,7 +56,8 @@ Ask these in order; the first that applies decides.
 2. **Would other embedding sites, such as SCREEN, want it?** It belongs in `@weng-lab/genomebrowser-ui`, styled only from the host's theme. This folder holds the app's own look.
 3. **Is it part of the workspace frame's layout,** such as panels, title rows, or the floating header? It belongs in `shared/workspace/`, built on components from here.
 4. **Does it need app state,** such as the session, a browser store, the route, or the server? Split it: the look goes here with plain props, and a small component in the feature connects it to the state, as `StatusTag` and `SaveStatus` do. If it cannot be split, it stays in the feature.
-5. **Does a second screen use it, or is one about to?** Move it here then. Until then, keep it in the feature that uses it. Pieces that set the app's overall look, such as the navigation rail, can come here first, since other screens follow them.
+5. **Is it a basic building block,** such as a button style, field, form layout, dialog, menu, message, or a way to show a color? It comes here from its first use, as the section above describes, since other screens will need it.
+6. **Is it a larger piece made of these, such as a card for one kind of item?** Keep it in the feature until a second screen uses it, or one is about to, then move it here. Pieces that set the app's overall look, such as the navigation rail, can come here first, since other screens follow them.
 
 Name a component for what it looks like, not the feature that first used it: `StatusTag`, not `SaveBadge`. Every component here gets stories showing each state screens use; a component that cannot be previewed without app state has not been split as step 4 describes.
 
