@@ -4,7 +4,7 @@ pnpm monorepo for an embeddable React genome browser.
 
 ## Knowledge base
 
-Start at [docs/README.md](docs/README.md). It is the genome browser knowledge base for agents and maintainers: decisions, vocabulary, product intent, and contribution judgment the code cannot show.
+Take patterns and implementation details from the code. [docs/README.md](docs/README.md) holds what the code cannot show: decisions, requirements, vocabulary, and product intent.
 
 Read what the change needs:
 
@@ -19,6 +19,6 @@ Before handing off a change, run `pnpm format`, `pnpm verify`, and `pnpm run doc
 
 Consumer docs live in `packages/*/docs/` and ship with packages. Update them when public behavior changes. Before changing the Next.js app, read its installed `apps/web/node_modules/next/dist/docs/index.md` and follow that version.
 
-Skills under `.agents/skills/` are thin routers into this knowledge base plus agent-only steps. Load the skills that match the task before starting. Do not treat a skill as a second policy store.
+Skills under `.agents/skills/` route into the knowledge base and add agent-only steps. Load the ones that match the task.
 
 Before including changes from outside this session in a commit, ask the user whether to include them.
