@@ -165,6 +165,41 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     expect(await result).toEqual({ ok: true, value: 3 });
   });
 
+  it("keeps the pending limit's key until the latest deadline, whatever order commands arrive in", async () => {
+    const namespace = testNamespace();
+    const commands = relay({ namespace });
+    const id = session();
+    const tab = await attachTab(commands, id);
+    if (tab === "taken") throw new Error("Tab was refused");
+    const long = commands.dispatch(id, setRegion, never(), { timeoutMs: 10_000 });
+    await tab.command();
+    const short = commands.dispatch(id, setRegion, never());
+    await tab.command();
+    const redis = createClient({ url: testRedisUrl });
+    await redis.connect();
+    try {
+      expect(await redis.pTTL(`${namespace}:pending:${id}`)).toBeGreaterThan(5_000);
+    } finally {
+      redis.destroy();
+    }
+    tab.close();
+    await Promise.all([long, short]);
+  });
+
+  it("ends a tab stream that was still attaching when the relay closed", async () => {
+    for (const delayMs of [0, 1, 2, 5, 10, 20]) {
+      const commands = relay({ heartbeatIntervalMs: 30_000 });
+      const attaching = attachTab(commands, session()).catch(() => "failed" as const);
+      await new Promise((resolve) => {
+        setTimeout(resolve, delayMs);
+      });
+      const closing = commands.close();
+      const tab = await attaching;
+      if (typeof tab !== "string") await tab.ended;
+      await closing;
+    }
+  }, 10_000);
+
   it("fails at once when no tab is attached", async () => {
     const started = Date.now();
     expect(await relay().dispatch(session(), setRegion, never())).toMatchObject({

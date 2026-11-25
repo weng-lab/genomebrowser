@@ -107,11 +107,13 @@ redis.call("DEL", KEYS[1])
 redis.call("PUBLISH", KEYS[2], ARGV[1])
 return 1`;
 // Admit a command unless the session already has the maximum in flight, after
-// dropping commands past their deadline.
+// dropping commands past their deadline. The key lasts until the latest
+// deadline, which a command with a shorter one must not cut short.
 const admitScript = `redis.call("ZREMRANGEBYSCORE", KEYS[1], "-inf", ARGV[1])
 if redis.call("ZCARD", KEYS[1]) >= tonumber(ARGV[2]) then return 0 end
 redis.call("ZADD", KEYS[1], ARGV[3], ARGV[4])
-redis.call("PEXPIREAT", KEYS[1], ARGV[3])
+local latest = redis.call("ZRANGE", KEYS[1], -1, -1, "WITHSCORES")[2]
+redis.call("PEXPIREAT", KEYS[1], latest)
 return 1`;
 // Returns the connection that received the command, or nil.
 const publishScript = `local owner = redis.call("GET", KEYS[1])
@@ -316,6 +318,18 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     const scope = Scope.makeUnsafe();
     const ended = Deferred.makeUnsafe<void>();
     const end = () => Deferred.doneUnsafe(ended, Exit.void);
+    // Listed while it attaches, so `close` ends it and waits for it then too.
+    let settle!: () => void;
+    streams.set(
+      end,
+      new Promise<void>((resolve) => {
+        settle = resolve;
+      }),
+    );
+    const settled = () => {
+      streams.delete(end);
+      settle();
+    };
     const encoder = new TextEncoder();
     let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
     const write = (text: string) => {
@@ -370,7 +384,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
       { signal: timed(signal) },
     );
     if (!Exit.isSuccess(opened) || !opened.value) {
-      await Effect.runPromise(Scope.close(scope, Exit.void));
+      await Effect.runPromise(Scope.close(scope, Exit.void)).finally(settled);
       if (Exit.isSuccess(opened)) return "taken";
       throw new Error("Could not attach the browser tab", { cause: opened.cause });
     }
@@ -393,7 +407,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
       }),
     );
     write(": connected\n\n");
-    const done = Effect.runPromise(
+    Effect.runPromise(
       Effect.gen(function* () {
         yield* Effect.forkScoped(heartbeat);
         yield* Effect.raceAll([
@@ -414,8 +428,9 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
         ),
         Effect.ensuring(Scope.close(scope, Exit.void)),
       ),
-    ).finally(() => streams.delete(end));
-    streams.set(end, done);
+    )
+      .catch((error: unknown) => console.error("A tab stream failed", error))
+      .finally(settled);
     return stream;
   }
 
