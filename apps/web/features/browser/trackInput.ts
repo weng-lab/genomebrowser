@@ -1,3 +1,4 @@
+import type { CellValue, SheetData } from "read-excel-file/universal";
 import { parseCustomTracks, type LineError, type ParsedTrack } from "./customTracks";
 import { parseDelimited, readTrackTable, toTabSeparated } from "./trackTable";
 
@@ -32,9 +33,9 @@ export function readTracks(text: string): TrackReading {
 }
 
 /**
- * An uploaded file's UTF-8 text, for the paste box and `readTracks`. A `.csv` table becomes
- * tab-separated text, as if its cells were copied; a `.csv` file of URLs or track lines, with no
- * comma in its first line, stays as it is, like any other file.
+ * An uploaded file's text, for the paste box and `readTracks`. An Excel workbook's first sheet and
+ * a `.csv` table become tab-separated text, as if their cells were copied; a `.csv` file of URLs
+ * or track lines, with no comma in its first line, stays as it is, like any other UTF-8 file.
  */
 export async function readTrackFile(file: File): Promise<TrackFileText> {
   if (file.size > maxUploadBytes)
@@ -51,6 +52,12 @@ export async function readTrackFile(file: File): Promise<TrackFileText> {
       error: `${file.name} could not be read. Choose the file again, or paste its text.`,
     };
   }
+  if (/\.xlsx$/i.test(file.name)) return readWorkbook(file.name, bytes);
+  if (/\.xls$/i.test(file.name))
+    return {
+      ok: false,
+      error: `${file.name} is an Excel 97-2003 workbook, which can't be read. Save it as .xlsx, and upload it again.`,
+    };
   let text: string;
   try {
     // A byte order mark, as Excel's CSV UTF-8 writes, is dropped.
@@ -58,7 +65,7 @@ export async function readTrackFile(file: File): Promise<TrackFileText> {
   } catch {
     return {
       ok: false,
-      error: `${file.name} isn't UTF-8 text. Save it as UTF-8, such as Excel's CSV UTF-8, and upload it again.`,
+      error: `${file.name} isn't UTF-8 text. Save it as UTF-8, such as Excel's CSV UTF-8, or upload the workbook as .xlsx.`,
     };
   }
   if (!/\.csv$/i.test(file.name)) return { ok: true, text };
@@ -69,9 +76,40 @@ export async function readTrackFile(file: File): Promise<TrackFileText> {
   if (first.includes(";"))
     return {
       ok: false,
-      error: `${file.name} separates its columns with semicolons. Save it with commas, or as tab-separated text, and upload it again.`,
+      error: `${file.name} separates its columns with semicolons. Upload the workbook as .xlsx, or save it with commas or as tab-separated text.`,
     };
   return { ok: true, text };
+}
+
+/**
+ * A workbook's first sheet as tab-separated text. A formula cell holds the result the spreadsheet
+ * last calculated, so one saved without its result, as some scripts write them, is empty.
+ */
+async function readWorkbook(name: string, bytes: ArrayBuffer): Promise<TrackFileText> {
+  let rows: SheetData;
+  try {
+    // Loaded only for a workbook. The browser build reads in a Web Worker, which a 1 MB file
+    // doesn't need.
+    const { readSheet } = await import("read-excel-file/universal");
+    rows = await readSheet(bytes);
+  } catch {
+    return {
+      ok: false,
+      error: `${name} could not be read as an Excel workbook. Save it as .xlsx again, or as .csv, and upload it again.`,
+    };
+  }
+  return { ok: true, text: toTabSeparated(rows.map((row) => row.map(cellText))) };
+}
+
+/** A workbook cell as the text a copied cell holds: TRUE or FALSE, and dates as ISO dates. */
+function cellText(value: CellValue | null) {
+  if (value === null) return "";
+  if (typeof value === "boolean") return value ? "TRUE" : "FALSE";
+  if (value instanceof Date) {
+    const iso = value.toISOString();
+    return iso.endsWith("T00:00:00.000Z") ? iso.slice(0, "YYYY-MM-DD".length) : iso;
+  }
+  return String(value);
 }
 
 const firstLine = (text: string) => text.split(/\r\n|\n|\r/).find((line) => line.trim() !== "");

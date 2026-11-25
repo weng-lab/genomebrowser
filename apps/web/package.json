@@ -44,6 +44,7 @@
     "pg": "^8.23.1",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "read-excel-file": "^9.3.20",
     "redis": "^6.3.1",
     "server-only": "^0.0.1",
     "zod": "catalog:",
