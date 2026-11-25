@@ -13,7 +13,7 @@ export const sidePanelSizes = {
 
 type PanelState = {
   leftOpen: boolean;
-  /** The id of the left panel a navigation entry chose, or none for the page's first. */
+  /** The id of the left panel a navigation entry chose. `useShownLeftPanel` reads which shows. */
   leftPanel: string | undefined;
   rightOpen: boolean;
   leftWidth: number;

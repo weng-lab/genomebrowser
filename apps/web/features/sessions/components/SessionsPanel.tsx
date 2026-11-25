@@ -133,6 +133,7 @@ function DeleteAllSessions({ onDelete }: { onDelete: () => void }) {
     (session) =>
       session.sessions.length === 0 || session.status !== "ready" || session.pending !== undefined,
   );
+  const hasActive = useSession(({ active }) => active !== undefined);
   const hasOthers = useSession(({ active, sessions }) =>
     active ? sessions.some(({ id }) => id !== active.id) : false,
   );
@@ -142,7 +143,11 @@ function DeleteAllSessions({ onDelete }: { onDelete: () => void }) {
       label="Delete all sessions"
       disabled={disabled}
       confirmTitle="Delete all sessions?"
-      confirmText="Every saved session will be deleted, including the one open in the browser."
+      confirmText={
+        hasActive
+          ? "Every saved session will be deleted, including the one open in the browser."
+          : "Every saved session will be deleted."
+      }
       confirmLabel="Delete all"
       onDelete={() => {
         onDelete();

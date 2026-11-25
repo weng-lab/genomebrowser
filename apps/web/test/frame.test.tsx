@@ -161,3 +161,42 @@ it("toggles panels with keyboard shortcuts and ignores input fields", () => {
     container.querySelector('button[aria-controls="right-panel"]')?.getAttribute("aria-expanded"),
   ).toBe("false");
 });
+
+it("shows the left panel of the page's first navigation entry, whatever order the page lists", () => {
+  setup();
+  act(() =>
+    root!.render(
+      <Workspace
+        navigation={{
+          sections: [
+            [
+              { href: "/home", panel: "files", label: "Files", icon: "F" },
+              { href: "/home", panel: "projects", label: "Projects", icon: "P" },
+            ],
+          ],
+        }}
+      >
+        <WorkspacePage
+          title="Home"
+          left={[
+            { id: "projects", title: "Projects", children: <p>Project list</p> },
+            { id: "files", title: "Files", children: <p>File list</p> },
+          ]}
+        >
+          <p>Home content</p>
+        </WorkspacePage>
+      </Workspace>,
+    ),
+  );
+  const entry = (label: string) =>
+    container.querySelector<HTMLButtonElement>(`nav button[aria-label="${label}"]`)!;
+  const shown = () => container.querySelector("#left-panel h2")?.textContent;
+  expect(shown()).toBe("Files");
+  expect(entry("Files").getAttribute("aria-expanded")).toBe("true");
+  expect(entry("Projects").getAttribute("aria-expanded")).toBe("false");
+
+  act(() => entry("Projects").click());
+  expect(shown()).toBe("Projects");
+  expect(entry("Projects").getAttribute("aria-expanded")).toBe("true");
+  expect(entry("Files").getAttribute("aria-expanded")).toBe("false");
+});

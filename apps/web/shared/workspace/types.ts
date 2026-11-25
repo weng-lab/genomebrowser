@@ -9,7 +9,7 @@ export type WorkspaceNavigationItem = {
   /**
    * The id of a left panel that the page at `href` supplies. On that page, the entry shows the
    * panel, or hides it while it is shown; elsewhere it goes there with the panel shown. Until an
-   * entry chooses one, the page shows its first left panel, so list that panel's entry first.
+   * entry chooses one, the page shows the panel of its first entry.
    */
   panel?: string;
 };

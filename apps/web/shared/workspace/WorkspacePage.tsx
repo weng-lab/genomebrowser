@@ -6,6 +6,7 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Header } from "./frame/Header";
+import { useShownLeftPanel } from "./navigation";
 import { PageTitleRow } from "./frame/PageTitleRow";
 import { PanelButton } from "./panels/PanelButton";
 import { PanelToggleButton } from "./panels/PanelToggleButton";
@@ -22,8 +23,9 @@ export type WorkspacePageProps = {
   /** Shown at the title row's right end, before the right panel's button. */
   actions?: ReactNode;
   /**
-   * The left panel, or panels with ids that navigation entries choose between. The first shows
-   * until an entry chooses another.
+   * The left panel, or panels with ids that navigation entries choose between. Until an entry
+   * chooses one, the panel of the first entry for this page shows, or the first panel when no
+   * entry names one.
    */
   left?: WorkspacePanel | readonly WorkspacePanel[];
   right?: WorkspacePanel;
@@ -39,7 +41,7 @@ export function WorkspacePage({
   children,
 }: WorkspacePageProps) {
   const leftOpen = usePanelState((state) => state.leftOpen);
-  const leftPanel = usePanelState((state) => state.leftPanel);
+  const shownLeftId = useShownLeftPanel();
   const rightOpen = usePanelState((state) => state.rightOpen);
   const toggle = usePanelState((state) => state.toggle);
   const toggleLeft = () => toggle("left");
@@ -47,7 +49,7 @@ export function WorkspacePage({
   const transitionEnabled = useTransitionEnabled(usePathname());
   const leftPanels = left === undefined ? [] : "children" in left ? [left] : left;
   const shownLeft: WorkspacePanel | undefined =
-    leftPanels.find(({ id }) => id === leftPanel) ?? leftPanels[0];
+    leftPanels.find(({ id }) => id === shownLeftId) ?? leftPanels[0];
   useHotkey({ key: "B", ctrl: true }, toggleLeft, {
     enabled: shownLeft !== undefined,
     ignoreInputs: true,

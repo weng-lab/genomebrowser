@@ -2,6 +2,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { MouseEvent, ReactNode } from "react";
 import { NavRail, type NavRailItem } from "../../ui/NavRail";
+import { routeMatch, useShownLeftPanel } from "../navigation";
 import { usePanelState } from "../panels/panelState";
 import type { WorkspaceNavigation, WorkspaceNavigationItem } from "../types";
 
@@ -18,20 +19,12 @@ type SideBarProps = {
 export function SideBar({ navigation, brand, footer }: SideBarProps) {
   const pathname = usePathname();
   const leftOpen = usePanelState((state) => state.leftOpen);
-  const leftPanel = usePanelState((state) => state.leftPanel);
   const toggle = usePanelState((state) => state.toggle);
   const showLeft = usePanelState((state) => state.showLeft);
-  const entries = [...navigation.sections.flat(), ...(navigation.bottom ?? [])];
-  const at = (href: string) => {
-    if (href === pathname) return "page";
-    if (href !== "/" && pathname.startsWith(`${href.replace(/\/$/, "")}/`)) return "location";
-  };
-  // The page shows the chosen panel, or else its first, whose entry comes first.
-  const panels = entries.filter(({ href, panel }) => panel !== undefined && at(href));
-  const shownPanel = (panels.find(({ panel }) => panel === leftPanel) ?? panels[0])?.panel;
+  const shownPanel = useShownLeftPanel();
 
   const toItem = ({ href, label, icon, panel }: WorkspaceNavigationItem): NavRailItem => {
-    const current = at(href);
+    const current = routeMatch(href, pathname);
     if (panel === undefined) return { href, label, icon, current };
     if (current === undefined)
       return {

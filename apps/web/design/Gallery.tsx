@@ -9,6 +9,7 @@ import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
 import { ControlToolbar } from "@weng-lab/genomebrowser-ui";
 import { brand, navigation } from "../composition/navigation";
 import { ColorPicker } from "../shared/ui/ColorPicker";
+import { ConfirmDeleteDialog } from "../shared/ui/ConfirmDeleteDialog";
 import { DeleteAllButton } from "../shared/ui/DeleteAllButton";
 import { NavRail } from "../shared/ui/NavRail";
 import { StatusTag } from "../shared/ui/StatusTag";
@@ -72,16 +73,10 @@ export function Gallery() {
               onDelete={() => {}}
             />
           ))}
-          {/* Its confirmation also offers a narrower deletion. */}
-          <DeleteAllButton
-            label="Delete all sessions"
-            confirmTitle="Delete all sessions?"
-            confirmText="Every saved session will be deleted, including the one open in the browser."
-            confirmLabel="Delete all"
-            onDelete={() => {}}
-            confirmAlternative={{ label: "Delete all but current", onConfirm: () => {} }}
-          />
         </Box>
+      </Section>
+      <Section title="ConfirmDeleteDialog" source="shared/ui/ConfirmDeleteDialog.tsx">
+        <ConfirmDeleteDialogExample />
       </Section>
       <Section title="SwatchPicker" source="shared/ui/SwatchPicker.tsx">
         <SwatchPickerExample />
@@ -123,6 +118,39 @@ export function Gallery() {
         </Box>
       </Section>
     </Box>
+  );
+}
+
+/** The deletion confirmation, alone and with a narrower deletion beside it. */
+function ConfirmDeleteDialogExample() {
+  const [open, setOpen] = useState<"plain" | "alternative" | undefined>();
+  const close = () => setOpen(undefined);
+  return (
+    <Row>
+      <Button variant="outlined" onClick={() => setOpen("plain")}>
+        Open confirmation
+      </Button>
+      <Button variant="outlined" onClick={() => setOpen("alternative")}>
+        Open with a narrower deletion
+      </Button>
+      <ConfirmDeleteDialog
+        open={open === "plain"}
+        title="Delete all regions?"
+        text="Every saved region, its highlight, and every group will be removed from this session."
+        confirmLabel="Delete all"
+        onConfirm={() => {}}
+        onClose={close}
+      />
+      <ConfirmDeleteDialog
+        open={open === "alternative"}
+        title="Delete all sessions?"
+        text="Every saved session will be deleted, including the one open in the browser."
+        confirmLabel="Delete all"
+        onConfirm={() => {}}
+        alternative={{ label: "Delete all but current", onConfirm: () => {} }}
+        onClose={close}
+      />
+    </Row>
   );
 }
 
