@@ -74,6 +74,11 @@ export type SessionService = {
   ): Promise<ReadableStream<Uint8Array>>;
 };
 
+type StreamPhase =
+  | { tag: "buffering"; sentRevision: number; buffered: SessionEvent[] }
+  | { tag: "live"; sentRevision: number }
+  | { tag: "closed" };
+
 const maxMergeAttempts = 4;
 
 export function createSessionService({
@@ -199,14 +204,18 @@ export function createSessionService({
       const streamAbort = new AbortController();
       const encoder = new TextEncoder();
       let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
-      let closed = false;
-      let ready = false;
-      let sentRevision = sinceRevision ?? 0;
-      const buffered: SessionEvent[] = [];
+      let state: StreamPhase = {
+        tag: "buffering",
+        sentRevision: sinceRevision ?? 0,
+        buffered: [],
+      };
+      // Read `state` through a getter across `await` points so TypeScript does not
+      // keep stale narrowing while abort/cancel/bus callbacks transition the stream.
+      const currentState = (): StreamPhase => state;
 
       const close = () => {
-        if (closed) return;
-        closed = true;
+        if (state.tag === "closed") return;
+        state = { tag: "closed" };
         clearInterval(heartbeat);
         clearTimeout(lifetime);
         streamAbort.abort();
@@ -218,7 +227,7 @@ export function createSessionService({
       };
 
       const write = (text: string) => {
-        if (closed) return;
+        if (state.tag === "closed") return;
         try {
           controller?.enqueue(encoder.encode(text));
         } catch {
@@ -227,9 +236,10 @@ export function createSessionService({
       };
 
       const emit = (event: SessionEvent) => {
+        if (state.tag === "closed") return;
         if (event.type === "updated") {
-          if (event.revision <= sentRevision) return;
-          sentRevision = event.revision;
+          if (event.revision <= state.sentRevision) return;
+          state.sentRevision = event.revision;
           write(`event: updated\ndata: ${JSON.stringify(event)}\n\n`);
           return;
         }
@@ -266,9 +276,8 @@ export function createSessionService({
         await bus.subscribe(
           id,
           (event) => {
-            if (closed) return;
-            if (!ready) buffered.push(event);
-            else emit(event);
+            if (state.tag === "buffering") state.buffered.push(event);
+            else if (state.tag === "live") emit(event);
           },
           streamAbort.signal,
           close,
@@ -278,7 +287,8 @@ export function createSessionService({
 
         try {
           const current = await sessions.load(id);
-          if (!closed && current.revision > sentRevision) {
+          const active = currentState();
+          if (active.tag === "buffering" && current.revision > active.sentRevision) {
             emit({ type: "updated", revision: current.revision });
           }
         } catch (error) {
@@ -289,12 +299,14 @@ export function createSessionService({
           }
         }
 
-        ready = true;
-        for (const event of buffered) {
-          if (closed) break;
-          emit(event);
+        const readyState = currentState();
+        if (readyState.tag === "buffering") {
+          state = { tag: "live", sentRevision: readyState.sentRevision };
+          for (const event of readyState.buffered) {
+            if (currentState().tag !== "live") break;
+            emit(event);
+          }
         }
-        buffered.length = 0;
       } catch (error) {
         signal.removeEventListener("abort", onSignalAbort);
         close();
