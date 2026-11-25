@@ -62,22 +62,22 @@ function createServer(
           const denied = await authorizeRemoteControl(await account(caller.userId), targetSession);
           if (denied) return failed(`${denied.code}: ${denied.error}`);
 
+          // The caller cancelling or disconnecting stops either kind of command.
+          const signal = AbortSignal.any(
+            [context.mcpReq.signal, request?.signal].filter((signal) => !!signal),
+          );
           if (command.target === "state") {
             result = await runServerStateCommand(
               await sessionService(caller.userId),
               targetSession,
               command,
               params,
+              signal,
             );
           } else {
-            const commandRelay = relay();
-            const signals = [context.mcpReq.signal, request?.signal].filter((signal) => !!signal);
-            result = await commandRelay.dispatch(
-              targetSession,
-              { name: command.name, params },
-              AbortSignal.any(signals),
-              { timeoutMs: command.timeoutMs },
-            );
+            result = await relay().dispatch(targetSession, { name: command.name, params }, signal, {
+              timeoutMs: command.timeoutMs,
+            });
           }
         } catch (error) {
           if (error instanceof SessionError) return failed(`${error.code}: ${error.message}`);

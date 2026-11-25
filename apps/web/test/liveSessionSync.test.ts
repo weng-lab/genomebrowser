@@ -418,6 +418,36 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     });
   });
 
+  it("stops a server state command that the caller cancels before it writes", async () => {
+    const sessions = createMemorySessions();
+    const bus = createMemorySessionBus();
+    const service = createSessionService({ sessions, bus });
+    const created = await service.create({ name: "Cancelled", snapshot: defaultSnapshot() });
+    const before = await service.load(created.id);
+    const cancel = new AbortController();
+    const load = sessions.load.bind(sessions);
+    // The caller goes away while the command reads the session.
+    sessions.load = async (id) => {
+      const saved = await load(id);
+      cancel.abort();
+      return saved;
+    };
+
+    expect(
+      await runServerStateCommand(
+        service,
+        created.id,
+        "set_region",
+        { region: { chromosome: "chr7", start: 100, end: 500 } },
+        cancel.signal,
+      ),
+    ).toEqual({ ok: false, code: "CANCELLED", error: "The command was cancelled" });
+    expect(await load(created.id)).toEqual(before);
+    expect(
+      await runServerStateCommand(service, created.id, "list_tracks", {}, cancel.signal),
+    ).toMatchObject({ ok: false, code: "CANCELLED" });
+  });
+
   it("diffs region pans, ignores derived track heights and jsonb key order, and preserves unchanged track refs", () => {
     const stores = createStores("hg38")!;
     const beforeTracks = [...stores.useTrackStore.getState().tracks];

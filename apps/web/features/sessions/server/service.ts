@@ -40,6 +40,8 @@ export type SessionService = {
   /**
    * Apply a domain mutation atomically against the latest persisted state,
    * persist to PostgreSQL, and publish a revision hint to subscribed clients.
+   * Once `signal` aborts, no further load or commit starts; a commit already
+   * sent to PostgreSQL still finishes.
    */
   mutate<T>(
     id: string,
@@ -48,7 +50,7 @@ export type SessionService = {
     ) =>
       | { ok: true; name: string; snapshot: SessionSnapshot; value: T }
       | { ok: false; code: string; error: string },
-    options?: { sourceClientId?: string },
+    options?: { sourceClientId?: string; signal?: AbortSignal },
   ): Promise<SessionMutationOutcome<T>>;
   /** Delete from PostgreSQL and notify all open clients immediately. */
   remove(id: string): Promise<void>;
@@ -149,14 +151,16 @@ export function createSessionService({ sessions, bus }: SessionServiceOptions): 
       ) =>
         | { ok: true; name: string; snapshot: SessionSnapshot; value: T }
         | { ok: false; code: string; error: string },
-      options: { sourceClientId?: string } = {},
+      options: { sourceClientId?: string; signal?: AbortSignal } = {},
     ): Promise<SessionMutationOutcome<T>> {
       const saveId = randomUUID();
       return retryOnConflict(async () => {
+        options.signal?.throwIfAborted();
         const current = await sessions.load(id);
         const result = apply(current);
         if (!result.ok) return result;
         assertWithinSizeLimit(result.name, result.snapshot);
+        options.signal?.throwIfAborted();
         const { session, applied } = await sessions.commit(id, {
           name: result.name,
           snapshot: result.snapshot,
