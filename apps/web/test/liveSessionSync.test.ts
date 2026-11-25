@@ -516,6 +516,26 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     expect(stores.useTrackStore.getState().getTrack("ccres")).toBe(taggedBefore);
   });
 
+  it("leaves every store unchanged when a remote snapshot's track fails validation", () => {
+    const stores = createStores("hg38")!;
+    const before = snapshot(stores);
+    const highlight = {
+      id: "h1",
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      color: "#ff0000",
+    };
+    const remote: SessionSnapshot = {
+      ...before,
+      browser: { ...before.browser, fontSize: 18, highlights: [highlight] },
+      regionGroups: [{ id: "g1", name: "Group", color: null, collapsed: false, regionIds: ["h1"] }],
+      tracks: [...before.tracks, { ...before.tracks[1], type: "not-a-track-type" }],
+    };
+    expect(() => applyRemoteSnapshot(stores, remote)).toThrow(
+      "No track module registered for type: not-a-track-type",
+    );
+    expect(snapshot(stores)).toEqual(before);
+  });
+
   it("ignores a retried PATCH saveId after an intervening write from another tab", async () => {
     const sessions = createMemorySessions();
     const bus = createMemorySessionBus();

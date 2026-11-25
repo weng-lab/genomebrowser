@@ -75,6 +75,8 @@ export function restore(session: SessionStores, saved: SessionSnapshot) {
  * every unchanged field and track (so TrackDataController and track rows do not
  * refetch or re-render unnecessarily) and keeping local renderer-derived track
  * heights on unchanged tracks so tabs at different widths do not ping-pong.
+ * Every store's next state is built and validated before any store changes, so
+ * a snapshot that fails validation leaves the stores as they were.
  */
 export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapshot) {
   const currentBrowser = session.useBrowserStore.getState();
@@ -99,20 +101,13 @@ export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapsh
       browserChanged = true;
     }
   }
-  if (browserChanged) {
-    session.useBrowserStore.setState(
-      browserUpdates as Partial<ReturnType<typeof session.useBrowserStore.getState>>,
-    );
-  }
 
   // 2) Region groups: patch only when normalized groups differ.
   const nextGroups = normalizeGroups(
     saved.regionGroups,
     saved.browser.highlights.map((highlight) => highlight.id),
   );
-  if (!deepEqual(session.useRegionGroupStore.getState().groups, nextGroups)) {
-    session.useRegionGroupStore.setState({ groups: nextGroups });
-  }
+  const groupsChanged = !deepEqual(session.useRegionGroupStore.getState().groups, nextGroups);
 
   // 3) Track store: reuse existing track object references whenever unchanged.
   const currentTracksState = session.useTrackStore.getState();
@@ -152,6 +147,13 @@ export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapsh
     );
   }
 
+  // Every track is valid, so apply all three. The groups follow the highlights.
+  if (browserChanged) {
+    session.useBrowserStore.setState(
+      browserUpdates as Partial<ReturnType<typeof session.useBrowserStore.getState>>,
+    );
+  }
+  if (groupsChanged) session.useRegionGroupStore.setState({ groups: nextGroups });
   if (tracksChanged) {
     const ordered = orderTracksWithPins(resolvedTracks, saved.pinnedTrackIds);
     session.useTrackStore.setState({
