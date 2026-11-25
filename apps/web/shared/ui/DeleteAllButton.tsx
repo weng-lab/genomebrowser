@@ -3,7 +3,7 @@
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import Button from "@mui/material/Button";
 import { useState } from "react";
-import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { type ConfirmDeleteAlternative, ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { formButtonSx } from "./FormCard";
 
 type DeleteAllButtonProps = {
@@ -16,6 +16,8 @@ type DeleteAllButtonProps = {
   confirmLabel: string;
   /** Called once the deletion is confirmed, after the confirmation closes. */
   onDelete: () => void;
+  /** A narrower deletion the confirmation also offers, such as all but the open item. */
+  confirmAlternative?: ConfirmDeleteAlternative;
 };
 
 /**
@@ -29,6 +31,7 @@ export function DeleteAllButton({
   confirmText,
   confirmLabel,
   onDelete,
+  confirmAlternative,
 }: DeleteAllButtonProps) {
   const [confirming, setConfirming] = useState(false);
   return (
@@ -51,6 +54,7 @@ export function DeleteAllButton({
         text={confirmText}
         confirmLabel={confirmLabel}
         onConfirm={onDelete}
+        alternative={confirmAlternative}
         onClose={() => setConfirming(false)}
       />
     </>

@@ -337,6 +337,30 @@ it("deletes every session from the Sessions panel after asking", async () => {
   expect(document.activeElement).toBe(button("New session"));
 });
 
+it("deletes every session but the open one from the Sessions panel", async () => {
+  const a = server.add("Alpha", defaults());
+  server.add("Beta", defaults());
+  server.add("Gamma", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await click(railButton("Sessions"));
+  const deleteAll = () =>
+    withText("#left-panel button", "Delete all sessions") as HTMLButtonElement | undefined;
+  await vi.waitFor(() => expect(deleteAll()?.disabled).toBe(false));
+
+  await click(deleteAll());
+  await click(withText('[role="dialog"] button', "Delete all but current"));
+  await vi.waitFor(() => expect([...server.stored.keys()]).toEqual([a]));
+  expect(heading()).toBe("Alpha");
+  expect(route.pathname()).toBe(`/browser/${a}`);
+  await vi.waitFor(() => expect(deleteAll()?.disabled).toBe(false));
+
+  // With no other session saved, only deleting all is offered.
+  await click(deleteAll());
+  expect(withText('[role="dialog"] button', "Delete all but current")).toBeUndefined();
+  expect(withText('[role="dialog"] button', "Delete all")).toBeDefined();
+});
+
 it("shows and hides the browser's left panels from the side bar", async () => {
   const a = server.add("Alpha", defaults());
   await visit(`/browser/${a}`);

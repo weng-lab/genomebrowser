@@ -6,6 +6,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import { formButtonSx } from "./FormCard";
 
 type ConfirmDeleteDialogProps = {
   open: boolean;
@@ -13,16 +14,24 @@ type ConfirmDeleteDialogProps = {
   text: string;
   confirmLabel: string;
   onConfirm: () => void;
+  /** A narrower deletion offered beside the main one, such as keeping the open item. */
+  alternative?: ConfirmDeleteAlternative;
   onClose: () => void;
 };
 
-/** Asks before a deletion that cannot be undone. Confirming closes the dialog, then deletes. */
+export type ConfirmDeleteAlternative = { label: string; onConfirm: () => void };
+
+/**
+ * Asks before a deletion that cannot be undone, optionally offering a narrower one too.
+ * Confirming either closes the dialog, then deletes.
+ */
 export function ConfirmDeleteDialog({
   open,
   title,
   text,
   confirmLabel,
   onConfirm,
+  alternative,
   onClose,
 }: ConfirmDeleteDialogProps) {
   return (
@@ -31,8 +40,25 @@ export function ConfirmDeleteDialog({
       <DialogContent>
         <DialogContentText>{text}</DialogContentText>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose}>Cancel</Button>
+      {/* Whole buttons wrap on a narrow screen, never their labels. */}
+      <DialogActions disableSpacing sx={{ px: 3, pb: 2.5, gap: 1, flexWrap: "wrap" }}>
+        {alternative && (
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => {
+              onClose();
+              alternative.onConfirm();
+            }}
+            // Set apart on the left, so the main choice stays beside Cancel.
+            sx={{ ...formButtonSx, mr: "auto" }}
+          >
+            {alternative.label}
+          </Button>
+        )}
+        <Button onClick={onClose} sx={{ ...formButtonSx, color: "text.primary" }}>
+          Cancel
+        </Button>
         <Button
           variant="contained"
           color="error"
@@ -40,6 +66,7 @@ export function ConfirmDeleteDialog({
             onClose();
             onConfirm();
           }}
+          sx={formButtonSx}
         >
           {confirmLabel}
         </Button>

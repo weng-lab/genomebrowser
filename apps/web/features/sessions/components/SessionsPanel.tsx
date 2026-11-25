@@ -124,13 +124,17 @@ export function SessionsPanel({ creating, onCreatingChange }: SessionsPanelProps
 }
 
 /**
- * Deletes every saved session, whatever the search shows, after asking. Disabled while there
- * are none, or while sessions are unavailable or another operation runs.
+ * Deletes every saved session, whatever the search shows, after asking. While a session is
+ * open and others are saved, the confirmation also offers to delete all but the open one.
+ * Disabled while there are none, or while sessions are unavailable or another operation runs.
  */
 function DeleteAllSessions({ onDelete }: { onDelete: () => void }) {
   const disabled = useSession(
     (session) =>
       session.sessions.length === 0 || session.status !== "ready" || session.pending !== undefined,
+  );
+  const hasOthers = useSession(({ active, sessions }) =>
+    active ? sessions.some(({ id }) => id !== active.id) : false,
   );
   const removeAll = useSession((session) => session.removeAll);
   return (
@@ -145,6 +149,18 @@ function DeleteAllSessions({ onDelete }: { onDelete: () => void }) {
         // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
         void removeAll();
       }}
+      confirmAlternative={
+        hasOthers
+          ? {
+              label: "Delete all but current",
+              onConfirm: () => {
+                onDelete();
+                // oxlint-disable-next-line typescript/no-floating-promises -- Session operations observe Effect failures and always resolve.
+                void removeAll({ keepActive: true });
+              },
+            }
+          : undefined
+      }
     />
   );
 }

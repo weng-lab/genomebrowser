@@ -537,6 +537,27 @@ it("stops deleting every session at the first failure, keeping the active one op
   expect(server.stored.has(b)).toBe(false);
 });
 
+it("deletes every session but the active one, which stays open and saving", async () => {
+  const a = server.add("A", defaults());
+  const b = server.add("B", defaults());
+  const c = server.add("C", defaults());
+  await listAll(3);
+  await state().open(b);
+  await state().removeAll({ keepActive: true });
+  expect(server.writes().map(({ method, id }) => [method, id])).toEqual([
+    ["DELETE", a],
+    ["DELETE", c],
+  ]);
+  expect([...server.stored.keys()]).toEqual([b]);
+  expect(state().sessions.map(({ id }) => id)).toEqual([b]);
+  expect(state().active!.id).toBe(b);
+  expect(state().active!.signal.aborted).toBe(false);
+  expect(state().error).toBeUndefined();
+
+  setRegion(1000);
+  await vi.waitFor(() => expect(puts()).toHaveLength(1));
+});
+
 it("keeps edits to a session deleted elsewhere unsaved until they are discarded", async () => {
   const id = server.add("Session", defaults());
   const other = server.add("Other", defaults());

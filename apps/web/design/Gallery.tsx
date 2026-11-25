@@ -72,6 +72,15 @@ export function Gallery() {
               onDelete={() => {}}
             />
           ))}
+          {/* Its confirmation also offers a narrower deletion. */}
+          <DeleteAllButton
+            label="Delete all sessions"
+            confirmTitle="Delete all sessions?"
+            confirmText="Every saved session will be deleted, including the one open in the browser."
+            confirmLabel="Delete all"
+            onDelete={() => {}}
+            confirmAlternative={{ label: "Delete all but current", onConfirm: () => {} }}
+          />
         </Box>
       </Section>
       <Section title="SwatchPicker" source="shared/ui/SwatchPicker.tsx">

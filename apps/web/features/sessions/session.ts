@@ -60,10 +60,11 @@ export type SessionState = {
   /** Delete a session. For the active session, an outstanding write finishes first. */
   remove(id: string): Promise<void>;
   /**
-   * Delete every listed session, one at a time like `remove`, with the active session last.
-   * Stops at the first that cannot be deleted, keeping it and the rest.
+   * Delete every listed session, one at a time like `remove`, with the active session last,
+   * or kept open when `keepActive` is set. Stops at the first that cannot be deleted, keeping
+   * it and the rest.
    */
-  removeAll(): Promise<void>;
+  removeAll(options?: { keepActive?: boolean }): Promise<void>;
   /**
    * Close the active session after saving every edit, or without saving when
    * `discard` is set, then run `next`, such as signing out. Nothing opens until
@@ -552,17 +553,25 @@ export function createSession({
     return run(exclusive({ operation: "remove", id }, operation))?.done ?? Promise.resolve();
   }
 
-  function removeAll(): Promise<void> {
+  function removeAll({ keepActive = false }: { keepActive?: boolean } = {}): Promise<void> {
     const operation = Effect.gen(function* () {
       const active = current?.id;
       // The active session goes last, so it stays open if another cannot be deleted.
       const ids = get()
         .sessions.map(({ id }) => id)
+        .filter((id) => !keepActive || id !== active)
         .toSorted((a, b) => Number(a === active) - Number(b === active));
       for (const id of ids) yield* deleteSession(id);
     }).pipe(
       Effect.catch((error) =>
-        Effect.sync(() => failed(error, "Could not delete every session. Try again.")),
+        Effect.sync(() =>
+          failed(
+            error,
+            keepActive
+              ? "Could not delete every other session. Try again."
+              : "Could not delete every session. Try again.",
+          ),
+        ),
       ),
     );
     return run(exclusive({ operation: "removeAll" }, operation))?.done ?? Promise.resolve();
