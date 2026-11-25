@@ -18,7 +18,41 @@ pnpm dev
 
 Open `http://localhost:3000/browser`. With no session open, the browser asks you to open or create one. `/sessions`, `/collections`, and `/settings` are separate Next.js routes; unknown URLs return 404. The shared route layout keeps the providers, the open session, and its stores mounted during navigation.
 
-Redis at `REDIS_URL` carries agent commands to browser tabs. Sessions load and save without it; only remote control and MCP need it.
+Redis at `REDIS_URL` provides multi-instance pub/sub for live session sync over SSE and the relay for browser-only agent commands (`export_image`, `add_tracks_from_urls`). Without `REDIS_URL`, local development uses an in-memory session bus so sessions still load, save, and sync within one server process.
+
+```mermaid
+flowchart TD
+  Agent([AI agent])
+  User([User])
+  Client(Web client)
+
+  subgraph Next[Next.js server]
+    MCP[MCP endpoint]
+    Sessions[Session routes]
+    Service[Session service]
+    Stream[Event stream]
+  end
+
+  DB[(PostgreSQL)]
+  Redis[(Redis)]
+  Files[(Remote genomic files)]
+
+  User -->|uses| Client
+  Agent -->|calls tool| MCP
+  Client -->|pushes patches| Sessions
+  Client -->|opens stream| Stream
+  Client -->|reads track files| Files
+  MCP -->|runs tool| Service
+  Sessions -->|updates state| Service
+  Service -->|persists state| DB
+  Service -->|publishes events| Redis
+  Stream -->|listens for updates| Redis
+
+  classDef actor stroke-width:2px,stroke-dasharray:5 3
+  classDef frontend stroke-width:3px
+  class User,Agent actor
+  class Client frontend
+```
 
 ## Sessions
 
@@ -44,7 +78,7 @@ Opening another session first saves every edit to the open one, including edits 
 
 Closing or reloading the tab while edits are unsaved, including edits that cannot be saved, asks for confirmation. The tab does not try to save during unload.
 
-Several tabs may edit one session. When another tab or window saved it after this tab's edits were based on it, this tab reports a conflict instead of overwriting, and keeps its edits. **Save over it** saves them on top of the other version; **Close without saving** discards them; **Save a copy** in the session menu keeps them in a new session and leaves the other version alone. Until then they count as edits that cannot be saved: switching sessions or accounts keeps them here. Tabs do not merge each other's edits.
+Several tabs may edit one session at once. Local edits to synced settings, tracks, highlights, groups, and session name apply immediately and send debounced section patches (`PATCH /api/sessions/:id`) that merge on the server and broadcast lightweight revision hints over `GET /api/sessions/:id/events` (SSE), prompting other open clients to fetch the latest state. Local panning and zooming stay tab-local—opening a session reads its saved region as it is, and explicit server-side region updates (such as MCP `set_region`) move open tabs without snapping back on unrelated edits. Deleting a session notifies open clients immediately. If repeated merge retries ever collide (`409 CONFLICT`), the client keeps its edits and offers **Save over it**, **Close without saving**, or **Save a copy**.
 
 The saved-session list refreshes when the window regains focus. Visiting Sessions, Settings, or Collections keeps the open session and its stores.
 
@@ -62,13 +96,15 @@ The dev and start scripts bind to `localhost`. With `--hostname 127.0.0.1`, Next
 
 The browser calls these route handlers. Each derives the user from the request and never accepts an owner.
 
-| Route                      | Result                                                  |
-| -------------------------- | ------------------------------------------------------- |
-| `GET /api/sessions`        | The user's sessions, without snapshots, sorted by name. |
-| `POST /api/sessions`       | Create a session from `{ name, snapshot }`.             |
-| `GET /api/sessions/:id`    | The session with its snapshot.                          |
-| `PUT /api/sessions/:id`    | Replace its name and snapshot at a revision.            |
-| `DELETE /api/sessions/:id` | Delete it. Responds 204.                                |
+| Route                          | Result                                                                                 |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| `GET /api/sessions`            | The user's sessions, without snapshots, sorted by name.                                |
+| `POST /api/sessions`           | Create a session from `{ name, snapshot }`.                                            |
+| `GET /api/sessions/:id`        | The session with its snapshot, read directly from PostgreSQL.                          |
+| `PATCH /api/sessions/:id`      | Merge a partial live edit `{ clientId, saveId, patch }` and publish a revision hint.   |
+| `PUT /api/sessions/:id`        | Replace its name and snapshot at a specific revision and publish a revision hint.      |
+| `GET /api/sessions/:id/events` | SSE stream of live `updated` revision hints and `deleted` notices (`?sinceRevision=`). |
+| `DELETE /api/sessions/:id`     | Delete it from PostgreSQL and broadcast `deleted`. Responds 204.                       |
 
 Session metadata, which every route but `DELETE` returns, includes `assembly`, the saved snapshot's assembly, and `trackCount`, the number of tracks in it. Sessions carry a `revision`, starting at 1. `PUT` takes `{ name, snapshot, revision, saveId }`: the revision the edits were based on and a new UUID for each logical save. It never recreates a deleted session. It applies only at the current revision and returns the metadata with the next one. Sending the same `saveId` again after its response was lost returns that result without applying it twice.
 

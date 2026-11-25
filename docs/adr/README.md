@@ -11,6 +11,7 @@ ADRs record decisions about the **repository and system shape** that should chan
 - [0005: Independent package releases](0005-independent-package-releases.md)
 - [0006: Internal zero-based half-open coordinates](0006-internal-zero-based-coordinates.md)
 - [0007: The app owns MCP; Redis relays commands](0007-app-owned-mcp-redis-relay.md)
+- [0008: Server-authoritative live sessions with Redis pub/sub](0008-server-authoritative-live-sessions.md)
 
 ## When to write one
 

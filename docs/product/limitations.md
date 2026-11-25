@@ -13,8 +13,8 @@ These are current implementation constraints and deployment gaps. They do not re
 
 ## Session behavior
 
-- Several tabs may edit one session. A tab whose edits are based on an older revision gets a conflict instead of overwriting; the user saves over the other version or discards the edits. Tabs do not receive or merge each other's edits.
-- Unsaved edits live only in the tab. They are lost if it crashes or closes; there is no offline or crash-recovery storage.
+- Several tabs may edit one session and stay in sync live via SSE; concurrent edits to different sections merge automatically, while same-field races settle by server revision order. A `409 CONFLICT` fallback remains only if repeated merge retries collide.
+- Unsaved edits live only in the tab until the 200 ms debounced `PATCH` settles. They are lost if it crashes or closes before saving; there is no offline or crash-recovery storage.
 - `beforeunload` requests a warning for unsaved edits. Browsers may suppress it, and it does not guarantee a save. The app does not save during unload.
 - While a session restores, the previous browser may remain visible under the target URL. Failed restoration keeps the previous session and returns its URL.
 - Only hg38 sessions can be created or restored by the app.
