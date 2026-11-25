@@ -379,3 +379,43 @@ it("deterministically converges when one tab holds an unsaved draft while anothe
   expect(server.stored.get(id)!.name).toBe("Draft rename A");
   expect(server.stored.get(id)!.snapshot.browser.fontSize).toBe(18);
 });
+
+it("keeps another tab's newer same-field edit when its own committed PATCH replies late", async () => {
+  const id = server.add("Shared session", snapshot(createStores("hg38")!));
+  const clientA = openClient();
+  const clientB = openClient();
+  await clientA.state().open(id);
+  await clientB.state().open(id);
+  await vi.waitFor(() => expect(LiveEventSource.streams.size).toBe(2));
+  const patches = () => server.requests.filter(({ method }) => method === "PATCH");
+  const stored = () => server.stored.get(id)!;
+  const x = { chromosome: "chr2", start: 10_000, end: 20_000 };
+  const y = { chromosome: "chr3", start: 30_000, end: 40_000 };
+
+  // Tab A's write of X commits at revision 2, but its reply is delayed.
+  const reply = server.delayReply("PATCH");
+  clientA.stores().useBrowserStore.getState().setRegion(x);
+  await vi.waitFor(() => expect(stored().revision).toBe(2));
+  expect(stored().snapshot.browser.region).toEqual(x);
+
+  // Tab B then commits Y at revision 3, and its hint reaches Tab A first.
+  clientB.stores().useBrowserStore.getState().setRegion(y);
+  await vi.waitFor(() => expect(stored().revision).toBe(3));
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 300);
+  });
+  // An edit Tab A makes while its write is outstanding is not covered by that write.
+  clientA.stores().useBrowserStore.getState().setSelectionMode("highlight");
+
+  reply.release();
+  await vi.waitFor(() => expect(clientA.stores().useBrowserStore.getState().region).toEqual(y));
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 500);
+  });
+  // Only the later edit is written again; X is not resent over Y.
+  expect(patches()).toHaveLength(3);
+  expect(stored().snapshot.browser.region).toEqual(y);
+  expect(stored().snapshot.browser.selectionMode).toBe("highlight");
+  expect(clientA.stores().useBrowserStore.getState().region).toEqual(y);
+  expect(clientA.state().saveStatus).toBe("saved");
+});

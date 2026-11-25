@@ -163,20 +163,17 @@ function transitionWriteFailure(
 function transitionAfterReconcile(
   phase: WritePhase,
   {
-    fromWrite,
     hasPendingLocal,
     reconciledKey,
     savedKey,
     now,
   }: {
-    fromWrite: boolean;
     hasPendingLocal: boolean;
     reconciledKey: string;
     savedKey: string;
     now: number;
   },
 ): WritePhase {
-  if (!fromWrite && (phase.tag === "writing" || phase.tag === "retrying")) return phase;
   if (!hasPendingLocal || reconciledKey === savedKey) return { tag: "saved" };
   if (phase.tag === "refused" && phase.bodyKey === reconciledKey) return phase;
   const editedAt = phase.tag === "writing" || phase.tag === "dirty" ? phase.editedAt : now;
@@ -245,8 +242,25 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   const urgent = yield* Latch.make(false);
   const permit = yield* Semaphore.make(1);
 
+  /**
+   * Whether a newer remote snapshot may be applied now. Not while a PATCH is unacknowledged:
+   * it may already have committed under a later edit from elsewhere, and rebasing it as local
+   * work would write it again over that edit. Newer revisions wait in `targetRevision` until
+   * the write settles.
+   */
   const canSyncRemote = () =>
-    state.phase.tag !== "ended" && state.phase.tag !== "conflict" && state.local.tag === "valid";
+    state.phase.tag !== "ended" &&
+    state.phase.tag !== "conflict" &&
+    state.phase.tag !== "writing" &&
+    state.phase.tag !== "retrying" &&
+    state.local.tag === "valid";
+
+  /** Fetch the latest session when a newer revision is known and it may be applied. */
+  function syncIfBehind() {
+    if (canSyncRemote() && state.targetRevision > state.revision) {
+      Queue.offerUnsafe(syncRequests, undefined);
+    }
+  }
 
   function report() {
     const { status, failure } = statusOf(state.phase);
@@ -284,15 +298,14 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     if (state.phase.tag === "saved") settle();
     report();
     if (state.phase.tag === "dirty") Queue.offerUnsafe(edits, undefined);
-    if (canSyncRemote() && state.targetRevision > state.revision) {
-      Queue.offerUnsafe(syncRequests, undefined);
-    }
+    syncIfBehind();
   }
 
   /**
    * Reconcile an incoming authoritative `SavedSession` (from a merged PATCH reply
-   * or an SSE-triggered fetch) with any unpushed local edits so local work is
-   * preserved.
+   * or an SSE-triggered fetch) with local edits it does not cover, so local work
+   * is preserved. `baseForPending` is what the server already has of this tab's
+   * edits: the acknowledged state, or for a PATCH reply, the document it sent.
    */
   function reconcileRemote(
     remote: SavedSession,
@@ -306,9 +319,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       // Do not overwrite unsaveable local work; defer reconciliation until local stores serialize.
       state.local = liveLocal;
       if (remote.revision > state.targetRevision) state.targetRevision = remote.revision;
-      if (fromWrite || (state.phase.tag !== "writing" && state.phase.tag !== "retrying")) {
-        state.phase = { tag: "refused", bodyKey: undefined, failure: unsaveable };
-      }
+      state.phase = { tag: "refused", bodyKey: undefined, failure: unsaveable };
       settle(unsaveable);
       report();
       return;
@@ -351,7 +362,6 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     }
 
     state.phase = transitionAfterReconcile(state.phase, {
-      fromWrite,
       hasPendingLocal: Boolean(pendingLocal),
       reconciledKey,
       savedKey: state.savedKey,
@@ -363,6 +373,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     if (state.phase.tag === "saved") settle();
     else if (state.phase.tag === "dirty") Queue.offerUnsafe(edits, undefined);
     report();
+    syncIfBehind();
   }
 
   /**
@@ -384,7 +395,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     const remote = loaded.success;
     if (remote.revision > state.revision) {
       if (canSyncRemote()) {
-        // Rebase all unacknowledged local edits (including any in-flight PATCH) onto remote.
+        // No PATCH is outstanding, so every edit since the acknowledged state is local work.
         reconcileRemote(remote, state.syncedInput, { fromWrite: false });
       } else if (remote.revision > state.targetRevision) {
         state.targetRevision = remote.revision;
@@ -465,6 +476,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     }
     settle(failure);
     report();
+    syncIfBehind();
   });
 
   yield* Effect.acquireRelease(

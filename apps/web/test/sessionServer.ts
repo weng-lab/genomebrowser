@@ -47,7 +47,7 @@ type Outcome = Response | undefined | "lost";
 export function installSessionServer() {
   const stored = new Map<string, Stored>();
   const requests: Request[] = [];
-  const gates: { method: string; gate: Promise<Outcome> }[] = [];
+  const gates: { method: string; gate: Promise<Outcome>; applyFirst?: boolean }[] = [];
   const server = {
     user: "user_alice" as string | null,
     /** Session requests, oldest first. */
@@ -91,6 +91,21 @@ export function installSessionServer() {
         lose: () => open("lost"),
         respond: (response: Response) => open(response),
       };
+    },
+    /**
+     * Apply the next request of `method` at once, but hold its response until released,
+     * as when a write commits and its reply is delayed.
+     */
+    delayReply(method: string) {
+      let open!: () => void;
+      gates.push({
+        method,
+        gate: new Promise((resolve) => {
+          open = () => resolve(undefined);
+        }),
+        applyFirst: true,
+      });
+      return { release: () => open() };
     },
     /**
      * Genomic files that other hosts serve, by URL, honoring byte ranges. A number answers
@@ -269,10 +284,15 @@ export function installSessionServer() {
       signal?.addEventListener("abort", () => reject(signal.reason));
     });
     const index = gates.findIndex((gate) => gate.method === request.method);
-    const gated =
-      index < 0 ? undefined : await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
+    const gate = index < 0 ? undefined : gates.splice(index, 1)[0];
     const respond = () =>
       settings ? handleSettings(init.method ?? "GET", request.body) : handle(request);
+    if (gate?.applyFirst) {
+      const response = respond();
+      await Promise.race([gate.gate, aborted]);
+      return response;
+    }
+    const gated = gate ? await Promise.race([gate.gate, aborted]) : undefined;
     if (gated !== "lost") return gated ?? respond();
     respond();
     throw new TypeError("Failed to fetch");
