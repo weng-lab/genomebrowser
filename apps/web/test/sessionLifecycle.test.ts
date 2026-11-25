@@ -27,14 +27,11 @@ function start() {
 }
 const state = () => session.store.getState();
 const stores = () => state().active!.stores;
-const setRegion = (start: number) =>
-  stores()
-    .useBrowserStore.getState()
-    .setRegion({ chromosome: "chr1", start, end: start + 1000 });
+const setFontSize = (fontSize: number) => stores().useBrowserStore.setState({ fontSize });
 const writes = () => server.writes().map(({ method }) => method);
-const puts = () => server.requests.filter(({ method }) => method === "PUT");
+const puts = () => server.requests.filter(({ method }) => method === "PATCH");
 const saveIds = () => puts().map(({ body }) => body!.saveId);
-const savedRegion = (id: string) => server.stored.get(id)?.snapshot.browser.region.start;
+const savedFontSize = (id: string) => server.stored.get(id)?.snapshot.browser.fontSize;
 /** Let fibers, requests, and timers run for `ms` of fake time. */
 async function advance(ms: number) {
   for (let elapsed = 0; elapsed < ms; elapsed += 50) {
@@ -115,7 +112,14 @@ it("restores every saved setting before saving, then saves whole snapshots of la
   expect(writes()).toEqual([]);
   expect(state().saveStatus).toBe("saved");
 
-  setRegion(5000);
+  // Local viewport pans stay tab-local and do not dirty the session or trigger writes.
+  stores().useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 5000, end: 6000 });
+  await advance(1000);
+  expect(writes()).toEqual([]);
+  expect(state().saveStatus).toBe("saved");
+  expect(closeTab()).toBe(false);
+
+  setFontSize(18);
   stores().useBrowserStore.getState().removeHighlight("enhancer");
   stores().useTrackStore.getState().setPinnedTrackIds([]);
   stores().useTrackStore.getState().reorderTracks(["ruler", "genes", "ccres"]);
@@ -127,14 +131,15 @@ it("restores every saved setting before saving, then saves whole snapshots of la
   expect(state().saveStatus).toBe("saving");
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
 
-  // One write carries the whole snapshot and name.
+  // One write carries all synced edits while keeping the server's saved region intact.
   expect(puts()).toHaveLength(1);
-  expect(server.stored.get(id)).toMatchObject({
-    name: "Enhancer scan",
-    snapshot: snapshot(stores()),
-  });
+  expect(server.stored.get(id)!.name).toBe("Enhancer scan");
   expect(server.stored.get(id)!.snapshot).toMatchObject({
-    browser: { region: { start: 5000 }, highlights: [{ id: "promoter" }] },
+    browser: {
+      region: savedSnapshot().browser.region,
+      fontSize: 18,
+      highlights: [{ id: "promoter" }],
+    },
     tracks: [
       { base: { id: "ruler" } },
       { base: { id: "genes" } },
@@ -150,74 +155,69 @@ it("restores every saved setting before saving, then saves whole snapshots of la
 it("writes one snapshot at a time, and an older acknowledgement leaves newer edits unsaved", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  const first = server.hold("PUT");
-  setRegion(1000);
+  const first = server.hold("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
-  setRegion(2000);
+  setFontSize(16);
   await advance(1000);
   expect(puts()).toHaveLength(1);
 
-  const second = server.hold("PUT");
+  const second = server.hold("PATCH");
   first.release();
   await vi.waitFor(() => expect(puts()).toHaveLength(2));
-  expect(savedRegion(id)).toBe(1000);
+  expect(savedFontSize(id)).toBe(14);
   expect(state().saveStatus).toBe("saving");
   second.release();
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
   expect(puts()).toHaveLength(2);
-  expect(savedRegion(id)).toBe(2000);
+  expect(savedFontSize(id)).toBe(16);
 });
 
 it("waits for a quiet 200ms after a sustained burst before saving the newest edits", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  for (const start of [1000, 2000, 3000, 4000]) {
-    setRegion(start);
+  for (const size of [14, 15, 16, 17]) {
+    setFontSize(size);
     await advance(100);
     expect(puts()).toHaveLength(0);
   }
   await advance(100);
   expect(puts()).toHaveLength(1);
-  expect(savedRegion(id)).toBe(4000);
+  expect(savedFontSize(id)).toBe(17);
   expect(state().saveStatus).toBe("saved");
 });
 
 it("keeps a revert unsaved after a write whose response was lost, until that write settles", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  const original = stores().useBrowserStore.getState().region;
-  server.lose("PUT");
-  setRegion(1000);
+  const original = stores().useBrowserStore.getState().fontSize;
+  server.lose("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
-  expect(savedRegion(id)).toBe(1000);
+  expect(savedFontSize(id)).toBe(14);
 
-  stores().useBrowserStore.getState().setRegion(original);
+  setFontSize(original);
   expect(state().saveStatus).toBe("retrying");
   expect(closeTab()).toBe(true);
   await advance(1000);
   expect(state().saveStatus).toBe("saved");
 
-  expect(puts().map(({ body }) => body!.snapshot.browser.region.start)).toEqual([
-    1000,
-    1000,
-    original.start,
-  ]);
+  expect(puts().map(({ body }) => body!.patch!.browser!.fontSize)).toEqual([14, 14, original]);
   expect(saveIds()[1]).toBe(saveIds()[0]);
   expect(saveIds()[2]).not.toBe(saveIds()[0]);
-  expect(puts().map(({ body }) => body!.revision)).toEqual([1, 1, 2]);
   expect(server.stored.get(id)).toMatchObject({ revision: 3 });
-  expect(savedRegion(id)).toBe(original.start);
+  expect(savedFontSize(id)).toBe(original);
   expect(closeTab()).toBe(false);
 
-  server.fail("PUT");
-  setRegion(2000);
+  server.fail("PATCH");
+  setFontSize(16);
   expect(state().saveStatus).toBe("saving");
   await advance(250);
   expect(puts()).toHaveLength(4);
   expect(state().saveStatus).toBe("retrying");
   await advance(1000);
   expect(puts()).toHaveLength(5);
-  expect(savedRegion(id)).toBe(2000);
+  expect(savedFontSize(id)).toBe(16);
   expect(state().saveStatus).toBe("saved");
   await advance(2000);
   expect(puts()).toHaveLength(5);
@@ -225,51 +225,51 @@ it("keeps a revert unsaved after a write whose response was lost, until that wri
 it("keeps retry backoff independent of edits during the wait", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  server.fail("PUT");
-  setRegion(1000);
+  server.fail("PATCH");
+  setFontSize(14);
   await advance(250);
   expect(state().saveStatus).toBe("retrying");
-  for (const start of [2000, 3000, 4000, 5000, 6000]) {
-    setRegion(start);
+  for (const size of [15, 16, 17, 18, 19]) {
+    setFontSize(size);
     await advance(150);
     expect(puts()).toHaveLength(1);
   }
-  setRegion(7000);
+  setFontSize(20);
   await advance(200);
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
-  expect(puts().map(({ body }) => body!.snapshot.browser.region.start)).toEqual([1000, 1000, 7000]);
-  expect(savedRegion(id)).toBe(7000);
+  expect(puts().map(({ body }) => body!.patch!.browser!.fontSize)).toEqual([14, 14, 20]);
+  expect(savedFontSize(id)).toBe(20);
 });
 it("keeps a revert unsaved until an outstanding write and its correction finish", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  const original = stores().useBrowserStore.getState().region;
-  const first = server.hold("PUT");
-  setRegion(1000);
+  const original = stores().useBrowserStore.getState().fontSize;
+  const first = server.hold("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
-  stores().useBrowserStore.getState().setRegion(original);
+  setFontSize(original);
   expect(state().saveStatus).toBe("saving");
   expect(closeTab()).toBe(true);
   await advance(250);
-  const correction = server.hold("PUT");
+  const correction = server.hold("PATCH");
   first.release();
   await vi.waitFor(() => expect(puts()).toHaveLength(2));
-  expect(savedRegion(id)).toBe(1000);
+  expect(savedFontSize(id)).toBe(14);
   expect(state().saveStatus).toBe("saving");
   correction.release();
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
-  expect(savedRegion(id)).toBe(original.start);
+  expect(savedFontSize(id)).toBe(original);
   expect(closeTab()).toBe(false);
 });
 
 it("resends a failed write after a revert, because it may have been applied", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  const original = stores().useBrowserStore.getState().region;
-  const write = server.hold("PUT");
-  setRegion(1000);
+  const original = stores().useBrowserStore.getState().fontSize;
+  const write = server.hold("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
-  stores().useBrowserStore.getState().setRegion(original);
+  setFontSize(original);
   expect(state().saveStatus).toBe("saving");
   write.fail();
   await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
@@ -278,13 +278,13 @@ it("resends a failed write after a revert, because it may have been applied", as
   expect(state().saveStatus).toBe("saved");
   expect(puts()).toHaveLength(3);
   expect(saveIds()[1]).toBe(saveIds()[0]);
-  expect(savedRegion(id)).toBe(original.start);
+  expect(savedFontSize(id)).toBe(original);
   expect(closeTab()).toBe(false);
 });
 it("flushes immediately when closing during the debounce", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  setRegion(1000);
+  setFontSize(14);
   await advance(50);
   expect(puts()).toHaveLength(0);
   const closing = state().close();
@@ -292,7 +292,7 @@ it("flushes immediately when closing during the debounce", async () => {
     setImmediate(resolve);
   });
   await closing;
-  expect(savedRegion(id)).toBe(1000);
+  expect(savedFontSize(id)).toBe(14);
   expect(puts()).toHaveLength(1);
 });
 
@@ -307,31 +307,31 @@ it("continues saving after clearing an optional track setting", async () => {
   stores()
     .useTrackStore.getState()
     .updateTrack("ruler", { config: { sequenceUrl: undefined } });
-  setRegion(3000);
+  setFontSize(16);
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
-  expect(savedRegion(id)).toBe(3000);
+  expect(savedFontSize(id)).toBe(16);
   expect(server.stored.get(id)!.snapshot.tracks[0].config).not.toHaveProperty("sequenceUrl");
 });
 
 it("retries failed writes with backoff, keeping edits made meanwhile pending until saved", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  server.fail("PUT");
-  server.lose("PUT");
-  setRegion(1000);
+  server.fail("PATCH");
+  server.lose("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
-  setRegion(3000);
-  await vi.waitFor(() => expect(savedRegion(id)).toBe(1000));
-  const retry = server.hold("PUT");
+  setFontSize(16);
+  await vi.waitFor(() => expect(savedFontSize(id)).toBe(14));
+  const retry = server.hold("PATCH");
   await vi.waitFor(() => expect(puts()).toHaveLength(3), { timeout: 5000 });
   expect(state().saveStatus).toBe("retrying");
   retry.release();
   await vi.waitFor(() => expect(puts()).toHaveLength(4));
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
   expect(new Set(saveIds().slice(0, 3)).size).toBe(1);
-  expect(puts()[3].body!.snapshot.browser.region.start).toBe(3000);
+  expect(puts()[3].body!.patch!.browser!.fontSize).toBe(16);
   expect(server.stored.get(id)).toMatchObject({ revision: 3 });
-  expect(savedRegion(id)).toBe(3000);
+  expect(savedFontSize(id)).toBe(16);
 });
 it.each([
   ["keeps failing to load", 503, "Could not open the session. Try again."],
@@ -368,17 +368,17 @@ it("saves edits, including ones made while the next session loads, before switch
   const a = server.add("A", defaults());
   const b = server.add("B", savedSnapshot());
   await state().open(a);
-  setRegion(1000);
+  setFontSize(14);
   const load = server.hold("GET");
   const switching = state().open(b);
   await advance(100);
-  setRegion(7000);
+  setFontSize(20);
   load.release();
   await switching;
 
   expect(state().error).toBeUndefined();
   expect(state().active!.id).toBe(b);
-  expect(savedRegion(a)).toBe(7000);
+  expect(savedFontSize(a)).toBe(20);
   expect(shown).toEqual([a, b]);
 });
 
@@ -386,8 +386,8 @@ it("keeps the active session and its edits when they cannot be saved before swit
   const a = server.add("A", defaults());
   const b = server.add("B", defaults());
   await state().open(a);
-  const write = server.hold("PUT");
-  setRegion(1000);
+  const write = server.hold("PATCH");
+  setFontSize(14);
   const switching = state().open(b);
   // Switching writes immediately rather than after the edit delay.
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
@@ -396,14 +396,14 @@ it("keeps the active session and its edits when they cannot be saved before swit
 
   expect(state().active!.id).toBe(a);
   expect(state().error).toBe("Could not save “A”. Its changes are kept here.");
-  expect(stores().useBrowserStore.getState().region.start).toBe(1000);
+  expect(stores().useBrowserStore.getState().fontSize).toBe(14);
   expect(shown.at(-1)).toBe(a);
 
   // Saving continues in the background; selecting B again then succeeds.
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"), { timeout: 5000 });
   await state().open(b);
   expect(state().active!.id).toBe(b);
-  expect(savedRegion(a)).toBe(1000);
+  expect(savedFontSize(a)).toBe(14);
 });
 
 it("keeps the active session when the next one cannot be opened", async () => {
@@ -434,30 +434,30 @@ it("deletes the active session after its outstanding write and never writes it a
   const id = server.add("Session", defaults());
   await state().open(id);
   const oldStores = stores();
-  const write = server.hold("PUT");
-  setRegion(1000);
+  const write = server.hold("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
   const removing = state().remove(id);
   await advance(500);
-  expect(writes()).toEqual(["PUT"]);
+  expect(writes()).toEqual(["PATCH"]);
 
   write.release();
   await removing;
-  expect(writes()).toEqual(["PUT", "DELETE"]);
+  expect(writes()).toEqual(["PATCH", "DELETE"]);
   expect(server.stored.has(id)).toBe(false);
   expect(state()).toMatchObject({ active: undefined, saveStatus: undefined, sessions: [] });
   expect(shown.at(-1)).toBeUndefined();
 
-  oldStores.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 9000, end: 9500 });
+  oldStores.useBrowserStore.setState({ fontSize: 22 });
   await advance(3000);
-  expect(writes()).toEqual(["PUT", "DELETE"]);
+  expect(writes()).toEqual(["PATCH", "DELETE"]);
 });
 
 it("resumes saving when deleting the active session fails", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
   const previous = state().active!;
-  setRegion(3000);
+  setFontSize(16);
   const deletion = server.hold("DELETE");
   const removing = state().remove(id);
   await vi.waitFor(() => expect(writes()).toContain("DELETE"));
@@ -467,16 +467,16 @@ it("resumes saving when deleting the active session fails", async () => {
   await removing;
   expect(state().active!.id).toBe(id);
   expect(stores()).toBe(previous.stores);
-  expect(stores().useBrowserStore.getState().region.start).toBe(3000);
+  expect(stores().useBrowserStore.getState().fontSize).toBe(16);
   expect(state().active!.signal).not.toBe(previous.signal);
   expect(state().active!.signal.aborted).toBe(false);
   expect(state().error).toBe("Could not delete “Session”. Try again.");
 
-  setRegion(4000);
-  await vi.waitFor(() => expect(savedRegion(id)).toBe(4000));
+  setFontSize(18);
+  await vi.waitFor(() => expect(savedFontSize(id)).toBe(18));
   // Terminal save failure must also abort the renewed attachment.
   server.stored.delete(id);
-  setRegion(5000);
+  setFontSize(20);
   await vi.waitFor(() => expect(state().active!.signal.aborted).toBe(true));
 });
 
@@ -486,13 +486,13 @@ it("keeps edits to a session deleted elsewhere unsaved until they are discarded"
   await state().open(id);
   server.stored.delete(id);
   const { signal } = state().active!;
-  setRegion(1000);
+  setFontSize(14);
   await vi.waitFor(() => expect(state().saveStatus).toBe("failed"));
   expect(state().error).toBe("This session was deleted elsewhere. Its changes cannot be saved.");
   expect(signal.aborted).toBe(true);
-  setRegion(2000);
+  setFontSize(16);
   await advance(5000);
-  expect(writes()).toEqual(["PUT"]);
+  expect(writes()).toEqual(["PATCH"]);
   expect(server.stored.has(id)).toBe(false);
   expect(closeTab()).toBe(true);
 
@@ -500,14 +500,14 @@ it("keeps edits to a session deleted elsewhere unsaved until they are discarded"
   await state().open(other);
   expect(state().active!.id).toBe(id);
   expect(state().error).toBe("Could not save “Session”. Its changes are kept here.");
-  expect(stores().useBrowserStore.getState().region.start).toBe(2000);
+  expect(stores().useBrowserStore.getState().fontSize).toBe(16);
 
   expect(await state().close({ discard: true })).toBe(true);
   expect(state()).toMatchObject({ active: undefined, saveStatus: undefined });
   expect(closeTab()).toBe(false);
   await state().open(other);
   expect(state().active!.id).toBe(other);
-  expect(writes()).toEqual(["PUT"]);
+  expect(writes()).toEqual(["PATCH"]);
 });
 
 it("aborts the active session's signal as it is replaced, removed, closed, or stopped", async () => {
@@ -575,7 +575,7 @@ it("keeps a newer name through list refreshes and acknowledgements, sorted by na
   const names = () => state().sessions.map(({ name }) => name);
   window.dispatchEvent(new Event("focus"));
   await vi.waitFor(() => expect(names()).toEqual(["Alpha", "Beta"]));
-  const write = server.hold("PUT");
+  const write = server.hold("PATCH");
   state().rename("Zeta");
   expect(names()).toEqual(["Beta", "Zeta"]);
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
@@ -610,7 +610,7 @@ it("saves and closes the active session before an account change, which nothing 
   const id = server.add("Session", defaults());
   const other = server.add("Other", defaults());
   await state().open(id);
-  setRegion(1000);
+  setFontSize(14);
   let finish!: () => void;
   const change = vi.fn<() => Promise<void>>(
     () =>
@@ -620,7 +620,7 @@ it("saves and closes the active session before an account change, which nothing 
   );
   const closing = state().close({ next: change });
   await vi.waitFor(() => expect(change).toHaveBeenCalledOnce());
-  expect(savedRegion(id)).toBe(1000);
+  expect(savedFontSize(id)).toBe(14);
   expect(state()).toMatchObject({ active: undefined, saveStatus: undefined });
   expect(shown.at(-1)).toBeUndefined();
 
@@ -638,8 +638,8 @@ it("changes accounts only once unsaved edits are saved or discarded", async () =
   const id = server.add("Session", defaults());
   await state().open(id);
   const change = vi.fn<() => void>();
-  const write = server.hold("PUT");
-  setRegion(1000);
+  const write = server.hold("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
   const closing = state().close({ next: change });
   write.fail();
@@ -647,7 +647,7 @@ it("changes accounts only once unsaved edits are saved or discarded", async () =
   expect(change).not.toHaveBeenCalled();
   expect(state().active!.id).toBe(id);
   expect(state().error).toBe("Could not save “Session”. Its changes are kept here.");
-  expect(stores().useBrowserStore.getState().region.start).toBe(1000);
+  expect(stores().useBrowserStore.getState().fontSize).toBe(14);
 
   expect(await state().close({ discard: true, next: change })).toBe(true);
   expect(change).toHaveBeenCalledOnce();
@@ -659,7 +659,7 @@ it("changes accounts only once unsaved edits are saved or discarded", async () =
 it("creates a session with the assembly's defaults after saving the active one", async () => {
   const a = server.add("A", defaults());
   await state().open(a);
-  setRegion(1000);
+  setFontSize(14);
   await state().create({ name: "  New analysis ", assembly: "hg38" });
 
   const created = state().active!;
@@ -668,7 +668,7 @@ it("creates a session with the assembly's defaults after saving the active one",
     owner: "user_alice",
     snapshot: defaults(),
   });
-  expect(savedRegion(a)).toBe(1000);
+  expect(savedFontSize(a)).toBe(14);
   expect(state().sessions.map(({ name }) => name)).toEqual(["A", "New analysis"]);
   expect(shown.at(-1)).toBe(created.id);
 
@@ -680,8 +680,8 @@ it("creates a session with the assembly's defaults after saving the active one",
 it("creates no session while the active one cannot be saved", async () => {
   const a = server.add("A", defaults());
   await state().open(a);
-  const write = server.hold("PUT");
-  setRegion(1000);
+  const write = server.hold("PATCH");
+  setFontSize(14);
   const creating = state().create({ name: "New session", assembly: "hg38" });
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
   write.fail();
@@ -731,8 +731,8 @@ it("never carries one account's session or pending write into an account changed
   server.add("Bob's", defaults(), "user_bob");
   await state().open(alices);
   const oldStores = stores();
-  server.hold("PUT");
-  setRegion(1000);
+  server.hold("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
 
   // A change made elsewhere replaces the owner; the outstanding write is aborted.
@@ -743,17 +743,17 @@ it("never carries one account's session or pending write into an account changed
   expect(state().sessions.map(({ name }) => name)).toEqual(["Bob's"]);
   expect(state().active).toBeUndefined();
 
-  oldStores.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 5000, end: 6000 });
+  oldStores.useBrowserStore.setState({ fontSize: 22 });
   await advance(3000);
-  expect(writes()).toEqual(["PUT"]);
-  expect(savedRegion(alices)).toBe(defaults().browser.region.start);
+  expect(writes()).toEqual(["PATCH"]);
+  expect(savedFontSize(alices)).toBe(defaults().browser.fontSize);
 });
 
 it("asks before closing the tab only while edits are unsaved", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
   expect(closeTab()).toBe(false);
-  setRegion(1000);
+  setFontSize(14);
   expect(closeTab()).toBe(true);
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
   expect(closeTab()).toBe(false);
@@ -769,51 +769,76 @@ function otherTab() {
   const tabState = () => tab.store.getState();
   return {
     state: tabState,
-    setRegion: (start: number) =>
-      tabState()
-        .active!.stores.useBrowserStore.getState()
-        .setRegion({ chromosome: "chr1", start, end: start + 1000 }),
+    setFontSize: (fontSize: number) =>
+      tabState().active!.stores.useBrowserStore.setState({ fontSize }),
     stop: stopTab,
   };
 }
 
-it("reports a write from another tab as a conflict and saves over it only when asked", async () => {
+function failNextWithConflict() {
+  server
+    .hold("PATCH")
+    .respond(Response.json({ code: "CONFLICT", message: "Conflict" }, { status: 409 }));
+}
+
+it("merges concurrent edits from two tabs without conflict", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  const tab = otherTab();
+  try {
+    await tab.state().open(id);
+    tab.state().rename("Renamed in Tab B");
+    await vi.waitFor(() => expect(tab.state().saveStatus).toBe("saved"));
+
+    setFontSize(14);
+    await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+    expect(server.stored.get(id)).toMatchObject({
+      name: "Renamed in Tab B",
+      revision: 3,
+    });
+    expect(savedFontSize(id)).toBe(14);
+    expect(state().active!.name).toBe("Renamed in Tab B");
+    expect(state().error).toBeUndefined();
+    expect(closeTab()).toBe(false);
+  } finally {
+    tab.stop();
+  }
+});
+
+it("reports an explicit server CONFLICT and saves over it only when asked", async () => {
   const id = server.add("Session", defaults());
   const other = server.add("Other", defaults());
   await state().open(id);
   const tab = otherTab();
   try {
     await tab.state().open(id);
-    tab.setRegion(2000);
+    tab.setFontSize(15);
     await vi.waitFor(() => expect(tab.state().saveStatus).toBe("saved"));
 
-    setRegion(1000);
+    failNextWithConflict();
+    setFontSize(14);
     await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
-    expect(savedRegion(id)).toBe(2000);
+    expect(savedFontSize(id)).toBe(15);
     expect(state().error).toBe(
       "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.",
     );
     expect(state().active!.signal.aborted).toBe(false);
     expect(closeTab()).toBe(true);
-    setRegion(3000);
+    setFontSize(16);
     await advance(5000);
     expect(puts()).toHaveLength(2);
 
     await state().open(other);
     expect(state().active!.id).toBe(id);
     expect(await state().close()).toBe(false);
-    expect(stores().useBrowserStore.getState().region.start).toBe(3000);
+    expect(stores().useBrowserStore.getState().fontSize).toBe(16);
 
     await state().overwrite();
     await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
-    expect(savedRegion(id)).toBe(3000);
+    expect(savedFontSize(id)).toBe(16);
     expect(server.stored.get(id)).toMatchObject({ revision: 3 });
     expect(state().error).toBeUndefined();
     expect(closeTab()).toBe(false);
-
-    tab.setRegion(4000);
-    await vi.waitFor(() => expect(tab.state().saveStatus).toBe("conflict"));
-    expect(savedRegion(id)).toBe(3000);
   } finally {
     tab.stop();
   }
@@ -825,15 +850,16 @@ it("discards edits in conflict when closed without saving", async () => {
   const tab = otherTab();
   try {
     await tab.state().open(id);
-    tab.setRegion(2000);
+    tab.setFontSize(15);
     await vi.waitFor(() => expect(tab.state().saveStatus).toBe("saved"));
-    setRegion(1000);
+    failNextWithConflict();
+    setFontSize(14);
     await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
 
     expect(await state().close({ discard: true })).toBe(true);
     expect(state()).toMatchObject({ active: undefined, saveStatus: undefined });
     await state().open(id);
-    expect(stores().useBrowserStore.getState().region.start).toBe(2000);
+    expect(stores().useBrowserStore.getState().fontSize).toBe(15);
     expect(state().saveStatus).toBe("saved");
   } finally {
     tab.stop();
@@ -846,9 +872,10 @@ it("abandons saving over a conflict once the session is closed without saving", 
   const tab = otherTab();
   try {
     await tab.state().open(id);
-    tab.setRegion(2000);
+    tab.setFontSize(15);
     await vi.waitFor(() => expect(tab.state().saveStatus).toBe("saved"));
-    setRegion(1000);
+    failNextWithConflict();
+    setFontSize(14);
     await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
 
     const load = server.hold("GET");
@@ -861,9 +888,9 @@ it("abandons saving over a conflict once the session is closed without saving", 
     await advance(5000);
 
     expect(state().saveStatus).toBe("saved");
-    expect(stores().useBrowserStore.getState().region.start).toBe(2000);
+    expect(stores().useBrowserStore.getState().fontSize).toBe(15);
     expect(puts()).toHaveLength(2);
-    expect(savedRegion(id)).toBe(2000);
+    expect(savedFontSize(id)).toBe(15);
   } finally {
     tab.stop();
   }
@@ -875,9 +902,10 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
   const tab = otherTab();
   try {
     await tab.state().open(id);
-    tab.setRegion(2000);
+    tab.setFontSize(15);
     await vi.waitFor(() => expect(tab.state().saveStatus).toBe("saved"));
-    setRegion(1000);
+    failNextWithConflict();
+    setFontSize(14);
     await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
 
     const loaded = server.stored.get(id)!;
@@ -906,8 +934,8 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
     await overwriting[1];
     expect(state()).toMatchObject({ saveStatus: "saved", error: undefined });
 
-    setRegion(5000);
-    await vi.waitFor(() => expect(savedRegion(id)).toBe(5000));
+    setFontSize(18);
+    await vi.waitFor(() => expect(savedFontSize(id)).toBe(18));
     await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
     expect(server.stored.get(id)).toMatchObject({ revision: 4 });
     expect(puts()).toHaveLength(4);
@@ -916,45 +944,35 @@ it("saves over a conflict once when asked twice, ignoring the later outdated loa
   }
 });
 
-it("never applies a lost write again after another tab saved over it", async () => {
+it("keeps retrying a lost write with the same saveId cleanly", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  const tab = otherTab();
-  try {
-    await tab.state().open(id);
-    server.lose("PUT");
-    setRegion(1000);
-    await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
-    expect(savedRegion(id)).toBe(1000);
+  server.lose("PATCH");
+  setFontSize(14);
+  await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
+  expect(savedFontSize(id)).toBe(14);
 
-    await tab.state().close({ discard: true });
-    await tab.state().open(id);
-    tab.setRegion(2000);
-    await vi.waitFor(() => expect(tab.state().saveStatus).toBe("saved"));
-
-    await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
-    expect(saveIds()[2]).toBe(saveIds()[0]);
-    expect(savedRegion(id)).toBe(2000);
-    expect(server.stored.get(id)).toMatchObject({ revision: 3 });
-  } finally {
-    tab.stop();
-  }
+  await advance(1000);
+  await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
+  expect(saveIds()[1]).toBe(saveIds()[0]);
+  expect(savedFontSize(id)).toBe(14);
+  expect(server.stored.get(id)).toMatchObject({ revision: 2 });
 });
 
 it("saves a write whose response was lost, once, before switching sessions", async () => {
   const a = server.add("A", defaults());
   const b = server.add("B", defaults());
   await state().open(a);
-  server.lose("PUT");
-  setRegion(1000);
+  server.lose("PATCH");
+  setFontSize(14);
   await state().open(b);
   expect(state().active!.id).toBe(a);
   expect(state().error).toBe("Could not save “A”. Its changes are kept here.");
 
-  setRegion(2000);
+  setFontSize(16);
   await state().open(b);
   expect(state().active!.id).toBe(b);
-  expect(savedRegion(a)).toBe(2000);
+  expect(savedFontSize(a)).toBe(16);
   expect(saveIds()[1]).toBe(saveIds()[0]);
   expect(server.stored.get(a)).toMatchObject({ revision: 3 });
 });
@@ -963,8 +981,8 @@ it("changes accounts after a lost write once trying again saves it", async () =>
   const id = server.add("Session", defaults());
   await state().open(id);
   const change = vi.fn<() => void>();
-  server.lose("PUT");
-  setRegion(1000);
+  server.lose("PATCH");
+  setFontSize(14);
   expect(await state().close({ next: change })).toBe(false);
   expect(change).not.toHaveBeenCalled();
   expect(state().active!.id).toBe(id);
@@ -973,18 +991,18 @@ it("changes accounts after a lost write once trying again saves it", async () =>
   expect(change).toHaveBeenCalledOnce();
   expect(puts()).toHaveLength(2);
   expect(server.stored.get(id)).toMatchObject({ revision: 2 });
-  expect(savedRegion(id)).toBe(1000);
+  expect(savedFontSize(id)).toBe(14);
 });
 
 it("stops retrying a lost write once its session is deleted", async () => {
   const id = server.add("Session", defaults());
   await state().open(id);
-  server.lose("PUT");
-  setRegion(1000);
+  server.lose("PATCH");
+  setFontSize(14);
   await vi.waitFor(() => expect(state().saveStatus).toBe("retrying"));
   await state().remove(id);
   expect(state().active).toBeUndefined();
   await advance(5000);
-  expect(writes()).toEqual(["PUT", "DELETE"]);
+  expect(writes()).toEqual(["PATCH", "DELETE"]);
   expect(server.stored.has(id)).toBe(false);
 });

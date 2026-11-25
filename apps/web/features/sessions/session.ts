@@ -286,6 +286,14 @@ export function createSession({
         onSaved(saved) {
           if (current?.scope === sessionScope) remember(saved);
         },
+        onRemoteRename(name) {
+          const active = get().active;
+          if (current?.scope !== sessionScope || !active || active.id !== next.id) return;
+          set({ active: { ...active, name } });
+          changeList((sessions) =>
+            sessions.map((session) => (session.id === active.id ? { ...session, name } : session)),
+          );
+        },
       }).pipe(Scope.provide(sessionScope));
       let replaced = false;
       const replace = () => {

@@ -17,24 +17,31 @@ import { bigBedWithColumns, trackFiles as files } from "./trackFiles";
 class Stream extends EventTarget {
   static opened: Stream[] = [];
   static log: string[] = [];
+  static events: Stream[] = [];
   onerror: (() => void) | null = null;
   onopen: (() => void) | null = null;
   closed = false;
-  /** The commands URL, without the tab query. */
+  /** The stream path, without query parameters. */
   readonly url: string;
   /** The tab this connection belongs to. */
   readonly tab: string | null;
+  private readonly isCommandStream: boolean;
   constructor(url: string) {
     super();
     const parsed = new URL(url, "http://localhost");
     this.url = parsed.pathname;
     this.tab = parsed.searchParams.get("tab");
-    Stream.opened.push(this);
-    Stream.log.push(`open ${this.url}`);
+    this.isCommandStream = this.url.endsWith("/commands");
+    if (this.isCommandStream) {
+      Stream.opened.push(this);
+      Stream.log.push(`open ${this.url}`);
+    } else {
+      Stream.events.push(this);
+    }
   }
   close() {
     this.closed = true;
-    Stream.log.push(`close ${this.url}`);
+    if (this.isCommandStream) Stream.log.push(`close ${this.url}`);
   }
   send(command: object) {
     this.dispatchEvent(new MessageEvent("command", { data: JSON.stringify(command) }));
@@ -84,6 +91,7 @@ async function reload() {
 beforeEach(async () => {
   Stream.opened = [];
   Stream.log = [];
+  Stream.events = [];
   vi.stubGlobal("EventSource", Stream);
   server = installSessionServer();
   stubLayout();
@@ -117,8 +125,8 @@ it("starts on for an account without a saved choice", async () => {
 it("keeps the saved choice across reloads, and sessions save while it is off", async () => {
   expect(Stream.opened).toEqual([]);
   expect(text()).toContain("Remote control is off. Turn it on in Settings.");
-  await click('button[aria-label="Pan right"]');
-  await vi.waitFor(() => expect(server.writes().map(({ method }) => method)).toEqual(["PUT"]));
+  await click('button[aria-label="Highlight"]');
+  await vi.waitFor(() => expect(server.writes().map(({ method }) => method)).toEqual(["PATCH"]));
 
   await click('nav a[aria-label="Settings"]');
   await vi.waitFor(() => expect(toggle().disabled).toBe(false));
@@ -219,7 +227,7 @@ it("attaches to the open session only once restored, and leaves it before attach
   expect(text()).toContain("Off");
 });
 
-it("applies a region command in the browser, replies with the region, and saves it", async () => {
+it("applies a region command in the browser and replies with the region", async () => {
   await enableRemoteControl();
   await act(async () => route.back());
   await setRegion("chr1", 1000);
@@ -232,9 +240,6 @@ it("applies a region command in the browser, replies with the region, and saves 
       value: { region: { chromosome: "chr1", start: 1000, end: 2000 }, clamped: false },
     },
   });
-  await vi.waitFor(() =>
-    expect(server.stored.get(alpha)!.snapshot.browser.region.start).toBe(1000),
-  );
 });
 
 it("rejects unknown commands and invalid parameters without changing the region", async () => {
@@ -727,7 +732,7 @@ it("keeps saving while the command stream is unavailable, then reconnects", asyn
   const first = latest();
   act(() => first.onerror!());
   expect(first.closed).toBe(true);
-  await click('button[aria-label="Pan right"]');
+  await click('button[aria-label="Highlight"]');
   await vi.waitFor(() => expect(server.writes()).toHaveLength(1));
   await vi.waitFor(() => expect(latest()).not.toBe(first), { timeout: 2000 });
   // A reconnect belongs to the same tab, so it replaces that tab's connection.
@@ -1020,7 +1025,7 @@ it("detaches once the session's edits can no longer be saved", async () => {
   const stream = latest();
   act(() => stream.onopen!());
   server.stored.delete(alpha);
-  await click('button[aria-label="Pan right"]');
+  await click('button[aria-label="Highlight"]');
   await vi.waitFor(() => expect(stream.closed).toBe(true));
   expect(text()).toContain(
     "This session's changes can no longer be saved, so agents cannot control it.",
@@ -1065,9 +1070,7 @@ it.each([false, true])(
       expect(region()).toBe(before);
       await setRegion("chr2", 2000);
       expect(reply(server.replies.mock.calls.length - 1).result.ok).toBe(true);
-      await vi.waitFor(() =>
-        expect(server.stored.get(alpha)!.snapshot.browser.region.chromosome).toBe("chr2"),
-      );
+      expect(region()).toBe("chr2:2,001-3,000");
     } else {
       deletion.release();
       await vi.waitFor(() => expect(heading()).not.toBe("Alpha"));

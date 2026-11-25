@@ -6,11 +6,23 @@ import {
   sessionInputSchema,
   sessionUpdateSchema,
 } from "../features/sessions/schema";
+import {
+  applySessionPatch,
+  sessionPatchRequestSchema,
+  type SessionPatch,
+} from "../features/sessions/syncSchema";
 
 type Request = {
   method: string;
   id?: string;
-  body?: { name: string; snapshot: SessionSnapshot; revision?: number; saveId?: string };
+  body?: {
+    name?: string;
+    snapshot?: SessionSnapshot;
+    revision?: number;
+    saveId?: string;
+    clientId?: string;
+    patch?: SessionPatch;
+  };
   bytes: number;
 };
 type Stored = {
@@ -149,6 +161,29 @@ export function installSessionServer() {
     if (method === "DELETE") {
       stored.delete(id);
       return new Response(null, { status: 204 });
+    }
+    if (method === "PATCH") {
+      const parsed = sessionPatchRequestSchema.safeParse(body);
+      if (!parsed.success) return rejected("INVALID_INPUT", 400);
+      const { saveId, patch } = parsed.data;
+      if (session.saveId === saveId)
+        return json({ ...metadata(id, session), snapshot: session.snapshot });
+      let next: { name: string; snapshot: SessionSnapshot };
+      try {
+        next = applySessionPatch({ name: session.name, snapshot: session.snapshot }, patch);
+      } catch {
+        return rejected("INVALID_INPUT", 400);
+      }
+      if (new TextEncoder().encode(JSON.stringify(next)).byteLength > maxSessionBytes) {
+        return rejected("INVALID_INPUT", 400);
+      }
+      Object.assign(session, {
+        ...next,
+        revision: session.revision + 1,
+        saveId,
+        updatedAt: new Date(),
+      });
+      return json({ ...metadata(id, session), snapshot: session.snapshot });
     }
     const parsed = sessionUpdateSchema.safeParse(body);
     if (!parsed.success) return rejected("INVALID_INPUT", 400);
