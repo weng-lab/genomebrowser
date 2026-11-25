@@ -14,16 +14,24 @@ function createAccessClient() {
   });
 }
 
-/** Run one bounded Redis operation for agent access metadata; holds no chat or browser state. */
+/**
+ * Run one bounded Redis operation for agent access metadata, on one connection
+ * whose commands must all finish within `timeoutMs` and stop when `signal`
+ * aborts; holds no chat or browser state.
+ */
 export async function withAgentRedis<T>(
   operation: (redis: ReturnType<typeof createAccessClient>) => Promise<T>,
+  { timeoutMs: limit = timeoutMs, signal }: { timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<T> {
   const client = createAccessClient();
   client.on("error", (error: unknown) => console.error("Agent access Redis error", error));
+  const timeout = AbortSignal.timeout(limit);
   try {
     await client.connect();
     return await operation(
-      client.withCommandOptions({ abortSignal: AbortSignal.timeout(timeoutMs) }),
+      client.withCommandOptions({
+        abortSignal: signal ? AbortSignal.any([timeout, signal]) : timeout,
+      }),
     );
   } finally {
     if (client.isOpen) client.destroy();

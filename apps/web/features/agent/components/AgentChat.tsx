@@ -16,6 +16,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import type { SessionSnapshot } from "eve/client";
 import { activeTurn, openInteractions } from "eve/events";
+import { useHoldSession } from "../../sessions/SessionProvider";
 import { useAgentSession } from "../useAgentSession";
 import { useAgentThread } from "../useAgentThread";
 
@@ -70,6 +71,17 @@ function Conversation({
   const busy = agent.status !== "idle";
   // Catching up on a saved conversation blocks sending but is not work to stop.
   const running = agent.status === "busy" || activeTurn(agent.view) !== undefined;
+
+  // Switching sessions or leaving the page stops a run, so ask first.
+  useHoldSession(
+    running ? "Your agent is still working. Switching sessions will stop it." : undefined,
+  );
+  useEffect(() => {
+    if (!running) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [running]);
 
   useEffect(() => {
     const element = transcript.current;
