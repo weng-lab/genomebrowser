@@ -24,10 +24,28 @@ export default defineAgent({
       const searched = results.some((message) => JSON.stringify(message).includes("eve__search"));
       const called = results.some((message) => JSON.stringify(message).includes("eve__tool"));
       const tool = navigate && !called;
+      // Everything before the latest message: instructions and the context the app adds.
+      const context = JSON.stringify(options.prompt.slice(0, user));
       return {
         stream: new ReadableStream({
           start(controller) {
             controller.enqueue({ type: "stream-start", warnings: [] });
+            // Repeat what the model was given, so tests can see the context the app supplies.
+            if (prompt.includes("what do you know")) {
+              controller.enqueue({ type: "text-start", id: "context" });
+              controller.enqueue({ type: "text-delta", id: "context", delta: context });
+              controller.enqueue({ type: "text-end", id: "context" });
+              controller.enqueue({
+                type: "finish",
+                finishReason: { unified: "stop", raw: undefined },
+                usage: {
+                  inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+                  outputTokens: { total: 1, text: 1, reasoning: 0 },
+                },
+              });
+              controller.close();
+              return;
+            }
             if (prompt.includes("wait for stop")) {
               controller.enqueue({ type: "text-start", id: "waiting" });
               controller.enqueue({ type: "text-delta", id: "waiting", delta: "Waiting for Stop." });

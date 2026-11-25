@@ -69,6 +69,11 @@ async function accountForUser(userId: string): Promise<AgentAccount> {
   };
 }
 
+/** A verified user's account, for Eve's scoped requests. */
+export function getAgentAccountForUser(userId: string) {
+  return accountForUser(userId);
+}
+
 async function composeServices(): Promise<Services> {
   const db = drizzle({ client: await connectDatabase(process.env) });
   return {

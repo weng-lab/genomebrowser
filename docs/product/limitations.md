@@ -30,7 +30,7 @@ These are current implementation constraints and deployment gaps. They do not re
 
 ## Agent panel
 
-- A session's agent thread lasts until deleting the session ends it; there is no New conversation yet. It grows until Eve compacts it, and only a conversation Eve can no longer continue, such as one stranded by an incompatible Eve upgrade, starts a new thread.
+- A session's agent thread lasts until New conversation or deleting the session ends it; Eve compacts it as it grows, so its oldest turns survive only as Eve's summary. A conversation Eve can no longer continue, such as one stranded by an incompatible Eve upgrade, starts a clean thread and its history is lost.
 - Two tabs that send a session's first message at the same moment can each start a conversation. The app keeps the first one and ends the other; the second tab must reload to continue the session's thread.
 - Only the first tab attached to a session receives agent commands. Another tab is refused until the first one closes.
 - A run stops before its next model call once no tab has held its session for 5 seconds, so a reply already streaming finishes first. A lease left behind by a server that stopped without cleanup counts as a tab until it expires, up to 45 seconds later, so a run can outlast its tab by that long. Turning Remote Control off closes the tab's connection, which stops the run the same way.

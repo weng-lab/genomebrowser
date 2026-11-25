@@ -21,7 +21,9 @@ export default defineAgent({
     };
   }),
   defaultTools: false,
-  // A thread lives as long as its saved session. Private sessions keep no messages
-  // once they end, so they never time out; deleting the session ends its conversation.
+  // One thread per saved session that never rolls over: Eve compacts it as it
+  // grows, and it lives until New conversation or deleting the session ends it.
+  // Private sessions keep no messages once they end, so they never time out.
+  compaction: { threshold: 0.75 },
   limits: { sessionTimeoutMs: false },
 });
