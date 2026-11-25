@@ -58,8 +58,12 @@ export function AddTracksDialog({ trackStore, open, onClose }: AddTracksDialogPr
     pending.current?.abort();
     onClose();
   };
-  // Leaving the session while files are checked stops the add too.
+  // Leaving the session while files are checked stops the add too, as does closing
+  // the dialog from outside, such as when the agent takes control.
   useEffect(() => () => pending.current?.abort(), []);
+  useEffect(() => {
+    if (!open) pending.current?.abort();
+  }, [open]);
   const startAdd = () => {
     pending.current = new AbortController();
     return pending.current.signal;
