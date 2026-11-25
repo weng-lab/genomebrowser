@@ -9,9 +9,22 @@ import {
   type CommandResult,
 } from "../commands/protocol";
 
+function instantiateRelayClient(url: string | undefined, timeoutMs: number) {
+  return createClient({
+    url,
+    disableOfflineQueue: true,
+    socket: { connectTimeout: timeoutMs },
+  });
+}
+
+type RelayRedisClient = ReturnType<typeof instantiateRelayClient>;
+export type RelayRedisClients = { publisher: RelayRedisClient; subscriber: RelayRedisClient };
+
 export type CommandRelayOptions = {
-  /** Redis server, such as `redis://127.0.0.1:6379`. */
-  url: string;
+  /** Redis server, such as `redis://127.0.0.1:6379`. Required unless `connection` is passed. */
+  url?: string;
+  /** Optional shared Redis connection pair so the relay and session bus share sockets. */
+  connection?: { connect(): Promise<RelayRedisClients> };
   /** Prefix for every Redis key and channel. Deployments that must not reach each other's tabs use different ones. */
   namespace: string;
   /** Bounds a whole dispatch that gives no limit of its own, from reaching Redis to the tab's reply, and every other Redis wait. */
@@ -143,18 +156,17 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
   const cleanups = new Set<Promise<unknown>>();
 
   function createRedis() {
-    const client = createClient({
-      url: options.url,
-      // Commands fail at once while disconnected rather than waiting to reconnect.
-      disableOfflineQueue: true,
-      socket: { connectTimeout: timeoutMs },
-    });
+    const client = instantiateRelayClient(options.url, timeoutMs);
     client.on("error", (error: unknown) => console.error("Command relay Redis error", error));
     return client;
   }
 
   /** The shared publisher and subscriber. A connection attempt that fails or stalls is discarded, and the next use retries. */
   function connect(): Promise<Clients> {
+    if (options.connection) {
+      if (closed) return Promise.reject(new Error("The command relay is closed"));
+      return options.connection.connect();
+    }
     // While closing, cleanup still uses the existing connection.
     if (closed && !connecting) return Promise.reject(new Error("The command relay is closed"));
     connecting ??= (async () => {
@@ -186,7 +198,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
 
   /** Run cleanup without making anyone wait for Redis; `close` waits for it. */
   function background(operation: (clients: Clients) => Promise<unknown>, what: string) {
-    if (closed && !connecting) return;
+    if (closed && !connecting && !options.connection) return;
     const cleanup = connect()
       .then(operation)
       .catch((error: unknown) => console.error(`Could not ${what}`, error))
@@ -453,6 +465,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     await Promise.allSettled([...dispatches.values(), ...streams.values()]);
     // Let connection cleanup reach Redis before disconnecting.
     while (cleanups.size) await Promise.allSettled(cleanups);
+    if (options.connection) return;
     const clients = await connecting?.catch(() => undefined);
     connecting = undefined;
     for (const client of Object.values(clients ?? {})) if (client.isOpen) client.destroy();
