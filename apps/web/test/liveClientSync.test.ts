@@ -323,3 +323,59 @@ it("does not undo a newer tab's region edit when another tab retries a lost-resp
   expect(clientA.stores().useBrowserStore.getState().region).toEqual(regionB);
   expect(clientB.stores().useBrowserStore.getState().region).toEqual(regionB);
 });
+
+it("deterministically converges when one tab holds an unsaved draft while another tab renames later", async () => {
+  const initial = snapshot(createStores("hg38")!);
+  const id = server.add("Original name", initial);
+  const clientA = openClient();
+  const clientB = openClient();
+
+  await clientA.state().open(id);
+  await clientB.state().open(id);
+  await vi.waitFor(() => expect(LiveEventSource.streams.size).toBe(2));
+
+  const patchCount = () => server.requests.filter(({ method }) => method === "PATCH").length;
+
+  // 1) Tab A sends a PATCH for fontSize that is held in flight, then edits selectionMode locally.
+  const firstPatchA = server.hold("PATCH");
+  clientA.stores().useBrowserStore.setState({ fontSize: 17 });
+  await vi.waitFor(() => expect(patchCount()).toBe(1));
+  clientA.stores().useBrowserStore.getState().setSelectionMode("highlight");
+
+  // 2) While Tab A's draft is unsaved, Tab B renames the session and commits first.
+  clientB.state().rename("Renamed in B");
+  await vi.waitFor(() => expect(server.stored.get(id)!.name).toBe("Renamed in B"));
+
+  // 3) Releasing Tab A's held PATCH merges Tab B's rename and then flushes Tab A's unsaved draft.
+  firstPatchA.release();
+  await vi.waitFor(() => {
+    expect(clientA.state().saveStatus).toBe("saved");
+    expect(clientB.state().saveStatus).toBe("saved");
+    expect(clientA.state().active?.name).toBe("Renamed in B");
+    expect(clientB.stores().useBrowserStore.getState().fontSize).toBe(17);
+    expect(clientB.stores().useBrowserStore.getState().selectionMode).toBe("highlight");
+  });
+  expect(server.stored.get(id)!.name).toBe("Renamed in B");
+  expect(server.stored.get(id)!.snapshot.browser.fontSize).toBe(17);
+  expect(server.stored.get(id)!.snapshot.browser.selectionMode).toBe("highlight");
+
+  // 4) Competing rename: Tab A holds an unsaved local rename draft while Tab B commits another rename.
+  const patchesBeforeSecond = patchCount();
+  const secondPatchA = server.hold("PATCH");
+  clientA.stores().useBrowserStore.setState({ fontSize: 18 });
+  await vi.waitFor(() => expect(patchCount()).toBe(patchesBeforeSecond + 1));
+  clientA.state().rename("Draft rename A");
+
+  clientB.state().rename("Earlier rename B");
+  await vi.waitFor(() => expect(server.stored.get(id)!.name).toBe("Earlier rename B"));
+
+  secondPatchA.release();
+  await vi.waitFor(() => {
+    expect(clientA.state().saveStatus).toBe("saved");
+    expect(clientB.state().saveStatus).toBe("saved");
+    expect(clientA.state().active?.name).toBe("Draft rename A");
+    expect(clientB.state().active?.name).toBe("Draft rename A");
+  });
+  expect(server.stored.get(id)!.name).toBe("Draft rename A");
+  expect(server.stored.get(id)!.snapshot.browser.fontSize).toBe(18);
+});

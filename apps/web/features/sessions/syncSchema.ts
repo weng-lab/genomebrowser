@@ -53,18 +53,20 @@ export type SessionEvent = z.infer<typeof sessionEventSchema>;
 
 export type SyncedBrowserKey = keyof Omit<SessionSnapshot["browser"], "assembly">;
 
+const syncedBrowserKeyMap = {
+  region: true,
+  basePairDetail: true,
+  marginWidth: true,
+  trackWidth: true,
+  fontSize: true,
+  titleSize: true,
+  highlights: true,
+  selectionMode: true,
+  selectionHighlight: true,
+} satisfies Record<SyncedBrowserKey, true>;
+
 /** Browser fields synced by web clients (everything except immutable `assembly`). */
-export const syncedBrowserKeys: readonly SyncedBrowserKey[] = [
-  "region",
-  "basePairDetail",
-  "marginWidth",
-  "trackWidth",
-  "fontSize",
-  "titleSize",
-  "highlights",
-  "selectionMode",
-  "selectionHighlight",
-];
+export const syncedBrowserKeys = Object.keys(syncedBrowserKeyMap) as readonly SyncedBrowserKey[];
 
 /**
  * Structural track shape shared by both serialized snapshot tracks and live
@@ -90,9 +92,7 @@ export type SyncComparableTrack = {
  * for these tracks would ping-pong between tabs at different widths.
  */
 export function isDerivedHeightTrack(track: Pick<SyncComparableTrack, "type" | "config">): boolean {
-  return (
-    track.type === "ruler" || track.type === "gene" || typeof track.config.rowHeight === "number"
-  );
+  return track.type === "ruler" || typeof track.config.rowHeight === "number";
 }
 
 /**
