@@ -814,7 +814,7 @@ it("reports an explicit server CONFLICT and saves over it only when asked", asyn
     await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
     expect(savedFontSize(id)).toBe(15);
     expect(state().error).toBe(
-      "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.",
+      "Could not merge these changes after concurrent edits. Save them over the latest version, or close without saving.",
     );
     expect(state().active!.signal.aborted).toBe(false);
     expect(closeTab()).toBe(true);

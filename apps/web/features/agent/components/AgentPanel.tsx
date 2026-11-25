@@ -22,7 +22,9 @@ export function AgentPanel() {
     message = "This session's changes can no longer be saved, so agents cannot control it.";
   else if (enabled && state === "connected")
     message = `Connected. MCP tools called with sessionId "${sessionId}" run in this tab.`;
-  else if (enabled) message = "Connecting… If this session is open in another tab, close that tab.";
+  else if (enabled)
+    message =
+      "Connecting… Browser-only tools (image export, add tracks) run in one tab at a time; state tools still work.";
   return (
     <Box sx={{ p: 2, overflow: "auto" }}>
       <Stack spacing={2}>

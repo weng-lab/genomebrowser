@@ -10,14 +10,14 @@ Guests get one session restored in the same browser, with work preserved on sign
 
 ## What is saved
 
-Assembly (fixed for the session lifetime), persistent browser configuration (region, highlights, settings), region groups, tracks (configuration, metadata, order, pins), and session details (id, owner, name, times, revision, save id). Runtime modules, fetched data, loading flags, and connections are not part of a portable snapshot.
+Assembly (fixed for the session lifetime), persistent browser configuration (region, highlights, settings), region groups, tracks (configuration, metadata, order, pins), and session details (id, owner, name, times, revision, recent save IDs). Runtime modules, fetched data, loading flags, and connections are not part of a portable snapshot.
 
 `snapshot` / `restore` are the boundary between serializable data and live stores. Schemas and types live with the session feature in code.
 
 ## Operations and autosave invariants
 
-A session owner exposes complete operations (open, switch, save, delete) so UI does not reconstruct write/cancel/store-replacement ordering. The server derives identity; the client does not choose the acting user. Updates are conditional on revision and save id so lost replies can retry safely and concurrent writers conflict instead of silently interleaving.
+A session owner exposes complete operations (open, switch, save, delete) so UI does not reconstruct write/cancel/store-replacement ordering. The server derives identity; the client does not choose the acting user. PostgreSQL is the sole authoritative store; concurrent updates merge by section via conditional revision retries and bounded `recent_save_ids` deduplication so lost replies retry safely and multiple open tabs stay in sync via lightweight SSE revision hints ([ADR 0008](../adr/0008-server-authoritative-live-sessions.md)).
 
-Autosave debounces, saves one snapshot at a time, and must not treat an older ack as covering newer edits. Network failure does not prove a write failed; the same logical write is retried until applied or rejected. `CONFLICT` means another tab saved first: stop autosave, keep edits, let the user save over or discard. Durable offline storage, crash recovery, and merge are out of scope.
+Autosave debounces, sends one section `PATCH` at a time, rebases unacknowledged local edits onto incoming remote snapshots, and must not treat an older ack as covering newer edits. Network failure does not prove a write failed; the same logical write is retried with its original `saveId` until applied or rejected. `CONFLICT` means concurrent server merge retries were exhausted: freeze the tab against remote overwrites, keep local edits, and let the user save over the latest version or close without saving. Durable offline storage and crash recovery are out of scope.
 
 Failure UX and route details: `apps/web/README.md`. Current gaps: [limitations](limitations.md).

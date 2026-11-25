@@ -296,7 +296,7 @@ export function createSession({
               "The latest changes are too large or invalid to save. Change them to keep saving.";
           else if (failure.code === "CONFLICT")
             message =
-              "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.";
+              "Could not merge these changes after concurrent edits. Save them over the latest version, or close without saving.";
           else message = "Changes to this session can no longer be saved.";
           // Refused edits can still be saved after a further edit, and edits in
           // conflict after `overwrite`.
