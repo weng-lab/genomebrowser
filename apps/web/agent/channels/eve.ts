@@ -108,6 +108,7 @@ const notEvaluation = [
  * need a user and evals have no tab.
  */
 const evaluation: EveAuthFn = async (request) => {
+  if (process.env.VERCEL || process.env.NODE_ENV === "production") return null;
   if (process.env.EVE_EVALUATION !== "1" || process.env.EVE_DEV !== "1") return null;
   if (notEvaluation.some((name) => request.headers.has(name))) return null;
   const developer = await local(request);
