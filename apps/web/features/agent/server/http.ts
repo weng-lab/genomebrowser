@@ -179,10 +179,12 @@ export function bindAgentThread(
     try {
       body = await readJsonBody(request, {
         maxBytes: 1_024,
-        tooLarge: () => new SyntaxError(),
+        tooLarge: () => new RangeError(),
         invalid: () => new SyntaxError(),
       });
-    } catch {
+    } catch (cause) {
+      if (cause instanceof RangeError)
+        return error(413, "INVALID_INPUT", "The request body is limited to 1 KB");
       return error(400, "INVALID_INPUT", "The request body must be JSON");
     }
     const input = conversationSchema.safeParse(body);

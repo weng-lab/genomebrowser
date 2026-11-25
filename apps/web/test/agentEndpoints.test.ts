@@ -400,6 +400,24 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     expect((await auth("?control=stop")).status).toBe(403);
     expect((await auth("?conversation=conversation-a")).status).toBe(403);
 
+    // A body over the limit is refused as too large, not as invalid JSON.
+    const oversized = await agentThread.POST(
+      new Request(thread, {
+        method: "POST",
+        body: JSON.stringify({ conversationId: "x".repeat(2_000) }),
+      }),
+      params(id),
+    );
+    expect(oversized.status).toBe(413);
+    expect(await oversized.json()).toMatchObject({
+      message: "The request body is limited to 1 KB",
+    });
+    const malformed = await agentThread.POST(
+      new Request(thread, { method: "POST", body: "{" }),
+      params(id),
+    );
+    expect(malformed.status).toBe(400);
+
     // Only Eve's one-use proof for this user, session, and conversation records it.
     expect((await bind("conversation-a", null)).status).toBe(403);
     expect(
