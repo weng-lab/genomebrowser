@@ -6,6 +6,7 @@ import {
   type TrackSortRule,
   type TrackSortValue,
 } from "@weng-lab/genomebrowser-ui";
+import { trackSortCollator } from "./trackSortCore";
 
 const titleField: TrackSortOption = {
   id: "title",
@@ -27,13 +28,14 @@ const metadataField = (name: string): TrackSortOption => ({
   value: ({ metadata }) => (metadata && Object.hasOwn(metadata, name) ? metadata[name] : undefined),
 });
 
-// Field names in natural order, ignoring case, as text values sort.
-const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
-
 /** Every field the tracks can be sorted by: Title, Track type, then their metadata fields. */
 function sortFields(tracks: readonly AnyTrackInstance[]) {
   const names = new Set(tracks.flatMap((track) => Object.keys(track.metadata ?? {})));
-  return [titleField, typeField, ...[...names].toSorted(collator.compare).map(metadataField)];
+  return [
+    titleField,
+    typeField,
+    ...[...names].toSorted(trackSortCollator.compare).map(metadataField),
+  ];
 }
 
 /**

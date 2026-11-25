@@ -1,21 +1,14 @@
-import type { TrackMetadata, TrackStoreInstance } from "@weng-lab/genomebrowser";
-import { maxSessionBytes, maxSessionTracks } from "../sessions/schema";
+import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
+import {
+  maxTrackMetadataBytes,
+  metadataBytes,
+  planTrackMetadataChange,
+  type TrackMetadataChange,
+  type TrackMetadataOutcome,
+} from "./trackMetadataCore";
 
-/**
- * Most metadata one track may have after a change, in bytes of JSON. A session's most tracks
- * at this size fill half of what it can save, so metadata alone can't stop it saving.
- */
-export const maxTrackMetadataBytes = Math.floor(maxSessionBytes / maxSessionTracks / 2);
-
-/** Fields to add or replace, and field names to remove. A track's other fields stay. */
-export type TrackMetadataChange = {
-  set?: Readonly<TrackMetadata>;
-  remove?: readonly string[];
-};
-
-export type TrackMetadataOutcome =
-  | { ok: true; tracks: { id: string; metadata: TrackMetadata }[] }
-  | { ok: false; code: string; error: string };
+export { maxTrackMetadataBytes, metadataBytes };
+export type { TrackMetadataChange, TrackMetadataOutcome };
 
 /**
  * Applies one change to the metadata of each given track, in the given order. Changes every
@@ -27,45 +20,14 @@ export function changeTrackMetadata(
   trackIds: readonly string[],
   change: TrackMetadataChange,
 ): TrackMetadataOutcome {
-  const { getTrack, updateTrack } = trackStore.getState();
-  const missing = trackIds.filter((id) => getTrack(id) === undefined);
-  if (missing.length > 0) {
-    const ids = missing.map((id) => `"${id}"`).join(", ");
-    return { ok: false, code: "TRACK_NOT_FOUND", error: `No loaded track has the ID ${ids}` };
-  }
-  const tracks = trackIds.map((id) => ({
-    id,
-    metadata: applyChange(getTrack(id)!.metadata, change),
-  }));
-  const tooLarge = tracks.filter(({ metadata }) => metadataBytes(metadata) > maxTrackMetadataBytes);
-  if (tooLarge.length > 0) {
-    const ids = tooLarge.map(({ id }) => `"${id}"`).join(", ");
-    return {
-      ok: false,
-      code: "METADATA_TOO_LARGE",
-      error: `This change would give ${ids} more than ${maxTrackMetadataBytes.toLocaleString("en-US")} bytes of metadata per track. Remove fields or shorten values. No track changed.`,
-    };
-  }
-  for (const { id, metadata } of tracks) {
+  const { tracks, updateTrack } = trackStore.getState();
+  const planned = planTrackMetadataChange(tracks, trackIds, change);
+  if (!planned.ok) return planned;
+  for (const { id, metadata } of planned.tracks) {
     // Every track gets the same change to an already valid record, so either the first update
     // fails and nothing has changed, or every update succeeds.
     const result = updateTrack(id, { metadata });
     if (!result.ok) return result;
   }
-  return { ok: true, tracks };
-}
-
-/** The size of a metadata record as JSON, in bytes, which `maxTrackMetadataBytes` limits. */
-export function metadataBytes(metadata: Readonly<TrackMetadata>) {
-  return new TextEncoder().encode(JSON.stringify(metadata)).length;
-}
-
-function applyChange(
-  current: TrackMetadata | undefined,
-  { set = {}, remove = [] }: TrackMetadataChange,
-): TrackMetadata {
-  const removed = new Set(remove);
-  return Object.fromEntries(
-    Object.entries({ ...current, ...set }).filter(([field]) => !removed.has(field)),
-  );
+  return planned;
 }
