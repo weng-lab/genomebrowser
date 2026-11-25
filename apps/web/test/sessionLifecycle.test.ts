@@ -112,13 +112,7 @@ it("restores every saved setting before saving, then saves whole snapshots of la
   expect(writes()).toEqual([]);
   expect(state().saveStatus).toBe("saved");
 
-  // Local viewport pans stay tab-local and do not dirty the session or trigger writes.
   stores().useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 5000, end: 6000 });
-  await advance(1000);
-  expect(writes()).toEqual([]);
-  expect(state().saveStatus).toBe("saved");
-  expect(closeTab()).toBe(false);
-
   setFontSize(18);
   stores().useBrowserStore.getState().removeHighlight("enhancer");
   stores().useTrackStore.getState().setPinnedTrackIds([]);
@@ -131,12 +125,12 @@ it("restores every saved setting before saving, then saves whole snapshots of la
   expect(state().saveStatus).toBe("saving");
   await vi.waitFor(() => expect(state().saveStatus).toBe("saved"));
 
-  // One write carries all synced edits while keeping the server's saved region intact.
+  // One write carries all synced edits, including browser.region.
   expect(puts()).toHaveLength(1);
   expect(server.stored.get(id)!.name).toBe("Enhancer scan");
   expect(server.stored.get(id)!.snapshot).toMatchObject({
     browser: {
-      region: savedSnapshot().browser.region,
+      region: { chromosome: "chr1", start: 5000, end: 6000 },
       fontSize: 18,
       highlights: [{ id: "promoter" }],
     },

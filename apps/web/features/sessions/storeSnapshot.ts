@@ -76,11 +76,7 @@ export function restore(session: SessionStores, saved: SessionSnapshot) {
  * refetch or re-render unnecessarily) and keeping local renderer-derived track
  * heights on unchanged tracks so tabs at different widths do not ping-pong.
  */
-export function applyRemoteSnapshot(
-  session: SessionStores,
-  saved: SessionSnapshot,
-  { applyRegion = true }: { applyRegion?: boolean } = {},
-) {
+export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapshot) {
   const currentBrowser = session.useBrowserStore.getState();
   if (saved.browser.assembly !== currentBrowser.assembly.id) {
     throw new Error(
@@ -92,15 +88,13 @@ export function applyRemoteSnapshot(
   const browserUpdates: Partial<ReturnType<typeof session.useBrowserStore.getState>> = {};
   let browserChanged = false;
 
-  if (applyRegion) {
-    const normalizedRegion = createBrowserStore({
-      assembly: currentBrowser.assembly,
-      region: saved.browser.region,
-    }).getState().region;
-    if (!jsonEqual(currentBrowser.region, normalizedRegion)) {
-      browserUpdates.region = normalizedRegion;
-      browserChanged = true;
-    }
+  const normalizedRegion = createBrowserStore({
+    assembly: currentBrowser.assembly,
+    region: saved.browser.region,
+  }).getState().region;
+  if (!jsonEqual(currentBrowser.region, normalizedRegion)) {
+    browserUpdates.region = normalizedRegion;
+    browserChanged = true;
   }
   if (!jsonEqual(currentBrowser.basePairDetail, saved.browser.basePairDetail)) {
     browserUpdates.basePairDetail = saved.browser.basePairDetail;

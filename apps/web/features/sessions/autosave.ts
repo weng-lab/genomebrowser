@@ -39,11 +39,10 @@ const unserializable = "";
 
 /**
  * Synchronize one restored session with the server in the background until the
- * enclosing scope closes. Local edits to synced stores and name are debounced
- * and sent as section patches (`PATCH`) so concurrent edits across tabs or MCP
- * agents merge cleanly. Local viewport pans (`browser.region`) stay tab-local;
- * explicit server-side region changes (such as MCP `set_region`) arrive via
- * lightweight SSE revision hints followed by a coalesced session fetch.
+ * enclosing scope closes. Local edits to synced stores (including `browser.region`)
+ * and name are debounced and sent as section patches (`PATCH`) so concurrent edits
+ * across tabs or MCP agents merge cleanly. Remote updates arrive via lightweight
+ * SSE revision hints followed by a coalesced session fetch.
  */
 export const startAutosave = Effect.fnUntraced(function* (options: {
   id: string;
@@ -63,7 +62,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   const clientId = crypto.randomUUID();
   const current = (): SessionDocument => ({ name: options.name(), snapshot: snapshot(stores) });
 
-  // Last server-acknowledged document (including the server's last known `browser.region`).
+  // Last server-acknowledged document.
   let syncedInput: SessionDocument = current();
   // Canonical synced-fields key of `syncedInput` (undefined after a conflict) and of the newest edits.
   let saved: string | undefined = syncKey(syncedInput);
@@ -139,8 +138,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   /**
    * Reconcile an incoming authoritative `SavedSession` (from a merged PATCH reply
    * or an SSE-triggered fetch) with any unpushed local edits so local work is
-   * preserved. Updates the tab's viewport only when the server's `browser.region`
-   * itself changed (for example, via MCP `set_region`).
+   * preserved.
    */
   function applyAuthoritative(remote: SavedSession, baseForPending: SessionDocument) {
     if (remote.revision < revision) {
@@ -157,11 +155,6 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       pendingLocal = undefined;
     }
 
-    const serverRegionChanged = !jsonEqual(
-      syncedInput.snapshot.browser.region,
-      remote.snapshot.browser.region,
-    );
-
     revision = remote.revision;
     if (targetRevision < revision) targetRevision = revision;
     syncedInput = { name: remote.name, snapshot: remote.snapshot };
@@ -170,22 +163,13 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     const target = pendingLocal ? applySessionPatch(syncedInput, pendingLocal) : syncedInput;
     applyingRemote = true;
     try {
-      applyRemoteSnapshot(stores, target.snapshot, { applyRegion: serverRegionChanged });
+      applyRemoteSnapshot(stores, target.snapshot);
       if (target.name !== options.name()) onRemoteRename?.(target.name);
       const reconciled = current();
       latestInput = reconciled;
       latest = syncKey(reconciled);
       if (!pendingLocal) {
-        syncedInput = {
-          name: reconciled.name,
-          snapshot: {
-            ...reconciled.snapshot,
-            browser: {
-              ...reconciled.snapshot.browser,
-              region: remote.snapshot.browser.region,
-            },
-          },
-        };
+        syncedInput = reconciled;
         saved = latest;
       }
     } finally {
@@ -449,9 +433,4 @@ function parseJson(text: string): unknown {
   } catch {
     return undefined;
   }
-}
-
-function jsonEqual(a: unknown, b: unknown): boolean {
-  if (Object.is(a, b)) return true;
-  return JSON.stringify(a) === JSON.stringify(b);
 }

@@ -92,7 +92,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("keeps panning tab-local, syncs persisted edits via revision hints without snap-back, follows server set_region, and propagates deletion", async () => {
+it("syncs panning and browser edits across tabs via revision hints without echo, follows server set_region, and propagates deletion", async () => {
   const initial = snapshot(createStores("hg38")!);
   const id = server.add("Shared session", initial);
   const clientA = openClient();
@@ -102,21 +102,35 @@ it("keeps panning tab-local, syncs persisted edits via revision hints without sn
   await clientB.state().open(id);
   await vi.waitFor(() => expect(LiveEventSource.streams.size).toBe(2));
 
-  // 1) Local panning in Client B stays local: no PATCH sent, server region unchanged.
+  const patches = () => server.requests.filter(({ method }) => method === "PATCH");
+
+  // 1) Panning in Client B persists via PATCH and syncs live to Client A without echoing back.
+  const beforeTrackRefA = clientA.stores().useTrackStore.getState().tracks[0];
   clientB
     .stores()
     .useBrowserStore.getState()
     .setRegion({ chromosome: "chr1", start: 40_000, end: 50_000 });
+  await vi.waitFor(() =>
+    expect(clientA.stores().useBrowserStore.getState().region).toEqual({
+      chromosome: "chr1",
+      start: 40_000,
+      end: 50_000,
+    }),
+  );
+  expect(server.stored.get(id)!.snapshot.browser.region).toEqual({
+    chromosome: "chr1",
+    start: 40_000,
+    end: 50_000,
+  });
+  expect(clientA.stores().useTrackStore.getState().tracks[0]).toBe(beforeTrackRefA);
   await new Promise<void>((resolve) => {
     setTimeout(resolve, 300);
   });
-  const patches = () => server.requests.filter(({ method }) => method === "PATCH");
-  expect(patches()).toHaveLength(0);
-  expect(server.stored.get(id)!.snapshot.browser.region).toEqual(initial.browser.region);
+  expect(patches()).toHaveLength(1);
 
-  // 2) Client A changes a persisted setting -> Client B fetches via revision hint without
-  //    echoing a PATCH back AND keeps its own local viewport without snapping back.
-  const beforeTrackRef = clientB.stores().useTrackStore.getState().tracks[0];
+  // 2) Client A changes another setting -> Client B fetches via revision hint without
+  //    echoing a PATCH back and keeps the synced viewport and unchanged track refs.
+  const beforeTrackRefB = clientB.stores().useTrackStore.getState().tracks[0];
   clientA.stores().useBrowserStore.getState().setSelectionMode("highlight");
 
   await vi.waitFor(() =>
@@ -127,11 +141,11 @@ it("keeps panning tab-local, syncs persisted edits via revision hints without sn
     start: 40_000,
     end: 50_000,
   });
-  expect(clientB.stores().useTrackStore.getState().tracks[0]).toBe(beforeTrackRef);
+  expect(clientB.stores().useTrackStore.getState().tracks[0]).toBe(beforeTrackRefB);
   await new Promise<void>((resolve) => {
     setTimeout(resolve, 300);
   });
-  expect(patches()).toHaveLength(1);
+  expect(patches()).toHaveLength(2);
 
   // 3) Explicit server-side region update (e.g. MCP set_region) moves both tabs.
   const stored = server.stored.get(id)!;

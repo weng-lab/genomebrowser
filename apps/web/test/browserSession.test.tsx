@@ -132,6 +132,5 @@ it("retains browser edits across pages and restores the saved session on a new W
   await act(async () => root!.render(null));
   await mount();
   expect(browserText()).toContain("Retained coordinates");
-  // Local panning stays tab-local, so a fresh mount restores the session's saved region.
-  expect(ticks(browserText())).toEqual(ticks(initialText));
+  expect(ticks(browserText())).toEqual(ticks(editedText));
 });

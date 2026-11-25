@@ -51,14 +51,11 @@ export const sessionEventSchema = z.discriminatedUnion("type", [
 ]);
 export type SessionEvent = z.infer<typeof sessionEventSchema>;
 
-type SyncedBrowserKey = keyof Omit<SessionSnapshot["browser"], "assembly" | "region">;
+type SyncedBrowserKey = keyof Omit<SessionSnapshot["browser"], "assembly">;
 
-/**
- * Browser fields synced by web clients. `region` is intentionally excluded: tabs
- * read the session's region on open and follow explicit server-side updates (such
- * as MCP `set_region`), while local panning and zooming stay tab-local.
- */
+/** Browser fields synced by web clients (everything except immutable `assembly`). */
 const syncedBrowserKeys: readonly SyncedBrowserKey[] = [
+  "region",
   "basePairDetail",
   "marginWidth",
   "trackWidth",
@@ -82,8 +79,8 @@ export function isDerivedHeightTrack(track: SessionSnapshot["tracks"][number]): 
 
 /**
  * Canonical JSON key for the synced parts of a session document. Excludes
- * tab-local `browser.region` and renderer-derived track heights so neither
- * marks a tab dirty or triggers writes.
+ * renderer-derived track heights so viewport-width differences do not mark a
+ * tab dirty or trigger writes.
  */
 export function syncKey(doc: SessionDocument): string {
   const browser: Record<string, unknown> = {};
@@ -117,7 +114,7 @@ export function diffSessionPatch(
     changed = true;
   }
 
-  const browserPatch: Partial<Omit<SessionSnapshot["browser"], "assembly" | "region">> = {};
+  const browserPatch: Partial<Omit<SessionSnapshot["browser"], "assembly">> = {};
   let browserChanged = false;
   for (const key of syncedBrowserKeys) {
     if (!jsonEqual(base.snapshot.browser[key], next.snapshot.browser[key])) {

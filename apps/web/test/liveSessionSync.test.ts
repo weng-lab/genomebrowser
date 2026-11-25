@@ -252,50 +252,47 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     });
   });
 
-  it("ignores local region pans and derived track heights when diffing, and preserves local viewport unless applyRegion is true", () => {
+  it("diffs region pans, ignores derived track heights, and applies remote snapshots while preserving unchanged track refs", () => {
     const stores = createStores("hg38")!;
     const beforeTracks = [...stores.useTrackStore.getState().tracks];
     const base = { name: "Test", snapshot: defaultSnapshot() };
 
-    // Local pan and derived track height changes produce no sync patch and identical syncKey.
-    stores.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 9_000, end: 12_000 });
+    // Derived track height changes alone produce no sync patch and identical syncKey.
     stores.useTrackStore.getState().updateTrack("genes", { base: { height: 96 } });
     const localGeneTrack = stores.useTrackStore.getState().getTrack("genes")!;
-    const localDoc = { name: "Test", snapshot: snapshot(stores) };
-    expect(diffSessionPatch(base, localDoc)).toBeUndefined();
-    expect(syncKey(localDoc)).toBe(syncKey(base));
+    const heightOnlyDoc = { name: "Test", snapshot: snapshot(stores) };
+    expect(diffSessionPatch(base, heightOnlyDoc)).toBeUndefined();
+    expect(syncKey(heightOnlyDoc)).toBe(syncKey(base));
 
-    // Remote non-region update (applyRegion: false) keeps local viewport, local height, and track refs.
-    const remoteSettings: SessionSnapshot = {
-      ...defaultSnapshot(),
-      browser: { ...defaultSnapshot().browser, fontSize: 18 },
-    };
-    applyRemoteSnapshot(stores, remoteSettings, { applyRegion: false });
-    expect(stores.useBrowserStore.getState().fontSize).toBe(18);
-    expect(stores.useBrowserStore.getState().region).toEqual({
-      chromosome: "chr1",
-      start: 9_000,
-      end: 12_000,
+    // Region pans produce a browser.region sync patch and update syncKey.
+    stores.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 9_000, end: 12_000 });
+    const pannedDoc = { name: "Test", snapshot: snapshot(stores) };
+    expect(diffSessionPatch(base, pannedDoc)).toEqual({
+      browser: { region: { chromosome: "chr1", start: 9_000, end: 12_000 } },
     });
-    expect(stores.useTrackStore.getState().getTrack("ruler")).toBe(beforeTracks[0]);
-    expect(stores.useTrackStore.getState().getTrack("genes")).toBe(localGeneTrack);
-    expect(stores.useTrackStore.getState().getTrack("genes")!.base.height).toBe(96);
-    expect(stores.useTrackStore.getState().getTrack("ccres")).toBe(beforeTracks[2]);
+    expect(syncKey(pannedDoc)).not.toBe(syncKey(base));
 
-    // Explicit server-side region update (applyRegion: true) moves the tab's viewport.
-    const remoteRegion: SessionSnapshot = {
-      ...remoteSettings,
+    // Applying a remote snapshot updates browser settings and region while keeping
+    // local derived track height and unchanged track object references.
+    const remote: SessionSnapshot = {
+      ...defaultSnapshot(),
       browser: {
-        ...remoteSettings.browser,
+        ...defaultSnapshot().browser,
+        fontSize: 18,
         region: { chromosome: "chr5", start: 2000, end: 4000 },
       },
     };
-    applyRemoteSnapshot(stores, remoteRegion, { applyRegion: true });
+    applyRemoteSnapshot(stores, remote);
+    expect(stores.useBrowserStore.getState().fontSize).toBe(18);
     expect(stores.useBrowserStore.getState().region).toEqual({
       chromosome: "chr5",
       start: 2000,
       end: 4000,
     });
+    expect(stores.useTrackStore.getState().getTrack("ruler")).toBe(beforeTracks[0]);
+    expect(stores.useTrackStore.getState().getTrack("genes")).toBe(localGeneTrack);
+    expect(stores.useTrackStore.getState().getTrack("genes")!.base.height).toBe(96);
+    expect(stores.useTrackStore.getState().getTrack("ccres")).toBe(beforeTracks[2]);
   });
 });
 

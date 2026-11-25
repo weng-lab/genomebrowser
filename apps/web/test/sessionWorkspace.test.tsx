@@ -126,11 +126,10 @@ it("creates a session, saves edits, and keeps it open across workspace pages", a
   const before = region();
   await click(button("Pan right"));
   expect(region()).not.toBe(before);
-  // Panning stays tab-local while persisted edits (such as selection mode) save to the server.
   await click(button("Highlight"));
   await vi.waitFor(() => expect(closeTab()).toBe(false));
   expect(savedMode(id)).toBe("highlight");
-  expect(server.stored.get(id)!.snapshot.browser.region).toEqual(defaults().browser.region);
+  expect(server.stored.get(id)!.snapshot.browser.region).not.toEqual(defaults().browser.region);
 
   const edited = region();
   await click(document.querySelector('nav a[aria-label="Settings"]'));
