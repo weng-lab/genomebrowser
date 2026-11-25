@@ -56,11 +56,15 @@ export type SessionState = {
   /**
    * Close the active session after saving every edit, or without saving when
    * `discard` is set, then run `next`, such as signing out. Nothing opens until
-   * `next` settles. Resolves `false`, without running `next`, when the edits
-   * could not be saved; the session then stays open with them.
+   * `next` settles. Resolves `"unsaved"`, without running `next`, when the
+   * edits could not be saved; the session then stays open with them. Resolves
+   * `"failed"` when `next` fails, which the error banner reports, or when the
+   * store stops before closing finishes.
    */
-  close(options?: { discard?: boolean; next?: () => void | Promise<void> }): Promise<boolean>;
+  close(options?: { discard?: boolean; next?: () => void | Promise<void> }): Promise<CloseOutcome>;
 };
+
+export type CloseOutcome = "closed" | "unsaved" | "failed";
 
 type Active = NonNullable<SessionState["active"]>;
 type Pending = NonNullable<SessionState["pending"]>;
@@ -613,8 +617,8 @@ export function createSession({
   function close({
     discard = false,
     next,
-  }: { discard?: boolean; next?: () => void | Promise<void> } = {}): Promise<boolean> {
-    let closed = false;
+  }: { discard?: boolean; next?: () => void | Promise<void> } = {}): Promise<CloseOutcome> {
+    let outcome: CloseOutcome = "failed";
     opening?.fiber.interruptUnsafe();
     const operation = Effect.gen(function* () {
       const target = current;
@@ -628,16 +632,22 @@ export function createSession({
         yield* Scope.close(target.scope, Exit.void);
       } else if (target) {
         const saved = yield* Effect.result(finishSaving(target, finish));
-        if (Result.isFailure(saved)) return unsaved(saved.failure);
+        if (Result.isFailure(saved)) {
+          outcome = "unsaved";
+          return unsaved(saved.failure);
+        }
       }
-      closed = true;
-      if (!next) return;
+      if (!next) {
+        outcome = "closed";
+        return;
+      }
       const changed = yield* Effect.result(Effect.tryPromise(async () => next()));
       if (Result.isFailure(changed))
-        setError({ tag: "operation", message: "Could not change accounts. Try again." });
+        return setError({ tag: "operation", message: "Could not change accounts. Try again." });
+      outcome = "closed";
     });
     const task = run(exclusive({ operation: "close" }, operation));
-    return task ? task.done.then(() => closed) : Promise.resolve(false);
+    return task ? task.done.then(() => outcome) : Promise.resolve(outcome);
   }
 
   function start() {

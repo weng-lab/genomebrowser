@@ -496,7 +496,7 @@ it("keeps edits to a session deleted elsewhere unsaved until they are discarded"
   expect(state().error).toBe("Could not save “Session”. Its changes are kept here.");
   expect(stores().useBrowserStore.getState().fontSize).toBe(16);
 
-  expect(await state().close({ discard: true })).toBe(true);
+  expect(await state().close({ discard: true })).toBe("closed");
   expect(state()).toMatchObject({ active: undefined, saveStatus: undefined });
   expect(closeTab()).toBe(false);
   await state().open(other);
@@ -623,7 +623,7 @@ it("saves and closes the active session before an account change, which nothing 
   await advance(500);
   expect(state().active).toBeUndefined();
   finish();
-  expect(await closing).toBe(true);
+  expect(await closing).toBe("closed");
   await opening;
   expect(state().active!.id).toBe(other);
 });
@@ -637,13 +637,13 @@ it("changes accounts only once unsaved edits are saved or discarded", async () =
   await vi.waitFor(() => expect(puts()).toHaveLength(1));
   const closing = state().close({ next: change });
   write.fail();
-  expect(await closing).toBe(false);
+  expect(await closing).toBe("unsaved");
   expect(change).not.toHaveBeenCalled();
   expect(state().active!.id).toBe(id);
   expect(state().error).toBe("Could not save “Session”. Its changes are kept here.");
   expect(stores().useBrowserStore.getState().fontSize).toBe(14);
 
-  expect(await state().close({ discard: true, next: change })).toBe(true);
+  expect(await state().close({ discard: true, next: change })).toBe("closed");
   expect(change).toHaveBeenCalledOnce();
   expect(state().active).toBeUndefined();
   await advance(5000);
@@ -824,7 +824,7 @@ it("reports an explicit server CONFLICT and saves over it only when asked", asyn
 
     await state().open(other);
     expect(state().active!.id).toBe(id);
-    expect(await state().close()).toBe(false);
+    expect(await state().close()).toBe("unsaved");
     expect(stores().useBrowserStore.getState().fontSize).toBe(16);
 
     await state().overwrite();
@@ -850,7 +850,7 @@ it("discards edits in conflict when closed without saving", async () => {
     setFontSize(14);
     await vi.waitFor(() => expect(state().saveStatus).toBe("conflict"));
 
-    expect(await state().close({ discard: true })).toBe(true);
+    expect(await state().close({ discard: true })).toBe("closed");
     expect(state()).toMatchObject({ active: undefined, saveStatus: undefined });
     await state().open(id);
     expect(stores().useBrowserStore.getState().fontSize).toBe(15);
@@ -875,7 +875,7 @@ it("abandons saving over a conflict once the session is closed without saving", 
     const load = server.hold("GET");
     const overwriting = state().overwrite();
     await vi.waitFor(() => expect(server.requests.at(-1)?.method).toBe("GET"));
-    expect(await state().close({ discard: true })).toBe(true);
+    expect(await state().close({ discard: true })).toBe("closed");
     await state().open(id);
     load.release();
     await overwriting;
@@ -977,15 +977,30 @@ it("changes accounts after a lost write once trying again saves it", async () =>
   const change = vi.fn<() => void>();
   server.lose("PATCH");
   setFontSize(14);
-  expect(await state().close({ next: change })).toBe(false);
+  expect(await state().close({ next: change })).toBe("unsaved");
   expect(change).not.toHaveBeenCalled();
   expect(state().active!.id).toBe(id);
 
-  expect(await state().close({ next: change })).toBe(true);
+  expect(await state().close({ next: change })).toBe("closed");
   expect(change).toHaveBeenCalledOnce();
   expect(puts()).toHaveLength(2);
   expect(server.stored.get(id)).toMatchObject({ revision: 2 });
   expect(savedFontSize(id)).toBe(14);
+});
+
+it("reports a failed account change as failed, not as unsaved edits", async () => {
+  const id = server.add("Session", defaults());
+  await state().open(id);
+  const change = vi.fn<() => Promise<void>>(() => Promise.reject(new Error("Clerk is down")));
+  expect(await state().close({ next: change })).toBe("failed");
+  expect(change).toHaveBeenCalledOnce();
+  expect(state().error).toBe("Could not change accounts. Try again.");
+
+  // Once the store stops, closing cannot start; no edits failed to save.
+  stop();
+  expect(await state().close({ next: change })).toBe("failed");
+  expect(change).toHaveBeenCalledOnce();
+  start();
 });
 
 it("stops retrying a lost write once its session is deleted", async () => {
