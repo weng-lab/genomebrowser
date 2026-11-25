@@ -3,22 +3,34 @@
 `@weng-lab/web` is the Next.js genome browser application: saved sessions in PostgreSQL, accounts in Clerk, and an MCP endpoint through which AI agents control the open session.
 
 ```mermaid
-flowchart LR
-  User([Researcher]) -->|uses| Client[Web client]
-  Agent([AI agent]) -->|calls a tool| MCP
-
+flowchart TD
+  User([User])
+  Agent([AI agent])
+  Client(Web client)
   subgraph Next[Next.js server]
-    Sessions[Session routes]
     MCP[MCP endpoint]
-    Stream[Command stream]
+    Commands[Commands route]
+    Sessions[Session routes]
   end
+  Redis[(Redis)]
+  DB[(PostgreSQL)]
+  Files[(Remote genomic files)]
+  Clerk[Clerk]
+  User -->|uses| Client
+  Agent -->|calls tool| MCP
+  MCP -->|publishes command| Redis
+  Redis -->|delivers command| Commands
+  Commands -->|pushes command| Client
+  Client -->|saves session| Sessions
+  Sessions -->|stores snapshot| DB
+  Client -->|reads track files| Files
+  Client -->|signs in| Clerk
 
-  Client -->|saves sessions| Sessions
-  Sessions -->|stores sessions| Postgres[(PostgreSQL)]
-  MCP -->|publishes the command| Redis[(Redis)]
-  Redis -->|delivers the command| Stream
-  Stream -->|pushes the command| Client
-  Client -->|signs in| Clerk[Clerk]
+  classDef actor stroke-width:2px,stroke-dasharray:5 3
+  classDef frontend stroke-width:3px
+  class User,Agent actor
+  class Client frontend
+  linkStyle 1,2,3,4 stroke-width:3px
 ```
 
 An agent's command reaches the web client only through Redis and the command stream, and the client's reply takes the same route back. The MCP call and the client's stream can be on different server instances, which is why Redis sits between them. The client applies commands to the same stores the UI uses.
