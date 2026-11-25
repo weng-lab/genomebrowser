@@ -1,5 +1,7 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { createMemorySessionBus } from "../features/sessions/server/bus";
+import { createSessionService } from "../features/sessions/server/service";
 import { createSessions } from "../features/sessions/server/sessions";
 import type { SessionInput, SessionUpdate } from "../features/sessions/schema";
 import { sessionsTable } from "../features/sessions/server/table";
@@ -216,5 +218,45 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(alice().load("local")).rejects.toMatchObject({ code: "NOT_FOUND" });
     expect(await alice().list()).toEqual([]);
+  });
+
+  it("recognizes a retried PATCH saveId in PostgreSQL even after an intervening write", async () => {
+    const bus = createMemorySessionBus();
+    const service = createSessionService({ sessions: alice(), bus });
+    const created = await service.create({ name: "Postgres retry", snapshot: snapshot() });
+    const clientA = crypto.randomUUID();
+    const clientB = crypto.randomUUID();
+    const saveA = crypto.randomUUID();
+    const saveB = crypto.randomUUID();
+
+    const regionA = { chromosome: "chr1", start: 100, end: 200 };
+    const regionB = { chromosome: "chr3", start: 300, end: 400 };
+
+    // Tab A writes region A (response lost), then Tab B writes region B.
+    const first = await service.patch(created.id, {
+      clientId: clientA,
+      saveId: saveA,
+      patch: { browser: { region: regionA } },
+    });
+    expect(first.revision).toBe(2);
+
+    const second = await service.patch(created.id, {
+      clientId: clientB,
+      saveId: saveB,
+      patch: { browser: { region: regionB } },
+    });
+    expect(second.revision).toBe(3);
+
+    // Tab A retries saveA; PostgreSQL recognizes it in recent_save_ids and preserves region B.
+    const retried = await service.patch(created.id, {
+      clientId: clientA,
+      saveId: saveA,
+      patch: { browser: { region: regionA } },
+    });
+    expect(retried.revision).toBe(3);
+    expect(retried.snapshot.browser.region).toEqual(regionB);
+    expect((await service.load(created.id)).snapshot.browser.region).toEqual(regionB);
+
+    await bus.close();
   });
 });

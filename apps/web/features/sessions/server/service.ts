@@ -110,12 +110,15 @@ export function createSessionService({
 
     for (let attempt = 0; attempt < maxMergeAttempts; attempt++) {
       const current = await sessions.loadWithSaveId(id);
-      if (options.saveId && current.saveId === options.saveId) {
-        const { saveId: _ignored, ...saved } = current;
+      if (
+        options.saveId &&
+        (current.saveId === options.saveId || current.recentSaveIds.includes(options.saveId))
+      ) {
+        const { saveId: _ignored, recentSaveIds: _recent, ...saved } = current;
         return { ok: true, session: saved, value: saved as unknown as T };
       }
 
-      const { saveId: _saveId, ...savedCurrent } = current;
+      const { saveId: _saveId, recentSaveIds: _recentSaveIds, ...savedCurrent } = current;
       const result = apply(savedCurrent);
       if (!result.ok) return result;
 
@@ -201,9 +204,18 @@ export function createSessionService({
 
     async subscribe(id, signal, { sinceRevision } = {}) {
       await sessions.authorize(id);
+      if (signal.aborted) {
+        return new ReadableStream<Uint8Array>({
+          start(streamController) {
+            streamController.close();
+          },
+        });
+      }
       const streamAbort = new AbortController();
       const encoder = new TextEncoder();
       let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
+      let heartbeat: ReturnType<typeof setInterval> | undefined;
+      let lifetime: ReturnType<typeof setTimeout> | undefined;
       let state: StreamPhase = {
         tag: "buffering",
         sentRevision: sinceRevision ?? 0,
@@ -258,16 +270,12 @@ export function createSessionService({
       });
 
       const onSignalAbort = () => close();
-      if (signal.aborted) {
-        close();
-        return stream;
-      }
       signal.addEventListener("abort", onSignalAbort, { once: true });
 
-      const heartbeat = setInterval(() => {
+      heartbeat = setInterval(() => {
         write(": heartbeat\n\n");
       }, heartbeatIntervalMs);
-      const lifetime = setTimeout(() => {
+      lifetime = setTimeout(() => {
         close();
       }, streamLifetimeMs);
 

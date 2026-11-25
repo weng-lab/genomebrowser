@@ -22,7 +22,7 @@ import { testNamespace, testRedisUrl } from "./redis";
 
 /** Pure in-memory `Sessions` repository for testing `SessionService` via DI without Postgres. */
 function createMemorySessions(): Sessions & { loadCount: number } {
-  const rows = new Map<string, SavedSession & { saveId: string | null }>();
+  const rows = new Map<string, SavedSession & { saveId: string | null; recentSaveIds: string[] }>();
   let loadCount = 0;
 
   const meta = (row: SavedSession): Session => ({
@@ -43,7 +43,7 @@ function createMemorySessions(): Sessions & { loadCount: number } {
       const id = crypto.randomUUID();
       const now = new Date();
       const parsed = sessionSnapshotSchema.parse(input.snapshot);
-      const row: SavedSession & { saveId: string | null } = {
+      const row: SavedSession & { saveId: string | null; recentSaveIds: string[] } = {
         id,
         name: input.name,
         createdAt: now,
@@ -53,6 +53,7 @@ function createMemorySessions(): Sessions & { loadCount: number } {
         trackCount: parsed.tracks.length,
         snapshot: parsed,
         saveId: null,
+        recentSaveIds: [],
       };
       rows.set(id, row);
       return meta(row);
@@ -64,13 +65,13 @@ function createMemorySessions(): Sessions & { loadCount: number } {
       loadCount += 1;
       const row = rows.get(id);
       if (!row) throw new SessionError("NOT_FOUND", "Session not found");
-      const { saveId: _saveId, ...saved } = row;
+      const { saveId: _saveId, recentSaveIds: _recentSaveIds, ...saved } = row;
       return saved;
     },
     async loadWithSaveId(id) {
       const row = rows.get(id);
       if (!row) throw new SessionError("NOT_FOUND", "Session not found");
-      return { ...row };
+      return { ...row, recentSaveIds: [...row.recentSaveIds] };
     },
     async update(id, input: SessionUpdate) {
       const row = rows.get(id);
@@ -78,7 +79,7 @@ function createMemorySessions(): Sessions & { loadCount: number } {
       if (row.saveId === input.saveId && row.revision === input.revision + 1) return meta(row);
       if (row.revision !== input.revision) throw new SessionError("CONFLICT", "Conflict");
       const parsed = sessionSnapshotSchema.parse(input.snapshot);
-      const next: SavedSession & { saveId: string | null } = {
+      const next: SavedSession & { saveId: string | null; recentSaveIds: string[] } = {
         ...row,
         name: input.name,
         snapshot: parsed,
@@ -86,6 +87,7 @@ function createMemorySessions(): Sessions & { loadCount: number } {
         trackCount: parsed.tracks.length,
         updatedAt: new Date(),
         saveId: input.saveId,
+        recentSaveIds: [...row.recentSaveIds, input.saveId].slice(-128),
       };
       rows.set(id, next);
       return meta(next);
@@ -294,6 +296,91 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     expect(stores.useTrackStore.getState().getTrack("genes")).toBe(localGeneTrack);
     expect(stores.useTrackStore.getState().getTrack("genes")!.base.height).toBe(96);
     expect(stores.useTrackStore.getState().getTrack("ccres")).toBe(beforeTracks[2]);
+  });
+
+  it("ignores a retried PATCH saveId after an intervening write from another tab", async () => {
+    const sessions = createMemorySessions();
+    const bus = createMemorySessionBus();
+    const service = createSessionService({ sessions, bus });
+
+    const created = await service.create({ name: "Retry ordering", snapshot: defaultSnapshot() });
+    const clientA = crypto.randomUUID();
+    const clientB = crypto.randomUUID();
+    const saveA = crypto.randomUUID();
+    const saveB = crypto.randomUUID();
+
+    // 1) Tab A saves region A, but its HTTP response is lost.
+    const regionA = { chromosome: "chr1", start: 1_000, end: 2_000 };
+    const first = await service.patch(created.id, {
+      clientId: clientA,
+      saveId: saveA,
+      patch: { browser: { region: regionA } },
+    });
+    expect(first.revision).toBe(2);
+
+    // 2) Tab B then saves region B.
+    const regionB = { chromosome: "chr2", start: 3_000, end: 4_000 };
+    const second = await service.patch(created.id, {
+      clientId: clientB,
+      saveId: saveB,
+      patch: { browser: { region: regionB } },
+    });
+    expect(second.revision).toBe(3);
+
+    // Listen for any spurious broadcast during Tab A's retry.
+    const events: SessionEvent[] = [];
+    const listenerAbort = new AbortController();
+    await bus.subscribe(created.id, (event) => events.push(event), listenerAbort.signal);
+
+    // 3) Tab A retries its original PATCH with the same saveId.
+    const retried = await service.patch(created.id, {
+      clientId: clientA,
+      saveId: saveA,
+      patch: { browser: { region: regionA } },
+    });
+
+    expect(retried.revision).toBe(3);
+    expect(retried.snapshot.browser.region).toEqual(regionB);
+    const stored = await service.load(created.id);
+    expect(stored.revision).toBe(3);
+    expect(stored.snapshot.browser.region).toEqual(regionB);
+    expect(events).toEqual([]);
+
+    listenerAbort.abort();
+    await bus.close();
+  });
+
+  it("returns a closed SSE stream cleanly when the request aborts before or during authorization", async () => {
+    const baseSessions = createMemorySessions();
+    let releaseAuth!: () => void;
+    const sessions: Sessions = {
+      ...baseSessions,
+      async authorize(id) {
+        await baseSessions.authorize(id);
+        await new Promise<void>((resolve) => {
+          releaseAuth = resolve;
+        });
+      },
+    };
+    const bus = createMemorySessionBus();
+    const service = createSessionService({ sessions, bus });
+    const created = await baseSessions.create({
+      name: "Aborted stream",
+      snapshot: defaultSnapshot(),
+    });
+
+    const abort = new AbortController();
+    const subscribing = service.subscribe(created.id, abort.signal, { sinceRevision: 1 });
+    await Promise.resolve();
+    // Client disconnects while authorize() is still pending.
+    abort.abort();
+    releaseAuth();
+
+    const stream = await subscribing;
+    const reader = stream.getReader();
+    expect(await reader.read()).toEqual({ done: true, value: undefined });
+    reader.releaseLock();
+    await bus.close();
   });
 });
 

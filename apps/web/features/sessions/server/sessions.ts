@@ -45,14 +45,18 @@ export type Sessions = {
   /** Metadata only, alphabetically by name. */
   list(): Promise<Session[]>;
   load(id: string): Promise<SavedSession>;
-  /** Load the latest session alongside its last applied `saveId` for idempotent patch merges. */
-  loadWithSaveId(id: string): Promise<SavedSession & { saveId: string | null }>;
+  /** Load the latest session alongside its applied save IDs for idempotent patch merges. */
+  loadWithSaveId(
+    id: string,
+  ): Promise<SavedSession & { saveId: string | null; recentSaveIds: string[] }>;
   /** Replace the name and snapshot of an existing session. Never recreates a deleted one. */
   update(id: string, input: SessionUpdate): Promise<Session>;
   remove(id: string): Promise<void>;
   /** Succeeds when the acting user owns the session, without loading it. */
   authorize(id: string): Promise<void>;
 };
+
+const maxRecentSaveIds = 128;
 
 const metadata = {
   id: sessionsTable.id,
@@ -117,7 +121,12 @@ export function createSessions({
     async loadWithSaveId(id) {
       const owner = await actingUser();
       const [saved] = await db
-        .select({ ...metadata, snapshot: sessionsTable.snapshot, saveId: sessionsTable.saveId })
+        .select({
+          ...metadata,
+          snapshot: sessionsTable.snapshot,
+          saveId: sessionsTable.saveId,
+          recentSaveIds: sessionsTable.recentSaveIds,
+        })
         .from(sessionsTable)
         .where(owned(owner, id));
       if (!saved) throw notFound();
@@ -136,6 +145,7 @@ export function createSessions({
           snapshot,
           revision: sql`${sessionsTable.revision} + 1`,
           saveId,
+          recentSaveIds: sql`(array_append(${sessionsTable.recentSaveIds}, ${saveId}::uuid))[greatest(1, coalesce(array_length(${sessionsTable.recentSaveIds}, 1), 0) + 2 - ${maxRecentSaveIds}):coalesce(array_length(${sessionsTable.recentSaveIds}, 1), 0) + 1]`,
           updatedAt: sql`now()`,
         })
         .where(

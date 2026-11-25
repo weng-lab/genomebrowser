@@ -1,0 +1,1 @@
+ALTER TABLE "sessions" ADD COLUMN "recent_save_ids" uuid[] DEFAULT '{}' NOT NULL;
