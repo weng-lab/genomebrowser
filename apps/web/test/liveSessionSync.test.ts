@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createRedisConnection, type RedisConnection } from "../composition/server/redis";
 import { createStores } from "../features/assemblies/assemblies";
 import { runServerStateCommand } from "../features/agent/server/stateCommands";
 import {
@@ -298,16 +299,21 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
 
 describe.skipIf(!testRedisUrl)("RedisSessionBus cross-instance pub/sub", () => {
   const namespace = testNamespace();
+  let connA: RedisConnection;
+  let connB: RedisConnection;
   let busA: SessionBus;
   let busB: SessionBus;
 
   beforeAll(() => {
-    busA = createRedisSessionBus({ url: testRedisUrl!, namespace });
-    busB = createRedisSessionBus({ url: testRedisUrl!, namespace });
+    connA = createRedisConnection({ url: testRedisUrl! });
+    connB = createRedisConnection({ url: testRedisUrl! });
+    busA = createRedisSessionBus({ connection: connA, namespace });
+    busB = createRedisSessionBus({ connection: connB, namespace });
   });
 
   afterAll(async () => {
     await Promise.all([busA.close(), busB.close()]);
+    await Promise.all([connA.close(), connB.close()]);
   });
 
   it("delivers lightweight pub/sub revision hints between two separate server instances", async () => {

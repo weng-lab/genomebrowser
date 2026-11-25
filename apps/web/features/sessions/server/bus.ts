@@ -1,19 +1,19 @@
 import "server-only";
-import { createClient } from "redis";
 import { sessionEventSchema, type SessionEvent } from "../syncSchema";
 
-function instantiateClient(url: string | undefined, timeoutMs: number) {
-  return createClient({
-    url,
-    disableOfflineQueue: true,
-    socket: { connectTimeout: timeoutMs },
-  });
-}
+type BusRedisPublisher = {
+  withCommandOptions(options: { abortSignal: AbortSignal }): {
+    publish(channel: string, message: string): Promise<unknown>;
+  };
+};
+type BusRedisSubscriber = {
+  subscribe(channel: string, listener: (message: string) => void): Promise<unknown>;
+  unsubscribe(channel: string, listener: (message: string) => void): Promise<unknown>;
+};
 
-type RedisClient = ReturnType<typeof instantiateClient>;
-export type RedisClientPair = { publisher: RedisClient; subscriber: RedisClient };
+export type RedisClientPair = { publisher: BusRedisPublisher; subscriber: BusRedisSubscriber };
 
-/** Optional shared Redis connection injected by composition so bus and relay share sockets. */
+/** Shared Redis connection injected by composition so bus and relay share sockets. */
 export type SharedRedisConnection = {
   connect(): Promise<RedisClientPair>;
   onDisconnect(listener: () => void): () => void;
@@ -85,13 +85,11 @@ export function createMemorySessionBus(): SessionBus {
 }
 
 export type RedisSessionBusOptions = {
-  /** Redis server URL, such as `redis://127.0.0.1:6379` or `rediss://...`. Required unless `connection` is passed. */
-  url?: string;
-  /** Optional shared Redis connection pair managed by the caller. */
-  connection?: SharedRedisConnection;
+  /** Shared Redis connection pair managed by the caller. */
+  connection: SharedRedisConnection;
   /** Prefix for every Redis channel so deployments stay isolated. */
   namespace: string;
-  /** Timeout for individual Redis commands and initial connect. Defaults to 5 seconds. */
+  /** Timeout for individual Redis publish commands. Defaults to 5 seconds. */
   timeoutMs?: number;
 };
 
@@ -104,76 +102,17 @@ export function createRedisSessionBus(options: RedisSessionBusOptions): SessionB
   const timeoutMs = options.timeoutMs ?? 5_000;
   const eventChannel = (id: string) => `${options.namespace}:session-events:${id}`;
 
-  let ownedConnecting: Promise<RedisClientPair> | undefined;
   let closed = false;
   const cleanups = new Set<Promise<unknown>>();
-  const disconnectListeners = new Set<() => void>();
-
-  const notifyDisconnect = () => {
-    for (const listener of Array.from(disconnectListeners)) {
-      try {
-        listener();
-      } catch (error) {
-        console.error("Session bus disconnect listener failed", error);
-      }
-    }
-  };
-
-  function makeOwnedClient(role: "publisher" | "subscriber") {
-    const client = instantiateClient(options.url, timeoutMs);
-    client.on("error", (error: unknown) => {
-      console.error(`Session bus Redis ${role} error`, error);
-      if (role === "subscriber") notifyDisconnect();
-    });
-    if (role === "subscriber") {
-      client.on("end", notifyDisconnect);
-    }
-    return client;
-  }
 
   function connect(): Promise<RedisClientPair> {
-    if (options.connection) {
-      if (closed) return Promise.reject(new Error("The session bus is closed"));
-      return options.connection.connect();
-    }
-    if (closed && !ownedConnecting) return Promise.reject(new Error("The session bus is closed"));
-    ownedConnecting ??= (async () => {
-      const clients = {
-        publisher: makeOwnedClient("publisher"),
-        subscriber: makeOwnedClient("subscriber"),
-      };
-      const all = Object.values(clients);
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      const stalled = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error("Redis did not connect in time")), timeoutMs);
-      });
-      try {
-        await Promise.race([Promise.all(all.map((client) => client.connect())), stalled]);
-        return clients;
-      } catch (error) {
-        for (const client of all) if (client.isOpen) client.destroy();
-        throw error;
-      } finally {
-        clearTimeout(timer);
-      }
-    })().catch((error: unknown) => {
-      ownedConnecting = undefined;
-      throw error;
-    });
-    return ownedConnecting;
-  }
-
-  function onDisconnect(listener: () => void) {
-    if (options.connection) return options.connection.onDisconnect(listener);
-    disconnectListeners.add(listener);
-    return () => {
-      disconnectListeners.delete(listener);
-    };
+    if (closed) return Promise.reject(new Error("The session bus is closed"));
+    return options.connection.connect();
   }
 
   function background(operation: (clients: RedisClientPair) => Promise<unknown>, what: string) {
-    if (closed && !ownedConnecting && !options.connection) return;
-    const task = connect()
+    const task = options.connection
+      .connect()
       .then(operation)
       .catch((error: unknown) => console.error(`Session bus could not ${what}`, error))
       .finally(() => cleanups.delete(task));
@@ -200,7 +139,9 @@ export function createRedisSessionBus(options: RedisSessionBusOptions): SessionB
         const parsed = sessionEventSchema.safeParse(parseJson(message));
         if (parsed.success) onEvent(parsed.data);
       };
-      const stopDisconnect = onConnectionDrop ? onDisconnect(onConnectionDrop) : undefined;
+      const stopDisconnect = onConnectionDrop
+        ? options.connection.onDisconnect(onConnectionDrop)
+        : undefined;
       try {
         await subscriber.subscribe(channel, listener);
       } catch (error) {
@@ -225,10 +166,6 @@ export function createRedisSessionBus(options: RedisSessionBusOptions): SessionB
     async close() {
       closed = true;
       while (cleanups.size > 0) await Promise.allSettled(cleanups);
-      if (options.connection) return;
-      const clients = await ownedConnecting?.catch(() => undefined);
-      ownedConnecting = undefined;
-      for (const client of Object.values(clients ?? {})) if (client.isOpen) client.destroy();
     },
   };
 }

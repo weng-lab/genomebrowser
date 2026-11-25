@@ -1,5 +1,6 @@
 import { createClient } from "redis";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createRedisConnection, type RedisConnection } from "../composition/server/redis";
 import {
   createCommandRelay,
   type CommandRelay,
@@ -9,12 +10,16 @@ import { attachTab, closedPort, stalledServer, testNamespace, testRedisUrl } fro
 
 // Real Redis. Each test uses its own namespace; relays stand in for server instances.
 const relays: CommandRelay[] = [];
-function relay(options: Partial<CommandRelayOptions> = {}) {
+const connections: RedisConnection[] = [];
+function relay(options: Partial<Omit<CommandRelayOptions, "connection">> & { url?: string } = {}) {
+  const { url = testRedisUrl!, commandTimeoutMs = 1_000, ...rest } = options;
+  const connection = createRedisConnection({ url, timeoutMs: commandTimeoutMs });
+  connections.push(connection);
   const created = createCommandRelay({
-    url: testRedisUrl!,
+    connection,
     namespace: testNamespace(),
-    commandTimeoutMs: 1_000,
-    ...options,
+    commandTimeoutMs,
+    ...rest,
   });
   relays.push(created);
   return created;
@@ -29,6 +34,7 @@ const never = () => new AbortController().signal;
 
 afterEach(async () => {
   await Promise.all(relays.splice(0).map((relay) => relay.close()));
+  await Promise.all(connections.splice(0).map((connection) => connection.close()));
 });
 
 describe.skipIf(!testRedisUrl)("command relay", () => {
