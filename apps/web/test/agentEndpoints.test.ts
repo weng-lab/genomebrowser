@@ -587,7 +587,24 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     );
     expect((await bind("conversation-next")).status).toBe(200);
     // A session that has a conversation keeps it for the deletion to end.
-    expect(await (await getAgentThreads()).close(id)).toBe("conversation-next");
+    const threads = await getAgentThreads();
+    expect(await threads.close(id)).toBe("conversation-next");
+    expect(await threads.close(id)).toBe("conversation-next");
+    // Its tab, told the conversation ended, cannot free the slot for another to bind.
+    const release = (conversation: string) =>
+      agentThread.DELETE(
+        new Request(`${thread}?conversation=${conversation}`, { method: "DELETE" }),
+        params(id),
+      );
+    expect((await release("conversation-next")).status).toBe(204);
+    expect((await bind("conversation-late")).status).toBe(409);
+    expect(await threads.current(id)).toBe("conversation-next");
+    expect(await threads.owns(id, "conversation-next")).toBe(true);
+
+    // Once the deletion fails, the conversation can be released again.
+    await threads.reopen(id, "conversation-next");
+    expect((await release("conversation-next")).status).toBe(204);
+    expect((await bind("conversation-again")).status).toBe(200);
   });
 
   it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {

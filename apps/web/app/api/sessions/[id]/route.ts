@@ -41,8 +41,9 @@ export function PATCH(request: Request, { params }: RouteContext<"/api/sessions/
  */
 export function DELETE(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
   return respond(async () => {
-    const { id } = await params;
-    await endAgentThread(request, id, { threads: getAgentThreads, end: endConversation });
-    await (await getSessionService()).remove(id);
+    const [{ id }, service] = await Promise.all([params, getSessionService()]);
+    await endAgentThread(request, id, { threads: getAgentThreads, end: endConversation }, () =>
+      service.remove(id),
+    );
   });
 }

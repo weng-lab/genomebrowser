@@ -260,17 +260,29 @@ export async function readAgentContext(
 }
 
 /**
- * End the agent conversation of a session about to be deleted, if the acting
- * user owns the session and it has one, and keep it from gaining another. Eve
- * keeps a conversation's messages until it ends, and the thread record that
- * names it is deleted with the session. Rejects when Eve cannot confirm the
- * end, so the caller keeps the session and the deletion can be retried.
+ * End the agent conversation of a session, if the acting user owns it and it
+ * has one, keep it from gaining another, then `remove` the session. Eve keeps
+ * a conversation's messages until it ends, and the thread record that names it
+ * is deleted with the session. Rejects when Eve cannot confirm the end or
+ * `remove` fails; the session then keeps its thread, and the deletion can be
+ * retried.
  */
 export async function endAgentThread(
   request: Request,
   sessionId: string,
   { threads, end }: EndDependencies,
+  remove: () => Promise<void>,
 ) {
-  const conversationId = await (await threads()).close(sessionId);
-  if (conversationId) await end(request, sessionId, conversationId);
+  const agentThreads = await threads();
+  const conversationId = await agentThreads.close(sessionId);
+  try {
+    if (conversationId) await end(request, sessionId, conversationId);
+    await remove();
+  } catch (cause) {
+    if (conversationId)
+      await agentThreads.reopen(sessionId, conversationId).catch((error: unknown) => {
+        console.error("Could not reopen an agent thread after a failed deletion", error);
+      });
+    throw cause;
+  }
 }
