@@ -34,6 +34,8 @@ export async function startAgentAuthorizationServer() {
 
   const { proxy } = await import("../proxy");
   const { GET } = await import("../app/api/sessions/[id]/agent-auth/route");
+  const thread = await import("../app/api/sessions/[id]/agent-thread/route");
+  const session = await import("../app/api/sessions/[id]/route");
   const { POST: mcp } = await import("../app/api/mcp/route");
   const { getAccountSettings, getCommandRelay, getSessions } =
     await import("../composition/server");
@@ -92,11 +94,17 @@ export async function startAgentAuthorizationServer() {
         ...(chunks.length && { body: Buffer.concat(chunks) }),
       });
       const id = request.nextUrl.pathname.split("/")[3];
-      const response = await authenticated(request, () =>
-        request.nextUrl.pathname === "/api/mcp"
-          ? mcp(request)
-          : GET(request, { params: Promise.resolve({ id }) }),
-      );
+      const params = { params: Promise.resolve({ id }) };
+      const route = () => {
+        if (request.nextUrl.pathname === "/api/mcp") return mcp(request);
+        if (request.method === "DELETE" && request.nextUrl.pathname === `/api/sessions/${id}`)
+          return session.DELETE(request, params);
+        if (!request.nextUrl.pathname.endsWith("/agent-thread")) return GET(request, params);
+        if (request.method === "POST") return thread.POST(request, params);
+        if (request.method === "DELETE") return thread.DELETE(request, params);
+        return thread.GET(request, params);
+      };
+      const response = await authenticated(request, route);
       outgoing.writeHead(response.status, Object.fromEntries(response.headers));
       outgoing.end(await response.text());
     };

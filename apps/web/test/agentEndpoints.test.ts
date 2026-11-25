@@ -5,7 +5,7 @@ import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/cli
 import { readCommandStream, testRedisUrl } from "./redis";
 import { commands as agentCommands } from "../features/agent/commands";
 import { addTracksFromUrls } from "../features/agent/commands/addTracksFromUrls";
-import { issueCommandCredential } from "../features/agent/server/credential";
+import { issueBindProof, issueCommandCredential } from "../features/agent/server/credential";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 // The proxy, Clerk verification, route handlers, authorization, PostgreSQL, and
@@ -14,6 +14,7 @@ import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 const mcp = await import("../app/api/mcp/route");
 const agentAuth = await import("../app/api/sessions/[id]/agent-auth/route");
+const agentThread = await import("../app/api/sessions/[id]/agent-thread/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
@@ -266,69 +267,188 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     });
   });
 
-  it("authorizes embedded agent sessions and lets Stop run after RC off or deletion", async () => {
+  it("authorizes embedded agent sessions and their threads, letting Stop run after RC off", async () => {
     const id = await createSession("user_alice");
-    await signIn(null);
-    expect(
-      (
-        await agentAuth.GET(
-          new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-          params(id),
-        )
-      ).status,
-    ).toBe(401);
+    const auth = (query = "") =>
+      agentAuth.GET(
+        new Request(`http://localhost/api/sessions/${id}/agent-auth${query}`),
+        params(id),
+      );
+    const thread = `http://localhost/api/sessions/${id}/agent-thread`;
+    /** Record `conversationId` with `proof`, by default a valid proof from Eve. */
+    const bind = async (conversationId: string, proof?: string | null) => {
+      const token =
+        proof === undefined ? await issueBindProof("user_alice", id, conversationId) : proof;
+      return agentThread.POST(
+        new Request(thread, {
+          method: "POST",
+          headers: token ? { "x-genomebrowser-bind-proof": token } : {},
+          body: JSON.stringify({ conversationId }),
+        }),
+        params(id),
+      );
+    };
 
+    await signIn(null);
+    expect((await auth()).status).toBe(401);
     await signIn("user_bob");
-    expect(
-      (
-        await agentAuth.GET(
-          new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-          params(id),
-        )
-      ).status,
-    ).toBe(404);
+    expect((await auth()).status).toBe(404);
+    expect((await bind("conversation-bob")).status).toBe(404);
 
     await signIn("user_alice");
-    const allowed = await agentAuth.GET(
-      new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-      params(id),
-    );
+    const allowed = await auth();
     expect(allowed.status).toBe(200);
     expect(await allowed.json()).toEqual({ userId: "user_alice", browserSessionId: id });
+    expect(await (await agentThread.GET(new Request(thread), params(id))).json()).toEqual({
+      conversationId: null,
+    });
+    // Stop and follow-ups must name the session's thread.
+    expect((await auth("?control=stop")).status).toBe(403);
+    expect((await auth("?conversation=conversation-a")).status).toBe(403);
+
+    // Only Eve's one-use proof for this user, session, and conversation records it.
+    expect((await bind("conversation-a", null)).status).toBe(403);
+    expect(
+      (await bind("conversation-a", await issueBindProof("user_alice", id, "conversation-x")))
+        .status,
+    ).toBe(403);
+    expect(
+      (await bind("conversation-a", await issueBindProof("user_bob", id, "conversation-a"))).status,
+    ).toBe(403);
+    const proof = await issueBindProof("user_alice", id, "conversation-a");
+    expect((await bind("conversation-a", proof)).status).toBe(200);
+    expect((await bind("conversation-a", proof)).status).toBe(403);
+    expect((await bind("conversation-a")).status).toBe(200);
+    expect((await bind("conversation-b")).status).toBe(409);
+    expect(await (await agentThread.GET(new Request(thread), params(id))).json()).toEqual({
+      conversationId: "conversation-a",
+    });
+    expect((await auth("?conversation=conversation-a")).status).toBe(200);
+    expect((await auth("?conversation=conversation-b")).status).toBe(403);
+
+    // Another session of the same user cannot reach or take this thread.
+    const other = await createSession("user_alice");
+    expect(
+      (
+        await agentThread.POST(
+          new Request(`http://localhost/api/sessions/${other}/agent-thread`, {
+            method: "POST",
+            headers: {
+              "x-genomebrowser-bind-proof": await issueBindProof(
+                "user_alice",
+                other,
+                "conversation-a",
+              ),
+            },
+            body: JSON.stringify({ conversationId: "conversation-a" }),
+          }),
+          params(other),
+        )
+      ).status,
+    ).not.toBe(200);
+    expect(
+      (
+        await agentAuth.GET(
+          new Request(
+            `http://localhost/api/sessions/${other}/agent-auth?conversation=conversation-a`,
+          ),
+          params(other),
+        )
+      ).status,
+    ).toBe(403);
 
     await setRemoteControl("user_alice", false);
     try {
       await signIn("user_alice");
-      expect(
-        (
-          await agentAuth.GET(
-            new Request(`http://localhost/api/sessions/${id}/agent-auth`),
-            params(id),
-          )
-        ).status,
-      ).toBe(403);
-      expect(
-        (
-          await agentAuth.GET(
-            new Request(`http://localhost/api/sessions/${id}/agent-auth?control=stop`),
-            params(id),
-          )
-        ).status,
-      ).toBe(200);
+      expect((await auth("?conversation=conversation-a")).status).toBe(403);
+      expect((await auth("?control=stop&conversation=conversation-a")).status).toBe(200);
     } finally {
       await setRemoteControl("user_alice", true);
     }
 
+    // Releasing a lost conversation lets the next message start a new thread.
     await signIn("user_alice");
-    await sessionById.DELETE(new Request(`http://localhost/api/sessions/${id}`), params(id));
-    expect(
-      (
-        await agentAuth.GET(
-          new Request(`http://localhost/api/sessions/${id}/agent-auth?control=stop`),
+    const release = (conversation: string) =>
+      agentThread.DELETE(
+        new Request(`${thread}?conversation=${conversation}`, { method: "DELETE" }),
+        params(id),
+      );
+    expect((await release("conversation-b")).status).toBe(204);
+    expect((await auth("?conversation=conversation-a")).status).toBe(200);
+    expect((await release("conversation-a")).status).toBe(204);
+    expect((await bind("conversation-b")).status).toBe(200);
+
+    // Deleting the session ends its conversation in Eve, then deletes its thread. Eve's
+    // route on the app's origin is stood in for: it records each request and answers.
+    const offline = globalThis.fetch;
+    const eve = { status: 503, body: {} as object, requests: [] as object[] };
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      eve.requests.push({
+        method: request.method,
+        url: request.url,
+        session: request.headers.get("x-genomebrowser-session-id"),
+      });
+      return Response.json(eve.body, { status: eve.status });
+    });
+    try {
+      const remove = () =>
+        sessionById.DELETE(
+          new Request(`http://localhost/api/sessions/${id}`, { method: "DELETE" }),
           params(id),
-        )
-      ).status,
-    ).toBe(200);
+        );
+      // While Eve cannot confirm the end, the session keeps its thread.
+      expect((await remove()).status).toBe(500);
+      expect((await auth("?conversation=conversation-b")).status).toBe(200);
+      // A conversation Eve no longer holds active has nothing left to end.
+      Object.assign(eve, { status: 409, body: { ok: false, code: "session_not_active" } });
+      expect((await remove()).status).toBe(204);
+      const end = {
+        method: "POST",
+        url: "http://localhost:3000/eve/v1/session/conversation-b/end",
+        session: id,
+      };
+      expect(eve.requests).toEqual([end, end]);
+    } finally {
+      vi.stubGlobal("fetch", offline);
+    }
+    expect((await auth("?control=stop&conversation=conversation-b")).status).toBe(403);
+    expect((await bind("conversation-c")).status).toBe(404);
+  });
+
+  it("refuses a conversation created while its session is being deleted", async () => {
+    const id = await createSession("user_alice");
+    const thread = `http://localhost/api/sessions/${id}/agent-thread`;
+    const bind = async (conversationId: string) =>
+      agentThread.POST(
+        new Request(thread, {
+          method: "POST",
+          headers: {
+            "x-genomebrowser-bind-proof": await issueBindProof("user_alice", id, conversationId),
+          },
+          body: JSON.stringify({ conversationId }),
+        }),
+        params(id),
+      );
+    const { getAgentThreads } = await import("../composition/server");
+
+    // Deletion closes the thread before it removes the session, so a first message
+    // sent in between cannot leave a conversation in Eve that nothing names.
+    await signIn("user_alice");
+    expect(await (await getAgentThreads()).close(id)).toBeNull();
+    expect((await bind("conversation-late")).status).toBe(409);
+
+    // If the deletion then fails, the tab releases the closed thread and the session works again.
+    const { conversationId: closed } = (await (
+      await agentThread.GET(new Request(thread), params(id))
+    ).json()) as { conversationId: string };
+    await agentThread.DELETE(
+      new Request(`${thread}?conversation=${encodeURIComponent(closed)}`, { method: "DELETE" }),
+      params(id),
+    );
+    expect((await bind("conversation-next")).status).toBe(200);
+    // A session that has a conversation keeps it for the deletion to end.
+    expect(await (await getAgentThreads()).close(id)).toBe("conversation-next");
   });
 
   it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {

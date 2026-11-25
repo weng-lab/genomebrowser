@@ -28,7 +28,7 @@ The thread record is also the conversation's access check: Eve's channel asks th
 
 ### Session operations
 
-- **Delete:** deleting a session deletes its thread record and ends its run.
+- **Delete:** deleting a session ends its Eve session, which stops its run and lets Eve drop the thread's messages, then deletes its thread record. If Eve cannot confirm the end, the session is kept and the deletion can be retried.
 - **Save a copy:** the copy is a new session with its own clean thread. Nothing from the original's agent conversation carries over.
 - **Switch session:** the panel loads the new session's thread. See [runs](#runs) for what happens to work in progress.
 

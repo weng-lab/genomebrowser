@@ -18,6 +18,8 @@ pnpm dev
 
 Open `http://localhost:3000/browser`. With no session open, the browser asks you to open or create one. `/sessions`, `/collections`, and `/settings` are separate Next.js routes; unknown URLs return 404. The shared route layout keeps the providers, the open session, and its stores mounted during navigation.
 
+`pnpm dev` starts the Eve agent with `eve dev --resume` and Next.js pointed at it through `EVE_BASE_URL`, so a session's agent conversation survives restarting the dev server, as it does on Vercel. Without `--resume`, Eve leaves conversations from an earlier dev server dormant and messages to them fail. Set `GB_EVE_DEV_PORT` to pin the agent's port.
+
 Redis at `REDIS_URL` carries agent commands to browser tabs. Sessions load and save without it; only remote control and MCP need it.
 
 ## Sessions

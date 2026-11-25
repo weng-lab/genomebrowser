@@ -21,4 +21,7 @@ export default defineAgent({
     };
   }),
   defaultTools: false,
+  // A thread lives as long as its saved session. Private sessions keep no messages
+  // once they end, so they never time out; deleting the session ends its conversation.
+  limits: { sessionTimeoutMs: false },
 });

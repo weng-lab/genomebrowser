@@ -30,8 +30,8 @@ These are current implementation constraints and deployment gaps. They do not re
 
 ## Agent panel
 
-- Agent conversations are ephemeral: reloading the page or switching sessions starts a new conversation. The [agent panel PRD](agent-panel-prd.md) plans persistent per-session threads.
-- A conversation's access binding expires 24 hours after it was created. Later requests on that conversation are refused until the panel starts a new one.
+- A session's agent thread lasts until deleting the session ends it; there is no New conversation yet. It grows until Eve compacts it, and only a conversation Eve can no longer continue, such as one stranded by an incompatible Eve upgrade, starts a new thread.
+- Two tabs that send a session's first message at the same moment can each start a conversation. The app keeps the first one and ends the other; the second tab must reload to continue the session's thread.
 - Only the first tab attached to a session receives agent commands. Another tab is refused until the first one closes.
 - In local development without `AI_GATEWAY_API_KEY`, the model comes from a provider key or Eve's own sign-in; on Vercel and in production builds it comes from AI Gateway. The app and agent code paths are otherwise the same.
 
