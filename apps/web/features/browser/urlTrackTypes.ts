@@ -25,3 +25,12 @@ export const bigBedPresetSchema = z.enum([
 ] as const satisfies readonly BedSchemaKey[]);
 
 export type BigBedPreset = z.infer<typeof bigBedPresetSchema>;
+
+/** Each type's name in the Add tracks dialog, which a table of tracks may also use. */
+export const urlTrackTypeLabels: Record<UrlTrackType, string> = {
+  bigwig: "BigWig",
+  bigbed: "BigBed",
+  gene: "Gene (BigGenePred)",
+  "ccre-bigbed": "cCRE (BigBed)",
+  bam: "BAM",
+};

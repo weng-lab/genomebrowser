@@ -93,6 +93,16 @@ async function chooseFieldType(row: Element, type: string) {
   );
 }
 
+/** Chooses a file in the dialog's file input. */
+async function upload(name: string, content: string | Uint8Array<ArrayBuffer>) {
+  const bytes = typeof content === "string" ? new TextEncoder().encode(content) : content;
+  const input = dialog()!.querySelector<HTMLInputElement>('input[type="file"]')!;
+  // jsdom's File lacks arrayBuffer(), which browsers have.
+  const file = Object.assign(new File([bytes], name), { arrayBuffer: async () => bytes.buffer });
+  Object.defineProperty(input, "files", { value: [file], configurable: true });
+  await act(async () => input.dispatchEvent(new Event("change", { bubbles: true })));
+}
+
 async function openDialog() {
   await act(async () => root!.render(<WorkspaceApp />));
   const open = await vi.waitFor(() => {
@@ -245,12 +255,7 @@ it("reads an uploaded file, and says which BED columns a BigBed header chooses a
   server.files.set(`${host}/peaks.bb`, bed6);
   server.files.set(`${host}/colored.bb`, bigBedWithColumns(9, 9));
   await openDialog();
-  const input = dialog()!.querySelector<HTMLInputElement>('input[type="file"]')!;
-  const text = `${host}/peaks.bb\n${host}/colored.bb\n`;
-  // jsdom's File lacks text(), which browsers have.
-  const file = Object.assign(new File([text], "tracks.txt"), { text: async () => text });
-  Object.defineProperty(input, "files", { value: [file] });
-  await act(async () => input.dispatchEvent(new Event("change", { bubbles: true })));
+  await upload("tracks.txt", `${host}/peaks.bb\n${host}/colored.bb\n`);
 
   // Uploading reviews the file's lines as if they were pasted.
   await vi.waitFor(() => expect(rows()).toHaveLength(2));
@@ -267,4 +272,64 @@ it("reads an uploaded file, and says which BED columns a BigBed header chooses a
   expect(colorHint(colored)).toContain("only the strip at the track's left edge");
   await enter(field(colored, "BED columns"), "bed6");
   expect(colorHint(colored)).toContain("Colors every feature.");
+});
+
+it("adds tracks from pasted spreadsheet cells, numbering rows that can't be added as the spreadsheet does", async () => {
+  server.files.set(`${host}/signal.bw`, bigWig);
+  server.files.set(`${host}/peaks.bb`, bed6);
+  await openDialog();
+  const cells = (...table: string[][]) => table.map((cells) => cells.join("\t")).join("\n");
+  const header = ["URL", "Title", "Visibility", "Replicate (number)", "Treated (true/false)"];
+  const signal = [`${host}/signal.bw`, "Signal", "dense", "2", "TRUE"];
+
+  await enter(pasteBox(), cells(header, signal, [`${host}/peaks.bb`, "", "", "two", ""]));
+  await click(button("Review"));
+  expect(dialog()!.querySelector('[aria-label="Rows that can\'t be added"]')?.textContent).toMatch(
+    /^Row 3: Replicate "two" is not a number/,
+  );
+  await enter(pasteBox(), cells(header, signal, [`${host}/peaks.bb`, "", "", "", ""]));
+  await click(button("Review"));
+
+  // Empty cells leave the choice to the file, as an empty field in the row does.
+  expect(rows().map((row) => [field(row, "Title").value, field(row, "Visibility").value])).toEqual([
+    ["Signal", "dense"],
+    ["peaks", ""],
+  ]);
+  await click(button("Add 2 tracks"));
+  await vi.waitFor(() => expect(dialog()).toBeNull());
+  await vi.waitFor(() => expect(savedTracks()).toHaveLength(startingTitles.length + 2));
+  // Each metadata column's name gives its values' type.
+  expect(savedTracks().slice(startingTitles.length)).toEqual([
+    expect.objectContaining({
+      type: "bigwig",
+      base: expect.objectContaining({ title: "Signal", display: "dense" }),
+      config: expect.objectContaining({ url: `${host}/signal.bw` }),
+      metadata: { Replicate: 2, Treated: true },
+    }),
+    expect.objectContaining({
+      type: "bigbed",
+      base: expect.objectContaining({ title: "peaks" }),
+      config: expect.objectContaining({ url: `${host}/peaks.bb` }),
+    }),
+  ]);
+});
+
+it("reads an uploaded CSV as a table, and says why a file can't be read", async () => {
+  await openDialog();
+  const alert = () => dialog()!.querySelector('[role="alert"]')?.textContent;
+
+  // Excel separates CSV columns with semicolons in some locales, and can save other encodings.
+  await upload("tracks.csv", `URL;Title\n${host}/peaks.bb;Peaks\n`);
+  expect(alert()).toContain("separates its columns with semicolons");
+  // "URL" and a line break, then é as Windows-1252 writes it.
+  await upload("tracks.csv", new Uint8Array([0x55, 0x52, 0x4c, 0x0a, 0xe9]));
+  expect(alert()).toContain("isn't UTF-8");
+
+  // Excel's CSV UTF-8 starts with a byte order mark, and quotes a cell that holds a comma.
+  await upload("tracks.csv", `\uFEFFURL,Title\r\n${host}/peaks.bb,"Peaks, rep 1"\r\n`);
+  await vi.waitFor(() => expect(rows()).toHaveLength(1));
+  expect(field(rows()[0], "Title").value).toBe("Peaks, rep 1");
+  // The paste box holds the table as copied cells, to fix and review again.
+  await click(button("Back to text"));
+  expect(pasteBox().value).toBe(`URL\tTitle\n${host}/peaks.bb\tPeaks, rep 1`);
 });

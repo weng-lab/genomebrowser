@@ -178,8 +178,8 @@ function parseType(value: string): Pick<TrackRequest, "type" | "bedSchema"> | st
   }
 }
 
-/** UCSC's `R,G,B` as `#rrggbb`. */
-function hexColor(value: string) {
+/** UCSC's `R,G,B` as `#rrggbb`, or undefined when the value isn't one. */
+export function hexColor(value: string) {
   const channels = value.split(",").map((channel) => channel.trim());
   if (channels.length !== 3 || !channels.every((channel) => /^\d{1,3}$/.test(channel)))
     return undefined;
