@@ -10,7 +10,7 @@ Clerk is independent of that chain. The browser loads Clerk from the instance na
 
 Redis is independent too. An MCP tool call and the tab's command stream may run in different function instances, so the app publishes commands and replies through Redis. It stores no application state there, only short-lived leases naming each session's attached connection. Every key and channel starts with the deployment's `VERCEL_DEPLOYMENT_ID`, so Preview and Production can share one Redis server without one deployment's agents reaching another's tabs.
 
-Preview and Production currently share one Cloud SQL database and one service account, while each environment can use its own Clerk instance. [Production deployment](../../../../docs/product/production.md) lists what to replace before launch.
+Preview and Production currently have separate databases on one Cloud SQL instance and share one service account, while each environment can use its own Clerk instance. [Production deployment](../../../../docs/product/production.md) lists what to replace before launch.
 
 The commands below use placeholders such as `PROJECT_ID` and `INSTANCE_CONNECTION_NAME`. The values for the current deployment are in the Vercel project's environment variables, which team members can read under **Settings → Environment Variables**, and in the Google Cloud console. Keep them out of this repository, which is public.
 
@@ -95,7 +95,7 @@ The tab command stream route allows up to 300 seconds and ends each stream after
 
 ## Apply migrations
 
-Builds do not run migrations. Apply reviewed migrations before deploying code that needs them. Preview and Production share one database, so a migration takes effect for both immediately; prefer changes that the currently deployed code tolerates, such as adding columns.
+Builds do not run migrations. Preview and Production have separate databases, so apply reviewed migrations to both before deploying code that needs them. A migration takes effect at once for every deployment using that database, so prefer changes that the currently deployed code tolerates, such as adding columns.
 
 ### Install the tools
 
@@ -119,7 +119,7 @@ Start the proxy and leave it running:
 cloud-sql-proxy --address=127.0.0.1 --port=55433 INSTANCE_CONNECTION_NAME
 ```
 
-In another terminal, from the repository root, run the migrations with a login allowed to change the schema. The prompts keep the password out of your shell history. URL-encode special characters in the password, such as `@` as `%40`, because it becomes part of a URL. Setting `DATABASE_URL` on the command overrides `.env.local`, so the migration cannot reach your local database by mistake:
+One running proxy serves both databases on the instance. In another terminal, from the repository root, run the migrations with a login allowed to change the schema. The prompts keep the password out of your shell history. URL-encode special characters in the password, such as `@` as `%40`, because it becomes part of a URL. Setting `DATABASE_URL` on the command overrides `.env.local`, so the migration cannot reach your local database by mistake:
 
 ```sh
 read -rp 'Database: ' DBNAME; read -rp 'DB user: ' DBUSER; read -rsp 'DB password: ' DBPW; echo
@@ -127,11 +127,13 @@ DATABASE_URL="postgres://${DBUSER}:${DBPW}@127.0.0.1:55433/${DBNAME}" pnpm web d
 unset DBNAME DBUSER DBPW
 ```
 
+Run this once with Preview's `DB_NAME` and once with Production's.
+
 `drizzle-kit migrate` reports only an exit code when it fails. To see the PostgreSQL error, test the same connection with `psql "postgres://…@127.0.0.1:55433/${DBNAME}" -c 'select 1'`, or check `pg_isready -h 127.0.0.1 -p 55433`, which tests the proxy without a login.
 
 ### Apply migrations in the Cloud SQL console
 
-Cloud SQL Studio in the Google Cloud console can run a migration without local tools. Run the migration's SQL file from `drizzle/`, then record it the way `db:migrate` does, or a later `db:migrate` runs it again and fails. Drizzle stores the SHA-256 hash of the file and the migration's `when` value from `drizzle/meta/_journal.json`:
+Cloud SQL Studio in the Google Cloud console can run a migration without local tools. Run it in each database. Run the migration's SQL file from `drizzle/`, then record it the way `db:migrate` does, or a later `db:migrate` runs it again and fails. Drizzle stores the SHA-256 hash of the file and the migration's `when` value from `drizzle/meta/_journal.json`:
 
 ```sh
 sha256sum apps/web/drizzle/0002_example.sql
