@@ -1,7 +1,10 @@
 import "server-only";
+import { z } from "zod";
 import { maxSessionBytes, type SessionErrorCode } from "../schema";
+import { sessionPatchRequestSchema } from "../syncSchema";
 import { readJsonBody } from "../../../shared/server/readJsonBody";
 import { parseSessionInput, parseSessionUpdate, SessionError } from "./sessions";
+import type { SessionService } from "./service";
 
 const statuses: Record<SessionErrorCode, number> = {
   INVALID_INPUT: 400,
@@ -42,6 +45,59 @@ export async function readSessionInput(request: Request) {
 
 export async function readSessionUpdate(request: Request) {
   return parseSessionUpdate(await readJson(request));
+}
+
+/** Read and validate a partial live edit (`PATCH`) of at most 1 MB. */
+export async function readSessionPatch(request: Request) {
+  const result = sessionPatchRequestSchema.safeParse(await readJson(request));
+  if (!result.success) throw new SessionError("INVALID_INPUT", z.prettifyError(result.error));
+  return result.data;
+}
+
+const sinceRevisionSchema = z.coerce.number().int().nonnegative();
+
+/** Open the SSE stream of live session updates and deletion notices for one tab. */
+export async function openSessionEventStream(
+  request: Request,
+  sessionId: string,
+  getService: () => Promise<SessionService>,
+) {
+  const rawSince = new URL(request.url).searchParams.get("sinceRevision");
+  let sinceRevision: number | undefined;
+  if (rawSince !== null) {
+    const parsed = sinceRevisionSchema.safeParse(rawSince);
+    if (!parsed.success) {
+      return Response.json(
+        { code: "INVALID_INPUT", message: "Invalid sinceRevision query parameter" },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    sinceRevision = parsed.data;
+  }
+
+  try {
+    const service = await getService();
+    const stream = await service.subscribe(sessionId, request.signal, { sinceRevision });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  } catch (error) {
+    if (error instanceof SessionError) {
+      return Response.json(
+        { code: error.code, message: error.message },
+        { status: statuses[error.code], headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    console.error("Session event stream failed", error);
+    return Response.json(
+      { message: "Saved sessions are unavailable" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 }
 
 function readJson(request: Request) {

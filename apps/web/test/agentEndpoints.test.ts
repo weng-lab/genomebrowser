@@ -13,7 +13,9 @@ import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
 
 const mcp = await import("../app/api/mcp/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
+const eventsRoute = await import("../app/api/sessions/[id]/events/route");
 const sessions = await import("../app/api/sessions/route");
+const singleSession = await import("../app/api/sessions/[id]/route");
 const settings = await import("../app/api/account/settings/route");
 
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
@@ -96,8 +98,11 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
   });
 
   afterAll(async () => {
-    const { getCommandRelay } = await import("../composition/server");
+    const { closeRedisConnection, getCommandRelay, getSessionBus } =
+      await import("../composition/server");
     await getCommandRelay().close();
+    await getSessionBus().close();
+    await closeRedisConnection();
     vi.unstubAllEnvs();
     await database?.drop();
   });
@@ -130,19 +135,22 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     await client.close();
   });
 
-  it("runs a tool call in the owner's tab and returns the tab's result", async () => {
+  it("runs browser-only tools in the owner's tab and returns the tab's result", async () => {
     const id = await createSession("user_alice");
     const tab = await openTab("user_alice", id);
     if (!("command" in tab)) throw new Error(`Tab was refused: ${tab.status}`);
     const client = await agent("user_alice");
 
-    const call = client.callTool(navigate(id));
+    const call = client.callTool({
+      name: "export_image",
+      arguments: { sessionId: id, format: "svg" },
+    });
     const command = await tab.command();
     expect(command).toMatchObject({
-      name: "set_region",
-      params: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
+      name: "export_image",
+      params: { format: "svg", scale: 2, includeTitles: true, includeRuler: true },
     });
-    const value = { region: { chromosome: "chr1", start: 1000, end: 2000 }, clamped: false };
+    const value = { filename: "chr12.svg", format: "svg", width: 800, height: 300 };
     expect(
       await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } }),
     ).toEqual({ status: 200, body: { ok: true } });
@@ -159,6 +167,89 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     );
 
     tab.close();
+    await client.close();
+  });
+
+  it("runs state tools directly on the server with 0 tabs open and broadcasts to open SSE streams", async () => {
+    const id = await createSession("user_alice");
+    const client = await agent("user_alice");
+
+    // 0 tabs open: set_region persists directly to PostgreSQL.
+    const headless = await client.callTool(navigate(id));
+    expect(headless).toMatchObject({
+      structuredContent: {
+        region: { chromosome: "chr1", start: 1000, end: 2000 },
+        clamped: false,
+      },
+    });
+
+    // Open two live SSE event streams on the same session.
+    await signIn("user_alice");
+    const c1 = new AbortController();
+    const r1 = await eventsRoute.GET(
+      new Request(`http://localhost/api/sessions/${id}/events?sinceRevision=2`, {
+        signal: c1.signal,
+      }),
+      params(id),
+    );
+    await signIn("user_alice");
+    const c2 = new AbortController();
+    const r2 = await eventsRoute.GET(
+      new Request(`http://localhost/api/sessions/${id}/events?sinceRevision=2`, {
+        signal: c2.signal,
+      }),
+      params(id),
+    );
+    expect(r1.status).toBe(200);
+    expect(r2.status).toBe(200);
+
+    const readNextUpdated = async (body: ReadableStream<Uint8Array>) => {
+      const reader = body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) throw new Error("Stream ended before update");
+        buf += decoder.decode(value);
+        let idx: number;
+        while ((idx = buf.indexOf("\n\n")) !== -1) {
+          const frame = buf.slice(0, idx).split("\n");
+          buf = buf.slice(idx + 2);
+          if (frame.some((line) => line === "event: updated")) {
+            const data = frame.find((line) => line.startsWith("data: "))!.slice(6);
+            return JSON.parse(data);
+          }
+        }
+      }
+    };
+
+    const p1 = readNextUpdated(r1.body!);
+    const p2 = readNextUpdated(r2.body!);
+
+    const updated = await client.callTool({
+      name: "set_region",
+      arguments: { sessionId: id, region: { chromosome: "chr2", start: 500, end: 1500 } },
+    });
+    expect(updated).toMatchObject({
+      structuredContent: {
+        region: { chromosome: "chr2", start: 500, end: 1500 },
+        clamped: false,
+      },
+    });
+
+    const [e1, e2] = await Promise.all([p1, p2]);
+    expect(e1).toEqual({ type: "updated", revision: 3 });
+    expect(e2).toEqual({ type: "updated", revision: 3 });
+
+    // Persisted in PostgreSQL as well.
+    await signIn("user_alice");
+    const loaded = await (
+      await singleSession.GET(new Request("http://localhost"), params(id))
+    ).json();
+    expect(loaded.snapshot.browser.region).toEqual({ chromosome: "chr2", start: 500, end: 1500 });
+
+    c1.abort();
+    c2.abort();
     await client.close();
   });
 
@@ -217,10 +308,15 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     tab.close();
   });
 
-  it("reports a session no tab has open", async () => {
+  it("reports a session no tab has open for browser-only tools", async () => {
     const id = await createSession("user_alice");
     const client = await agent("user_alice");
-    expect(await client.callTool(navigate(id))).toMatchObject({
+    expect(
+      await client.callTool({
+        name: "export_image",
+        arguments: { sessionId: id, format: "svg" },
+      }),
+    ).toMatchObject({
       isError: true,
       content: [{ text: expect.stringMatching(/^NOT_CONNECTED:/) }],
     });

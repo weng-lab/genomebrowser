@@ -45,6 +45,8 @@ export type Sessions = {
   /** Metadata only, alphabetically by name. */
   list(): Promise<Session[]>;
   load(id: string): Promise<SavedSession>;
+  /** Load the latest session alongside its last applied `saveId` for idempotent patch merges. */
+  loadWithSaveId(id: string): Promise<SavedSession & { saveId: string | null }>;
   /** Replace the name and snapshot of an existing session. Never recreates a deleted one. */
   update(id: string, input: SessionUpdate): Promise<Session>;
   remove(id: string): Promise<void>;
@@ -106,6 +108,16 @@ export function createSessions({
       const owner = await actingUser();
       const [saved] = await db
         .select({ ...metadata, snapshot: sessionsTable.snapshot })
+        .from(sessionsTable)
+        .where(owned(owner, id));
+      if (!saved) throw notFound();
+      return { ...saved, snapshot: sessionSnapshotSchema.parse(saved.snapshot) };
+    },
+
+    async loadWithSaveId(id) {
+      const owner = await actingUser();
+      const [saved] = await db
+        .select({ ...metadata, snapshot: sessionsTable.snapshot, saveId: sessionsTable.saveId })
         .from(sessionsTable)
         .where(owned(owner, id));
       if (!saved) throw notFound();
