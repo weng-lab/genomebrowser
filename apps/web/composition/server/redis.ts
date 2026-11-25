@@ -58,7 +58,8 @@ export function createRedisConnection({
   }
 
   function connect(): Promise<RedisClients> {
-    if (closed && !connecting) return Promise.reject(new Error("Redis connection is closed"));
+    // Once closing starts, the clients are being destroyed, so none are handed out.
+    if (closed) return Promise.reject(new Error("Redis connection is closed"));
     connecting ??= (async () => {
       const clients = {
         publisher: makeClient("publisher"),

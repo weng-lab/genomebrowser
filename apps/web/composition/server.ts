@@ -153,8 +153,11 @@ export async function closeServerConnections(): Promise<void> {
   relay = undefined;
   bus = undefined;
   redisConnection = undefined;
-  await Promise.all([activeRelay?.close(), activeBus?.close()]);
+  // Redis closes after its users, even when one of them fails to close.
+  const users = await Promise.allSettled([activeRelay?.close(), activeBus?.close()]);
   await activeRedis?.close();
+  const failed = users.find((result) => result.status === "rejected");
+  if (failed) throw failed.reason;
 }
 
 async function authenticateMcpRequest(request: Request): Promise<McpCaller | null> {

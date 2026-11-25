@@ -277,6 +277,17 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     await expect.poll(() => attachTab(commands, id)).not.toBe("taken");
   });
 
+  it("hands out no Redis clients once the connection starts closing", async () => {
+    const connection = createRedisConnection({ url: testRedisUrl! });
+    connections.push(connection);
+    const clients = await connection.connect();
+    const closing = connection.close();
+    await expect(connection.connect()).rejects.toThrow("Redis connection is closed");
+    await closing;
+    expect(clients.publisher.isOpen).toBe(false);
+    expect(clients.subscriber.isOpen).toBe(false);
+  });
+
   it("fails within the command timeout when Redis is unreachable", async () => {
     const commands = relay({ url: await closedPort(), commandTimeoutMs: 300 });
     const started = Date.now();
