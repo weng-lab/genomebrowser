@@ -60,7 +60,7 @@ export type CommandRelay = {
    */
   dispatch(
     sessionId: string,
-    command: Pick<CommandMessage, "name" | "params">,
+    command: Pick<CommandMessage, "name" | "params" | "agent">,
     signal: AbortSignal,
     options?: { timeoutMs?: number },
   ): Promise<CommandResult>;
@@ -191,7 +191,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
 
   function dispatch(
     sessionId: string,
-    command: Pick<CommandMessage, "name" | "params">,
+    command: Pick<CommandMessage, "name" | "params" | "agent">,
     signal: AbortSignal,
     { timeoutMs: commandTimeoutMs = timeoutMs }: { timeoutMs?: number } = {},
   ): Promise<CommandResult> {

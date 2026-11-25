@@ -159,9 +159,13 @@ export async function closeServerConnections(): Promise<void> {
 
 async function authenticateMcpRequest(request: Request): Promise<McpCaller | null> {
   const bearer = /^Bearer (\S+)$/i.exec(request.headers.get("authorization") ?? "")?.[1];
-  if (bearer?.startsWith("gbmcp_")) return readCommandCredential(bearer);
+  // Only Eve holds session credentials, so they act for the agent panel.
+  if (bearer?.startsWith("gbmcp_")) {
+    const principal = await readCommandCredential(bearer);
+    return principal && { ...principal, agent: "panel" };
+  }
   const userId = await clerkAgentIdentity.userId();
-  return userId ? { userId } : null;
+  return userId ? { userId, agent: "external" } : null;
 }
 
 let mcp: ReturnType<typeof createMcpEndpoint> | undefined;

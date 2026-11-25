@@ -39,7 +39,7 @@ const browserCall = {
 
 it("lists tools and reports an unavailable relay or account store per call", async () => {
   const withoutRelay = await connect({
-    authenticate: async () => ({ userId: "user_alice" }),
+    authenticate: async () => ({ userId: "user_alice", agent: "external" as const }),
     account: async () => allowed,
     relay: () => {
       throw new Error("REDIS_URL must be set for agent commands");
@@ -56,7 +56,7 @@ it("lists tools and reports an unavailable relay or account store per call", asy
   await withoutRelay.close();
 
   const withoutDatabase = await connect({
-    authenticate: async () => ({ userId: "user_alice" }),
+    authenticate: async () => ({ userId: "user_alice", agent: "external" as const }),
     account: () => Promise.reject(new Error("Database unavailable")),
     relay: () => {
       throw new Error("Not reached");
@@ -73,7 +73,11 @@ it("lists tools and reports an unavailable relay or account store per call", asy
 it("refuses tool calls targeting another session when the credential is session-scoped", async () => {
   const otherSession = crypto.randomUUID();
   const scoped = await connect({
-    authenticate: async () => ({ userId: "user_alice", sessionId: otherSession }),
+    authenticate: async () => ({
+      userId: "user_alice",
+      sessionId: otherSession,
+      agent: "panel" as const,
+    }),
     account: async () => {
       throw new Error("Should not authorize another session");
     },

@@ -18,7 +18,7 @@ import { useSession } from "../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { addTracksFromUrls } from "../browser/urlTracks";
 import { createAgentControl, type AgentControl } from "./agentControl";
-import type { CommandApp } from "./commands";
+import type { TabApp } from "./commands";
 import { ImagePreviewDialog } from "./components/ImagePreviewDialog";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
 import {
@@ -54,7 +54,7 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!enabled || !id || !stores || !signal) return;
-    const app: CommandApp = {
+    const app: TabApp = {
       stores,
       exportImage: (format, { filename, ...options }, signal) =>
         exportBrowserImage(
@@ -75,11 +75,12 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
     const disconnect = connectRemoteControl(`/api/sessions/${id}/commands`, app, signal, setState);
     // The agent cannot act on a session it no longer reaches, so it holds nothing: not
     // once the session ends, even while it stays open, and not once this detaches.
-    signal.addEventListener("abort", control.release, { once: true });
+    const release = () => control.release();
+    signal.addEventListener("abort", release, { once: true });
     return () => {
-      signal.removeEventListener("abort", control.release);
+      signal.removeEventListener("abort", release);
       disconnect();
-      control.release();
+      release();
     };
   }, [enabled, id, stores, signal, svgRef, control]);
 

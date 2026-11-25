@@ -1,6 +1,6 @@
 import { Deferred, Effect, Exit, Scope } from "effect";
 import { parseJson } from "../../shared/parseJson";
-import { runCommand, type CommandApp } from "./commands";
+import { runCommand, type TabApp } from "./commands";
 import { commandCancelSchema, commandMessageSchema, type CommandResult } from "./commands/protocol";
 
 export type RemoteControlState = "off" | "connecting" | "connected";
@@ -16,7 +16,7 @@ export type RemoteControlState = "off" | "connecting" | "connected";
  */
 export function connectRemoteControl(
   commandsUrl: string,
-  app: CommandApp,
+  app: TabApp,
   signal: AbortSignal,
   onState: (state: RemoteControlState) => void,
 ) {

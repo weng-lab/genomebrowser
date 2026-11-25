@@ -96,8 +96,9 @@ function Conversation({
     }
   }
 
-  // Stop in the browser's control banner stops this run, and a run that ends,
-  // however it ends, gives control of the browser back.
+  // Stop in the browser's control banner stops this run while it holds control,
+  // and a run that ends, however it ends, gives back control it took. Control
+  // another agent holds stays with it.
   const control = useAgentControlHandle();
   useEffect(() => {
     if (!running) return;
@@ -107,7 +108,7 @@ function Conversation({
   }, [running, control, agent.store, report]);
   const wasRunning = useRef(running);
   useEffect(() => {
-    if (wasRunning.current && !running) control.release();
+    if (wasRunning.current && !running) control.release("panel");
     wasRunning.current = running;
   }, [running, control]);
 
@@ -268,7 +269,7 @@ function Conversation({
               variant="outlined"
               onClick={() => {
                 setFailure(undefined);
-                control.release();
+                control.release("panel");
                 agent.store.cancel().catch(report);
               }}
             >

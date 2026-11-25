@@ -2,7 +2,7 @@ import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { commands, type Command } from "../../agent/commands";
-import type { CommandResult } from "../../agent/commands/protocol";
+import type { CommandAgent, CommandResult } from "../../agent/commands/protocol";
 import { authorizeRemoteControl, type AgentAccount } from "../../agent/server/access";
 import type { CommandRelay } from "../../agent/server/relay";
 import { runServerStateCommand } from "../../agent/server/stateCommands";
@@ -15,6 +15,8 @@ export type McpCaller = {
   userId: string;
   /** When set, this credential may act only on this saved session. */
   sessionId?: string;
+  /** `"panel"` for a run of the agent panel, which acts through Eve's session credential. */
+  agent: CommandAgent;
 };
 
 /** Resolved when needed, so missing configuration fails the affected call rather than every request. */
@@ -75,9 +77,14 @@ function createServer(
               signal,
             );
           } else {
-            result = await relay().dispatch(targetSession, { name: command.name, params }, signal, {
-              timeoutMs: command.timeoutMs,
-            });
+            result = await relay().dispatch(
+              targetSession,
+              { name: command.name, params, agent: caller.agent },
+              signal,
+              {
+                timeoutMs: command.timeoutMs,
+              },
+            );
           }
         } catch (error) {
           if (error instanceof SessionError) return failed(`${error.code}: ${error.message}`);

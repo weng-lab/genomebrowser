@@ -290,6 +290,35 @@ it("locks the browser while an agent holds control, until it releases it or the 
   await vi.waitFor(() => expect(unlocked()).toBe(true));
 });
 
+it("lets only the agent holding control give it back", async () => {
+  await enableRemoteControl();
+  await act(async () => route.back());
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const control = (name: string, id: string, agent?: "panel" | "external") =>
+    act(async () =>
+      latest().send({ commandId: id, name, expiresAt: Date.now() + 5000, params: {}, agent }),
+    );
+  const held = () => document.querySelectorAll("[inert]").length > 0;
+
+  // An agent connected another way holds control; the agent panel's run ending does not lift it.
+  await control("take_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e11");
+  await vi.waitFor(() => expect(held()).toBe(true));
+  await control("release_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e12", "panel");
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(2));
+  expect(reply(1)).toMatchObject({ result: { ok: true } });
+  expect(held()).toBe(true);
+  await control("release_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e13", "external");
+  await vi.waitFor(() => expect(held()).toBe(false));
+
+  await control("take_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e14", "panel");
+  await vi.waitFor(() => expect(held()).toBe(true));
+  await control("release_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e15", "external");
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(5));
+  expect(held()).toBe(true);
+  await control("release_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e16", "panel");
+  await vi.waitFor(() => expect(held()).toBe(false));
+});
+
 it("gives control back when remote control detaches from the session", async () => {
   await enableRemoteControl();
   await act(async () => route.back());

@@ -1,11 +1,16 @@
 import { z } from "zod";
 
+/** Which agent sent a command: a run of the agent panel, or an agent connected another way. */
+export const commandAgentSchema = z.enum(["panel", "external"]);
+
 /** A command delivered to a tab. The tab looks up `name` and validates `params`. */
 export const commandMessageSchema = z.strictObject({
   commandId: z.uuid(),
   name: z.string(),
   params: z.unknown(),
   expiresAt: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  /** Missing means `"external"`. */
+  agent: commandAgentSchema.optional(),
 });
 
 /** Stops a delivered command, if it is still running, after its caller stopped waiting. */
@@ -23,6 +28,7 @@ export const commandReplySchema = z.strictObject({
   result: commandResultSchema,
 });
 
+export type CommandAgent = z.infer<typeof commandAgentSchema>;
 export type CommandMessage = z.infer<typeof commandMessageSchema>;
 export type CommandResult = z.infer<typeof commandResultSchema>;
 export type CommandReply = z.infer<typeof commandReplySchema>;

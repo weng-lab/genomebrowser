@@ -3,7 +3,7 @@ import { releaseControl, takeControl } from "./control";
 import type { BrowserCommand, Command, CommandApp } from "./define";
 import { exportImage } from "./exportImage";
 import { listTracks } from "./listTracks";
-import type { CommandMessage, CommandResult } from "./protocol";
+import type { CommandAgent, CommandMessage, CommandResult } from "./protocol";
 import { setRegion } from "./setRegion";
 import { setTrackMetadata } from "./setTrackMetadata";
 import { sortTracks } from "./sortTracks";
@@ -34,14 +34,28 @@ export type {
 } from "./define";
 
 /**
- * Validate a delivered browser command's parameters and run it with `app`.
- * State commands run exclusively on the server and are rejected here.
+ * The tab's `CommandApp`, whose control knows which agent holds it, so one agent
+ * cannot give back control another holds.
+ */
+export type TabApp = Omit<CommandApp, "control"> & {
+  control: { take(agent: CommandAgent): void; release(agent: CommandAgent): void };
+};
+
+/**
+ * Validate a delivered browser command's parameters and run it with `app`, as
+ * the message's agent. State commands run exclusively on the server and are
+ * rejected here.
  */
 export async function runCommand(
-  app: CommandApp,
-  message: Pick<CommandMessage, "name" | "params">,
+  { control, ...rest }: TabApp,
+  message: Pick<CommandMessage, "name" | "params" | "agent">,
   signal: AbortSignal,
 ): Promise<CommandResult> {
+  const agent = message.agent ?? "external";
+  const app: CommandApp = {
+    ...rest,
+    control: { take: () => control.take(agent), release: () => control.release(agent) },
+  };
   const command = (commands as readonly Command[]).find(
     (candidate): candidate is BrowserCommand =>
       candidate.name === message.name && candidate.target === "browser",
