@@ -14,7 +14,7 @@ vi.mock("next/navigation", () => ({
 it("renders the session switcher on the server", () => {
   const html = renderToString(
     <SessionProvider>
-      <SessionSwitcher />
+      <SessionSwitcher onAllSessions={() => {}} onNewSession={() => {}} />
     </SessionProvider>,
   );
   expect(html).toContain("No session open");

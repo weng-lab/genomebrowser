@@ -3,25 +3,31 @@ import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { alpha, type Theme } from "@mui/material/styles";
-import { Fragment, type ElementType, type ReactNode } from "react";
+import { Fragment, type ElementType, type MouseEvent, type ReactNode } from "react";
 import { primarySurfaceSx } from "./theme";
 
 /** The rail's width: a 40px icon button, 4px padding on each side, and its border. */
 const NAV_RAIL_WIDTH = 49;
 
+/** A link when it has `href`, otherwise a button that shows and hides a panel. */
 export type NavRailItem = {
-  href: string;
+  /** Names the item, so it must be unique within the rail. */
   label: string;
   icon: ReactNode;
-  /** `page` for the page the link opens, `location` for a page inside it. */
+  href?: string;
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
+  /** A link's `page` for the page it opens, `location` for a page inside it. */
   current?: "page" | "location";
+  /** A button's panel: whether it is shown, and its element's id. */
+  expanded?: boolean;
+  controls?: string;
 };
 
 export type NavRailProps = {
   "aria-label": string;
-  /** Groups of links from the top. A line separates each group. */
+  /** Groups of items from the top. A line separates each group. */
   sections: readonly (readonly NavRailItem[])[];
-  /** Links at the bottom, above the footer. */
+  /** Items at the bottom, above the footer. */
   bottom?: readonly NavRailItem[];
   /** Shown above the first group, with a line below it, such as the app's logo. */
   brand?: ReactNode;
@@ -32,8 +38,9 @@ export type NavRailProps = {
 };
 
 /**
- * The navy column of icon links at the window's left edge. Each link shows its label as a
- * tooltip and is named by it; the current one sits on a lighter square.
+ * The navy column of icon links and panel buttons at the window's left edge. Each item shows
+ * its label as a tooltip and is named by it; the current link, or a button while its panel is
+ * shown, sits on a lighter square.
  */
 export function NavRail({
   "aria-label": ariaLabel,
@@ -43,14 +50,15 @@ export function NavRail({
   footer,
   linkComponent = "a",
 }: NavRailProps) {
-  const link = ({ href, label, icon, current }: NavRailItem) => (
-    <Tooltip key={href} title={label} placement="right">
+  const item = ({ href, label, icon, onClick, current, expanded, controls }: NavRailItem) => (
+    <Tooltip key={label} title={label} placement="right">
       <IconButton
-        component={linkComponent}
-        href={href}
+        {...(href === undefined
+          ? { "aria-expanded": expanded, "aria-controls": controls }
+          : { component: linkComponent, href, "aria-current": current })}
         aria-label={label}
-        aria-current={current}
-        sx={[linkSx, current !== undefined && currentLinkSx]}
+        onClick={onClick}
+        sx={[linkSx, (current !== undefined || expanded === true) && currentLinkSx]}
       >
         {icon}
       </IconButton>
@@ -60,7 +68,7 @@ export function NavRail({
     ...(brand ? [{ key: "brand", content: brand }] : []),
     ...sections
       .filter((items) => items.length > 0)
-      .map((items) => ({ key: items[0].href, content: items.map(link) })),
+      .map((items) => ({ key: items[0].label, content: items.map(item) })),
   ];
   return (
     <Box component="nav" aria-label={ariaLabel} sx={railSx}>
@@ -71,7 +79,7 @@ export function NavRail({
         </Fragment>
       ))}
       <Box sx={{ flexGrow: 1 }} />
-      {bottom.map(link)}
+      {bottom.map(item)}
       {footer}
     </Box>
   );

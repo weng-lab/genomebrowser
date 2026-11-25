@@ -6,6 +6,7 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Header } from "./frame/Header";
+import { useShownLeftPanel } from "./navigation";
 import { PageTitleRow } from "./frame/PageTitleRow";
 import { PanelButton } from "./panels/PanelButton";
 import { PanelToggleButton } from "./panels/PanelToggleButton";
@@ -21,7 +22,12 @@ export type WorkspacePageProps = {
   heading?: ReactNode;
   /** Shown at the title row's right end, before the right panel's button. */
   actions?: ReactNode;
-  left?: WorkspacePanel;
+  /**
+   * The left panel, or panels with ids that navigation entries choose between. Until an entry
+   * chooses one, the panel of the first entry for this page shows, or the first panel when no
+   * entry names one.
+   */
+  left?: WorkspacePanel | readonly WorkspacePanel[];
   right?: WorkspacePanel;
   children: ReactNode;
 };
@@ -35,13 +41,17 @@ export function WorkspacePage({
   children,
 }: WorkspacePageProps) {
   const leftOpen = usePanelState((state) => state.leftOpen);
+  const shownLeftId = useShownLeftPanel();
   const rightOpen = usePanelState((state) => state.rightOpen);
   const toggle = usePanelState((state) => state.toggle);
   const toggleLeft = () => toggle("left");
   const toggleRight = () => toggle("right");
   const transitionEnabled = useTransitionEnabled(usePathname());
+  const leftPanels = left === undefined ? [] : "children" in left ? [left] : left;
+  const shownLeft: WorkspacePanel | undefined =
+    leftPanels.find(({ id }) => id === shownLeftId) ?? leftPanels[0];
   useHotkey({ key: "B", ctrl: true }, toggleLeft, {
-    enabled: left !== undefined,
+    enabled: shownLeft !== undefined,
     ignoreInputs: true,
     requireReset: true,
     preventDefault: true,
@@ -61,7 +71,7 @@ export function WorkspacePage({
     >
       <Header
         leftToggle={
-          left && (
+          shownLeft && (
             <PanelToggleButton
               side="left"
               open={leftOpen}
@@ -71,7 +81,7 @@ export function WorkspacePage({
           )
         }
       />
-      <SidePanel side="left" panel={left} open={leftOpen} animate={transitionEnabled} />
+      <SidePanel side="left" panel={shownLeft} open={leftOpen} animate={transitionEnabled} />
       <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
         <PageTitleRow
           label={title}
@@ -93,7 +103,7 @@ export function WorkspacePage({
               </>
             )
           }
-          clearLeftToggle={left !== undefined && !leftOpen}
+          clearLeftToggle={shownLeft !== undefined && !leftOpen}
           animate={transitionEnabled}
         />
         <Box

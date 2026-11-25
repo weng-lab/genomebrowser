@@ -13,15 +13,20 @@ export const sidePanelSizes = {
 
 type PanelState = {
   leftOpen: boolean;
+  /** The id of the left panel a navigation entry chose. `useShownLeftPanel` reads which shows. */
+  leftPanel: string | undefined;
   rightOpen: boolean;
   leftWidth: number;
   rightWidth: number;
   toggle: (side: Side) => void;
   setWidth: (side: Side, width: number) => void;
+  /** Shows the left panel with `id`, opening the left side if it is collapsed. */
+  showLeft: (id: string) => void;
 };
 function createPanelState() {
   return createStore<PanelState>((set) => ({
     leftOpen: true,
+    leftPanel: undefined,
     rightOpen: true,
     leftWidth: sidePanelSizes.left.defaultWidth,
     rightWidth: sidePanelSizes.right.defaultWidth,
@@ -30,6 +35,7 @@ function createPanelState() {
         side === "left" ? { leftOpen: !state.leftOpen } : { rightOpen: !state.rightOpen },
       ),
     setWidth: (side, width) => set(side === "left" ? { leftWidth: width } : { rightWidth: width }),
+    showLeft: (id) => set({ leftPanel: id, leftOpen: true }),
   }));
 }
 const PanelStateContext = createContext<ReturnType<typeof createPanelState> | null>(null);

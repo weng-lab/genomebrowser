@@ -12,7 +12,10 @@ export type SessionState = {
   status: "loading" | "ready" | "unavailable" | "signed-out";
   /** The account's saved sessions, sorted by name. */
   sessions: readonly Session[];
-  /** The restored session shown in the browser. Only open, create, copy, remove, and close replace it. */
+  /**
+   * The restored session shown in the browser. Only open, create, copy, remove, removeAll, and
+   * close replace it.
+   */
   active:
     | {
         id: string;
@@ -28,8 +31,13 @@ export type SessionState = {
     | undefined;
   /** Saving of the active session's edits. */
   saveStatus: SaveStatus | undefined;
-  /** The open, create, copy, remove, or close operation in progress. They run one at a time. */
-  pending: { operation: "open" | "create" | "copy" | "remove" | "close"; id?: string } | undefined;
+  /** The open, create, copy, remove, removeAll, or close operation in progress. They run one at a time. */
+  pending:
+    | {
+        operation: "open" | "create" | "copy" | "remove" | "removeAll" | "close";
+        id?: string;
+      }
+    | undefined;
   /** Why the latest operation or save failed, for display. */
   error: string | undefined;
   /**
@@ -53,6 +61,12 @@ export type SessionState = {
   overwrite(): Promise<void>;
   /** Delete a session. For the active session, an outstanding write finishes first. */
   remove(id: string): Promise<void>;
+  /**
+   * Delete every listed session, one at a time like `remove`, with the active session last,
+   * or kept open when `keepActive` is set. Stops at the first that cannot be deleted, keeping
+   * it and the rest.
+   */
+  removeAll(options?: { keepActive?: boolean }): Promise<void>;
   /**
    * Close the active session after saving every edit, or without saving when
    * `discard` is set, then run `next`, such as signing out. Nothing opens until
@@ -131,6 +145,7 @@ export function createSession({
     rename,
     overwrite,
     remove,
+    removeAll,
     close,
   }));
   const { getState: get, setState: set } = store;
@@ -541,9 +556,12 @@ export function createSession({
     return run(operation, target.scope)?.done ?? Promise.resolve();
   }
 
-  function remove(id: string): Promise<void> {
-    const name = get().sessions.find((session) => session.id === id)?.name ?? "the session";
-    const operation = Effect.gen(function* () {
+  /**
+   * Delete a session, closing it first when it is active. Fails, leaving it open and saving,
+   * when the server keeps it.
+   */
+  const deleteSession = (id: string) =>
+    Effect.gen(function* () {
       const target = current?.id === id ? current : undefined;
       // A write the server already accepted finishes first, so no write follows the deletion.
       if (target) yield* target.autosave.pause;
@@ -559,7 +577,7 @@ export function createSession({
           }
           yield* target.autosave.resume;
         }
-        return failed(removed.failure, `Could not delete “${name}”. Try again.`);
+        return yield* Effect.fail(removed.failure);
       }
       changeList((sessions) => sessions.filter((session) => session.id !== id));
       if (!target) return;
@@ -568,7 +586,39 @@ export function createSession({
       navigation.show(undefined);
       yield* Scope.close(target.scope, Exit.void);
     });
+
+  function remove(id: string): Promise<void> {
+    const name = get().sessions.find((session) => session.id === id)?.name ?? "the session";
+    const operation = deleteSession(id).pipe(
+      Effect.catch((error) =>
+        Effect.sync(() => failed(error, `Could not delete “${name}”. Try again.`)),
+      ),
+    );
     return run(exclusive({ operation: "remove", id }, operation))?.done ?? Promise.resolve();
+  }
+
+  function removeAll({ keepActive = false }: { keepActive?: boolean } = {}): Promise<void> {
+    const operation = Effect.gen(function* () {
+      const active = current?.id;
+      // The active session goes last, so it stays open if another cannot be deleted.
+      const ids = get()
+        .sessions.map(({ id }) => id)
+        .filter((id) => !keepActive || id !== active)
+        .toSorted((a, b) => Number(a === active) - Number(b === active));
+      for (const id of ids) yield* deleteSession(id);
+    }).pipe(
+      Effect.catch((error) =>
+        Effect.sync(() =>
+          failed(
+            error,
+            keepActive
+              ? "Could not delete every other session. Try again."
+              : "Could not delete every session. Try again.",
+          ),
+        ),
+      ),
+    );
+    return run(exclusive({ operation: "removeAll" }, operation))?.done ?? Promise.resolve();
   }
 
   function close({

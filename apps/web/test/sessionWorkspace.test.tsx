@@ -33,7 +33,8 @@ function click(element: Element | null | undefined) {
 }
 /** Open the session menu beside the title, unless it is open. */
 async function openSessions() {
-  if (button("Sessions")?.getAttribute("aria-expanded") !== "true") await click(button("Sessions"));
+  if (button("Session menu")?.getAttribute("aria-expanded") !== "true")
+    await click(button("Session menu"));
 }
 /** The open actions menu's item named `label`. */
 const actionItem = (label: string) => withText('[role="menu"] [role="menuitem"]', label);
@@ -60,6 +61,13 @@ const link = (name: string) =>
   );
 const button = (label: string) =>
   document.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
+/** The side bar's button named `label`, which shows or hides a left panel on its page. */
+const railButton = (label: string) =>
+  document.querySelector<HTMLButtonElement>(
+    `nav[aria-label="Workspace"] button[aria-label="${label}"]`,
+  );
+const leftPanelTitle = () => document.querySelector("#left-panel h2")?.textContent;
+const newSessionForm = () => document.querySelector('form[aria-label="New session"]');
 const withText = (selector: string, content: string) =>
   [...document.querySelectorAll(selector)].find((element) => element.textContent === content);
 const savedRegion = (id: string) => server.stored.get(id)!.snapshot.browser.region;
@@ -102,24 +110,26 @@ it("creates a session, saves edits, and keeps it open across workspace pages", a
   await openSessions();
   await vi.waitFor(() => expect(text()).toContain("No saved sessions yet."));
 
-  // New session asks for a name and an assembly, starting at the only supported one.
+  // New session shows the Sessions panel with a form asking for a name and an assembly,
+  // starting at the only supported one.
   await click(menuItem("New session"));
-  const dialog = () => document.querySelector('[role="dialog"]');
-  const name = () => dialog()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
+  expect(leftPanelTitle()).toBe("Sessions");
+  const name = () => newSessionForm()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
   await vi.waitFor(() => expect(name()).toBeTruthy());
-  expect(dialog()!.querySelector("h2")?.textContent).toBe("New session");
   expect(name()!.placeholder).toBe("New session");
   expect(document.activeElement).toBe(name());
-  expect(dialog()!.querySelector('[role="combobox"]')?.textContent).toBe("Human (GRCh38/hg38)");
+  expect(newSessionForm()!.querySelector('[role="combobox"]')?.textContent).toBe(
+    "Human (GRCh38/hg38)",
+  );
   expect(server.writes()).toEqual([]);
 
   await type(name()!, "Promoter scan");
-  await click(withText('[role="dialog"] button', "Create"));
+  await click(withText('form[aria-label="New session"] button', "Create"));
   await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
   const [id] = server.stored.keys();
   expect(route.pathname()).toBe(`/browser/${id}`);
   expect(server.stored.get(id)).toMatchObject({ name: "Promoter scan", snapshot: defaults() });
-  await vi.waitFor(() => expect(dialog()).toBeNull());
+  expect(newSessionForm()).toBeNull();
   await openSessions();
   expect(sessionNames()).toEqual(["Promoter scan"]);
 
@@ -235,7 +245,7 @@ it("asks before a new session or a copy replaces a held one", async () => {
   await dialogClosed();
   await openSessions();
   await click(menuItem("New session"));
-  await click(withText('[role="dialog"] button', "Create"));
+  await click(withText('form[aria-label="New session"] button', "Create"));
   await asked();
   await answer("Stay");
   expect(heading()).toBe("Alpha");
@@ -369,35 +379,41 @@ it("lists the open session and the three most recently saved others", async () =
     /^hg38 • .+ • 3 tracks$/,
   );
 
-  // Below them, a link goes to the Sessions page, which lists all five.
-  await click(link("All sessions"));
-  expect(route.pathname()).toBe("/sessions");
-  expect(document.querySelectorAll("main section li")).toHaveLength(5);
+  // Below them, All sessions shows the Sessions panel, which lists all five.
+  await click(withText('[role="presentation"] button', "All sessions"));
+  expect(route.pathname()).toBe(`/browser/${ids[0]}`);
+  expect(leftPanelTitle()).toBe("Sessions");
+  expect(document.querySelectorAll("#left-panel section li")).toHaveLength(5);
+  expect(railButton("Sessions")?.getAttribute("aria-expanded")).toBe("true");
 });
 
-it("lists every saved session to search, and creates one into the browser", async () => {
+it("lists every saved session to search in the left panel, and creates one", async () => {
   const day = (n: number) => new Date(Date.UTC(2026, 0, n));
   const ids = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"].map((name) =>
     server.add(name, defaults()),
   );
   ids.forEach((id, index) => (server.stored.get(id)!.updatedAt = day(index + 1)));
-  await visit("/sessions");
+  // From another page, Sessions goes to the browser with the Sessions panel shown.
+  await visit("/settings");
+  await click(document.querySelector('nav a[aria-label="Sessions"]'));
+  expect(route.pathname()).toBe("/browser");
+  expect(leftPanelTitle()).toBe("Sessions");
   const names = () =>
-    [...document.querySelectorAll("main section nav .MuiListItemText-primary")].map(
+    [...document.querySelectorAll("#left-panel section nav .MuiListItemText-primary")].map(
       (name) => name.textContent,
     );
   await vi.waitFor(() => expect(names()).toEqual(["Epsilon", "Delta", "Gamma", "Beta", "Alpha"]));
   // Saved long before now, they share one group.
   const groups = () =>
-    [...document.querySelectorAll("main section")].map((section) => [
-      section.querySelector("h2")?.textContent,
+    [...document.querySelectorAll("#left-panel section")].map((section) => [
+      section.querySelector("h4")?.textContent,
       section.querySelectorAll("li").length,
     ]);
   expect(groups()).toEqual([["More than a month ago", 5]]);
   // The heading says when each was saved; rows show the assembly and track count.
-  expect(document.querySelector("main section .MuiListItemText-secondary")?.textContent).toBe(
-    "hg38 • 3 tracks",
-  );
+  expect(
+    document.querySelector("#left-panel section .MuiListItemText-secondary")?.textContent,
+  ).toBe("hg38 • 3 tracks");
 
   const search = document.querySelector<HTMLInputElement>('input[aria-label="Search sessions"]')!;
   await type(search, "ta");
@@ -405,25 +421,120 @@ it("lists every saved session to search, and creates one into the browser", asyn
   await type(search, "zeta");
   expect(names()).toEqual([]);
   expect(text()).toContain("No sessions match “zeta”.");
+  await type(search, "");
+  // The heading counts the sessions listed.
+  expect(document.querySelector("#left-panel h3")?.textContent).toBe("Sessions5");
 
-  await click(withText("button", "New session"));
-  const name = () =>
-    document.querySelector<HTMLInputElement>('[role="dialog"] input:not([aria-hidden])');
+  // The heading's New session opens the form below it, and Escape closes it.
+  const add = button("New session")!;
+  await click(add);
+  expect(add.getAttribute("aria-expanded")).toBe("true");
+  const name = () => newSessionForm()?.querySelector<HTMLInputElement>("input:not([aria-hidden])");
   await vi.waitFor(() => expect(name()).toBeTruthy());
+  await act(async () =>
+    name()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  expect(newSessionForm()).toBeNull();
+  expect(document.activeElement).toBe(add);
+
+  await click(add);
   await type(name()!, "Promoter scan");
-  await click(withText('[role="dialog"] button', "Create"));
+  await click(withText('form[aria-label="New session"] button', "Create"));
   await vi.waitFor(() => expect(heading()).toBe("Promoter scan"));
   const created = [...server.stored.keys()].find((id) => !ids.includes(id));
   expect(route.pathname()).toBe(`/browser/${created}`);
+  expect(newSessionForm()).toBeNull();
+  expect(document.activeElement).toBe(add);
 
-  // Saved today, it heads the list.
-  await click(document.querySelector('nav a[aria-label="Sessions"]'));
+  // The panel stays, and the new session, saved today, heads it.
+  expect(leftPanelTitle()).toBe("Sessions");
   await vi.waitFor(() =>
     expect(groups()).toEqual([
       ["Today", 1],
       ["More than a month ago", 5],
     ]),
   );
+});
+
+it("deletes every session from the Sessions panel after asking", async () => {
+  const a = server.add("Alpha", defaults());
+  server.add("Beta", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await click(railButton("Sessions"));
+  const deleteAll = () =>
+    withText("#left-panel button", "Delete all sessions") as HTMLButtonElement | undefined;
+  await vi.waitFor(() => expect(deleteAll()?.disabled).toBe(false));
+  const confirmation = () => document.querySelector('[role="dialog"]');
+
+  // Cancel keeps them.
+  await click(deleteAll());
+  expect(confirmation()?.querySelector("h2")?.textContent).toBe("Delete all sessions?");
+  await click(withText('[role="dialog"] button', "Cancel"));
+  await vi.waitFor(() => expect(confirmation()).toBeNull());
+  expect(server.stored.size).toBe(2);
+
+  await click(deleteAll());
+  await click(withText('[role="dialog"] button', "Delete all"));
+  await vi.waitFor(() => expect(heading()).toBe("No session open"));
+  expect(route.pathname()).toBe("/browser");
+  expect(server.stored.size).toBe(0);
+  expect(text()).toContain("No saved sessions yet.");
+  expect(deleteAll()?.disabled).toBe(true);
+  // Focus leaves the disabled button for the heading's New session.
+  expect(document.activeElement).toBe(button("New session"));
+});
+
+it("deletes every session but the open one from the Sessions panel", async () => {
+  const a = server.add("Alpha", defaults());
+  server.add("Beta", defaults());
+  server.add("Gamma", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await click(railButton("Sessions"));
+  const deleteAll = () =>
+    withText("#left-panel button", "Delete all sessions") as HTMLButtonElement | undefined;
+  await vi.waitFor(() => expect(deleteAll()?.disabled).toBe(false));
+
+  await click(deleteAll());
+  await click(withText('[role="dialog"] button', "Delete all but current"));
+  await vi.waitFor(() => expect([...server.stored.keys()]).toEqual([a]));
+  expect(heading()).toBe("Alpha");
+  expect(route.pathname()).toBe(`/browser/${a}`);
+  await vi.waitFor(() => expect(deleteAll()?.disabled).toBe(false));
+
+  // With no other session saved, only deleting all is offered.
+  await click(deleteAll());
+  expect(withText('[role="dialog"] button', "Delete all but current")).toBeUndefined();
+  expect(withText('[role="dialog"] button', "Delete all")).toBeDefined();
+});
+
+it("shows and hides the browser's left panels from the side bar", async () => {
+  const a = server.add("Alpha", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const hidden = () => document.querySelector("#left-panel")?.hasAttribute("inert");
+  // The browser's tools show first, so Browser is pressed and Sessions is not.
+  expect(leftPanelTitle()).toBe("Genome Browser");
+  expect(railButton("Browser")?.getAttribute("aria-expanded")).toBe("true");
+  expect(railButton("Sessions")?.getAttribute("aria-expanded")).toBe("false");
+
+  // Sessions switches the open panel, then hides it.
+  await click(railButton("Sessions"));
+  expect(leftPanelTitle()).toBe("Sessions");
+  expect(railButton("Browser")?.getAttribute("aria-expanded")).toBe("false");
+  await click(railButton("Sessions"));
+  expect(hidden()).toBe(true);
+  expect(railButton("Sessions")?.getAttribute("aria-expanded")).toBe("false");
+
+  // Browser shows its tools again, opening the panel.
+  await click(railButton("Browser"));
+  expect(hidden()).toBe(false);
+  expect(leftPanelTitle()).toBe("Genome Browser");
+  // The header's toggle hides whichever panel is shown, and Browser follows it.
+  await click(button("Hide left panel"));
+  expect(hidden()).toBe(true);
+  expect(railButton("Browser")?.getAttribute("aria-expanded")).toBe("false");
 });
 
 it("returns to the open session when another cannot be opened", async () => {
@@ -467,7 +578,7 @@ it("deletes the open session and shows the empty browser", async () => {
   expect(heading()).toBe("No session open");
   expect(text()).toContain("Open a recent session or create one from the menu beside the title.");
   // The menu stays open to switch to or create another session.
-  expect(button("Sessions")?.getAttribute("aria-expanded")).toBe("true");
+  expect(button("Session menu")?.getAttribute("aria-expanded")).toBe("true");
   expect(sessionNames()).toEqual(["Beta"]);
   expect(server.stored.has(a)).toBe(false);
 });
@@ -933,4 +1044,24 @@ it("budgets session readers when the open session changes", async () => {
       "SessionTitle": 2,
     }
   `);
+});
+
+// Switching the left panel renders the frame around the browser, not the browser itself.
+it("budgets the browser when the side bar switches the left panel", async () => {
+  const a = server.add("Alpha", defaults());
+  await visit(`/browser/${a}`);
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const report = await probe!.measure(async () => {
+    railButton("Sessions")!.click();
+    await vi.waitFor(() => expect(leftPanelTitle()).toBe("Sessions"));
+  });
+  expect(report.pick("SideBar", "SessionSwitcher", "BrowserView", "BrowserContent"))
+    .toMatchInlineSnapshot(`
+      {
+        "BrowserContent": 0,
+        "BrowserView": 0,
+        "SessionSwitcher": 0,
+        "SideBar": 1,
+      }
+    `);
 });

@@ -8,13 +8,12 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useId, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { SessionState } from "../session";
 import { byRecent } from "../sessionDetails";
 import { useSession } from "../SessionProvider";
-import { useCreateDisabled } from "./NewSessionDialog";
+import { useCreateDisabled } from "./NewSessionForm";
 import { labelSx, listSx, SessionList, SessionListStatus, textSx } from "./SessionList";
 import { itemSx } from "./SessionRow";
 
@@ -26,10 +25,12 @@ type SessionMenuProps = {
   onDone: () => void;
   /** Called when New session is chosen, to ask for the session's name and assembly. */
   onNewSession: () => void;
+  /** Called when All sessions is chosen, to show every saved session. */
+  onAllSessions: () => void;
 };
 
-/** Recent sessions with a link to all of them, then creating a session. */
-export function SessionMenu({ onDone, onNewSession }: SessionMenuProps) {
+/** Recent sessions with a button to show all of them, then creating a session. */
+export function SessionMenu({ onDone, onNewSession, onAllSessions }: SessionMenuProps) {
   const ids = useSession(useShallow(recentIds));
   const labelId = useId();
   // Save times read relative to when the menu opened.
@@ -49,11 +50,13 @@ export function SessionMenu({ onDone, onNewSession }: SessionMenuProps) {
       <SessionList ids={ids} now={now} onOpen={onDone} aria-labelledby={labelId} />
       <SessionListStatus count={ids.length} empty="No saved sessions yet." />
       <MuiLink
-        component={Link}
-        href="/sessions"
+        component="button"
         variant="body2"
         underline="hover"
-        onClick={onDone}
+        onClick={() => {
+          onDone();
+          onAllSessions();
+        }}
         sx={allSessionsSx}
       >
         All sessions
@@ -95,4 +98,4 @@ function recentIds({ sessions, active }: SessionState) {
 const iconSx = { minWidth: 28 } as const;
 
 /** Below the rows, lined up with their text. */
-const allSessionsSx = { ...textSx, display: "block", pt: 0.25, pb: 1 } as const;
+const allSessionsSx = { ...textSx, display: "block", pt: 0.25, pb: 1, textAlign: "left" } as const;

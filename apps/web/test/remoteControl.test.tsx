@@ -1118,7 +1118,7 @@ it.each([false, true])(
     await setRegion("chr1", 1000);
     const stream = latest();
     const deletion = server.hold("DELETE");
-    await click('button[aria-label="Sessions"]');
+    await click('button[aria-label="Session menu"]');
     await click('button[aria-label="Actions for session Alpha"]');
     await act(async () =>
       [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]

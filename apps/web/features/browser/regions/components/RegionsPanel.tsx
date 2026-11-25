@@ -2,9 +2,7 @@
 
 import Add from "@mui/icons-material/Add";
 import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
-import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -21,8 +19,8 @@ import { useSession } from "../../../sessions/SessionProvider";
 import type { RegionGroup } from "../regionGroupSchema";
 import { newGroupDefaults, type RegionGroupStoreInstance } from "../regionGroups";
 import { ColorDot } from "../../../../shared/ui/ColorDot";
+import { DeleteAllButton } from "../../../../shared/ui/DeleteAllButton";
 import { EmptyState } from "../../../../shared/ui/EmptyState";
-import { formButtonSx } from "../../../../shared/ui/FormCard";
 import { SectionHeader } from "../../../../shared/ui/SectionHeader";
 import {
   nextRegionName,
@@ -34,7 +32,6 @@ import {
   setRegionsColor,
 } from "../regions";
 import { AddRegionForm } from "./AddRegionForm";
-import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { NewGroupForm } from "./NewGroupForm";
 import { listSx, RegionGroupSection } from "./RegionGroup";
 import { RegionActions } from "./RegionMenu";
@@ -301,53 +298,19 @@ function Regions({ browserStore, regionGroupStore }: StoresProps) {
       </Box>
       <Box sx={{ p: 1, pb: 1.5 }}>
         <DeleteAllButton
-          regionGroupStore={regionGroupStore}
+          label="Delete all regions"
           disabled={empty}
-          onDelete={() => rowFocus.focusNext([])}
+          confirmTitle="Delete all regions?"
+          confirmText="Every saved region, its highlight, and every group will be removed from this session."
+          confirmLabel="Delete all"
+          onDelete={() => {
+            // Focus leaves the button, which deleting disables.
+            rowFocus.focusNext([]);
+            regionGroupStore.getState().deleteAll();
+          }}
         />
       </Box>
     </Box>
-  );
-}
-
-/** Deletes every saved region and group after asking, since it cannot be undone. */
-function DeleteAllButton({
-  regionGroupStore,
-  disabled,
-  onDelete,
-}: Pick<StoresProps, "regionGroupStore"> & {
-  disabled: boolean;
-  /** Called as it deletes, so focus can leave the button, which it disables. */
-  onDelete: () => void;
-}) {
-  const [confirming, setConfirming] = useState(false);
-  const close = () => setConfirming(false);
-  return (
-    <>
-      <Button
-        fullWidth
-        variant="outlined"
-        color="error"
-        startIcon={<DeleteOutline />}
-        disabled={disabled}
-        onClick={() => setConfirming(true)}
-        // A quiet border, with the form buttons' sentence-case label.
-        sx={{ ...formButtonSx, borderColor: "divider", fontWeight: "fontWeightMedium" }}
-      >
-        Delete all regions
-      </Button>
-      <ConfirmDeleteDialog
-        open={confirming}
-        title="Delete all regions?"
-        text="Every saved region, its highlight, and every group will be removed from this session."
-        confirmLabel="Delete all"
-        onConfirm={() => {
-          onDelete();
-          regionGroupStore.getState().deleteAll();
-        }}
-        onClose={close}
-      />
-    </>
   );
 }
 
