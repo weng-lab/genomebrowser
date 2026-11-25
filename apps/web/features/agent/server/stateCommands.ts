@@ -1,22 +1,13 @@
 import "server-only";
 import type { SessionService } from "../../sessions/server/service";
 import type { SessionSnapshot } from "../../sessions/snapshot.ts";
-import {
-  commands,
-  type Command,
-  type StateCommand,
-  type StateCommandHelpers,
-  type StateCommandOutcome,
-} from "../commands";
+import { commands, type Command, type StateCommand, type StateCommandOutcome } from "../commands";
 import type { CommandResult } from "../commands/protocol";
-import { createStateCommandHelpers } from "../stateCommandHelpers";
-
-const helpers = createStateCommandHelpers();
 
 /**
  * Execute a state agent command directly against `SessionService` using the
- * command's single shared `run` definition. Read-only commands read via `load`;
- * mutations persist to PostgreSQL via `mutate` and broadcast through `SessionBus`.
+ * command's single shared `run` definition. Read commands read via `load`;
+ * write commands persist to PostgreSQL via `mutate` and broadcast through `SessionBus`.
  */
 export async function runServerStateCommand(
   service: SessionService,
@@ -43,17 +34,16 @@ export async function runServerStateCommand(
   const execute = command.run as (
     snapshot: SessionSnapshot,
     params: unknown,
-    helpers: StateCommandHelpers,
   ) => StateCommandOutcome<unknown>;
 
-  if (command.readonly) {
+  if (command.access === "read") {
     const saved = await service.load(sessionId);
-    const outcome = execute(saved.snapshot, parsed.data, helpers);
+    const outcome = execute(saved.snapshot, parsed.data);
     return outcome.ok ? ({ ok: true, value: outcome.value } as CommandResult) : outcome;
   }
 
   const outcome = await service.mutate(sessionId, (current) => {
-    const result = execute(current.snapshot, parsed.data, helpers);
+    const result = execute(current.snapshot, parsed.data);
     if (!result.ok) return result;
     return {
       ok: true,

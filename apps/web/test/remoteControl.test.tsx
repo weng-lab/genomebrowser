@@ -61,15 +61,6 @@ const region = () =>
   document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')?.textContent;
 const latest = () => Stream.opened.at(-1)!;
 const reply = (call = 0) => JSON.parse(server.replies.mock.calls[call][1].body as string);
-const setRegion = (chromosome: string, start: number, expiresAt = Date.now() + 5000) =>
-  act(async () =>
-    latest().send({
-      commandId,
-      name: "set_region",
-      expiresAt,
-      params: { region: { chromosome, start, end: start + 1000 } },
-    }),
-  );
 function click(selector: string) {
   return act(async () => document.querySelector<HTMLElement>(selector)!.click());
 }
@@ -227,25 +218,10 @@ it("attaches to the open session only once restored, and leaves it before attach
   expect(text()).toContain("Off");
 });
 
-it("applies a region command in the browser and replies with the region", async () => {
+it("rejects unknown, server-only, invalid, and expired commands on the tab stream", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   await enableRemoteControl();
   await act(async () => route.back());
-  await setRegion("chr1", 1000);
-  expect(region()).toBe("chr1:1,001-2,000");
-  expect(server.replies.mock.calls[0][0]).toBe(`/api/sessions/${alpha}/commands`);
-  expect(reply()).toEqual({
-    commandId,
-    result: {
-      ok: true,
-      value: { region: { chromosome: "chr1", start: 1000, end: 2000 }, clamped: false },
-    },
-  });
-});
-
-it("rejects unknown commands and invalid parameters without changing the region", async () => {
-  await enableRemoteControl();
-  await act(async () => route.back());
-  const before = region();
   await act(async () =>
     latest().send({
       commandId,
@@ -259,195 +235,23 @@ it("rejects unknown commands and invalid parameters without changing the region"
       commandId,
       name: "set_region",
       expiresAt: Date.now() + 5000,
-      params: { region: { chromosome: "chr1", start: 10, end: 5 } },
+      params: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
     }),
   );
+  await act(async () =>
+    latest().send({
+      commandId,
+      name: "export_image",
+      expiresAt: Date.now() + 5000,
+      params: { format: "gif" },
+    }),
+  );
+  await addTracks([{ url: `${dataHost}/signal.bw` }], Date.now() - 1000);
+  expect(server.replies).toHaveBeenCalledTimes(3);
   expect(reply(0).result).toMatchObject({ ok: false, code: "UNKNOWN_COMMAND" });
-  expect(reply(1).result).toMatchObject({ ok: false, code: "INVALID_PARAMS" });
-  expect(region()).toBe(before);
-});
-
-it("returns the store's rejection and ignores expired commands without changing the region", async () => {
-  await enableRemoteControl();
-  await act(async () => route.back());
-  const before = region();
-  await setRegion("not-a-chromosome", 1000);
-  expect(reply().result).toMatchObject({ ok: false, code: "UNKNOWN_CHROMOSOME" });
-  await setRegion("chr1", 1000, Date.now() - 1000);
-  expect(server.replies).toHaveBeenCalledTimes(1);
-  expect(region()).toBe(before);
-});
-
-it("sorts tracks for the agent, replies with the new order, and saves it", async () => {
-  await enableRemoteControl();
-  const sort = (by: unknown) =>
-    act(async () =>
-      latest().send({
-        commandId,
-        name: "sort_tracks",
-        expiresAt: Date.now() + 5000,
-        params: { by },
-      }),
-    );
-  const savedTitles = () => server.stored.get(alpha)!.snapshot.tracks.map(({ base }) => base.title);
-  const before = savedTitles();
-
-  await sort([{ field: "subject" }]);
-  expect(reply(0).result).toEqual({
-    ok: false,
-    code: "UNKNOWN_SORT_FIELD",
-    error: 'Unknown sort field "subject". Available fields: "title", "type"',
-  });
-  await sort([{ field: "type" }, { field: "type", direction: "descending" }]);
-  expect(reply(1).result).toMatchObject({ ok: false, code: "INVALID_PARAMS" });
-
-  // A new session's ruler is pinned, so it stays on top.
-  await sort([{ field: "title", direction: "descending" }]);
-  expect(reply(2).result).toEqual({
-    ok: true,
-    value: {
-      tracks: [
-        { id: "ruler", title: "Coordinates" },
-        { id: "ccres", title: "Human cCREs" },
-        { id: "genes", title: "GENCODE 50 basic" },
-      ],
-    },
-  });
-  expect(before).toEqual(["Coordinates", "GENCODE 50 basic", "Human cCREs"]);
-  await vi.waitFor(() =>
-    expect(savedTitles()).toEqual(["Coordinates", "Human cCREs", "GENCODE 50 basic"]),
-  );
-});
-
-const runCommand = (name: string, params: object) =>
-  act(async () =>
-    latest().send({ commandId: crypto.randomUUID(), name, expiresAt: Date.now() + 5000, params }),
-  );
-const savedMetadata = () =>
-  server.stored.get(alpha)!.snapshot.tracks.map(({ base, metadata }) => [base.id, metadata]);
-
-it("sorts tracks by a metadata field for the agent", async () => {
-  await enableRemoteControl();
-  await runCommand("set_track_metadata", { trackIds: ["genes"], set: { Replicate: 10 } });
-  await runCommand("set_track_metadata", { trackIds: ["ccres"], set: { Replicate: 2 } });
-
-  await runCommand("sort_tracks", { by: [{ field: "meta:Donor" }] });
-  expect(reply(2).result).toEqual({
-    ok: false,
-    code: "UNKNOWN_SORT_FIELD",
-    error: 'Unknown sort field "meta:Donor". Available fields: "title", "type", "meta:Replicate"',
-  });
-
-  await runCommand("sort_tracks", { by: [{ field: "meta:Replicate" }] });
-  expect(reply(3).result).toEqual({
-    ok: true,
-    value: {
-      tracks: [
-        { id: "ruler", title: "Coordinates" },
-        { id: "ccres", title: "Human cCREs" },
-        { id: "genes", title: "GENCODE 50 basic" },
-      ],
-    },
-  });
-});
-
-it("lists and tags tracks for the agent, replies with their metadata, and saves it", async () => {
-  await enableRemoteControl();
-
-  await runCommand("list_tracks", {});
-  expect(reply(0).result).toEqual({
-    ok: true,
-    value: {
-      tracks: [
-        { id: "ruler", title: "Coordinates", type: "ruler", pinned: true, metadata: {} },
-        { id: "genes", title: "GENCODE 50 basic", type: "gene", pinned: false, metadata: {} },
-        { id: "ccres", title: "Human cCREs", type: "ccre-bigbed", pinned: false, metadata: {} },
-      ],
-    },
-  });
-
-  await runCommand("set_track_metadata", {
-    trackIds: ["ccres", "genes"],
-    set: { Interesting: true, Status: "abnormal" },
-  });
-  expect(reply(1).result).toEqual({
-    ok: true,
-    value: {
-      tracks: [
-        { id: "ccres", metadata: { Interesting: true, Status: "abnormal" } },
-        { id: "genes", metadata: { Interesting: true, Status: "abnormal" } },
-      ],
-    },
-  });
-
-  // Fields a change doesn't name stay.
-  await runCommand("set_track_metadata", {
-    trackIds: ["ccres"],
-    set: { Status: "normal" },
-    remove: ["Never set"],
-  });
-  expect(reply(2).result).toEqual({
-    ok: true,
-    value: { tracks: [{ id: "ccres", metadata: { Interesting: true, Status: "normal" } }] },
-  });
-  // A name objects inherit, such as toString, is an ordinary field name.
-  await runCommand("set_track_metadata", {
-    trackIds: ["ccres"],
-    remove: ["Interesting", "toString"],
-  });
-  expect(reply(3).result).toEqual({
-    ok: true,
-    value: { tracks: [{ id: "ccres", metadata: { Status: "normal" } }] },
-  });
-
-  await runCommand("list_tracks", {});
-  expect(
-    reply(4).result.value.tracks.map(({ metadata }: { metadata: object }) => metadata),
-  ).toEqual([{}, { Interesting: true, Status: "abnormal" }, { Status: "normal" }]);
-  await vi.waitFor(() =>
-    expect(savedMetadata()).toEqual([
-      ["ruler", undefined],
-      ["genes", { Interesting: true, Status: "abnormal" }],
-      ["ccres", { Status: "normal" }],
-    ]),
-  );
-});
-
-it("changes no track's metadata when a change names a missing track or changes nothing", async () => {
-  await enableRemoteControl();
-
-  const cases = [
-    [
-      { trackIds: ["genes", "missing"], set: { Interesting: true } },
-      { code: "TRACK_NOT_FOUND", error: 'No loaded track has the ID "missing"' },
-    ],
-    [{ trackIds: ["genes"] }, { code: "INVALID_PARAMS", error: "Give fields to set or remove" }],
-    [
-      { trackIds: ["genes"], set: { Status: "abnormal" }, remove: ["Status"] },
-      { code: "INVALID_PARAMS", error: 'Fields both set and removed: "Status"' },
-    ],
-    [{ trackIds: ["genes", "genes"], set: { Interesting: true } }, { code: "INVALID_PARAMS" }],
-    [{ trackIds: ["genes"], set: { Cells: ["K562"] } }, { code: "INVALID_PARAMS" }],
-    [{ trackIds: ["genes"], set: { title: "Mine" } }, { code: "INVALID_PARAMS" }],
-    [
-      // Each value is within its own limit; together they pass the track's.
-      {
-        trackIds: ["genes", "ccres"],
-        set: Object.fromEntries(
-          Array.from({ length: 10 }, (_, index) => [`Note ${index}`, "x".repeat(1000)]),
-        ),
-      },
-      { code: "METADATA_TOO_LARGE" },
-    ],
-  ] as const;
-  for (const [index, [params, failure]] of cases.entries()) {
-    await runCommand("set_track_metadata", params);
-    expect(reply(index).result).toMatchObject({ ok: false, ...failure });
-  }
-  await runCommand("list_tracks", {});
-  expect(
-    reply(cases.length).result.value.tracks.map(({ metadata }: { metadata: object }) => metadata),
-  ).toEqual([{}, {}, {}]);
+  expect(reply(1).result).toMatchObject({ ok: false, code: "UNKNOWN_COMMAND" });
+  expect(reply(2).result).toMatchObject({ ok: false, code: "INVALID_PARAMS" });
+  expect(savedTracks().map(({ base }) => base.title)).toEqual(startingTitles);
 });
 
 const dataHost = "https://data.example.test";
@@ -727,6 +531,7 @@ it("refuses a batch the session has no room for, including batches that finish c
 });
 
 it("keeps saving while the command stream is unavailable, then reconnects", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   await enableRemoteControl();
   await act(async () => route.back());
   const first = latest();
@@ -738,8 +543,12 @@ it("keeps saving while the command stream is unavailable, then reconnects", asyn
   // A reconnect belongs to the same tab, so it replaces that tab's connection.
   expect(latest().tab).toBe(first.tab);
   act(() => latest().onopen!());
-  await setRegion("chr2", 2000);
-  expect(region()).toBe("chr2:2,001-3,000");
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  expect(reply().result.ok).toBe(true);
+  await vi.waitFor(() =>
+    expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
+  );
 });
 
 it("attaches as a new tab each time it attaches again", async () => {
@@ -863,7 +672,8 @@ it.each(["session replacement", "remote control disabled"])(
   async (reason) => {
     await enableRemoteControl();
     const finishReply = holdReply();
-    await setRegion("chr1", 1000);
+    await exportImage({});
+    await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
     const pending = server.replies.mock.calls[0][1].signal!;
     const first = latest();
     expect(pending.aborted).toBe(false);
@@ -897,6 +707,7 @@ it("cancels a pending reconnect when remote control is disabled", async () => {
 it.each([409, 503, "network failure"] as const)(
   "does not replay edits after a command reply returns %s",
   async (status) => {
+    server.files.set(`${dataHost}/signal.bw`, files.bigWig);
     await enableRemoteControl();
     await act(async () => route.back());
     let fail!: () => void;
@@ -911,10 +722,11 @@ it.each([409, 503, "network failure"] as const)(
       const finishReply = holdReply();
       fail = () => finishReply(status);
     }
-    await setRegion("chr1", 1000);
+    await addTracks([{ url: `${dataHost}/signal.bw` }]);
+    await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
     await click('button[aria-label="Pan right"]');
     const edited = region();
-    expect(edited).not.toBe("chr1:1,001-2,000");
+    expect(edited).toBeTruthy();
     const first = latest();
     vi.useFakeTimers();
     await act(async () => fail());
@@ -934,17 +746,13 @@ function CommandOnOpen({ id }: { id: string }) {
   useLayoutEffect(() => {
     if (active !== id) return;
     closedOnOpen = latest().closed;
-    latest().send({
-      commandId,
-      name: "set_region",
-      expiresAt: Date.now() + 5000,
-      params: { region: { chromosome: "chr4", start: 4000, end: 5000 } },
-    });
+    latest().send(addTracksCommand([{ url: `${dataHost}/signal.bw` }]));
   }, [active, id]);
   return null;
 }
 
 it("rejects a command for a session replaced before remote control detaches from it", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   probe!.unmount();
   route.reset(`/browser/${alpha}`);
   probe = await renderWithProbe(
@@ -963,22 +771,29 @@ it("rejects a command for a session replaced before remote control detaches from
   // Replacing the session closed its stream before React rendered Beta.
   expect(closedOnOpen).toBe(true);
   expect(Stream.opened.filter(({ url }) => url === stream.url)).toEqual([stream]);
-  expect(server.stored.get(alpha)!.snapshot.browser.region).toEqual(defaults().browser.region);
-  expect(region()).not.toContain("chr4");
+  expect(savedTracks().map(({ base }) => base.title)).toEqual(startingTitles);
+  expect(server.stored.get(beta)!.snapshot.tracks.map(({ base }) => base.title)).toEqual(
+    startingTitles,
+  );
 });
 
 it("keeps one connection and accepts commands while the browser page is unmounted", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   await enableRemoteControl();
   const stream = latest();
-  await setRegion("chr3", 3000);
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
   expect(region()).toBeUndefined();
+  expect(reply().result.ok).toBe(true);
   await act(async () => route.back());
   expect(Stream.opened).toEqual([stream]);
-  expect(region()).toBe("chr3:3,001-4,000");
-  expect(reply().result.ok).toBe(true);
+  await vi.waitFor(() =>
+    expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
+  );
 });
 
 it("detaches when the account menu signs out, and old commands cannot run", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   await enableRemoteControl();
   await act(async () => route.back());
   const stream = latest();
@@ -991,22 +806,16 @@ it("detaches when the account menu signs out, and old commands cannot run", asyn
   );
   await vi.waitFor(() => expect(stream.closed).toBe(true));
   expect(clerk.signOut).toHaveBeenCalledOnce();
-  await act(async () =>
-    stream.send({
-      commandId,
-      name: "set_region",
-      expiresAt: Date.now() + 5000,
-      params: { region: { chromosome: "chr5", start: 5000, end: 6000 } },
-    }),
-  );
+  await act(async () => stream.send(addTracksCommand([{ url: `${dataHost}/signal.bw` }])));
   expect(server.replies).not.toHaveBeenCalled();
   expect(Stream.opened.filter(({ url }) => url === `/api/sessions/${alpha}/commands`)).toEqual([
     stream,
   ]);
-  expect(server.stored.get(alpha)!.snapshot.browser.region).toEqual(defaults().browser.region);
+  expect(savedTracks().map(({ base }) => base.title)).toEqual(startingTitles);
 });
 
 it("detaches when the account changes elsewhere and the workspace remounts", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   await enableRemoteControl();
   await act(async () => route.back());
   const stream = latest();
@@ -1014,12 +823,13 @@ it("detaches when the account changes elsewhere and the workspace remounts", asy
   act(() => clerk.signIn("user_bob"));
   expect(stream.closed).toBe(true);
   // Its stream is closed, so the server fails the command; a late event runs nothing.
-  await setRegion("chr5", 5000);
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
   expect(server.replies).not.toHaveBeenCalled();
-  expect(server.stored.get(alpha)!.snapshot.browser.region).toEqual(defaults().browser.region);
+  expect(savedTracks().map(({ base }) => base.title)).toEqual(startingTitles);
 });
 
 it("detaches once the session's edits can no longer be saved", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   await enableRemoteControl();
   await act(async () => route.back());
   const stream = latest();
@@ -1030,18 +840,23 @@ it("detaches once the session's edits can no longer be saved", async () => {
   expect(text()).toContain(
     "This session's changes can no longer be saved, so agents cannot control it.",
   );
-  await setRegion("chr6", 6000);
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
   expect(reply().result).toMatchObject({ ok: false, code: "SESSION_CLOSED" });
-  expect(region()).not.toContain("chr6");
   expect(Stream.opened).toEqual([stream]);
 });
 
 it.each([false, true])(
   "blocks commands during DELETE and recovers only on failure=%s",
   async (fails) => {
+    server.files.set(`${dataHost}/signal.bw`, files.bigWig);
+    server.files.set(`${dataHost}/after.bw`, files.bigWig);
     await enableRemoteControl();
     await act(async () => route.back());
-    await setRegion("chr1", 1000);
+    await addTracks([{ url: `${dataHost}/signal.bw` }]);
+    await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() =>
+      expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]),
+    );
     const stream = latest();
     const deletion = server.hold("DELETE");
     await click('button[aria-label="Sessions"]');
@@ -1053,24 +868,29 @@ it.each([false, true])(
     );
     await vi.waitFor(() => expect(server.writes().at(-1)?.method).toBe("DELETE"));
     expect(stream.closed).toBe(true);
-    const before = region();
     // A successful DELETE may already have committed while its response is delayed.
     if (!fails) server.stored.delete(alpha);
-    await setRegion("chr6", 6000);
+    await addTracks([{ url: `${dataHost}/after.bw` }]);
     expect(reply(server.replies.mock.calls.length - 1).result).toMatchObject({
       ok: false,
       code: "SESSION_CLOSED",
     });
-    expect(region()).toBe(before);
 
     if (fails) {
       deletion.fail();
       await vi.waitFor(() => expect(latest()).not.toBe(stream));
       expect(heading()).toBe("Alpha");
-      expect(region()).toBe(before);
-      await setRegion("chr2", 2000);
-      expect(reply(server.replies.mock.calls.length - 1).result.ok).toBe(true);
-      expect(region()).toBe("chr2:2,001-3,000");
+      expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]);
+      await addTracks([{ url: `${dataHost}/after.bw` }]);
+      await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(3));
+      expect(reply(2).result.ok).toBe(true);
+      await vi.waitFor(() =>
+        expect(savedTracks().map(({ base }) => base.title)).toEqual([
+          ...startingTitles,
+          "signal",
+          "after",
+        ]),
+      );
     } else {
       deletion.release();
       await vi.waitFor(() => expect(heading()).not.toBe("Alpha"));

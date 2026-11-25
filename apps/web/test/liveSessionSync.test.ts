@@ -209,54 +209,210 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     await bus.close();
   });
 
-  it("runs server-side state MCP commands with 0 tabs open (list, set_region, metadata, sort)", async () => {
+  it("runs server-side state MCP commands with 0 tabs open (set_region, sort_tracks, list_tracks, set_track_metadata)", async () => {
     const sessions = createMemorySessions();
     const bus = createMemorySessionBus();
     const service = createSessionService({ sessions, bus });
     const created = await service.create({ name: "Headless MCP", snapshot: defaultSnapshot() });
 
-    const listed = await runServerStateCommand(service, created.id, "list_tracks", {});
-    expect(listed).toMatchObject({
+    const beforeRegion = (await service.load(created.id)).snapshot.browser.region;
+    expect(
+      await runServerStateCommand(service, created.id, "set_region", {
+        region: { chromosome: "chr1", start: 10, end: 5 },
+      }),
+    ).toMatchObject({ ok: false, code: "INVALID_PARAMS" });
+    expect(
+      await runServerStateCommand(service, created.id, "set_region", {
+        region: { chromosome: "not-a-chromosome", start: 1000, end: 2000 },
+      }),
+    ).toMatchObject({ ok: false, code: "UNKNOWN_CHROMOSOME" });
+    expect((await service.load(created.id)).snapshot.browser.region).toEqual(beforeRegion);
+
+    expect(
+      await runServerStateCommand(service, created.id, "set_region", {
+        region: { chromosome: "chr7", start: 100, end: 500 },
+      }),
+    ).toEqual({
+      ok: true,
+      value: { region: { chromosome: "chr7", start: 100, end: 500 }, clamped: false },
+    });
+    expect((await service.load(created.id)).snapshot.browser.region).toEqual({
+      chromosome: "chr7",
+      start: 100,
+      end: 500,
+    });
+
+    // Listing initial tracks.
+    expect(await runServerStateCommand(service, created.id, "list_tracks", {})).toEqual({
       ok: true,
       value: {
         tracks: [
-          expect.objectContaining({ id: "ruler" }),
-          expect.objectContaining({ id: "genes" }),
-          expect.objectContaining({ id: "ccres" }),
+          { id: "ruler", title: "Coordinates", type: "ruler", pinned: true, metadata: {} },
+          { id: "genes", title: "GENCODE 50 basic", type: "gene", pinned: false, metadata: {} },
+          { id: "ccres", title: "Human cCREs", type: "ccre-bigbed", pinned: false, metadata: {} },
         ],
       },
     });
 
-    const moved = await runServerStateCommand(service, created.id, "set_region", {
-      region: { chromosome: "chr7", start: 100, end: 500 },
+    // Sorting validation and pinned-ruler preservation.
+    expect(
+      await runServerStateCommand(service, created.id, "sort_tracks", {
+        by: [{ field: "subject" }],
+      }),
+    ).toEqual({
+      ok: false,
+      code: "UNKNOWN_SORT_FIELD",
+      error: 'Unknown sort field "subject". Available fields: "title", "type"',
     });
-    expect(moved).toEqual({
-      ok: true,
-      value: { region: { chromosome: "chr7", start: 100, end: 500 }, clamped: false },
-    });
+    expect(
+      await runServerStateCommand(service, created.id, "sort_tracks", {
+        by: [{ field: "type" }, { field: "type", direction: "descending" }],
+      }),
+    ).toMatchObject({ ok: false, code: "INVALID_PARAMS" });
 
-    const tagged = await runServerStateCommand(service, created.id, "set_track_metadata", {
-      trackIds: ["ccres"],
-      set: { Priority: 1 },
-    });
-    expect(tagged.ok).toBe(true);
-
-    const taggedGenes = await runServerStateCommand(service, created.id, "set_track_metadata", {
-      trackIds: ["genes"],
-      set: { Priority: 2 },
-    });
-    expect(taggedGenes.ok).toBe(true);
-
-    const sorted = await runServerStateCommand(service, created.id, "sort_tracks", {
-      by: [{ field: "meta:Priority", direction: "ascending" }],
-    });
-    expect(sorted).toEqual({
+    expect(
+      await runServerStateCommand(service, created.id, "sort_tracks", {
+        by: [{ field: "title", direction: "descending" }],
+      }),
+    ).toEqual({
       ok: true,
       value: {
         tracks: [
           { id: "ruler", title: "Coordinates" },
           { id: "ccres", title: "Human cCREs" },
           { id: "genes", title: "GENCODE 50 basic" },
+        ],
+      },
+    });
+    expect((await service.load(created.id)).snapshot.tracks.map(({ base }) => base.title)).toEqual([
+      "Coordinates",
+      "Human cCREs",
+      "GENCODE 50 basic",
+    ]);
+
+    // Tagging and sorting by numeric metadata field.
+    expect(
+      await runServerStateCommand(service, created.id, "set_track_metadata", {
+        trackIds: ["ccres", "genes"],
+        set: { Interesting: true, Status: "abnormal" },
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        tracks: [
+          { id: "ccres", metadata: { Interesting: true, Status: "abnormal" } },
+          { id: "genes", metadata: { Interesting: true, Status: "abnormal" } },
+        ],
+      },
+    });
+    // Fields a change doesn't name stay.
+    expect(
+      await runServerStateCommand(service, created.id, "set_track_metadata", {
+        trackIds: ["ccres"],
+        set: { Status: "normal", Replicate: 2 },
+        remove: ["Never set"],
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        tracks: [{ id: "ccres", metadata: { Interesting: true, Status: "normal", Replicate: 2 } }],
+      },
+    });
+    // A name objects inherit, such as toString, is an ordinary field name.
+    expect(
+      await runServerStateCommand(service, created.id, "set_track_metadata", {
+        trackIds: ["ccres"],
+        remove: ["Interesting", "toString"],
+      }),
+    ).toEqual({
+      ok: true,
+      value: { tracks: [{ id: "ccres", metadata: { Status: "normal", Replicate: 2 } }] },
+    });
+    await runServerStateCommand(service, created.id, "set_track_metadata", {
+      trackIds: ["genes"],
+      set: { Replicate: 10 },
+    });
+
+    expect(
+      await runServerStateCommand(service, created.id, "sort_tracks", {
+        by: [{ field: "meta:Donor" }],
+      }),
+    ).toEqual({
+      ok: false,
+      code: "UNKNOWN_SORT_FIELD",
+      error:
+        'Unknown sort field "meta:Donor". Available fields: "title", "type", "meta:Interesting", "meta:Replicate", "meta:Status"',
+    });
+    expect(
+      await runServerStateCommand(service, created.id, "sort_tracks", {
+        by: [{ field: "meta:Replicate", direction: "descending" }],
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        tracks: [
+          { id: "ruler", title: "Coordinates" },
+          { id: "genes", title: "GENCODE 50 basic" },
+          { id: "ccres", title: "Human cCREs" },
+        ],
+      },
+    });
+    expect(
+      (await service.load(created.id)).snapshot.tracks.map(({ base, metadata }) => [
+        base.id,
+        metadata,
+      ]),
+    ).toEqual([
+      ["ruler", undefined],
+      ["genes", { Interesting: true, Status: "abnormal", Replicate: 10 }],
+      ["ccres", { Status: "normal", Replicate: 2 }],
+    ]);
+  });
+
+  it("changes no track's metadata when a server state command names a missing track or invalid change", async () => {
+    const sessions = createMemorySessions();
+    const bus = createMemorySessionBus();
+    const service = createSessionService({ sessions, bus });
+    const created = await service.create({ name: "Atomic metadata", snapshot: defaultSnapshot() });
+
+    const cases = [
+      [
+        { trackIds: ["genes", "missing"], set: { Interesting: true } },
+        { code: "TRACK_NOT_FOUND", error: 'No loaded track has the ID "missing"' },
+      ],
+      [{ trackIds: ["genes"] }, { code: "INVALID_PARAMS", error: "Give fields to set or remove" }],
+      [
+        { trackIds: ["genes"], set: { Status: "abnormal" }, remove: ["Status"] },
+        { code: "INVALID_PARAMS", error: 'Fields both set and removed: "Status"' },
+      ],
+      [{ trackIds: ["genes", "genes"], set: { Interesting: true } }, { code: "INVALID_PARAMS" }],
+      [{ trackIds: ["genes"], set: { Cells: ["K562"] } }, { code: "INVALID_PARAMS" }],
+      [{ trackIds: ["genes"], set: { title: "Mine" } }, { code: "INVALID_PARAMS" }],
+      [
+        // Each value is within its own limit; together they pass the track's.
+        {
+          trackIds: ["genes", "ccres"],
+          set: Object.fromEntries(
+            Array.from({ length: 10 }, (_, index) => [`Note ${index}`, "x".repeat(1000)]),
+          ),
+        },
+        { code: "METADATA_TOO_LARGE" },
+      ],
+    ] as const;
+
+    for (const [params, failure] of cases) {
+      expect(
+        await runServerStateCommand(service, created.id, "set_track_metadata", params),
+      ).toMatchObject({ ok: false, ...failure });
+    }
+    const listed = await runServerStateCommand(service, created.id, "list_tracks", {});
+    expect(listed).toEqual({
+      ok: true,
+      value: {
+        tracks: [
+          expect.objectContaining({ id: "ruler", metadata: {} }),
+          expect.objectContaining({ id: "genes", metadata: {} }),
+          expect.objectContaining({ id: "ccres", metadata: {} }),
         ],
       },
     });

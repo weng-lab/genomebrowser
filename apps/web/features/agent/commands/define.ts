@@ -1,7 +1,5 @@
 import type { BrowserImage, GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
-import type { TrackMetadataChange, TrackMetadataOutcome } from "../../browser/trackMetadataCore";
-import type { SortRequest as TrackSortRequest } from "../../browser/trackSortCore";
 import type { TrackRequest, UrlTracksOutcome } from "../../browser/urlTracks";
 import type { SessionSnapshot } from "../../sessions/snapshot.ts";
 
@@ -12,42 +10,11 @@ export type StateCommandOutcome<Value> =
   | CommandFailure;
 
 /**
- * Pure domain helpers injected into state commands so command definitions stay
- * schema/type-only and run identically on the server and in a browser tab.
- */
-export type StateCommandHelpers = {
-  normalizeRegion(
-    assemblyId: string,
-    region: { chromosome: string; start: number; end: number },
-  ):
-    | { ok: true; region: { chromosome: string; start: number; end: number }; clamped: boolean }
-    | CommandFailure;
-  sortTracks(
-    tracks: SessionSnapshot["tracks"],
-    pinnedTrackIds: readonly string[],
-    by: readonly TrackSortRequest[],
-  ): { ok: true; tracks: SessionSnapshot["tracks"] } | CommandFailure;
-  planTrackMetadata(
-    tracks: SessionSnapshot["tracks"],
-    trackIds: readonly string[],
-    change: TrackMetadataChange,
-  ): TrackMetadataOutcome;
-};
-
-/**
- * What a command acts on in the browser tab: the open session's stores, the same
- * ones the UI uses, and app actions that need browser code. Command files import
- * only schemas and types, so the MCP endpoint can load them on the server. Add an
- * action here when a command needs browser work.
+ * What a browser-only command acts on in the browser tab: the open session's
+ * stores and app actions that need DOM or browser-side fetch/CORS access.
  */
 export type CommandApp = {
   stores: GenomeBrowserStores;
-  /** Snapshot the open session's live stores for state commands delivered to a tab. */
-  snapshot(): SessionSnapshot;
-  /** Apply a state command's updated snapshot synchronously back onto the live stores. */
-  applySnapshot(next: SessionSnapshot): void;
-  /** Pure domain helpers shared with server-side execution of state commands. */
-  stateHelpers: StateCommandHelpers;
   /** Export the rendered browser, named after its region unless `filename` is given. */
   exportImage(
     format: BrowserImage["format"],
@@ -82,21 +49,16 @@ type CommandBase<
 
 /**
  * A command that operates purely on `SessionSnapshot`. MCP runs it directly on
- * the server (with 0..N open tabs) through `SessionService`, and a browser tab
- * runs the exact same `run` function if delivered one.
+ * the server (with 0..N open tabs) through `SessionService`.
  */
 export type StateCommand<
   Params extends z.ZodObject = z.ZodObject,
   Result extends z.ZodObject = z.ZodObject,
 > = CommandBase<Params, Result> & {
   target: "state";
-  /** When true, MCP reads from PostgreSQL via `load` instead of opening a write path. */
-  readonly?: true;
-  run(
-    snapshot: SessionSnapshot,
-    params: z.output<Params>,
-    helpers: StateCommandHelpers,
-  ): StateCommandOutcome<z.input<Result>>;
+  /** `"read"` loads from PostgreSQL without writing; `"write"` persists via `SessionService.mutate`. */
+  access: "read" | "write";
+  run(snapshot: SessionSnapshot, params: z.output<Params>): StateCommandOutcome<z.input<Result>>;
 };
 
 /**

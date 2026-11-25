@@ -275,11 +275,14 @@
                   "!zod",
                   "!zod/**",
                   "!./**",
+                  "!../../assemblies/regions",
                   "!../../browser/region",
+                  "!../../browser/trackMetadataCore",
+                  "!../../browser/trackSortCore",
                   "!../../browser/urlTrackTypes"
                 ],
                 "allowTypeImports": true,
-                "message": "Command definitions load in the browser and the MCP server. Import schemas, types, and other command files; reach browser code through CommandApp."
+                "message": "Command definitions load in the browser and the MCP server. Import schemas, pure React-free helpers, types, and other command files; reach browser code through CommandApp."
               }
             ]
           }

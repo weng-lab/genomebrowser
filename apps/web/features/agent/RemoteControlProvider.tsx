@@ -7,7 +7,6 @@ import {
   type BrowserImage,
 } from "@weng-lab/genomebrowser";
 import { useSession } from "../sessions/SessionProvider";
-import { applyRemoteSnapshot, snapshot } from "../sessions/storeSnapshot";
 import { useBrowserSvgRef } from "../browser/BrowserSvg";
 import { addTracksFromUrls } from "../browser/urlTracks";
 import type { CommandApp } from "./commands";
@@ -17,11 +16,9 @@ import {
   useRemoteControlPreference,
   type RemoteControlPreference,
 } from "./remoteControlPreference";
-import { createStateCommandHelpers } from "./stateCommandHelpers";
 
 type RemoteControl = { state: RemoteControlState; preference: RemoteControlPreference };
 const RemoteControlContext = createContext<RemoteControl | null>(null);
-const stateHelpers = createStateCommandHelpers();
 
 /**
  * Agent control through the app's MCP endpoint, allowed by the account's saved
@@ -48,9 +45,6 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
     if (!enabled || !id || !stores || !signal) return;
     const app: CommandApp = {
       stores,
-      snapshot: () => snapshot(stores),
-      applySnapshot: (next) => applyRemoteSnapshot(stores, next),
-      stateHelpers,
       exportImage: (format, { filename, ...options }, signal) =>
         exportBrowserImage(
           svgRef.current,

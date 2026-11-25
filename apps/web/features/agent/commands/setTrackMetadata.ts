@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { planTrackMetadataChange } from "../../browser/trackMetadataCore";
 import { defineStateCommand } from "./define";
 import {
   metadataFieldInputSchema,
@@ -8,6 +9,7 @@ import {
 
 export const setTrackMetadata = defineStateCommand({
   name: "set_track_metadata",
+  access: "write",
   description:
     'Set or remove metadata fields on one or more loaded tracks, such as tagging tracks the user finds interesting. Fields in "set" are added or replace existing values; fields in "remove" are deleted; other fields stay. The same change applies to every listed track, and either every track changes or none does. The metadata on each track has a size limit; a change that would pass it fails and says so. Get track IDs and current fields from list_tracks. Returns each track\'s metadata after the change.',
   params: z.strictObject({
@@ -33,7 +35,7 @@ export const setTrackMetadata = defineStateCommand({
   }),
   // MCP extends these parameters, which zod refuses for object-level refinements, so the checks
   // across fields happen here.
-  run(snapshot, { trackIds, set = {}, remove = [] }, { planTrackMetadata }) {
+  run(snapshot, { trackIds, set = {}, remove = [] }) {
     if (Object.keys(set).length === 0 && remove.length === 0) {
       return { ok: false, code: "INVALID_PARAMS", error: "Give fields to set or remove" };
     }
@@ -42,7 +44,7 @@ export const setTrackMetadata = defineStateCommand({
       const fields = both.map((field) => `"${field}"`).join(", ");
       return { ok: false, code: "INVALID_PARAMS", error: `Fields both set and removed: ${fields}` };
     }
-    const planned = planTrackMetadata(snapshot.tracks, trackIds, { set, remove });
+    const planned = planTrackMetadataChange(snapshot.tracks, trackIds, { set, remove });
     if (!planned.ok) return planned;
     const byId = new Map(planned.tracks.map(({ id, metadata }) => [id, metadata] as const));
     const tracks = snapshot.tracks.map((track) => {
