@@ -49,7 +49,7 @@ Track discovery across collections and agent loading from collections come later
 
 ### Who has control
 
-Either the user or the agent controls the browser. While the agent works, browser editing is blocked, and the user can stop it and take control. Completed changes stay when the agent is interrupted; stopping it prevents further changes.
+The user can stop the agent at any time. Completed changes stay when the agent is interrupted; stopping it prevents further changes. For a workflow of several steps, the agent takes control of the browser, which blocks the user's edits until it releases control or its run ends. Single actions such as navigating do not lock the browser. The [agent panel PRD](agent-panel-prd.md#agent-control-lock) defines the lock.
 
 Agent and manual operations change the same session state. There is no separate agent version of the browser. Parallel agent work across sessions is outside the MVP.
 
@@ -61,13 +61,13 @@ An account-wide setting disables all LLM operations. It closes the MCP connectio
 
 Opening a session makes it the active context across the app within that browser tab. Other pages show which session is active and use it as the default destination for actions such as adding collection tracks. Page navigation preserves the session and its authorized MCP connection, subject to the agent-off setting. Explicit actions on inactive sessions may be added without silently switching the active session; their details remain open.
 
-Signed-in users can save and reopen sessions across devices. "Save a copy" duplicates the current setup into a new independent session, including tracks, settings, and saved regions. Once history exists, copies should include it too.
+Signed-in users can save and reopen sessions across devices. "Save a copy" duplicates the current setup into a new independent session, including tracks, settings, and saved regions. Once undo history exists, copies should include it too. A copy's agent conversation starts clean.
 
-Chats are ephemeral for MVP. Refreshing can reset the conversation, while saved browser changes remain. The agent is a control surface for the session; chat recovery is not a launch promise.
+Each saved session keeps one agent conversation, which survives reloads and follows the session across devices. Long conversations are compacted automatically, and the user can start a clean one at any time. The agent remembers nothing across sessions. The [agent panel PRD](agent-panel-prd.md) defines threads and runs.
 
 Guests get one session, restored in the same browser, and cannot create additional sessions without signing in. Preserve their work when they sign in. The storage mechanism is still open; cross-device restoration requires an account.
 
-Guests can try the agent with a small allowance keyed to their session. Manual browsing remains available after it runs out. We accept that clearing browser storage may bypass this trial limit. The exact allowance remains TBD.
+The agent is for signed-in users. A guest agent experience will be designed with the rest of the guest experience.
 
 ## What comes next
 
@@ -78,7 +78,8 @@ These are follow-ups worth keeping, not requirements hidden in the MVP:
 - **History and undo/redo:** start with simple linear history for session state, saved alongside the session and copied when forking. The working idea is roughly ten meaningful actions, with one completed command or UI operation per step. The mechanism is open; it does not require committing to a large command framework now.
 - **Richer recovery:** branching history and restoring to a point in an agent conversation, after basic history exists.
 - **External MCP clients:** optional if time allows, otherwise later. Access needs OAuth and authorization to the user's own session.
-- **Collection sharing and chat persistence.**
+- **Collection sharing.**
+- **Agent follow-ups:** the [later list](agent-panel-prd.md#later) in the agent panel PRD.
 
 These other ideas are follow-ups, not launch commitments:
 
@@ -94,7 +95,7 @@ There is no guaranteed undo in the MVP. Stopping the agent leaves completed chan
 
 Keep these open for implementation and stakeholder conversations:
 
-- The final track limit, guest request allowances, and any signed-in agent limits.
+- The final track limit and any agent usage limits.
 - Supported URL formats and launch assemblies.
 - Initial collection contents and the UCSC settings we map.
 - Gene, SNP, and cCRE query/tool contracts and the fields they return.
@@ -105,8 +106,8 @@ We'll learn through lab testing before adding much analytics. If we add usage ev
 
 ## Try this before calling it ready
 
-Have someone start as a guest, add reference and URL tracks, save a region, and return to the same browser. Let them try the agent for lookup, navigation, track setup, and highlighting. Check that stopping it returns control, and disabling it prevents further agent access while manual browsing still works.
+Have someone start as a guest, add reference and URL tracks, save a region, and return to the same browser. Then have them sign in and keep their work. Once signed in, let them try the agent for lookup, navigation, track setup, and highlighting. Check that stopping it returns control, and disabling it prevents further agent access while manual browsing still works.
 
-Then have them sign in, keep their work, create and reuse a personal collection, copy a session, export an image, and reopen their saved setup. Watch where they get stuck and ask what would still make them go back to their usual browser.
+Then have them create and reuse a personal collection, copy a session, export an image, and reopen their saved setup. Watch where they get stuck and ask what would still make them go back to their usual browser.
 
 [Back to app direction](README.md)

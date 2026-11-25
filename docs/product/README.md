@@ -9,6 +9,7 @@ These pages distinguish **intended** behavior from **implemented** behavior. Git
 - [MVP scope](mvp.md)
 - [Sessions](sessions.md): persistence intent and save invariants
 - [Agent access and control](agent-auth.md)
+- [Agent panel PRD](agent-panel-prd.md): threads, runs, and the control lock
 - [Limitations](limitations.md)
 - [Production deployment](production.md): beta vs real production resources
 
