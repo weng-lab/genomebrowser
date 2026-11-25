@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "eval": "eve eval",
     "design": "vite design --port 3100",
     "build": "node -e \"if (!process.env.VERCEL) require('node:child_process').execFileSync(process.execPath, ['node_modules/eve/bin/eve.js', 'build'], { stdio: 'inherit' })\" && next build",
     "start": "next start --hostname localhost",

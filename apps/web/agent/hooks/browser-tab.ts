@@ -12,7 +12,10 @@ export default defineHook({
     async "model.requested"(event, ctx) {
       // Compaction also calls the model, but only a turn can be cancelled.
       if (!("turnId" in event.data.owner)) return;
-      const sessionId = ctx.session.auth.initiator?.attributes.browserSessionId;
+      const caller = ctx.session.auth.initiator?.attributes;
+      // Evaluations stub every browser tool, so no tab is needed.
+      if (caller?.evaluation === "true") return;
+      const sessionId = caller?.browserSessionId;
       if (typeof sessionId !== "string") return;
       const presence = await tabPresence(sessionId, graceMs, ctx.occurrence.abortSignal);
       if (presence === "absent") ctx.cancel("The session is no longer open in a browser tab");

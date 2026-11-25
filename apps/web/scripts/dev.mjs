@@ -40,16 +40,20 @@ for (const signal of ["SIGINT", "SIGTERM"])
     for (const child of children) if (child.exitCode === null) child.kill(signal);
   });
 
-run([
-  "node_modules/eve/bin/eve.js",
-  "dev",
-  "--no-ui",
-  "--resume",
-  "--host",
-  "127.0.0.1",
-  "--port",
-  String(port),
-]);
+// Only `eve eval` may admit its own stand-in caller, never this server.
+run(
+  [
+    "node_modules/eve/bin/eve.js",
+    "dev",
+    "--no-ui",
+    "--resume",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    String(port),
+  ],
+  { EVE_EVALUATION: "" },
+);
 
 // Next.js proxies `/eve/v1/*` to the agent once it answers.
 for (let attempt = 0; ; attempt++) {

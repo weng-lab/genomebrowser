@@ -278,6 +278,36 @@ it("keeps one question open for the newest request to replace a held session", a
   await dialogClosed();
 });
 
+it("saves agent preferences from Settings, and discards an unsaved draft", async () => {
+  server.agentPreferences.set("user_alice", "Use hg38.");
+  await visit("/settings");
+  const box = () => document.querySelector<HTMLTextAreaElement>("textarea:not([aria-hidden])")!;
+  await vi.waitFor(() => expect(box()?.value).toBe("Use hg38."));
+  expect(box().getAttribute("aria-describedby")).toBeTruthy();
+
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(
+      box(),
+      "Explain briefly.",
+    );
+    box().dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await click(withText("button", "Save"));
+  await vi.waitFor(() => expect(text()).toContain("Saved"));
+  expect(server.agentPreferences.get("user_alice")).toBe("Explain briefly.");
+
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(
+      box(),
+      "Something else",
+    );
+    box().dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await click(withText("button", "Discard"));
+  expect(box().value).toBe("Explain briefly.");
+  expect(server.agentPreferences.get("user_alice")).toBe("Explain briefly.");
+});
+
 it("renames the open session from its title and saves the name", async () => {
   const a = server.add("Alpha", defaults());
   await visit(`/browser/${a}`);

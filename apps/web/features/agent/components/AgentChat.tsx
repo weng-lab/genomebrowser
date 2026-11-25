@@ -17,6 +17,7 @@ import Typography from "@mui/material/Typography";
 import type { SessionSnapshot } from "eve/client";
 import { activeTurn, openInteractions } from "eve/events";
 import { useHoldSession } from "../../sessions/SessionProvider";
+import { useAgentControlHandle } from "../RemoteControlProvider";
 import { useAgentSession } from "../useAgentSession";
 import { isLostConversation, useAgentThread } from "../useAgentThread";
 
@@ -54,6 +55,9 @@ function Conversation({
   replace: (conversationId: string) => Promise<void>;
 }) {
   const [failure, setFailure] = useState<string>();
+  const report = useCallback((error: unknown) => {
+    setFailure(error instanceof Error ? error.message : "The agent request failed.");
+  }, []);
   // Eve can no longer continue this conversation, such as one stranded by an
   // upgrade or ended, so start the session's thread afresh.
   const onLost = useCallback(
@@ -92,6 +96,21 @@ function Conversation({
     }
   }
 
+  // Stop in the browser's control banner stops this run, and a run that ends,
+  // however it ends, gives control of the browser back.
+  const control = useAgentControlHandle();
+  useEffect(() => {
+    if (!running) return;
+    return control.onStop(() => {
+      agent.store.cancel().catch(report);
+    });
+  }, [running, control, agent.store, report]);
+  const wasRunning = useRef(running);
+  useEffect(() => {
+    if (wasRunning.current && !running) control.release();
+    wasRunning.current = running;
+  }, [running, control]);
+
   // Switching sessions or leaving the page stops a run, so ask first.
   useHoldSession(
     running ? "Your agent is still working. Switching sessions will stop it." : undefined,
@@ -107,10 +126,6 @@ function Conversation({
     const element = transcript.current;
     if (element) element.scrollTop = element.scrollHeight;
   }, [agent.messages]);
-
-  function report(error: unknown) {
-    setFailure(error instanceof Error ? error.message : "The agent request failed.");
-  }
 
   async function submitMessage() {
     const message = draft.trim();
@@ -253,6 +268,7 @@ function Conversation({
               variant="outlined"
               onClick={() => {
                 setFailure(undefined);
+                control.release();
                 agent.store.cancel().catch(report);
               }}
             >

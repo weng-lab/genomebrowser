@@ -60,7 +60,9 @@ export async function getTabAccount(): Promise<AgentAccount> {
 }
 
 /** Operations scoped to a verified user ID (Clerk or a scoped Eve credential). */
-async function accountForUser(userId: string): Promise<AgentAccount> {
+async function accountForUser(
+  userId: string,
+): Promise<AgentAccount & { settings: AccountSettingsStore }> {
   const { db } = await getServices();
   const identity: Identity = { userId: async () => userId };
   return {
