@@ -21,6 +21,33 @@ import { SessionRequestError, type SessionTransport } from "./transport";
  */
 export type SaveStatus = "saved" | "saving" | "retrying" | "conflict" | "failed";
 
+type LocalSnapshot =
+  | { tag: "valid"; doc: SessionDocument; key: string }
+  | { tag: "unserializable" };
+
+type PendingPatch = {
+  bodyKey: string;
+  input: SessionDocument;
+  patch: SessionPatch;
+  saveId: string;
+};
+
+type WritePhase =
+  | { tag: "saved" }
+  | { tag: "dirty"; editedAt: number }
+  | { tag: "writing"; pending: PendingPatch; failures: number; editedAt: number }
+  | {
+      tag: "retrying";
+      pending: PendingPatch;
+      failures: number;
+      retryAt: number;
+      editedAt: number;
+      failure: SessionRequestError;
+    }
+  | { tag: "refused"; bodyKey: string | undefined; failure: SessionRequestError }
+  | { tag: "conflict"; failure: SessionRequestError }
+  | { tag: "ended"; failure: SessionRequestError };
+
 /** Delay after an edit before writing it, so a burst of edits is saved once. */
 const editDelay = 200;
 const retryDelay = (failures: number) => Math.min(1000 * 2 ** (failures - 1), 10_000);
@@ -34,8 +61,43 @@ const unsaveable = new SessionRequestError({
   code: "INVALID_INPUT",
   message: "The latest changes cannot be saved",
 });
-/** Stands for edits that cannot be serialized. No snapshot serializes to it. */
-const unserializable = "";
+
+function blockedError(phase: WritePhase): SessionRequestError | undefined {
+  switch (phase.tag) {
+    case "ended":
+    case "conflict":
+    case "refused":
+      return phase.failure;
+    case "saved":
+    case "dirty":
+    case "writing":
+    case "retrying":
+      return undefined;
+  }
+}
+
+function statusOf(phase: WritePhase): { status: SaveStatus; failure?: SessionRequestError } {
+  switch (phase.tag) {
+    case "saved":
+      return { status: "saved" };
+    case "dirty":
+      return { status: "saving" };
+    case "writing":
+      return { status: phase.failures > 0 ? "retrying" : "saving" };
+    case "retrying":
+      return { status: "retrying", failure: phase.failure };
+    case "refused":
+    case "ended":
+      return { status: "failed", failure: phase.failure };
+    case "conflict":
+      return { status: "conflict", failure: phase.failure };
+  }
+}
+
+function sameLocal(a: LocalSnapshot, b: LocalSnapshot): boolean {
+  if (a.tag !== b.tag) return false;
+  return a.tag === "unserializable" || (b.tag === "valid" && a.key === b.key);
+}
 
 /**
  * Synchronize one restored session with the server in the background until the
@@ -61,48 +123,46 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   const { id, stores, transport, onStatus, onSaved, onRemoteRename } = options;
   const clientId = crypto.randomUUID();
   const current = (): SessionDocument => ({ name: options.name(), snapshot: snapshot(stores) });
+  const readLocal = (): LocalSnapshot => {
+    try {
+      const doc = current();
+      return { tag: "valid", doc, key: syncKey(doc) };
+    } catch {
+      return { tag: "unserializable" };
+    }
+  };
 
-  // Last server-acknowledged document.
+  // Last server-acknowledged document and revision.
   let syncedInput: SessionDocument = current();
-  // Canonical synced-fields key of `syncedInput` (undefined after a conflict) and of the newest edits.
-  let saved: string | undefined = syncKey(syncedInput);
-  let latest = saved;
-  let latestInput: SessionDocument | undefined = syncedInput;
+  let savedKey = syncKey(syncedInput);
   let revision = options.revision;
   let targetRevision = options.revision;
+
+  let local: LocalSnapshot = { tag: "valid", doc: syncedInput, key: savedKey };
+  let phase: WritePhase = { tag: "saved" };
+  // Read `phase` through a getter across `yield*` boundaries so TypeScript does not
+  // keep stale control-flow narrowing while other fibers or SSE callbacks mutate it.
+  const currentPhase = (): WritePhase => phase;
   let applyingRemote = false;
 
-  // Retried unchanged until the server applies or rejects it.
-  let unsettled:
-    | { body: string; input: SessionDocument; patch: SessionPatch; saveId: string }
-    | undefined;
-  let failures = 0;
-  // Edits the server or serialization refused. They are not written again.
-  let refused: { body: string; failure: SessionRequestError } | undefined;
-  let conflict: SessionRequestError | undefined;
-  let ended: SessionRequestError | undefined;
   let waiters: Deferred.Deferred<void, SessionRequestError>[] = [];
   const clock = yield* Clock.Clock;
-  let editedAt = clock.currentTimeMillisUnsafe();
-  let retryAt = editedAt;
   const edits = yield* Queue.sliding<void>(1);
   const syncRequests = yield* Queue.sliding<void>(1);
   const urgent = yield* Latch.make(false);
   const permit = yield* Semaphore.make(1);
 
-  /** Why the newest edits cannot be saved, if they cannot. */
-  const unsaved = () =>
-    ended ?? conflict ?? (refused?.body === latest ? refused.failure : undefined);
-  const settled = () => !unsettled && latest === saved;
+  const nextPhaseFromLocal = (snapshotState: LocalSnapshot, editedAt: number): WritePhase => {
+    if (snapshotState.tag === "unserializable") {
+      return { tag: "refused", bodyKey: undefined, failure: unsaveable };
+    }
+    if (snapshotState.key === savedKey) return { tag: "saved" };
+    return { tag: "dirty", editedAt };
+  };
 
-  function report(failure?: SessionRequestError) {
-    const blocked = unsaved();
-    if (blocked) onStatus(blocked === conflict ? "conflict" : "failed", blocked);
-    else if (settled()) {
-      failures = 0;
-      onStatus("saved");
-    } else if (failure || failures > 0) onStatus("retrying", failure);
-    else onStatus("saving");
+  function report() {
+    const { status, failure } = statusOf(phase);
+    onStatus(status, failure);
   }
 
   function settle(failure?: SessionRequestError) {
@@ -113,26 +173,43 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     urgent.closeUnsafe();
   }
 
+  function endWith(failure: SessionRequestError) {
+    if (phase.tag === "ended") return;
+    phase = { tag: "ended", failure };
+    settle(failure);
+    report();
+  }
+
   /** Record the stores' current synced state; schedule a write when it changed. */
   function changed() {
-    if (ended || applyingRemote) return;
-    let next: string;
-    let nextInput: SessionDocument | undefined;
-    try {
-      nextInput = current();
-      next = syncKey(nextInput);
-    } catch {
-      next = unserializable;
-      nextInput = undefined;
-      refused = { body: next, failure: unsaveable };
+    if (phase.tag === "ended" || applyingRemote) return;
+    const next = readLocal();
+    if (sameLocal(next, local)) return;
+    local = next;
+    const now = clock.currentTimeMillisUnsafe();
+
+    switch (phase.tag) {
+      case "conflict":
+        // Stay frozen in conflict until the user chooses overwrite or discard.
+        break;
+      case "writing":
+      case "retrying":
+        // Keep the unsettled PATCH active while tracking when newer local edits occurred.
+        phase = { ...phase, editedAt: now };
+        break;
+      case "saved":
+      case "dirty":
+      case "refused":
+        if (next.tag === "valid" && phase.tag === "refused" && phase.bodyKey === next.key) {
+          break;
+        }
+        phase = nextPhaseFromLocal(next, now);
+        break;
     }
-    if (next === latest) return;
-    latest = next;
-    latestInput = nextInput;
-    editedAt = clock.currentTimeMillisUnsafe();
-    if (settled() && !unsaved()) settle();
+
+    if (phase.tag === "saved") settle();
     report();
-    Queue.offerUnsafe(edits, undefined);
+    if (phase.tag === "dirty") Queue.offerUnsafe(edits, undefined);
   }
 
   /**
@@ -140,10 +217,19 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
    * or an SSE-triggered fetch) with any unpushed local edits so local work is
    * preserved.
    */
-  function applyAuthoritative(remote: SavedSession, baseForPending: SessionDocument) {
+  function reconcileRemote(
+    remote: SavedSession,
+    baseForPending: SessionDocument,
+    { fromWrite }: { fromWrite: boolean },
+  ) {
+    if (phase.tag === "ended" || phase.tag === "conflict") return;
+
     if (remote.revision < revision) {
-      if (settled() && !unsaved()) settle();
-      else if (!unsettled && latest !== saved) Queue.offerUnsafe(edits, undefined);
+      if (fromWrite && phase.tag === "writing") {
+        phase = nextPhaseFromLocal(local, phase.editedAt);
+      }
+      if (phase.tag === "saved") settle();
+      else if (phase.tag === "dirty") Queue.offerUnsafe(edits, undefined);
       report();
       return;
     }
@@ -158,7 +244,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     revision = remote.revision;
     if (targetRevision < revision) targetRevision = revision;
     syncedInput = { name: remote.name, snapshot: remote.snapshot };
-    saved = syncKey(syncedInput);
+    savedKey = syncKey(syncedInput);
 
     const target = pendingLocal ? applySessionPatch(syncedInput, pendingLocal) : syncedInput;
     applyingRemote = true;
@@ -166,75 +252,122 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       applyRemoteSnapshot(stores, target.snapshot);
       if (target.name !== options.name()) onRemoteRename?.(target.name);
       const reconciled = current();
-      latestInput = reconciled;
-      latest = syncKey(reconciled);
+      const reconciledKey = syncKey(reconciled);
+      local = { tag: "valid", doc: reconciled, key: reconciledKey };
       if (!pendingLocal) {
         syncedInput = reconciled;
-        saved = latest;
+        savedKey = reconciledKey;
       }
     } finally {
       applyingRemote = false;
     }
 
+    if (fromWrite || (phase.tag !== "writing" && phase.tag !== "retrying")) {
+      const editedAt =
+        phase.tag === "writing" || phase.tag === "dirty"
+          ? phase.editedAt
+          : clock.currentTimeMillisUnsafe();
+      if (!pendingLocal || (local.tag === "valid" && local.key === savedKey)) {
+        phase = { tag: "saved" };
+      } else if (phase.tag === "refused" && local.tag === "valid" && phase.bodyKey === local.key) {
+        // Keep refused when remote changes did not alter the refused local state.
+      } else {
+        phase = { tag: "dirty", editedAt };
+      }
+    }
+
     const { snapshot: _snapshot, ...metadata } = remote;
     onSaved(metadata);
-    if (settled() && !unsaved()) settle();
-    else if (pendingLocal) Queue.offerUnsafe(edits, undefined);
+    if (phase.tag === "saved") settle();
+    else if (phase.tag === "dirty") Queue.offerUnsafe(edits, undefined);
     report();
   }
 
   const write = Effect.gen(function* () {
-    if (ended) return settle(ended);
-    if (!unsettled) {
-      const blocked = unsaved();
-      if (blocked || latest === saved || !latestInput) return settle(blocked);
-      const patch = diffSessionPatch(syncedInput, latestInput);
-      if (!patch) {
-        saved = latest;
+    if (phase.tag === "ended" || phase.tag === "conflict" || phase.tag === "refused") {
+      return settle(phase.failure);
+    }
+    if (phase.tag === "saved" || phase.tag === "writing") return settle();
+
+    let pending: PendingPatch;
+    let failures: number;
+    let editedAt: number;
+
+    if (phase.tag === "retrying") {
+      pending = phase.pending;
+      failures = phase.failures;
+      editedAt = phase.editedAt;
+    } else {
+      if (local.tag !== "valid") {
+        phase = { tag: "refused", bodyKey: undefined, failure: unsaveable };
+        settle(unsaveable);
+        return report();
+      }
+      if (local.key === savedKey) {
+        phase = { tag: "saved" };
         settle();
         return report();
       }
-      unsettled = {
-        body: latest,
-        input: latestInput,
+      const patch = diffSessionPatch(syncedInput, local.doc);
+      if (!patch) {
+        savedKey = local.key;
+        phase = { tag: "saved" };
+        settle();
+        return report();
+      }
+      pending = {
+        bodyKey: local.key,
+        input: local.doc,
         patch,
         saveId: crypto.randomUUID(),
       };
+      failures = 0;
+      editedAt = phase.editedAt;
     }
-    const pending = unsettled;
+
+    phase = { tag: "writing", pending, failures, editedAt };
     report();
+
     const result = yield* Effect.result(
       transport.patch(id, { clientId, saveId: pending.saveId, patch: pending.patch }),
     );
+    const activePhase = currentPhase();
+    if (activePhase.tag !== "writing" || activePhase.pending !== pending) return;
+
     if (Result.isSuccess(result)) {
-      unsettled = undefined;
-      failures = 0;
-      applyAuthoritative(result.success, pending.input);
+      reconcileRemote(result.success, pending.input, { fromWrite: true });
       return;
     }
+
     const failure = result.failure;
     if (failure.code === "UNAVAILABLE") {
       // The write may have been applied, so it stays unsettled and retries with the same saveId.
-      failures += 1;
-      retryAt = clock.currentTimeMillisUnsafe() + retryDelay(failures);
+      const nextFailures = activePhase.failures + 1;
+      phase = {
+        tag: "retrying",
+        pending,
+        failures: nextFailures,
+        retryAt: clock.currentTimeMillisUnsafe() + retryDelay(nextFailures),
+        editedAt: activePhase.editedAt,
+        failure,
+      };
       Queue.offerUnsafe(edits, undefined);
-    } else {
-      // Any other failure means the server did not apply it.
-      unsettled = undefined;
-      failures = 0;
-      if (failure.code === "INVALID_INPUT") {
-        refused = { body: pending.body, failure };
-        // Edits made during the write may be saveable.
-        if (latest !== pending.body) Queue.offerUnsafe(edits, undefined);
-      } else if (failure.code === "CONFLICT") {
-        conflict = failure;
-        saved = undefined;
+    } else if (failure.code === "INVALID_INPUT") {
+      // Edits made during the write may be saveable.
+      if (local.tag === "valid" && local.key !== pending.bodyKey) {
+        phase = nextPhaseFromLocal(local, activePhase.editedAt);
+        if (phase.tag === "dirty") Queue.offerUnsafe(edits, undefined);
       } else {
-        ended = failure;
+        phase = { tag: "refused", bodyKey: pending.bodyKey, failure };
       }
+    } else if (failure.code === "CONFLICT") {
+      phase = { tag: "conflict", failure };
+    } else {
+      phase = { tag: "ended", failure };
     }
+
     settle(failure);
-    report(failure);
+    report();
   });
 
   yield* Effect.acquireRelease(
@@ -252,17 +385,19 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   if (enableLiveSync && typeof EventSource !== "undefined") {
     let streamFailures = 0;
     const syncLoop = Effect.gen(function* () {
-      while (!ended) {
+      while (currentPhase().tag !== "ended") {
         yield* Queue.take(syncRequests);
-        while (!ended && targetRevision > revision) {
+        while (
+          currentPhase().tag !== "ended" &&
+          currentPhase().tag !== "conflict" &&
+          targetRevision > revision
+        ) {
           const loaded = yield* Effect.result(transport.load(id));
-          if (ended) break;
+          const latestPhase = currentPhase();
+          if (latestPhase.tag === "ended" || latestPhase.tag === "conflict") break;
           if (Result.isFailure(loaded)) {
             if (loaded.failure.code === "NOT_FOUND") {
-              ended = loaded.failure;
-              unsettled = undefined;
-              settle(ended);
-              report(ended);
+              endWith(loaded.failure);
               break;
             }
             if (loaded.failure.code === "UNAVAILABLE") {
@@ -274,7 +409,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
           const remote = loaded.success;
           if (remote.revision > revision) {
             // Rebase all unacknowledged local edits (including any in-flight PATCH) onto remote.
-            applyAuthoritative(remote, syncedInput);
+            reconcileRemote(remote, syncedInput, { fromWrite: false });
           }
           if (remote.revision >= targetRevision) break;
         }
@@ -301,7 +436,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
               if (active) streamFailures = 0;
             };
             source.addEventListener("updated", (message: MessageEvent<string>) => {
-              if (!active || ended) return;
+              if (!active || phase.tag === "ended") return;
               streamFailures = 0;
               const parsed = sessionEventSchema.safeParse(parseJson(message.data));
               if (!parsed.success || parsed.data.type !== "updated") return;
@@ -309,27 +444,26 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
               if (sourceClientId === clientId || incomingRevision <= revision) return;
               if (incomingRevision > targetRevision) {
                 targetRevision = incomingRevision;
-                Queue.offerUnsafe(syncRequests, undefined);
+                if (phase.tag !== "conflict") Queue.offerUnsafe(syncRequests, undefined);
               }
             });
             source.addEventListener("deleted", (message: MessageEvent<string>) => {
-              if (!active || ended) return;
+              if (!active || phase.tag === "ended") return;
               const parsed = sessionEventSchema.safeParse(parseJson(message.data));
               if (!parsed.success || parsed.data.type !== "deleted") return;
-              ended = new SessionRequestError({
-                code: "NOT_FOUND",
-                message: "Session not found",
-              });
-              unsettled = undefined;
-              settle(ended);
-              report(ended);
+              endWith(
+                new SessionRequestError({
+                  code: "NOT_FOUND",
+                  message: "Session not found",
+                }),
+              );
               restart();
             });
             source.onerror = restart;
             yield* Deferred.await(reconnect);
           }),
         );
-        if (ended) return yield* Effect.never;
+        if (phase.tag === "ended") return yield* Effect.never;
         streamFailures += 1;
         // Wake immediately if the browser comes back online during backoff.
         const online = Effect.callback<void>((resume) => {
@@ -346,12 +480,18 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
 
   yield* Effect.forkScoped(
     Effect.gen(function* () {
-      while (!ended) {
+      while (currentPhase().tag !== "ended") {
         yield* Queue.take(edits);
         // A later edit restarts the quiet period, but never changes the retry deadline.
         let changedDuringDelay: boolean;
         do {
-          const due = failures > 0 ? retryAt : editedAt + editDelay;
+          const currentWritePhase = currentPhase();
+          const due =
+            currentWritePhase.tag === "retrying"
+              ? currentWritePhase.retryAt
+              : currentWritePhase.tag === "dirty"
+                ? currentWritePhase.editedAt + editDelay
+                : clock.currentTimeMillisUnsafe();
           changedDuringDelay = yield* Effect.raceFirst(
             Effect.as(Queue.take(edits), true),
             Effect.as(
@@ -377,7 +517,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
      */
     dirty() {
       changed();
-      return unsaved() !== undefined || !settled();
+      return phase.tag !== "saved";
     },
     /**
      * Write every synced edit made so far without waiting for the edit delay.
@@ -385,9 +525,9 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
      */
     flush: Effect.suspend(() => {
       changed();
-      const blocked = unsaved();
+      const blocked = blockedError(phase);
       if (blocked) return Effect.fail(blocked);
-      if (settled()) return Effect.void;
+      if (phase.tag === "saved") return Effect.void;
       const waiter = Deferred.makeUnsafe<void, SessionRequestError>();
       waiters.push(waiter);
       urgent.openUnsafe();
@@ -399,16 +539,16 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     resume: Effect.gen(function* () {
       yield* permit.release(1);
       changed();
-      if (!settled()) Queue.offerUnsafe(edits, undefined);
+      if (phase.tag === "dirty" || phase.tag === "retrying") Queue.offerUnsafe(edits, undefined);
     }),
     overwrite: Effect.gen(function* () {
-      const resolving = conflict;
-      if (!resolving || ended) return;
+      const resolving = currentPhase();
+      if (resolving.tag !== "conflict") return;
       const loaded = yield* Effect.result(transport.load(id));
-      if (conflict !== resolving || ended) return;
+      if (currentPhase() !== resolving) return;
       if (Result.isFailure(loaded)) {
         if (loaded.failure.code !== "UNAVAILABLE") {
-          ended = loaded.failure;
+          phase = { tag: "ended", failure: loaded.failure };
           report();
         }
         return yield* Effect.fail(loaded.failure);
@@ -416,11 +556,17 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       revision = loaded.success.revision;
       targetRevision = Math.max(targetRevision, revision);
       syncedInput = { name: loaded.success.name, snapshot: loaded.success.snapshot };
-      conflict = undefined;
-      changed();
+      savedKey = syncKey(syncedInput);
+      local = readLocal();
+      phase = nextPhaseFromLocal(local, clock.currentTimeMillisUnsafe());
       report();
-      urgent.openUnsafe();
-      Queue.offerUnsafe(edits, undefined);
+      if (phase.tag === "dirty") {
+        urgent.openUnsafe();
+        Queue.offerUnsafe(edits, undefined);
+      } else if (phase.tag === "saved") {
+        settle();
+      }
+      if (targetRevision > revision) Queue.offerUnsafe(syncRequests, undefined);
     }),
   };
 });

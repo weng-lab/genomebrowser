@@ -190,3 +190,52 @@ it("syncs panning and browser edits across tabs via revision hints without echo,
   );
   expect(clientA.state().active?.signal.aborted).toBe(true);
 });
+
+it("keeps a conflicted tab frozen against remote updates until overwrite, while still handling deletion", async () => {
+  const initial = snapshot(createStores("hg38")!);
+  const id = server.add("Conflict session", initial);
+  const clientA = openClient();
+  const clientB = openClient();
+
+  await clientA.state().open(id);
+  await clientB.state().open(id);
+  await vi.waitFor(() => expect(LiveEventSource.streams.size).toBe(2));
+
+  // Force Client A into conflict on its next PATCH.
+  server
+    .hold("PATCH")
+    .respond(Response.json({ code: "CONFLICT", message: "Conflict" }, { status: 409 }));
+  clientA.stores().useBrowserStore.setState({ fontSize: 14 });
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("conflict"));
+
+  // While Client A is in conflict, Client B edits another field and broadcasts an SSE hint.
+  clientB.stores().useBrowserStore.getState().setSelectionMode("highlight");
+  await vi.waitFor(() =>
+    expect(server.stored.get(id)!.snapshot.browser.selectionMode).toBe("highlight"),
+  );
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 100);
+  });
+
+  // Client A must remain frozen in conflict with its own store state until the user chooses overwrite.
+  expect(clientA.state().saveStatus).toBe("conflict");
+  expect(clientA.stores().useBrowserStore.getState().selectionMode).toBe("pan");
+  expect(clientA.stores().useBrowserStore.getState().fontSize).toBe(14);
+
+  // Overwriting resolves the conflict and persists Client A's local edits.
+  await clientA.state().overwrite();
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("saved"));
+  expect(server.stored.get(id)!.snapshot.browser.fontSize).toBe(14);
+  expect(clientA.state().error).toBeUndefined();
+
+  // If the session is deleted elsewhere while Client A is in conflict, it transitions to failed.
+  server
+    .hold("PATCH")
+    .respond(Response.json({ code: "CONFLICT", message: "Conflict" }, { status: 409 }));
+  clientA.stores().useBrowserStore.setState({ fontSize: 18 });
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("conflict"));
+
+  await clientB.state().remove(id);
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("failed"));
+  expect(clientA.state().active?.signal.aborted).toBe(true);
+});
