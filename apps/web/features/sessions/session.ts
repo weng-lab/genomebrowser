@@ -139,9 +139,9 @@ export function createSession({
     return { fiber, done };
   }
 
-  function setError(next: SessionErrorBanner) {
+  function setError(next: SessionErrorBanner, patch: Partial<SessionState> = {}) {
     errorBanner = next;
-    set({ error: next.tag === "none" ? undefined : next.message });
+    set({ ...patch, error: next.tag === "none" ? undefined : next.message });
   }
 
   function clearSaveError() {
@@ -154,8 +154,10 @@ export function createSession({
     source: "save" | "operation" = "operation",
   ) {
     if (error.code === "UNAUTHENTICATED") {
-      errorBanner = { tag: "operation", message: "Sign in to use saved sessions." };
-      set({ status: "signed-out", error: errorBanner.message });
+      setError(
+        { tag: "operation", message: "Sign in to use saved sessions." },
+        { status: "signed-out" },
+      );
     } else {
       setError({ tag: source, message });
     }
@@ -208,8 +210,7 @@ export function createSession({
   function exclusive(pending: Pending, operation: Effect.Effect<void>) {
     return lock.withPermits(1)(
       Effect.suspend(() => {
-        errorBanner = { tag: "none" };
-        set({ pending, error: undefined });
+        setError({ tag: "none" }, { pending });
         return operation;
       }).pipe(
         Effect.ensuring(
@@ -510,8 +511,7 @@ export function createSession({
     const parsed = sessionInputSchema.shape.name.safeParse(name);
     if (!parsed.success)
       return setError({ tag: "operation", message: "Session names need 1 to 200 characters." });
-    errorBanner = { tag: "none" };
-    set({ active: { ...active, name: parsed.data }, error: undefined });
+    setError({ tag: "none" }, { active: { ...active, name: parsed.data } });
     changeList((sessions) =>
       sessions.map((session) =>
         session.id === active.id ? { ...session, name: parsed.data } : session,
@@ -613,9 +613,8 @@ export function createSession({
       window.removeEventListener("beforeunload", warn);
       setCurrent(undefined);
       scope = opening = listing = undefined;
-      errorBanner = { tag: "none" };
       Effect.runFork(Scope.close(lifetime, Exit.void));
-      set(idle);
+      setError({ tag: "none" }, idle);
     };
   }
 
