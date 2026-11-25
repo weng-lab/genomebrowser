@@ -14,6 +14,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
+import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import {
@@ -88,6 +89,11 @@ type Row = {
   titleFromFile: boolean;
   failure?: string;
 };
+
+// The spreadsheet template and example, from `public/templates`. `pnpm web templates` writes
+// them with `scripts/trackTemplates.py`.
+const templateUrl = "/templates/genome-browser-tracks-template.xlsx";
+const exampleUrl = "/templates/genome-browser-tracks-example.xlsx";
 
 // Empty text means no choice, so the file or the type decides.
 const optionalText = (value: string) => value.trim() || undefined;
@@ -213,6 +219,17 @@ function AddTracksForm({ trackStore, startAdd, onClose }: AddTracksFormProps) {
               spreadsheet whose first row names the columns, starting with URL. Or upload a .txt,
               .tsv, .csv, or .xlsx file of them. BigWig, BigBed, BigGenePred, and BAM files can be
               added; you can review each track before adding.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Start a spreadsheet from the{" "}
+              <Link href={templateUrl} download>
+                template
+              </Link>
+              , or see an{" "}
+              <Link href={exampleUrl} download>
+                example with tracks filled in
+              </Link>
+              . Each has a sheet that explains the columns.
             </Typography>
             <TextField
               // oxlint-disable-next-line jsx-a11y/no-autofocus -- The dialog opens to paste.
