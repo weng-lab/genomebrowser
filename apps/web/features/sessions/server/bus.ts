@@ -1,4 +1,5 @@
 import "server-only";
+import { parseJson } from "../../../shared/parseJson";
 import { sessionEventSchema, type SessionEvent } from "../syncSchema";
 
 type BusRedisPublisher = {
@@ -168,12 +169,4 @@ export function createRedisSessionBus(options: RedisSessionBusOptions): SessionB
       while (cleanups.size > 0) await Promise.allSettled(cleanups);
     },
   };
-}
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 }

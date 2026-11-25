@@ -1,4 +1,5 @@
 import { Deferred, Effect, Exit, Scope } from "effect";
+import { parseJson } from "../../shared/parseJson";
 import { runCommand, type CommandApp } from "./commands";
 import { commandCancelSchema, commandMessageSchema, type CommandResult } from "./commands/protocol";
 
@@ -149,12 +150,4 @@ export function connectRemoteControl(
     detached.abort();
     Effect.runFork(Scope.close(lifetime, Exit.void));
   };
-}
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 }

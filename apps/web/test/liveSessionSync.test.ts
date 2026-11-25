@@ -296,6 +296,31 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     expect(stores.useTrackStore.getState().getTrack("genes")).toBe(localGeneTrack);
     expect(stores.useTrackStore.getState().getTrack("genes")!.base.height).toBe(96);
     expect(stores.useTrackStore.getState().getTrack("ccres")).toBe(beforeTracks[2]);
+
+    // Reordered keys in config and metadata (as PostgreSQL jsonb returns) produce
+    // identical syncKey/diff and preserve existing track object references.
+    stores.useTrackStore
+      .getState()
+      .updateTrack("ccres", { metadata: { Assay: "ChIP", CellType: "K562" } });
+    const taggedBefore = stores.useTrackStore.getState().getTrack("ccres")!;
+    const taggedDoc = { name: "Test", snapshot: snapshot(stores) };
+    const reorderedSnapshot: SessionSnapshot = {
+      ...taggedDoc.snapshot,
+      tracks: taggedDoc.snapshot.tracks.map((track) =>
+        track.base.id === "ccres"
+          ? {
+              ...track,
+              config: Object.fromEntries(Object.entries(track.config).reverse()),
+              metadata: { CellType: "K562", Assay: "ChIP" },
+            }
+          : track,
+      ),
+    };
+    const reorderedDoc = { name: "Test", snapshot: reorderedSnapshot };
+    expect(syncKey(reorderedDoc)).toBe(syncKey(taggedDoc));
+    expect(diffSessionPatch(taggedDoc, reorderedDoc)).toBeUndefined();
+    applyRemoteSnapshot(stores, reorderedSnapshot);
+    expect(stores.useTrackStore.getState().getTrack("ccres")).toBe(taggedBefore);
   });
 
   it("ignores a retried PATCH saveId after an intervening write from another tab", async () => {

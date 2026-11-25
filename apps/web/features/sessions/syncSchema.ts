@@ -51,10 +51,10 @@ export const sessionEventSchema = z.discriminatedUnion("type", [
 ]);
 export type SessionEvent = z.infer<typeof sessionEventSchema>;
 
-type SyncedBrowserKey = keyof Omit<SessionSnapshot["browser"], "assembly">;
+export type SyncedBrowserKey = keyof Omit<SessionSnapshot["browser"], "assembly">;
 
 /** Browser fields synced by web clients (everything except immutable `assembly`). */
-const syncedBrowserKeys: readonly SyncedBrowserKey[] = [
+export const syncedBrowserKeys: readonly SyncedBrowserKey[] = [
   "region",
   "basePairDetail",
   "marginWidth",
@@ -67,27 +67,88 @@ const syncedBrowserKeys: readonly SyncedBrowserKey[] = [
 ];
 
 /**
+ * Structural track shape shared by both serialized snapshot tracks and live
+ * `AnyTrackInstance` entries in the track store.
+ */
+export type SyncComparableTrack = {
+  type: string;
+  source?: string;
+  base: {
+    id: string;
+    title: string;
+    display: string;
+    color?: string;
+    height: number;
+  };
+  config: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+};
+
+/**
  * Whether a track's `base.height` is computed from rendered rows/viewport width
  * by its renderer (`useRowLayout` / `useAutoTrackHeight`). Syncing height alone
  * for these tracks would ping-pong between tabs at different widths.
  */
-export function isDerivedHeightTrack(track: SessionSnapshot["tracks"][number]): boolean {
+export function isDerivedHeightTrack(track: Pick<SyncComparableTrack, "type" | "config">): boolean {
   return (
     track.type === "ruler" || track.type === "gene" || typeof track.config.rowHeight === "number"
   );
 }
 
 /**
- * Canonical JSON key for the synced parts of a session document. Excludes
- * renderer-derived track heights so viewport-width differences do not mark a
- * tab dirty or trigger writes.
+ * Order-insensitive deep equality for JSON-compatible values. PostgreSQL `jsonb`
+ * reorders object keys, so comparing `JSON.stringify` directly would produce
+ * false mismatches on multi-key track configs and metadata.
+ */
+export function deepEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+  const left = a as Record<string, unknown>;
+  const right = b as Record<string, unknown>;
+  const leftKeys = Object.keys(left).filter((key) => left[key] !== undefined);
+  const rightKeys = Object.keys(right).filter((key) => right[key] !== undefined);
+  if (leftKeys.length !== rightKeys.length) return false;
+  for (const key of leftKeys) {
+    if (!Object.hasOwn(right, key) || !deepEqual(left[key], right[key])) return false;
+  }
+  return true;
+}
+
+/** Whether two tracks have identical synced fields (ignoring renderer-derived heights and key order). */
+export function sameTrackForSync(a: SyncComparableTrack, b: SyncComparableTrack): boolean {
+  if (
+    a.type !== b.type ||
+    a.source !== b.source ||
+    a.base.id !== b.base.id ||
+    a.base.title !== b.base.title ||
+    a.base.display !== b.base.display ||
+    a.base.color !== b.base.color
+  ) {
+    return false;
+  }
+  if (!isDerivedHeightTrack(b) && a.base.height !== b.base.height) return false;
+  if (!deepEqual(a.config, b.config)) return false;
+  return deepEqual(a.metadata ?? null, b.metadata ?? null);
+}
+
+/**
+ * Canonical, key-order-insensitive JSON key for the synced parts of a session
+ * document. Excludes renderer-derived track heights so viewport-width
+ * differences and PostgreSQL `jsonb` key reordering do not mark a tab dirty.
  */
 export function syncKey(doc: SessionDocument): string {
   const browser: Record<string, unknown> = {};
   for (const key of syncedBrowserKeys) {
     browser[key] = doc.snapshot.browser[key];
   }
-  return JSON.stringify({
+  return canonicalJson({
     name: doc.name,
     browser,
     tracks: doc.snapshot.tracks.map((track) =>
@@ -117,7 +178,7 @@ export function diffSessionPatch(
   const browserPatch: Partial<Omit<SessionSnapshot["browser"], "assembly">> = {};
   let browserChanged = false;
   for (const key of syncedBrowserKeys) {
-    if (!jsonEqual(base.snapshot.browser[key], next.snapshot.browser[key])) {
+    if (!deepEqual(base.snapshot.browser[key], next.snapshot.browser[key])) {
       (browserPatch as Record<string, unknown>)[key] = next.snapshot.browser[key];
       browserChanged = true;
     }
@@ -132,12 +193,12 @@ export function diffSessionPatch(
     changed = true;
   }
 
-  if (!jsonEqual(base.snapshot.pinnedTrackIds, next.snapshot.pinnedTrackIds)) {
+  if (!deepEqual(base.snapshot.pinnedTrackIds, next.snapshot.pinnedTrackIds)) {
     patch.pinnedTrackIds = next.snapshot.pinnedTrackIds;
     changed = true;
   }
 
-  if (!jsonEqual(base.snapshot.regionGroups, next.snapshot.regionGroups)) {
+  if (!deepEqual(base.snapshot.regionGroups, next.snapshot.regionGroups)) {
     patch.regionGroups = next.snapshot.regionGroups;
     changed = true;
   }
@@ -179,26 +240,20 @@ export function applySessionPatch(
 function tracksEqualForSync(a: SessionSnapshot["tracks"], b: SessionSnapshot["tracks"]): boolean {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) {
-    const left = a[i];
-    const right = b[i];
-    if (
-      left.type !== right.type ||
-      left.source !== right.source ||
-      left.base.id !== right.base.id ||
-      left.base.title !== right.base.title ||
-      left.base.display !== right.base.display ||
-      left.base.color !== right.base.color
-    ) {
-      return false;
-    }
-    if (!isDerivedHeightTrack(left) && left.base.height !== right.base.height) return false;
-    if (!jsonEqual(left.config, right.config)) return false;
-    if (!jsonEqual(left.metadata ?? null, right.metadata ?? null)) return false;
+    if (!sameTrackForSync(a[i], b[i])) return false;
   }
   return true;
 }
 
-function jsonEqual(a: unknown, b: unknown): boolean {
-  if (Object.is(a, b)) return true;
-  return JSON.stringify(a) === JSON.stringify(b);
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => (item === undefined ? "null" : canonicalJson(item))).join(",")}]`;
+  }
+  const record = value as Record<string, unknown>;
+  const entries = Object.keys(record)
+    .filter((key) => record[key] !== undefined)
+    .toSorted()
+    .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`);
+  return `{${entries.join(",")}}`;
 }

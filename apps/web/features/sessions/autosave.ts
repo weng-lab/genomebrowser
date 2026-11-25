@@ -1,4 +1,5 @@
 import { Clock, Deferred, Effect, Latch, Queue, Result, Semaphore } from "effect";
+import { parseJson } from "../../shared/parseJson";
 import type { SessionStores } from "../browser/regions/regionGroups";
 import { applyRemoteSnapshot, snapshot } from "./storeSnapshot";
 import type { SavedSession, Session } from "./schema";
@@ -616,11 +617,3 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
 });
 
 export type Autosave = Effect.Success<ReturnType<typeof startAutosave>>;
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
-}

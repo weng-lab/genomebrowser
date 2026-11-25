@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { Deferred, Effect, Exit, Scope } from "effect";
+import { parseJson } from "../../../shared/parseJson";
 import {
   commandResultSchema,
   type CommandMessage,
@@ -436,12 +437,4 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
   }
 
   return { dispatch, attach, reply, close };
-}
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 }

@@ -5,7 +5,7 @@ import {
 } from "@weng-lab/genomebrowser";
 import { normalizeGroups, type SessionStores } from "../browser/regions/regionGroups";
 import { sessionSnapshotSchema, type SessionSnapshot } from "./snapshot.ts";
-import { isDerivedHeightTrack } from "./syncSchema";
+import { deepEqual, isDerivedHeightTrack, sameTrackForSync, syncedBrowserKeys } from "./syncSchema";
 
 /** Serializable browser, track, and region-group state, as saved and as returned to agents. */
 export function snapshot(session: SessionStores): SessionSnapshot {
@@ -84,52 +84,25 @@ export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapsh
     );
   }
 
-  // 1) Browser store: patch only fields whose serialized values changed.
-  const browserUpdates: Partial<ReturnType<typeof session.useBrowserStore.getState>> = {};
-  let browserChanged = false;
-
+  // 1) Browser store: patch only fields whose values changed (order-insensitively).
   const normalizedRegion = createBrowserStore({
     assembly: currentBrowser.assembly,
     region: saved.browser.region,
   }).getState().region;
-  if (!jsonEqual(currentBrowser.region, normalizedRegion)) {
-    browserUpdates.region = normalizedRegion;
-    browserChanged = true;
-  }
-  if (!jsonEqual(currentBrowser.basePairDetail, saved.browser.basePairDetail)) {
-    browserUpdates.basePairDetail = saved.browser.basePairDetail;
-    browserChanged = true;
-  }
-  if (currentBrowser.marginWidth !== saved.browser.marginWidth) {
-    browserUpdates.marginWidth = saved.browser.marginWidth;
-    browserChanged = true;
-  }
-  if (currentBrowser.trackWidth !== saved.browser.trackWidth) {
-    browserUpdates.trackWidth = saved.browser.trackWidth;
-    browserChanged = true;
-  }
-  if (currentBrowser.fontSize !== saved.browser.fontSize) {
-    browserUpdates.fontSize = saved.browser.fontSize;
-    browserChanged = true;
-  }
-  if (currentBrowser.titleSize !== saved.browser.titleSize) {
-    browserUpdates.titleSize = saved.browser.titleSize;
-    browserChanged = true;
-  }
-  if (!jsonEqual(currentBrowser.highlights, saved.browser.highlights)) {
-    browserUpdates.highlights = saved.browser.highlights;
-    browserChanged = true;
-  }
-  if (currentBrowser.selectionMode !== saved.browser.selectionMode) {
-    browserUpdates.selectionMode = saved.browser.selectionMode;
-    browserChanged = true;
-  }
-  if (!jsonEqual(currentBrowser.selectionHighlight, saved.browser.selectionHighlight)) {
-    browserUpdates.selectionHighlight = saved.browser.selectionHighlight;
-    browserChanged = true;
+  const browserUpdates: Record<string, unknown> = {};
+  let browserChanged = false;
+
+  for (const key of syncedBrowserKeys) {
+    const incoming = key === "region" ? normalizedRegion : saved.browser[key];
+    if (!deepEqual(currentBrowser[key], incoming)) {
+      browserUpdates[key] = incoming;
+      browserChanged = true;
+    }
   }
   if (browserChanged) {
-    session.useBrowserStore.setState(browserUpdates);
+    session.useBrowserStore.setState(
+      browserUpdates as Partial<ReturnType<typeof session.useBrowserStore.getState>>,
+    );
   }
 
   // 2) Region groups: patch only when normalized groups differ.
@@ -137,7 +110,7 @@ export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapsh
     saved.regionGroups,
     saved.browser.highlights.map((highlight) => highlight.id),
   );
-  if (!jsonEqual(session.useRegionGroupStore.getState().groups, nextGroups)) {
+  if (!deepEqual(session.useRegionGroupStore.getState().groups, nextGroups)) {
     session.useRegionGroupStore.setState({ groups: nextGroups });
   }
 
@@ -149,12 +122,12 @@ export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapsh
   const resolvedTracks: AnyTrackInstance[] = [];
   let tracksChanged =
     saved.tracks.length !== currentTracksState.tracks.length ||
-    !jsonEqual(currentTracksState.pinnedTrackIds, saved.pinnedTrackIds);
+    !deepEqual(currentTracksState.pinnedTrackIds, saved.pinnedTrackIds);
 
   for (let i = 0; i < saved.tracks.length; i++) {
     const incoming = saved.tracks[i];
     const existing = existingById.get(incoming.base.id);
-    if (existing && sameTrackForRemoteApply(existing, incoming)) {
+    if (existing && sameTrackForSync(existing, incoming)) {
       resolvedTracks.push(existing);
       if (currentTracksState.tracks[i] !== existing) tracksChanged = true;
       continue;
@@ -165,7 +138,7 @@ export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapsh
       isDerivedHeightTrack(incoming) &&
       existing.type === incoming.type &&
       existing.base.display === incoming.base.display &&
-      jsonEqual(existing.config, incoming.config)
+      deepEqual(existing.config, incoming.config)
         ? { ...incoming, base: { ...incoming.base, height: existing.base.height } }
         : incoming;
     const validated = createTrackStore({
@@ -189,27 +162,6 @@ export function applyRemoteSnapshot(session: SessionStores, saved: SessionSnapsh
   }
 }
 
-function sameTrackForRemoteApply(
-  existing: AnyTrackInstance,
-  incoming: SessionSnapshot["tracks"][number],
-): boolean {
-  if (
-    existing.type !== incoming.type ||
-    existing.source !== incoming.source ||
-    existing.base.id !== incoming.base.id ||
-    existing.base.title !== incoming.base.title ||
-    existing.base.display !== incoming.base.display ||
-    existing.base.color !== incoming.base.color
-  ) {
-    return false;
-  }
-  if (!isDerivedHeightTrack(incoming) && existing.base.height !== incoming.base.height) {
-    return false;
-  }
-  if (!jsonEqual(existing.config, incoming.config)) return false;
-  return jsonEqual(existing.metadata ?? null, incoming.metadata ?? null);
-}
-
 function orderTracksWithPins(tracks: AnyTrackInstance[], pinnedTrackIds: readonly string[]) {
   const remaining = new Map(tracks.map((track) => [track.base.id, track]));
   const ordered: AnyTrackInstance[] = [];
@@ -222,9 +174,4 @@ function orderTracksWithPins(tracks: AnyTrackInstance[], pinnedTrackIds: readonl
   }
   ordered.push(...remaining.values());
   return { tracks: ordered, order: ordered.map((track) => track.base.id) };
-}
-
-function jsonEqual(a: unknown, b: unknown): boolean {
-  if (Object.is(a, b)) return true;
-  return JSON.stringify(a) === JSON.stringify(b);
 }
