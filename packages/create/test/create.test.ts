@@ -22,6 +22,7 @@ describe("CLI", () => {
     "creates a project through the executable (symlink: %s)",
     async (linked) => {
       const root = await temporaryDirectory();
+      await writeFile(path.join(root, "package.json"), JSON.stringify({ type: "module" }));
       const sourceDirectory = path.join(root, "src");
       await mkdir(sourceDirectory);
       const source = path.join(sourceDirectory, "create.ts");

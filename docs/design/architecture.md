@@ -2,9 +2,9 @@
 
 Genomebrowser is built primarily for embedding in Weng Lab websites. It also supports developers building their own applications. Real integration needs should guide design. Application-specific behavior should not require changes to browser internals.
 
-Prefer modules that give callers useful behavior through understandable interfaces ([module design](module-design.md)). Keep responsibilities focused: core for general browser capabilities, first-party tracks for broadly useful formats, applications for product workflows. Experience justifies abstractions; existing package contents are evidence, not sacred boundaries.
+Prefer modules that give callers useful behavior through understandable interfaces ([code standards](code-standards.md#own-the-complete-operation)). Keep responsibilities focused: core for general browser capabilities, first-party tracks for broadly useful formats, applications for product workflows. Experience justifies abstractions; existing package contents are evidence, not sacred boundaries.
 
-Recorded decisions: [ADR index](adr/README.md).
+Recorded decisions: [ADR index](../adr/README.md).
 
 ## Package roles
 
@@ -23,4 +23,4 @@ Core and reader are independent foundations. Tracks combines them. UI wraps the 
 
 Within core, keep sizing, data-controller lifetime, and SVG/paint ownership with `GenomeBrowser`, `BrowserProvider`, and `BrowserCanvas` respectively so callers do not coordinate those lifetimes. Details live in code and in core's packaged docs.
 
-For where a new capability belongs, see [feature placement](feature-placement.md). For app product intent, see [product](product/README.md). For runbooks, see `apps/web/README.md`.
+For where a new capability belongs, see [feature placement](feature-placement.md). For runbooks, see `apps/web/README.md`.

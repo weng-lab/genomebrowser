@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
+import { findBrokenLinks } from "./doc-links.mjs";
 import { findCaseCollisions } from "./path-case.mjs";
+import { findUnknownHosts } from "./url-hosts.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const oxlint = join(root, "node_modules/.bin/oxlint");
@@ -21,6 +23,10 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
   };
   try {
     write(".oxlintrc.json", config);
+    write(
+      "tools/lint/oxlint-plugin.mjs",
+      readFileSync(join(root, "tools/lint/oxlint-plugin.mjs"), "utf8"),
+    );
     mkdirSync(join(fixture, "node_modules"));
     symlinkSync(
       join(root, "node_modules/oxlint-tsgolint"),
@@ -80,6 +86,10 @@ test("lint policy rejects forbidden imports and accepts supported dependencies",
       ["packages/tracks/src/probe.ts", "../../ui/src/index", false],
       ["packages/tracks/src/probe.ts", "@weng-lab/genomebrowser", true],
       ["packages/ui/src/probe.ts", "@weng-lab/genomebrowser-tracks", true],
+      ["packages/ui/src/probe.ts", "@mui/material/CssBaseline", false],
+      ["packages/core/src/probe.ts", "@mui/material/GlobalStyles", false],
+      ["packages/tracks/src/probe.ts", "@mui/material/Box", true],
+      ["apps/web/shared/workspace/probe.ts", "@mui/material/CssBaseline", true],
       ["packages/tracks/test/probe.ts", "../../core/src/browser/state/browserContextState", false],
       ["packages/tracks/test/core/probe.ts", "../../../core/test/browser/idleDataSource", false],
       ["packages/ui/test/probe.ts", "@weng-lab/genomebrowser/src/lib", false],
@@ -177,6 +187,31 @@ listen(async () => {});
       result.stdout,
     );
     rmSync(join(fixture, "apps/web/features/handled.ts"));
+    write(
+      "packages/ui/test/probe.test.ts",
+      `
+declare const vi: { mock(path: string): void };
+declare function trackStore(selector: (state: number) => number): number;
+declare function useTrackStore(selector: (state: number) => number): number;
+declare function createStore(init: () => number): number;
+vi.mock("../src/internal");
+vi.mock("@weng-lab/genomic-reader");
+export const values = [trackStore((s) => s), useTrackStore((s) => s), createStore(() => 1)];
+`,
+    );
+    result = spawnSync(oxlint, [".", "--format", "json"], {
+      cwd: join(fixture, "packages/ui"),
+      encoding: "utf8",
+    });
+    assert.deepEqual(
+      JSON.parse(result.stdout)
+        .diagnostics.filter((diagnostic) => diagnostic.code.startsWith("genomebrowser("))
+        .map((diagnostic) => diagnostic.code)
+        .sort(),
+      ["genomebrowser(no-own-source-mock)", "genomebrowser(store-hook-name)"],
+      result.stdout,
+    );
+    rmSync(join(fixture, "packages/ui/test/probe.test.ts"));
     write("apps/web/features/a.ts", 'import { b } from "./b"; export const a = () => b;\n');
     write("apps/web/features/b.ts", 'import { a } from "./a"; export const b = () => a;\n');
     result = spawnSync(oxlint, [".", "--format", "json"], {
@@ -214,4 +249,44 @@ test("path policy reports names that differ only in letter case", () => {
     ]),
     [],
   );
+});
+
+test("doc link policy reports links to missing files and headings", () => {
+  const files = new Map([
+    [
+      "docs/README.md",
+      [
+        "[ok](guide.md#set-up-a-track) [code heading](guide.md#trackprops)",
+        "[same page](#docs) [external](https://example.test/missing) [asset](../tools/x.mjs)",
+        "[gone](removed.md) [stale](guide.md#old-heading)",
+        "`[in code](nowhere.md)`",
+        "```md",
+        "[in a fence](nowhere.md)",
+        "```",
+        "# Docs",
+      ].join("\n"),
+    ],
+    ["docs/guide.md", "# Guide\n\n## Set up a track\n\n### `TrackProps`\n"],
+  ]);
+  assert.deepEqual(
+    findBrokenLinks(files, (path) => path === "tools/x.mjs"),
+    [
+      ["docs/README.md", "removed.md"],
+      ["docs/README.md", "guide.md#old-heading"],
+    ],
+  );
+});
+
+test("URL host policy accepts reserved and known hosts and reports invented ones", () => {
+  const files = new Map([
+    [
+      "docs/example.md",
+      [
+        "https://example.test/a.bigWig https://data.example.test/b.bb http://localhost:3000",
+        "https://users.wenglab.org/x.bigWig https://example.org/y YOUR_URL_HERE",
+        "https://encode-data.org/signal.bigWig https://Example.COM/z",
+      ].join("\n"),
+    ],
+  ]);
+  assert.deepEqual(findUnknownHosts(files), [["docs/example.md", "encode-data.org"]]);
 });

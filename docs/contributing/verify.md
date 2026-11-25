@@ -1,70 +1,43 @@
 # Verifying changes
 
-Run `pnpm verify` from the repository root before handing off a PR. It runs the configured formatting, lint, build, and test tasks across the workspace through Turborepo. The first run can be slow. Subsequent runs reuse cached results for unchanged inputs, so changes spanning packages do not require manually selecting each package's checks.
+Before handoff, run `pnpm format`, `pnpm verify`, and `pnpm run doctor` from the repository root. A failed format check means run `pnpm format` and verify again, not report it.
 
-Direct checks are useful while iterating. For example, `pnpm core test` runs core's tests. Use the affected package's configured commands for focused feedback, then use `pnpm verify` for the workspace check before handoff.
+`pnpm verify` skips:
 
-Web database tests are skipped locally unless `GB_TEST_DATABASE_URL` is set, so a passing local run does not cover them. Set it up as described in the [web app guide](../../apps/web/README.md#database) when a change touches persistence. CI always runs them.
+- Web database, relay, and MCP tests without test servers; see [the web app README](../../apps/web/README.md#tests). CI runs them.
+- Browser tests: `pnpm tracks test:e2e`.
+- The Rust converter: `cargo test --manifest-path tools/gtf-to-big-gene-pred-plus/Cargo.toml --locked`.
 
-## Lint policy
+Run them when your change touches what they cover, and say in the PR's risk section what you could not run.
 
-`pnpm lint` checks package source and exercises the import rules with allowed and forbidden examples. It first rejects tracked names that differ only in letter case once file extensions are ignored, such as `Panel.tsx` and `panel.ts`. Case-insensitive file systems on macOS and Windows resolve them to the same file, which Linux CI would otherwise miss. The rules in [`.oxlintrc.json`](../../.oxlintrc.json) enforce package ownership, app dependency direction, and database import placement. Test files may import their own package's source, but reach other packages only through public exports, never their `src`, `dist`, or `test` directories. App source also rejects circular imports. Unused variables and missing React dependencies are errors.
+## Evidence
 
-The workspace enables type-aware `no-floating-promises` repo-wide, and the web app also enables `no-misused-promises`. Turbo builds dependency declarations before linting. Await or return asynchronous work, or handle its rejection where its lifetime is owned. A `void` statement alone does not handle rejection. The session lifecycle observes Effect failures and exposes nonrejecting completion promises; its intentional detached calls have local exceptions explaining that guarantee. Keep exceptions narrow rather than introducing catch-and-log helpers solely to satisfy lint.
+Match PR and bug-report evidence to the kind of change:
 
-Use `oxlint-disable-next-line` with a reason for an intentional Oxlint exception. Unused Oxlint suppressions fail lint. Use `react-doctor-disable-next-line` for Doctor-only exceptions so Oxlint does not treat them as stale lint suppressions. Import checks inspect module specifiers, so new aliases or folder conventions need corresponding policy fixtures. These checks do not replace review of feature responsibilities or Effect resource lifetimes.
+- Visual bug fix or state change: one or two screenshots showing the broken and fixed (or before and after) state.
+- Multi-step interaction or new feature flow: a short video recording of the flow.
+- Non-visual change (refactor, performance optimization, render budget, API or schema change): a short Markdown table or list of before and after values, timings, or counts.
 
-## Coverage
+Keep PR bodies tidy when attaching media:
 
-Run `pnpm core test:coverage` to generate a core coverage report at `packages/core/coverage/index.html`. Open it in a browser to inspect uncovered lines and branches. The report includes all core source files, including files no test imports. Use gaps to investigate missing behavior coverage; a covered line does not prove that a test asserts its result. Coverage is optional and has no percentage threshold.
+- Attach screenshots and videos directly to the PR or issue; never commit them to the repository.
+- Put before and after (or broken and fixed) screenshots side by side in a Markdown table instead of stacking full-width images inline.
+- Size tall or large images with `<img src="..." width="..." alt="..." />` when full width overwhelms the description.
+- Collapse extra screenshots, videos, or longer measurement tables inside `<details><summary>...</summary>...</details>` so the summary, review guide, and risk stay scannable.
 
-## Additional checks
+## Lint
 
-Run `pnpm run doctor` before PR handoff and report relevant React Doctor findings. This is a separate diagnostic pass, not part of `pnpm verify`. Its CI workflow is nonblocking. Distinguish findings caused by the change from existing findings; do not expand a focused contribution into unrelated cleanup.
+Suppress an intended exception with `oxlint-disable-next-line <rule> -- <reason>`; unused suppressions fail. Use `react-doctor-disable-next-line` for React Doctor-only findings. Do not add catch-and-log helpers to satisfy `no-floating-promises`. Import boundaries live in `.oxlintrc.json` with examples in `tools/lint/policy.test.mjs`; change both together.
 
-CI and local React Doctor versions can report different findings. Compare their versions and results before deciding which findings need attention. Update the versions when needed and review findings from both runs.
+## React Doctor
 
-For changes to the Rust conversion tool, also run:
+It does not block merging. Report findings your change caused and leave existing ones.
 
-```sh
-cargo test --manifest-path tools/gtf-to-big-gene-pred-plus/Cargo.toml --locked
-```
+## Automated reviews
 
-CI runs this separately from the workspace tasks. It is not included in `pnpm verify`.
-
-## Formatting
-
-Run `pnpm format` from the repository root before committing and handing off the change. It runs the workspace formatting tasks through Turborepo. For work in one package, use its formatting script, such as `pnpm core format`, or run `pnpm format` from that package's directory. Package scripts format the whole package; there is no need to list changed files individually.
-
-A failed formatting check is work to finish, not just a result to report. Apply the formatter, review the resulting diff, and run `pnpm verify` so CI does not need a follow-up formatting commit.
-
-## Reporting results
-
-Report failures, checks that could not run, and any remaining uncertainty about the changed behavior. Passing automated checks does not establish behavior they do not exercise. Record verification limits in the risk section of the PR description.
-
-## Automated PR review
-
-The PR review workflow uses OpenCode and GPT-6 Luna through Vercel AI Gateway to review repository conformity, code quality, and PR scope. Add a Vercel AI Gateway API key as the `AI_GATEWAY_API_KEY` repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
-
-Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comments, starting with instructions from the base revision.
-
-The code reviewer never runs `pnpm verify` or other verification commands, installs dependencies, or triggers CI. It reviews source, tests, documentation, and existing CI evidence for code quality and repository conformity. Instructions to run checks in contribution guides and skills apply to implementation work, not the reviewer. Pending checks do not prevent the quality review.
-
-Findings appear as inline review comments when a specific code snippet helps explain the concern. Findings that do not need a snippet appear in one normal bot comment, updated on reruns and removed when no findings belong there. Every finding is labeled Blocking or Non-blocking. Reruns avoid duplicate findings and preserve inline discussions, including resolved threads. The agent does not automatically resolve or delete those threads.
-
-Blocking labels are recommendations for the team, not an automatic merge gate. Inline reviews use GitHub's comment-only review state. Incomplete reviews and publishing failures are reported in the job output. Keep this job advisory rather than adding it to required branch checks.
-
-To preview a review from a worktree containing the agent, authenticate `gh`, provide Vercel AI Gateway credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
+The advisory OpenCode reviewers' instructions are in `.opencode/agents/` and their triggers in `.github/workflows/`. Preview a code review locally with:
 
 ```sh
 opencode run --standalone --auto --agent review --model vercel/openai/gpt-6-luna \
   "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comments and their locations; do not post or change anything on GitHub."
 ```
-
-## Contribution clarity review
-
-The separate contribution review workflow checks whether issues and PRs provide enough information to act. It accepts short descriptions and reasonable differences from the templates. It asks for clarification only when missing or conflicting information prevents useful work, and does not change titles, descriptions, or metadata.
-
-It runs on opening, editing, or reopening an issue or PR, and when a draft PR becomes ready. Bot events, draft PRs, and fork PRs are skipped. Label changes, comments, and new commits alone do not trigger it. An edit to the title or body triggers a fresh review that also considers the discussion. The agent updates one advisory comment and removes it when clarification is no longer needed.
-
-It uses GPT-6 Luna and the same `AI_GATEWAY_API_KEY` secret as the code reviewer. The issue workflow must exist on the default branch, and the agent must exist in the checked-out default or PR base revision. To preview locally, use `--agent contribution-review --model vercel/openai/gpt-6-luna` in the command above and specify an issue or PR number.

@@ -1,46 +1,27 @@
-# Genome browser knowledge base
+# Knowledge base
 
-Repository guidance for maintainers and coding agents. These pages hold context the code cannot: decisions about the repo, shared vocabulary, product intent, contribution judgment, and principles that structure and lint do not enforce.
+Decisions, requirements, and vocabulary that the code cannot show. The code is the reference for patterns and implementation details; these pages record what the code must keep to and why. Consumer API docs ship in each package's `docs/`.
 
-Consumer API documentation lives in each package's `docs/` and changes with the code. Application how-to lives in `apps/*/README.md` and `apps/web/docs/`.
+## Where rules belong
 
-## Authority order
+Enforce a rule as high in this list as possible:
 
-1. **Code structure** (ownership and APIs visible in source)
-2. **Lint** (including custom rules whose messages explain the fix)
-3. **This knowledge base**
-4. **Skills** (thin routers + agent-specific workflow)
+1. **Code and types** — shape APIs and structure so invalid usage fails to compile or is hard to write.
+2. **Lint and tests** — catch violations automatically, with failure messages that state the fix.
+3. **This knowledge base** — record only decisions, requirements, and vocabulary that code and checks cannot enforce.
+4. **Skills** — route here and add agent-only workflow steps without duplicating rules.
 
-Code decides what exists today, but it is not proof of a good pattern. When nearby code conflicts with lint, an ADR, or these pages, follow the rule in new code and leave unrelated cleanup alone.
+When a rule can become a type, lint rule, or test, move it there and delete the prose. When a page restates what the code shows, delete the page.
 
-If a skill and a doc disagree, fix the skill. If a doc restates what the code already shows, cut the doc.
+## Pages
 
-## Read by task
-
-| Task                                 | Start here                                                                                           |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Shared terms                         | [glossary.md](glossary.md)                                                                           |
-| Non-lintable principles              | [code_standards.md](code_standards.md)                                                               |
-| Why packages exist / how they relate | [architecture.md](architecture.md), [adr/](adr/README.md)                                            |
-| Where a feature belongs              | [feature-placement.md](feature-placement.md)                                                         |
-| Embedding UI conventions             | [interface-design.md](interface-design.md)                                                           |
-| Designing a module or hook           | [module-design.md](module-design.md)                                                                 |
-| React components and hooks           | [react.md](react.md)                                                                                 |
-| Issues, PRs, commits                 | [contributing/](contributing/README.md)                                                              |
-| Tests and `pnpm verify`              | [contributing/testing.md](contributing/testing.md), [contributing/verify.md](contributing/verify.md) |
-| Turbo, deps, schemas, releases       | [tooling/](tooling/README.md)                                                                        |
-| Writing package or maintainer docs   | [writing/](writing/README.md)                                                                        |
-| App MVP and agent product intent     | [product/](product/README.md)                                                                        |
-
-`AGENTS.md` at the repo root is a short pointer into this index. Skills under `.agents/skills/` load the pages they need; they do not copy policy.
-
-## Reserved: incidents
-
-A future `docs/incidents/` (or `docs/postmortems/`) section will hold write-ups of mistakes and outages so agents can avoid repeating them. **Do not create that directory until the first incident is recorded.** Product bugs stay in GitHub issues; ADRs record deliberate decisions.
-
-## What does not belong here
-
-- API tables, tutorials, and package troubleshooting (package `docs/`)
-- Step-by-step local runbooks that belong in an app README
-- Generic React or TypeScript textbooks
-- Checklists that lint or tests already enforce
+| Topic                                 | Page                                                                             |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| Terms                                 | [glossary.md](glossary.md)                                                       |
+| Decisions lint cannot enforce         | [code-standards.md](design/code-standards.md)                                                |
+| Package roles and where features go   | [architecture.md](design/architecture.md), [feature-placement.md](design/feature-placement.md) |
+| Recorded decisions                    | [adr/](adr/README.md)                                                            |
+| Issues, PRs, commits                  | [contributing/](contributing/README.md)                                          |
+| Tests and checks                      | [testing.md](contributing/testing.md), [verify.md](contributing/verify.md)       |
+| Turbo, dependencies, schemas, release | [tooling/](tooling/README.md)                                                    |
+| Writing package docs                  | [writing/](writing/README.md)                                                    |

@@ -5,12 +5,12 @@
 
 ## Context
 
-Genomic tools disagree on 0- vs 1-based and inclusive vs exclusive ends. Mixing conventions inside the runtime causes off-by-one bugs across stores, fetchers, and renderers.
+Genomic tools disagree on 0-based vs. 1-based starts and inclusive vs. exclusive ends. Mixing conventions inside the runtime causes off-by-one bugs across stores, fetchers, and renderers.
 
 ## Decision
 
-Inside the browser, regions are **zero-based and half-open**. Stores, track fetchers, renderers, and interaction callbacks use that convention. File readers return zero-based half-open records regardless of on-disk format. Convert to and from **display** (one-based inclusive) only at human boundaries via `formatDisplayRegion` / `parseDisplayRegion`.
+Inside the browser, all regions are **zero-based and half-open**. Stores, track fetchers, renderers, and interaction callbacks follow that convention. File readers return zero-based half-open records regardless of the format on disk. Convert to and from **display coordinates** (one-based, inclusive) only at human-facing boundaries using `formatDisplayRegion` and `parseDisplayRegion`.
 
 ## Consequences
 
-Consumer docs and the glossary must state the convention; APIs do not silently reinterpret strings. New readers for 1-based formats must convert on the way in. Roadmap items about “clarifying” coordinates should not reopen this internal rule without a new ADR.
+Consumer docs and the glossary state the convention explicitly, and APIs never silently reinterpret coordinate strings. New readers for 1-based formats must convert coordinates on the way in. Do not reopen this internal convention without a new ADR.
