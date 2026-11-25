@@ -1,41 +1,63 @@
-# Project glossary
+# Glossary
 
-Prefer these terms in issues, docs, and discussion. Preserve exact API names in code talk. Suggest additions when a recurring project concept needs a shared name; prefer nesting under an existing entry. Define what a term means, not how the code currently implements it: leave out file paths, current options, and feature lists. The [web app glossary](../apps/web/glossary.md) covers app layout, connection, command, and persistence terms.
+Use these terms in code, issues, and docs. Each entry says what a term means, not how the code implements it.
+
+When your work introduces or keeps relying on a domain concept that is not listed here, or two names for one thing start to compete, suggest adding it in the same PR. Add domain terms, not names of UI parts or code.
 
 ## Browser and coordinates
 
-**Browser instance** - One mounted `GenomeBrowser` with its own rendering and track resources. Instances may share application-owned stores. The **host application** embeds the browser. **Browser context** (`useGenomeBrowser()`) gives hosted UI access to that instance's stores.
+**Browser instance** - One mounted genome browser with its own rendering and track resources. The **host application** embeds it. Instances may share the host's stores.
 
-**Browser store / track store** - Application-owned stores: assembly, viewport, highlights, and settings versus modules, instances, order, and config. A **session** is the app's saved browsing setup, not either store object.
+**Browser store / track store** - The two host-owned stores. The browser store holds the assembly, viewport, highlights, and browser settings; the track store holds track modules, instances, order, and configuration. A **session** is the app's saved browsing setup, not either store.
 
-**Viewport** - Visible genomic span. **Zoom** changes that span; **scale** changes drawing/control size. **Render region** is the span prepared for drawing, including **overscan** beyond the viewport for panning.
+**Viewport** - The visible genomic span. **Zoom** changes the span; **scale** changes drawing and control size. The **render region** is the span prepared for drawing, including **overscan** beyond the viewport for panning.
 
-**Coordinate space** - Genomic bases, logical SVG units, or screen pixels; say which. Internal regions are zero-based half-open ([ADR 0006](adr/0006-internal-zero-based-coordinates.md)). **Display coordinates** are one-based inclusive text people type (UCSC-style); convert only at human boundaries.
+**Coordinate space** - Genomic bases, logical SVG units, or screen pixels; always say which. Internal regions are zero-based and half-open ([ADR 0006](adr/0006-internal-zero-based-coordinates.md)). **Display coordinates** are the one-based, inclusive positions people read and type, as in UCSC; convert only where people see them.
+
+**Region / locus** - A region is a span on one chromosome. Use locus for a biological location, such as a gene's.
+
+**Highlight / saved region** - A highlight marks a region on every track. In the app, a saved region is a named highlight saved with the session, and a **region group** gathers saved regions under a name and color.
 
 ## Tracks
 
-**Track / track instance** - One configured visualization (runtime object with id, type, config, optional metadata and interactions). **Pinned** means excluded from ordinary drag reorder, not sticky scroll.
+**Track (track instance)** - One configured visualization in a browser. A **pinned** track is excluded from drag reordering and sorting; it is not sticky on scroll.
 
-**Track module** - Reusable type implementation (fetcher, renderers, validation, optional settings/tooltips). The **module registry** maps type ids to modules (the store's registration map, not an ad hoc global).
+**Track module** - The reusable implementation of a track type: fetching, rendering, validation, and optional settings and tooltips. The **module registry** maps type IDs to modules.
 
-**Display mode** - Module drawing choice (`base.display`). Distinct from a **collection view** (catalog organization).
+**Track configuration** - Shared base settings plus module-specific configuration. **Source ownership** records whether the host application or the user controls a track's data source. **Track metadata** is descriptive fields beside the configuration, such as assay, cell type, or a user's tag; it never changes what a track fetches or draws.
 
-**Base-pair detail** - Per-base glyphs, shown only when the view is zoomed in far enough to draw them.
+**Display mode** - A module's choice of how to draw its data. Not to be confused with a **collection view**, which organizes a catalog.
 
-**Track configuration** - Shared `base` settings plus module-specific `config`. **Source ownership** records who controls the data source: the host application or the user. **Track metadata** is descriptive fields beside the configuration, such as assay, cell type, or a user's tag. It describes a track without changing what the track fetches or draws.
+**Base-pair detail** - Per-base glyphs, drawn only when the view is zoomed in far enough.
 
-**Track anatomy** - **Frame** (core chrome), **margin** (color/controls/drag), **plot** (data area), **overlay** (viewport-anchored).
-
-**Row layout** - Packing items into rows inside a track; **row height** vs **track height**; distinct from track order.
+**Row layout** - Packing items into rows inside one track. **Row height** is not **track height**, and row layout is not track order.
 
 ## Collections and fetching
 
-**Track collection** - Catalog of configured tracks for one assembly. Entries are not loaded until selected. **Qualified track id** (`collection::entry`) identifies selection in `TrackSelect`. A **collection entry** is a recipe for one track: its type, base, config, and metadata. Creating a track copies them as starting values. After that the track owns its values: editing the track never changes the entry, and saving a track to a collection writes a new entry.
+**Track collection** - A catalog of configured tracks for one assembly. A **collection entry** is a recipe for one track: its type, configuration, and metadata. Creating a track copies them as starting values; after that the track owns its values, so editing it never changes the entry. A **qualified track ID** (`collection::entry`) names an entry across collections.
 
-**Render demand** - Region and width core asks a fetcher to satisfy. **Fetch-affecting config** is marked `fetchOnChange`.
+**Render demand** - The region and width the browser asks a track's fetcher to satisfy. **Fetch-affecting configuration** is configuration whose change requires fetching again.
 
-**Track resources** - Reusable per-track values (readers, caches) retained between fetches; released when the track or hosting stores go away.
+**Track resources** - Values a track keeps between fetches, such as file readers and caches, released when the track or its stores go away.
+
+## App
+
+**Workspace** - The app's generic frame: navigation, side panels, and their layout state. It knows nothing about sessions, browsers, or any page's content.
+
+**Session** - A named browsing setup for one assembly, owned by one account. The **open session** is the one a tab is showing and editing; there is one per tab. Its **snapshot** is the serializable setup: no fetched data, loading state, resources, or functions.
+
+**Revision / conflict** - Each save advances a session's revision. Tabs send edits as section patches that the server merges onto the latest revision, then announces the new revision to every open tab. A conflict arises only when concurrent merge retries are exhausted, never as a silent overwrite. A **save ID** names one logical save; the server remembers recent ones so a retried save is applied only once.
+
+**Command / reply** - A command is an app action an agent can request through MCP; its definition is both the MCP tool and what runs it. A **state command** runs on the server against the saved session, whether or not a tab has it open; a **browser command** needs the DOM or browser-side fetches and runs in the tab. The reply is the command's result or failure. A successful state command reply means the change was saved; a successful browser command reply means the stores accepted it, not that track data loaded or the session saved.
+
+**Remote control** - A tab's connection for receiving commands for its open session. It is an account preference, on by default; turning it off stops all agent access while manual browsing keeps working.
+
+**Command relay / lease** - The relay carries browser commands and replies through Redis between the server handling an MCP call and the one holding the tab's connection. A session's lease names the one connection that receives its commands.
+
+**Agent thread / run** - A session's agent thread is its one conversation with the integrated agent, shared across tabs and devices until **New conversation** or deleting the session ends it. A run is the agent's work on one message; it lives only while a tab holds the session.
+
+**Control lock** - The agent's hold on a session's browser during a workflow of several steps. While it is held, the user's edits are blocked; it ends with its run.
 
 ## Testing
 
-**Render budget** - Exact allowed committed React renders for an interaction.
+**Render budget** - The exact number of committed React renders an interaction is allowed.

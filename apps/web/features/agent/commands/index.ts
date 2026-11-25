@@ -1,4 +1,5 @@
 import { addTracksFromUrls } from "./addTracksFromUrls";
+import { releaseControl, takeControl } from "./control";
 import type { BrowserCommand, Command, CommandApp } from "./define";
 import { exportImage } from "./exportImage";
 import { listTracks } from "./listTracks";
@@ -19,6 +20,8 @@ export const commands = [
   addTracksFromUrls,
   listTracks,
   setTrackMetadata,
+  takeControl,
+  releaseControl,
 ] as const;
 
 export type {

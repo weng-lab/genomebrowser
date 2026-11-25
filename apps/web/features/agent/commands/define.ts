@@ -28,6 +28,8 @@ export type CommandApp = {
     requests: readonly TrackRequest[],
     signal: AbortSignal,
   ): Promise<UrlTracksOutcome>;
+  /** The agent's hold on the browser, which keeps the user's edits waiting while it works. */
+  control: { take(): void; release(): void };
 };
 
 type CommandBase<
@@ -41,8 +43,8 @@ type CommandBase<
   params: Params;
   result: Result;
   /**
-   * How long the tab may take to reply, in milliseconds, when five seconds is not enough. The
-   * MCP route's `maxDuration` must outlast it.
+   * How long the tab may take to reply, in milliseconds, when five seconds is not enough. At most
+   * `longestCommandMs`.
    */
   timeoutMs?: number;
 };
@@ -82,14 +84,30 @@ export type Command<
   Result extends z.ZodObject = z.ZodObject,
 > = StateCommand<Params, Result> | BrowserCommand<Params, Result>;
 
+/**
+ * The longest a command may wait for its tab: under the MCP SDKs' default 60-second request
+ * timeout and the MCP route's `maxDuration` of 60 seconds.
+ */
+export const longestCommandMs = 55_000;
+
+function checked<C extends Command>(command: C): C {
+  if ("sessionId" in command.params.shape) {
+    throw new Error(`${command.name} must not declare sessionId; the MCP tool adds it`);
+  }
+  if (command.timeoutMs !== undefined && command.timeoutMs > longestCommandMs) {
+    throw new Error(`${command.name} may wait at most ${longestCommandMs} ms for its tab`);
+  }
+  return command;
+}
+
 export function defineStateCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
   command: Omit<StateCommand<Params, Result>, "target">,
 ): StateCommand<Params, Result> {
-  return { target: "state", ...command };
+  return checked({ target: "state", ...command });
 }
 
 export function defineBrowserCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
   command: Omit<BrowserCommand<Params, Result>, "target">,
 ): BrowserCommand<Params, Result> {
-  return { target: "browser", ...command };
+  return checked({ target: "browser", ...command });
 }

@@ -351,13 +351,13 @@ function renderControlledSettings(
 }
 
 function MethylCSettingsHarness({
-  trackStore,
+  trackStore: useTrackStore,
   updateTrack,
 }: {
   trackStore: TrackStoreInstance;
   updateTrack: (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult;
 }) {
-  const track = trackStore((state) => state.getTrack("methylc")) as
+  const track = useTrackStore((state) => state.getTrack("methylc")) as
     | TrackInstance<MethylCConfig, MethylCTooltipItem>
     | undefined;
   if (!track) throw new Error("MethylC track not found");

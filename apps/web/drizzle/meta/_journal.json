@@ -26,8 +26,22 @@
     {
       "idx": 3,
       "version": "7",
-      "when": 1795627198681,
-      "tag": "0003_session_recent_save_ids",
+      "when": 1795467867531,
+      "tag": "0003_agent_threads",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795476416014,
+      "tag": "0004_agent_preferences",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795631849456,
+      "tag": "0005_session_recent_save_ids",
       "breakpoints": true
     }
   ]

@@ -1,4 +1,5 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { commands, type Command } from "../../agent/commands";
 import type { CommandResult } from "../../agent/commands/protocol";
@@ -9,22 +10,33 @@ import { sessionIdSchema } from "../../sessions/schema";
 import { SessionError } from "../../sessions/server/sessions";
 import type { SessionService } from "../../sessions/server/service";
 
+/** Verified caller authenticated for one MCP HTTP request. */
+export type McpCaller = {
+  userId: string;
+  /** When set, this credential may act only on this saved session. */
+  sessionId?: string;
+};
+
 /** Resolved when needed, so missing configuration fails the affected call rather than every request. */
 type Dependencies = {
-  /** Whether the request carries verified credentials of a user. */
-  authenticate(request: Request): Promise<boolean>;
-  /** Operations for the user the current request acts for. */
-  account(): Promise<AgentAccount>;
+  /** Verified caller of the request, or null when unauthenticated. */
+  authenticate(request: Request): Promise<McpCaller | null>;
+  /** Operations for the verified user `userId`. */
+  account(userId: string): Promise<AgentAccount>;
   relay(): CommandRelay;
-  /** Authoritative session service for state commands (`target: "state"`). */
-  sessionService(): Promise<SessionService>;
+  /** Authoritative session service for state commands (`target: "state"`), acting for `userId`. */
+  sessionService(userId: string): Promise<SessionService>;
 };
 
 const failed = (text: string) => ({ isError: true, content: [{ type: "text" as const, text }] });
 
-/** Publish every agent command as a tool. State tools run directly on `SessionService`; browser-only tools relay to a tab. */
+/**
+ * Publish every agent command as a tool for the caller's session. State tools
+ * run directly on `SessionService`; browser-only tools relay to the attached tab.
+ */
 function createServer(
   { account, relay, sessionService }: Omit<Dependencies, "authenticate">,
+  caller: McpCaller | undefined,
   request?: Request,
 ) {
   const server = new McpServer({ name: "genomebrowser", version: "1.0.0" });
@@ -41,15 +53,19 @@ function createServer(
         outputSchema: command.result,
       },
       async ({ sessionId, ...params }, context) => {
+        if (!caller) return failed("UNAUTHENTICATED: Sign in to connect to Genomebrowser");
+        const targetSession = sessionId as string;
+        if (caller.sessionId && caller.sessionId !== targetSession)
+          return failed("FORBIDDEN: This credential is scoped to another session");
         let result: CommandResult;
         try {
-          const denied = await authorizeRemoteControl(await account(), sessionId as string);
+          const denied = await authorizeRemoteControl(await account(caller.userId), targetSession);
           if (denied) return failed(`${denied.code}: ${denied.error}`);
 
           if (command.target === "state") {
             result = await runServerStateCommand(
-              await sessionService(),
-              sessionId as string,
+              await sessionService(caller.userId),
+              targetSession,
               command,
               params,
             );
@@ -57,7 +73,7 @@ function createServer(
             const commandRelay = relay();
             const signals = [context.mcpReq.signal, request?.signal].filter((signal) => !!signal);
             result = await commandRelay.dispatch(
-              sessionId as string,
+              targetSession,
               { name: command.name, params },
               AbortSignal.any(signals),
               { timeoutMs: command.timeoutMs },
@@ -88,22 +104,36 @@ function createServer(
  * and broadcast to any open tabs; browser-only commands relay to an open tab.
  */
 export function createMcpEndpoint({ authenticate, ...dependencies }: Dependencies) {
-  const handler = createMcpHandler(({ requestInfo }) => createServer(dependencies, requestInfo), {
-    responseMode: "json",
-    maxRequestBodySize: 65_536,
-  });
+  const currentCaller = new AsyncLocalStorage<McpCaller>();
+  const handler = createMcpHandler(
+    ({ requestInfo }) => createServer(dependencies, currentCaller.getStore(), requestInfo),
+    {
+      responseMode: "json",
+      maxRequestBodySize: 65_536,
+    },
+  );
   return {
     async fetch(request: Request) {
       // Browsers send cookies with cross-site requests; only this app's pages may use them.
       const origin = request.headers.get("origin");
       if (origin && origin !== new URL(request.url).origin)
         return Response.json({ error: "Origin is not allowed" }, { status: 403 });
-      if (!(await authenticate(request)))
+      let caller: McpCaller | null;
+      try {
+        caller = await authenticate(request);
+      } catch (error) {
+        console.error("Could not authenticate an MCP request", error);
+        return Response.json(
+          { error: "Remote control is unavailable" },
+          { status: 503, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+      if (!caller)
         return Response.json(
           { error: "Sign in to connect to Genomebrowser" },
           { status: 401, headers: { "Cache-Control": "no-store", "WWW-Authenticate": "Bearer" } },
         );
-      return handler.fetch(request);
+      return currentCaller.run(caller, () => handler.fetch(request));
     },
     close: () => handler.close(),
   };

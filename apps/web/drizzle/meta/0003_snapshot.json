@@ -1,5 +1,5 @@
 {
-  "id": "58f8e88f-9a57-4de4-b595-d918058ac061",
+  "id": "ee161c1d-35d1-48be-8e0b-82f9459a40c7",
   "prevId": "7135ca92-eba6-400c-89c9-7a839be3d6b7",
   "version": "7",
   "dialect": "postgresql",
@@ -26,6 +26,54 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.agent_threads": {
+      "name": "agent_threads",
+      "schema": "",
+      "columns": {
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "conversation_id": {
+          "name": "conversation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "agent_threads_session_id_sessions_id_fk": {
+          "name": "agent_threads_session_id_sessions_id_fk",
+          "tableFrom": "agent_threads",
+          "tableTo": "sessions",
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "agent_threads_conversation_id_unique": {
+          "name": "agent_threads_conversation_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["conversation_id"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -71,13 +119,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
-        },
-        "recent_save_ids": {
-          "name": "recent_save_ids",
-          "type": "uuid[]",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'"
         },
         "created_at": {
           "name": "created_at",

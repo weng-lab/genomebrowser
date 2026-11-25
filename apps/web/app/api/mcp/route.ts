@@ -1,6 +1,6 @@
 import { getMcpEndpoint } from "../../../composition/server";
 
-// Seconds. Outlasts every command's time limit, the longest being add_tracks_from_urls at 45.
+// Seconds. Must outlast `longestCommandMs` in features/agent/commands/define.ts.
 export const maxDuration = 60;
 
 function handle(request: Request) {

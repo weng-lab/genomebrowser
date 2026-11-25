@@ -8,6 +8,7 @@ import {
   type CommandReply,
   type CommandResult,
 } from "../commands/protocol";
+import { tabLeaseKey } from "./tabPresence";
 
 type RelayRedisPublisher = {
   withCommandOptions(options: { abortSignal: AbortSignal }): {
@@ -142,7 +143,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
   const leaseMs = heartbeatMs * 3;
   const prefix = `${options.namespace}:`;
   const key = {
-    lease: (sessionId: string) => `${prefix}lease:${sessionId}`,
+    lease: (sessionId: string) => tabLeaseKey(options.namespace, sessionId),
     disconnected: (sessionId: string) => `${prefix}disconnected:${sessionId}`,
     connection: (sessionId: string, owner: string) => `${prefix}connection:${sessionId}:${owner}`,
     reply: (sessionId: string, commandId: string) => `${prefix}reply:${sessionId}:${commandId}`,

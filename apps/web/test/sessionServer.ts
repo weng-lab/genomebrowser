@@ -1,6 +1,6 @@
 import type { SessionSnapshot } from "../features/sessions/snapshot.ts";
 import { vi } from "vitest";
-import { accountSettingsSchema } from "../features/account/settings";
+import { accountSettingsSchema, agentPreferencesSchema } from "../features/account/settings";
 import {
   maxSessionBytes,
   sessionInputSchema,
@@ -52,6 +52,8 @@ export function installSessionServer() {
     user: "user_alice" as string | null,
     /** Session requests, oldest first. */
     requests,
+    /** Saved agent preferences by user. Users without them have none. */
+    agentPreferences: new Map<string, string>(),
     /** Saved Remote Control preferences by user. Users without one have it on. */
     remoteControl: new Map<string, boolean>(),
     /** Settings requests, oldest first: `GET`, or the preference a `PUT` saved. */
@@ -95,6 +97,10 @@ export function installSessionServer() {
      * with that status instead, and `"silent"` never answers until the request is aborted.
      */
     files: new Map<string, Uint8Array | number | "silent">(),
+    /** Answers agent thread requests; by default no session has a conversation yet. */
+    agentThread: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
+      Response.json({ conversationId: null }),
+    ),
     /** Answers command results that tabs post for remote control. */
     replies: vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async () =>
       Response.json({ ok: true }),
@@ -226,6 +232,19 @@ export function installSessionServer() {
     if (file !== undefined) return serveFile(file, init);
     const url = new URL(input, "http://localhost");
     if (/^\/api\/sessions\/[^/]+\/commands$/.test(url.pathname)) return server.replies(input, init);
+    if (/^\/api\/sessions\/[^/]+\/agent-thread$/.test(url.pathname))
+      return server.agentThread(input, init);
+    if (url.pathname === "/api/account/agent-preferences") {
+      const owner = server.user;
+      if (!owner) return rejected("UNAUTHENTICATED", 401);
+      if (init.method === "PUT") {
+        if (typeof init.body !== "string") throw new Error("Expected a JSON preferences body");
+        const input = agentPreferencesSchema.safeParse(JSON.parse(init.body));
+        if (!input.success) return rejected("INVALID_INPUT", 400);
+        server.agentPreferences.set(owner, input.data.text.trim());
+      }
+      return json({ text: server.agentPreferences.get(owner) ?? "" });
+    }
     const settings = url.pathname === "/api/account/settings";
     if (!settings && !url.pathname.startsWith("/api/sessions"))
       throw new Error(`Unexpected request ${input}`);

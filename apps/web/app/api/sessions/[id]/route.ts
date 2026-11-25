@@ -1,4 +1,6 @@
-import { getSessionService } from "../../../../composition/server";
+import { getAgentThreads, getSessionService } from "../../../../composition/server";
+import { endConversation } from "../../../../features/agent/server/conversations";
+import { endAgentThread } from "../../../../features/agent/server/http";
 import {
   readSessionPatch,
   readSessionUpdate,
@@ -32,6 +34,15 @@ export function PATCH(request: Request, { params }: RouteContext<"/api/sessions/
   });
 }
 
-export function DELETE(_request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
-  return respond(async () => (await getSessionService()).remove((await params).id));
+/**
+ * Delete the session with its agent thread and notify open tabs. The thread's
+ * conversation is ended first, so Eve stops holding its messages; if Eve cannot
+ * confirm that, the session is kept and the deletion can be retried.
+ */
+export function DELETE(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
+  return respond(async () => {
+    const { id } = await params;
+    await endAgentThread(request, id, { threads: getAgentThreads, end: endConversation });
+    await (await getSessionService()).remove(id);
+  });
 }

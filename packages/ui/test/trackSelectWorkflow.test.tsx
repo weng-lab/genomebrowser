@@ -25,6 +25,7 @@ const trackSelectContentProbe = vi.hoisted(() => ({
   current: undefined as TrackSelectState | undefined,
 }));
 
+// oxlint-disable-next-line genomebrowser/no-own-source-mock -- These cases read TrackSelect's internal state through this stub; move them to the user workflow.
 vi.mock("../src/TrackSelect/layout/trackSelectContent", async () => {
   const { useTrackSelectState } = await import("../src/TrackSelect/session/useTrackSelectState");
 

@@ -76,8 +76,8 @@ focused work.
 
 Turborepo runs each task in the workspace
 projects that define it, follows package dependencies, and reuses results from
-its local cache. See the [build orchestration guide](docs/tooling/builds.md) for
-filters, cache behavior, and task configuration.
+its local cache. See [tooling](docs/tooling/README.md#builds) for how
+tasks are ordered and cached.
 
 | Task             | Workspace           | Focused example                                                            |
 | ---------------- | ------------------- | -------------------------------------------------------------------------- |

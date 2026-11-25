@@ -218,6 +218,96 @@ it("attaches to the open session only once restored, and leaves it before attach
   expect(text()).toContain("Off");
 });
 
+/** Change Alpha's region on the server, as an MCP state tool does, and announce the revision. */
+async function serverSetsRegion(chromosome: string, start: number) {
+  const stored = server.stored.get(alpha)!;
+  stored.revision += 1;
+  stored.snapshot = {
+    ...stored.snapshot,
+    browser: { ...stored.snapshot.browser, region: { chromosome, start, end: start + 1000 } },
+  };
+  const events = Stream.events.filter(
+    (stream) => stream.url === `/api/sessions/${alpha}/events` && !stream.closed,
+  );
+  await act(async () => {
+    for (const stream of events) {
+      stream.dispatchEvent(
+        new MessageEvent("updated", {
+          data: JSON.stringify({ type: "updated", revision: stored.revision }),
+        }),
+      );
+    }
+  });
+}
+
+it("locks the browser while an agent holds control, until it releases it or the user takes it back", async () => {
+  await enableRemoteControl();
+  await act(async () => route.back());
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  const control = (name: string, id: string) =>
+    act(async () =>
+      latest().send({ commandId: id, name, expiresAt: Date.now() + 5000, params: {} }),
+    );
+  // The browser and its toolbar, and the saved regions, lock; the agent panel does not.
+  const locked = () =>
+    Boolean(document.querySelector("main [inert]")) &&
+    Boolean(document.querySelector("#left-panel [inert]"));
+  const unlocked = () => document.querySelectorAll("[inert]").length === 0;
+  expect(unlocked()).toBe(true);
+
+  await control("take_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e01");
+  await vi.waitFor(() => expect(locked()).toBe(true));
+  // No run of the agent panel took it, so the tab cannot stop this agent and says so.
+  expect(text()).toContain(
+    "An agent has control of the browser. Taking it back does not stop the agent.",
+  );
+  expect(reply()).toMatchObject({ result: { ok: true, value: { held: true } } });
+  // The agent's own edits, which state tools make on the server, still reach the browser.
+  await serverSetsRegion("chr1", 1000);
+  await vi.waitFor(() => expect(region()).toBe("chr1:1,001-2,000"));
+
+  expect(document.querySelector("#right-panel [inert]")).toBeNull();
+
+  await control("release_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e02");
+  await vi.waitFor(() => expect(unlocked()).toBe(true));
+
+  // A dialog the user had open, which renders outside the locked browser, closes.
+  await act(async () =>
+    [...document.querySelectorAll("button")]
+      .find((button) => button.textContent === "Sort tracks")!
+      .click(),
+  );
+  await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).not.toBeNull());
+
+  await control("take_control", "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e03");
+  await vi.waitFor(() => expect(locked()).toBe(true));
+  await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeNull());
+  await act(async () =>
+    [...document.querySelectorAll("button")]
+      .find((button) => button.textContent === "Take back control")!
+      .click(),
+  );
+  await vi.waitFor(() => expect(unlocked()).toBe(true));
+});
+
+it("gives control back when remote control detaches from the session", async () => {
+  await enableRemoteControl();
+  await act(async () => route.back());
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await act(async () =>
+    latest().send({
+      commandId: "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e04",
+      name: "take_control",
+      expiresAt: Date.now() + 5000,
+      params: {},
+    }),
+  );
+  await vi.waitFor(() => expect(document.querySelectorAll("[inert]").length).toBeGreaterThan(0));
+  await act(async () => route.push(`/browser/${beta}`));
+  await vi.waitFor(() => expect(heading()).toBe("Beta"));
+  expect(document.querySelectorAll("[inert]").length).toBe(0);
+});
+
 it("rejects unknown, server-only, invalid, and expired commands on the tab stream", async () => {
   server.files.set(`${dataHost}/signal.bw`, files.bigWig);
   await enableRemoteControl();
@@ -834,14 +924,25 @@ it("detaches once the session's edits can no longer be saved", async () => {
   await act(async () => route.back());
   const stream = latest();
   act(() => stream.onopen!());
+  await act(async () =>
+    stream.send({
+      commandId: "0b6f0bd5-9a77-4a43-9d21-0c7a3c3d0e05",
+      name: "take_control",
+      expiresAt: Date.now() + 5000,
+      params: {},
+    }),
+  );
+  await vi.waitFor(() => expect(document.querySelectorAll("[inert]").length).toBeGreaterThan(0));
   server.stored.delete(alpha);
   await click('button[aria-label="Highlight"]');
   await vi.waitFor(() => expect(stream.closed).toBe(true));
   expect(text()).toContain(
     "This session's changes can no longer be saved, so agents cannot control it.",
   );
+  // No agent reaches the session now, so it holds nothing.
+  expect(document.querySelectorAll("[inert]").length).toBe(0);
   await addTracks([{ url: `${dataHost}/signal.bw` }]);
-  expect(reply().result).toMatchObject({ ok: false, code: "SESSION_CLOSED" });
+  expect(reply(1).result).toMatchObject({ ok: false, code: "SESSION_CLOSED" });
   expect(Stream.opened).toEqual([stream]);
 });
 

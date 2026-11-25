@@ -5,12 +5,12 @@
 
 ## Context
 
-Libraries evolve at different rates. Lockstep versioning forces unnecessary consumer upgrades and unclear changelogs.
+The published libraries evolve at different rates. Releasing them in lockstep forces unnecessary consumer upgrades and muddies changelogs.
 
 ## Decision
 
-Publish core, tracks, UI, reader, and create with **independent** version histories and GitHub releases (`core-v*`, `tracks-v*`, …). Humans perform npm publish; agents prepare and verify. Dist-tag defaults to `latest` for stable releases. Coordinated multi-package releases are explicit, not inferred from matching numbers.
+Publish core, tracks, UI, reader, and create with **independent** version histories and GitHub releases (`core-v*`, `tracks-v*`, and so on). Agents prepare and verify releases; humans run npm publish. Stable releases publish under the `latest` dist-tag. Multi-package releases are coordinated explicitly rather than inferred from matching version numbers.
 
 ## Consequences
 
-Release notes are per package from each package's last published baseline. Dependency minimums update only where consumers need them. The create template ships inside create and is considered in release scope when it changes. Details: [tooling/releases.md](../tooling/releases.md).
+Each package's release notes cover changes since its own last published version. Dependency minimums rise only when consumers need a newer version. Because the starter template ships inside `create`, template changes put `create` in release scope. See [tooling/releases.md](../tooling/releases.md) for the release steps.
