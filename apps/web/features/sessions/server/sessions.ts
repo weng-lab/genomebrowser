@@ -108,6 +108,8 @@ export function createSessions({
         name,
         snapshot,
         revision: sql`${sessionsTable.revision} + 1`,
+        // Dual-write `save_id` during expand-and-contract rollout for older deployments.
+        saveId,
         recentSaveIds: sql`(array_append(${sessionsTable.recentSaveIds}, ${saveId}::uuid))[greatest(1, cardinality(${sessionsTable.recentSaveIds}) + 2 - ${maxRecentSaveIds}):]`,
         updatedAt: sql`now()`,
       })

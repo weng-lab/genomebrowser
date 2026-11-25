@@ -85,7 +85,7 @@ export function createSessionService({ sessions, bus }: SessionServiceOptions): 
   }
 
   async function retryOnConflict<R>(operation: () => Promise<R>): Promise<R> {
-    for (let attempt = 0; attempt < maxMergeAttempts; attempt++) {
+    for (let attempt = 0; ; attempt++) {
       try {
         return await operation();
       } catch (error) {
@@ -99,7 +99,6 @@ export function createSessionService({ sessions, bus }: SessionServiceOptions): 
         throw error;
       }
     }
-    throw new SessionError("CONFLICT", "Could not merge concurrent session updates");
   }
 
   return {
@@ -114,6 +113,7 @@ export function createSessionService({ sessions, bus }: SessionServiceOptions): 
     },
 
     async patch(id, rawRequest) {
+      await sessions.authorize(id);
       const parsed = sessionPatchRequestSchema.safeParse(rawRequest);
       if (!parsed.success) {
         throw new SessionError("INVALID_INPUT", z.prettifyError(parsed.error));

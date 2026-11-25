@@ -13,6 +13,12 @@ export const sessionsTable = pgTable(
     /** Starts at 1 and increases by one with each saved update. */
     revision: integer().notNull().default(1),
     /**
+     * Kept and dual-written during the expand-and-contract rollout so older
+     * deployments and preview branches sharing the database keep working.
+     * Drop in a follow-up migration once nothing reads `save_id`.
+     */
+    saveId: uuid("save_id"),
+    /**
      * Bounded history of client-chosen save IDs applied to this session (newest last,
      * capped at 128), so retried writes are recognized even after intervening writes.
      */

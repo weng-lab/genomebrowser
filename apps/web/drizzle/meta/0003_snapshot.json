@@ -1,5 +1,5 @@
 {
-  "id": "6ff26ff3-50bf-421a-a73b-be0a2052e629",
+  "id": "58f8e88f-9a57-4de4-b595-d918058ac061",
   "prevId": "7135ca92-eba6-400c-89c9-7a839be3d6b7",
   "version": "7",
   "dialect": "postgresql",
@@ -65,6 +65,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": 1
+        },
+        "save_id": {
+          "name": "save_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "recent_save_ids": {
           "name": "recent_save_ids",

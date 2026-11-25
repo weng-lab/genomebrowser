@@ -24,9 +24,12 @@ export function PUT(request: Request, { params }: RouteContext<"/api/sessions/[i
  * with concurrent edits and broadcasting the new revision to all open tabs.
  */
 export function PATCH(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
-  return respond(async () =>
-    (await getSessionService()).patch((await params).id, await readSessionPatch(request)),
-  );
+  return respond(async () => {
+    const service = await getSessionService();
+    const { id } = await params;
+    await service.authorize(id);
+    return service.patch(id, await readSessionPatch(request));
+  });
 }
 
 export function DELETE(_request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
