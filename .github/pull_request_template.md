@@ -31,6 +31,8 @@ Don't copy CI check lists or logs here.
 ## Manual verification
 
 <!-- Optional. Remove this section if hands-on review isn't useful. -->
-<!-- Give the reviewer up to three short steps to exercise the changed behavior. Screenshots and videos are welcome but not required. -->
+<!-- Give the reviewer up to three short steps to exercise the changed behavior. -->
+<!-- Match evidence to the change: screenshots for visual states or fixes, a short video for multi-step feature flows, or a compact table/list of before-and-after values for refactors and performance changes. -->
+<!-- Keep media compact: put before/after screenshots side by side in a table, cap large image widths with <img>, and put extra media or long tables in <details>. -->
 
 <!-- End with "Closes #123" when this pull request resolves an issue. -->

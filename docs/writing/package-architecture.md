@@ -1,6 +1,6 @@
 # Package documentation architecture
 
-Package docs follow this layout. Do not move unrelated docs during a focused edit.
+Package docs follow this layout. Do not move unrelated pages during a focused edit.
 
 ```text
 packages/<package>/
@@ -20,49 +20,40 @@ packages/<package>/
     04-troubleshooting.md    Symptoms, causes, and remedies
 ```
 
-Use these categories consistently, but create directories only when they contain useful pages. A small package may need only one getting-started page. The starter's generated application docs explain that application, not the library API, and need not imitate the library tree.
+Create only the sections a package actually needs; small packages may need just one getting-started page, and gaps in numbering are fine. The starter's generated app docs explain that app rather than a library API and use `01-running.md`, `02-architecture.md`, `03-customization.md`, and `04-deployment.md` under an unnumbered docs root.
 
-Keep `README.md` unnumbered at every level, including package and docs roots. Each folder index explains its purpose, lists its immediate pages or subsections in the intended order, and links to its parent. Root indexes may also link directly to tutorial chapters. Keep titles and link labels free of ordering prefixes.
+## Naming and navigation
 
-Reserve `01-gettingStarted`, `02-guides`, `03-reference`, and `04-troubleshooting.md` across library packages. Omit sections without content and allow gaps. Number tutorial chapters with two-digit prefixes, starting at `01` within each folder. Number reference area folders when a suggested browsing order helps, as in core, tracks, and UI. Reader's format-specific areas remain unnumbered. Independent guides and API pages remain unnumbered.
+- **Indexes:** Keep `README.md` unnumbered at every level. Each index states the folder's purpose, lists its immediate pages or subsections in reading order, and links to its parent. Root indexes may also link directly to tutorial chapters. READMEs route readers rather than growing into reference dumps.
+- **Numbering:** Reserve `01-gettingStarted`, `02-guides`, `03-reference`, and `04-troubleshooting.md` across library packages. Number tutorial chapters with two-digit prefixes starting at `01` per folder. Number reference area folders when a reading order helps (core, tracks, UI); leave reader's format areas, standalone guides, and API pages unnumbered. Numbers indicate reading order only, never versions or API names, and never appear in page titles or link text.
+- **Filenames:** Use `camelCase` for topic files (such as `browserStore.md`) and `PascalCase` for standalone component pages after any numeric prefix. Avoid catch-all files like `helpers.md` or `recipes.md`; small related APIs can share a clearly named page.
+- **Reference structure:** Keep small references flat and split larger ones into shallow `camelCase` area folders organized by reader task rather than source layout. The reference root lists areas and holds the full export index, each area README lists its pages, and pages link to related contracts and back to their area.
 
-Preserve camelCase topic names and PascalCase component names after any prefix. Numbers express reading order, not versions or API identifiers. README navigation should match numbered folder and chapter order. For generated application docs, use `01-running.md`, `02-architecture.md`, `03-customization.md`, and `04-deployment.md` under an unnumbered docs root.
+## Core's learning path
 
-READMEs route readers rather than collecting growing reference sections. Reference may include focused examples but should not repeat entire workflows.
+Core's bundled docs own the main integration tutorial, with two explicit entry points: generating an app with the starter or embedding in an existing React app. Keep each path's continuation clear so starter users do not repeat manual setup.
 
-Organize larger references into shallow area folders named in camelCase; small references can remain flat. The reference root lists areas and maintains the complete export index. Each area index lists its pages, and individual pages link to related contracts and back to their area. Categories organize APIs by reader need rather than mirroring source directories.
+Carry one cumulative example through four milestones:
 
-Follow repository naming conventions: camelCase for topic filenames and PascalCase for independently documented components. Use descriptive names such as `browserStore.md`; avoid catch-all files such as `helpers.md` or a growing `recipes.md`. A related group of small APIs can share a well-named page.
+1. **Render a first browser:** install, assembly, stable stores, a data track, ruler, and responsive container.
+2. **Add and configure tracks:** track types, ordering, settings, data sources, and interactions.
+3. **Navigate and select:** panning, zooming, highlights, and provided controls.
+4. **Use track collections:** define and share collections, load tracks directly, and offer selection with `TrackSelect`.
 
-## Learning path
-
-Core's bundled docs own the main integration tutorial. Offer two entrances: create a new application with the starter, or embed in an existing React application. Use one cumulative example through these milestones:
-
-1. Render a first browser: installation, assembly, stable stores, a data track, ruler, and responsive container.
-2. Add and configure tracks: track types, ordering, settings, data sources, and interactions.
-3. Use browser navigation and selection: panning, zooming, highlights, and provided controls.
-4. Use track collections: define and share collections, load tracks directly, and offer selection through TrackSelect.
-
-State the dependencies and setup required by each chapter, the expected working result, and the next step. Present starter generation and manual installation as explicit alternatives, with a clear continuation for each; readers should not infer that a generated project needs the manual setup repeated. Keep package-specific quick starts independently usable. Custom module authoring is an advanced guide, not a prerequisite for completing this path. Document only supported capabilities; do not invent an integration API to simplify a tutorial.
+Each chapter states its required setup, expected working result, and next step. Keep package-specific quick starts standalone. Treat custom track-module authoring as an advanced guide rather than a prerequisite for onboarding.
 
 ## Writing tutorials and guides
 
-Use `01-gettingStarted/` for sequential learning, `02-guides/` for independent tasks and concepts, and troubleshooting for diagnosis. Track configuration belongs in the track's reference page. Explain concepts, workflows, examples, defaults, and limitations instead of repeating API tables.
+Use `01-gettingStarted/` for sequential tutorials, `02-guides/` for standalone tasks and concepts, and `04-troubleshooting.md` for symptom diagnosis. Leave exhaustive track options on the track's reference page instead of repeating API tables.
 
-Build the explanation around a minimal realistic example. Keep examples focused on the concept being taught. Use local data to explain fetch and render contracts; introduce services, URL construction, and response validation when those are the subject. Introduce the required pieces, what each does, and why they fit together before presenting their code. For a setup with several cooperating parts, develop the example in connected steps and make clear how the snippets form a working file or application.
-
-Place ownership, lifecycle, configuration, and constraints alongside the concept they explain. Avoid a large copy-and-paste example followed by a separate explanation dump, or a recurring pattern of code followed by unrelated one-sentence tips. Text after an example should interpret its result or lead into the next step. Integrate necessary details into the relevant explanation and put optional extensions in focused sections or further-reading links; not every example needs a trailing paragraph.
-
-Integration guides teach browser features and their use in an application. Explain a core feature independently before introducing optional UI. For example, describe collections and direct loading before recommending TrackSelect for user selection. Prefer focused library calls and provided components over walkthroughs for building custom forms, toolbars, or other generic React UI. Explain application-owned state only where it is part of the feature contract, such as a dialog's open state or a track picker's draft and committed selection.
-
-Keep the happy path approachable. Move advanced material into focused guides or advanced sections instead of making the first page intimidating.
+- **Build around focused examples:** Use local data when teaching fetch and render contracts; introduce remote services, URLs, and response validation when those are the topic. Explain what the required pieces do before showing code, and build multi-part setups in connected steps so readers see how the snippets form a working file.
+- **Keep details next to the concept:** Explain ownership, lifecycle, and constraints alongside the step that introduces them rather than dumping a long code block followed by scattered notes. Use text after an example to interpret the result or move to the next step, and push optional extensions into focused sections or links.
+- **Teach core before optional UI:** Show direct collection loading before recommending `TrackSelect`, and prefer library calls and provided components over generic React UI walkthroughs. Cover app-owned state only when it is part of the feature contract, such as dialog open state or a track picker's draft and committed selection. Keep the happy path approachable and move advanced topics into dedicated guides.
 
 ## Maintaining the structure
 
-When renaming documentation, update relative links, heading targets, repository and installed-package path references, agent instructions, and skill links. Check package inclusion and generated application navigation. Do not leave aliases for old filenames.
+- Update affected canonical pages and the export index when behavior changes. Only reorganize a whole package when that broader scope is intended.
+- When renaming a file, update relative links, heading anchors, repo and `node_modules` path references, agent instructions, and skill links. Verify package inclusion and starter navigation, and leave no filename aliases.
+- Retire legacy pages only after their useful tutorials, guides, or troubleshooting have a current home (or are deliberately dropped) and inbound links are updated. Export coverage alone does not replace those workflows.
 
-Update the affected canonical pages and export index when behavior changes. Reorganize a whole package only when that broader scope is intended. Existing placement is not a reason to move unrelated pages during a focused edit.
-
-Retire legacy pages after their useful tutorial, guide, or troubleshooting content has a current home or has deliberately been retired, and update inbound links. Complete export coverage alone does not replace those workflows.
-
-For API grouping and completeness, see [API reference writing](api-reference.md). Repository-only guidance follows [Knowledge base](../README.md).
+For API grouping and completeness, see [API reference writing](api-reference.md). Repository-only guidance lives in the [knowledge base](../README.md).

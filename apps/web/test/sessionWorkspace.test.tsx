@@ -3,10 +3,11 @@
 // Import first: it mocks the Next.js router before the app's modules load.
 import { clerk, route, stubLayout, WorkspaceApp } from "./workspaceApp";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
-import { act } from "react";
+import { act, useState } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createStores } from "../features/assemblies/assemblies";
 import { useRemoteControl } from "../features/agent/RemoteControlProvider";
+import { useHoldSession } from "../features/sessions/SessionProvider";
 import { snapshot } from "../features/sessions/storeSnapshot";
 import { installSessionServer, type SessionServer } from "./sessionServer";
 
@@ -168,6 +169,153 @@ it("opens the session in the URL, from links, and from history", async () => {
   await act(async () => route.back());
   await vi.waitFor(() => expect(heading()).toBe("Alpha"));
   expect(route.pathname()).toBe(`/browser/${a}`);
+});
+
+/** Sessions Alpha, Beta, and Gamma with Alpha open, and a way to hold the open session. */
+async function openHeldSessions() {
+  const a = server.add("Alpha", defaults());
+  const b = server.add("Beta", defaults());
+  const c = server.add("Gamma", defaults());
+  let hold: (reason: string | undefined) => void = () => {};
+  function Holder() {
+    const [reason, setReason] = useState<string>();
+    hold = setReason;
+    useHoldSession(reason);
+    return null;
+  }
+  route.reset(`/browser/${a}`);
+  probe = await renderWithProbe(
+    <WorkspaceApp>
+      <Holder />
+    </WorkspaceApp>,
+  );
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  act(() => hold("The agent is working."));
+  return { a, b, c, hold: (reason: string | undefined) => act(() => hold(reason)) };
+}
+const switchDialog = () => document.querySelector('[role="dialog"]');
+const asked = () =>
+  vi.waitFor(() => expect(switchDialog()?.textContent).toContain("The agent is working."));
+const answer = (choice: "Stay" | "Switch") => click(withText('[role="dialog"] button', choice));
+const dialogClosed = () => vi.waitFor(() => expect(switchDialog()).toBeNull());
+
+it("asks before another session replaces a held one, and stays or switches", async () => {
+  const { a, b, hold } = await openHeldSessions();
+
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  expect(heading()).toBe("Alpha");
+  await answer("Stay");
+  await dialogClosed();
+  expect(route.pathname()).toBe(`/browser/${a}`);
+  expect(heading()).toBe("Alpha");
+
+  await act(async () => route.push(`/browser/${b}`));
+  await answer("Switch");
+  await vi.waitFor(() => expect(heading()).toBe("Beta"));
+  await dialogClosed();
+
+  // Every switch while held asks again, including back to a session switched to before.
+  await act(async () => route.push(`/browser/${a}`));
+  await asked();
+  await answer("Switch");
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  expect(heading()).toBe("Alpha");
+  await answer("Stay");
+  await vi.waitFor(() => expect(route.pathname()).toBe(`/browser/${a}`));
+
+  // Without a hold, a session URL opens at once.
+  hold(undefined);
+  await act(async () => route.push(`/browser/${b}`));
+  await vi.waitFor(() => expect(heading()).toBe("Beta"));
+  // The dialog closed by Stay may still be fading out.
+  await dialogClosed();
+});
+
+it("asks before a new session or a copy replaces a held one", async () => {
+  await openHeldSessions();
+
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await asked();
+  await answer("Stay");
+  await dialogClosed();
+  await openSessions();
+  await click(menuItem("New session"));
+  await click(withText('form[aria-label="New session"] button', "Create"));
+  await asked();
+  await answer("Stay");
+  expect(heading()).toBe("Alpha");
+  expect(server.writes()).toEqual([]);
+  await dialogClosed();
+
+  await openSessions();
+  await click(button("Actions for session Beta"));
+  await click(actionItem("Save a copy"));
+  await answer("Switch");
+  await vi.waitFor(() => expect(heading()).toBe("Copy of Beta"));
+});
+
+it("keeps one question open for the newest request to replace a held session", async () => {
+  const { a, b, c, hold } = await openHeldSessions();
+
+  // A newer request takes over the question: one choice replaces the session once.
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  await act(async () => route.push(`/browser/${c}`));
+  const loads = sessionLoads().length;
+  await answer("Switch");
+  await vi.waitFor(() => expect(heading()).toBe("Gamma"));
+  expect(sessionLoads().slice(loads)).toMatchObject([{ id: c }]);
+  await dialogClosed();
+
+  // Returning to the open session's URL, as with Back, withdraws the question.
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  await act(async () => route.push(`/browser/${c}`));
+  await dialogClosed();
+  expect(heading()).toBe("Gamma");
+
+  // Once the hold clears, a newer request opens at once and withdraws the question still open.
+  await act(async () => route.push(`/browser/${b}`));
+  await asked();
+  hold(undefined);
+  await act(async () => route.push(`/browser/${a}`));
+  await vi.waitFor(() => expect(heading()).toBe("Alpha"));
+  await dialogClosed();
+});
+
+it("saves agent preferences from Settings, and discards an unsaved draft", async () => {
+  server.agentPreferences.set("user_alice", "Use hg38.");
+  await visit("/settings");
+  const box = () => document.querySelector<HTMLTextAreaElement>("textarea:not([aria-hidden])")!;
+  await vi.waitFor(() => expect(box()?.value).toBe("Use hg38."));
+  expect(box().getAttribute("aria-describedby")).toBeTruthy();
+
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(
+      box(),
+      "Explain briefly.",
+    );
+    box().dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await click(withText("button", "Save"));
+  await vi.waitFor(() => expect(text()).toContain("Saved"));
+  expect(server.agentPreferences.get("user_alice")).toBe("Explain briefly.");
+
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(
+      box(),
+      "Something else",
+    );
+    box().dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await click(withText("button", "Discard"));
+  expect(box().value).toBe("Explain briefly.");
+  expect(server.agentPreferences.get("user_alice")).toBe("Explain briefly.");
 });
 
 it("renames the open session from its title and saves the name", async () => {

@@ -35,6 +35,8 @@ export type CommandApp = {
     requests: readonly TrackRequest[],
     signal: AbortSignal,
   ): Promise<UrlTracksOutcome>;
+  /** The agent's hold on the browser, which keeps the user's edits waiting while it works. */
+  control: { take(): void; release(): void };
 };
 
 /**
@@ -55,8 +57,8 @@ export type Command<
   params: Params;
   result: Result;
   /**
-   * How long the tab may take to reply, in milliseconds, when five seconds is not enough. The
-   * MCP route's `maxDuration` must outlast it.
+   * How long the tab may take to reply, in milliseconds, when five seconds is not enough. At most
+   * `longestCommandMs`.
    */
   timeoutMs?: number;
   run(
@@ -66,8 +68,20 @@ export type Command<
   ): CommandOutcome<z.input<Result>> | Promise<CommandOutcome<z.input<Result>>>;
 };
 
+/**
+ * The longest a command may wait for its tab: under the MCP SDKs' default 60-second request
+ * timeout and the MCP route's `maxDuration` of 60 seconds.
+ */
+export const longestCommandMs = 55_000;
+
 export function defineCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
   command: Command<Params, Result>,
 ) {
+  if ("sessionId" in command.params.shape) {
+    throw new Error(`${command.name} must not declare sessionId; the MCP tool adds it`);
+  }
+  if (command.timeoutMs !== undefined && command.timeoutMs > longestCommandMs) {
+    throw new Error(`${command.name} may wait at most ${longestCommandMs} ms for its tab`);
+  }
   return command;
 }

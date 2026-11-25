@@ -21,17 +21,18 @@ const allowed: AgentAccount = {
   sessions: { authorize: async () => {} } as unknown as AgentAccount["sessions"],
   settings: { get: async () => ({ remoteControl: true }) },
 };
+const sessionId = crypto.randomUUID();
 const call = {
   name: "set_region",
   arguments: {
-    sessionId: crypto.randomUUID(),
+    sessionId,
     region: { chromosome: "chr1", start: 0, end: 10 },
   },
 };
 
 it("lists tools and reports an unavailable relay or account store per call", async () => {
   const withoutRelay = await connect({
-    authenticate: async () => true,
+    authenticate: async () => ({ userId: "user_alice" }),
     account: async () => allowed,
     relay: () => {
       throw new Error("REDIS_URL must be set for agent commands");
@@ -47,7 +48,7 @@ it("lists tools and reports an unavailable relay or account store per call", asy
   await withoutRelay.close();
 
   const withoutDatabase = await connect({
-    authenticate: async () => true,
+    authenticate: async () => ({ userId: "user_alice" }),
     account: () => Promise.reject(new Error("Database unavailable")),
     relay: () => {
       throw new Error("Not reached");
@@ -58,4 +59,37 @@ it("lists tools and reports an unavailable relay or account store per call", asy
     content: [{ text: "UNAVAILABLE: Remote control is unavailable" }],
   });
   await withoutDatabase.close();
+});
+
+it("refuses tool calls targeting another session when the credential is session-scoped", async () => {
+  const otherSession = crypto.randomUUID();
+  const scoped = await connect({
+    authenticate: async () => ({ userId: "user_alice", sessionId: otherSession }),
+    account: async () => {
+      throw new Error("Should not authorize another session");
+    },
+    relay: () => {
+      throw new Error("Should not reach the relay");
+    },
+  });
+  expect(await scoped.callTool(call)).toMatchObject({
+    isError: true,
+    content: [{ text: "FORBIDDEN: This credential is scoped to another session" }],
+  });
+  await scoped.close();
+});
+
+it("reports authentication outages as 503", async () => {
+  const endpoint = createMcpEndpoint({
+    authenticate: () => Promise.reject(new Error("Redis unavailable")),
+    account: async () => allowed,
+    relay: () => {
+      throw new Error("Not reached");
+    },
+  });
+  const response = await endpoint.fetch(
+    new Request("http://localhost/api/mcp", { method: "POST", body: "{}" }),
+  );
+  expect(response.status).toBe(503);
+  await endpoint.close();
 });

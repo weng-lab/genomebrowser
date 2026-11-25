@@ -13,6 +13,8 @@ import SortIcon from "@mui/icons-material/Sort";
 import { useSession } from "../../sessions/SessionProvider";
 import { useBrowserSvgRef } from "../BrowserSvg";
 import { getTrackSortOptions } from "../trackSort";
+import { AgentControlBoundary } from "../../agent/components/AgentControlBoundary";
+import { useAgentControl } from "../../agent/RemoteControlProvider";
 import { AddTracksDialog } from "./AddTracksDialog";
 
 /** The open session's browser, or why none is shown. `sessionId` is the session in the URL. */
@@ -22,7 +24,13 @@ export function BrowserView({ sessionId }: { sessionId?: string }) {
   return (
     <Box>
       <SessionAlert />
-      {stores ? <BrowserContent key={id} stores={stores} /> : <NoSession sessionId={sessionId} />}
+      {stores ? (
+        <AgentControlBoundary banner>
+          <BrowserContent key={id} stores={stores} />
+        </AgentControlBoundary>
+      ) : (
+        <NoSession sessionId={sessionId} />
+      )}
     </Box>
   );
 }
@@ -86,6 +94,17 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  // Dialogs and the search list render outside the inert browser, so taking
+  // control closes the ones that change the session and resets the search.
+  const { held } = useAgentControl();
+  const [heldBefore, setHeldBefore] = useState(held);
+  if (held !== heldBefore) {
+    setHeldBefore(held);
+    if (held) {
+      setSortOpen(false);
+      setAddOpen(false);
+    }
+  }
   // Read the tracks when Sort is clicked rather than subscribing, so track changes
   // do not re-render the controls. A sort is a one-time operation.
   const [sortOptions, setSortOptions] = useState(() =>
@@ -98,7 +117,7 @@ function BrowserContent({ stores }: { stores: GenomeBrowserStores }) {
 
   return (
     <>
-      <Box sx={{ mb: 2 }}>
+      <Box key={held ? "held" : "free"} sx={{ mb: 2 }}>
         <ControlToolbar
           browserStore={useBrowserStore}
           search={{

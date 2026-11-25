@@ -1,97 +1,37 @@
 # Testing
 
-A test guards against behavior coming back broken when someone changes the code later. It does not prove that a change works. Running the change on the real surface does that. Keep a test only when it catches real breaks cheaply. Every other test costs upkeep and catches nothing.
+A test guards behavior against later changes. Keep one only when it catches real breaks cheaply.
 
 ## Decide on every change
 
-Decide whether each change gets a test. Give the reason in one line in the PR, such as "No test: copy change only" or "Test: BigWig render snapshot, catches lost negative values".
-
-Write a test when all of these hold:
-
-- It fails on the broken code for the right reason.
-- It asserts what a user or caller sees, such as rendered SVG, a store state, a payload, a return value, or an error type callers branch on.
-- Its setup costs less than the protection it gives. Reuse the package's harness and fixtures, and add minimal fixture or harness support when the behavior is worth it.
-- It would catch the break if someone changes the code again.
-
-Skip the test when it would only restate the change, such as a constant, copy, or a style. Also skip it when it duplicates existing coverage or needs elaborate mocking. Use the closest check you can run, and say so.
-
-Prefer one or two tests that pin the behavior over a suite of small cases.
+State the decision and its reason in one line in the PR, such as "No test: copy change only" or "Test: BigWig render snapshot, catches lost negative values". Skip tests that would only restate the change (a constant, copy, a style) or need elaborate mocking.
 
 ## The two-edit check
 
-Judge every test you write, keep, or review by imagining two edits:
-
-1. **Break the behavior.** Return a wrong value, skip an effect, or do it twice. If the test still passes, it proves nothing.
-2. **Change only the internals.** Keep every observable result and restructure underneath. If the test now fails, it is pinned to the implementation.
-
-Keep a test that fails the first edit and survives the second. Rewrite or delete the rest.
-
-Three kinds of test fail the two-edit check:
-
-- **It restates the code.** The assertion fails only when someone edits the line it mirrors, or it checks something the type system already guarantees, such as a typed store lacking a property. An optional field being wired up, such as a module's tooltip component, is behavior: keep one check of it.
-- **It restates a style or constant.** It asserts that a gap is `12px` or a border is `2px`. Changing the value is a design decision, not a regression. A default that the package docs state and consumers rely on, such as a track's default height, is behavior.
-- **It asserts an internal call.** It checks `toHaveBeenCalled` on a first-party helper or hook the test replaced or wrapped. Assert the outcome instead. A callback handed to a consumer, a request sent to another service, or a call across a package boundary is contract and stays.
-
-A small direct test is fine when it feeds literal inputs to real logic and asserts a result a user or caller would notice is wrong, such as pixels, a decoded record, store state, or a callback payload.
+Keep a test only if it fails when you **break the behavior** (wrong value, skipped effect, done twice) and passes when you **change only the internals**. Before finalizing a new test, break the behavior on purpose to confirm it fails with the expected wrong value, then restore the code. That rules out tests that restate the code or a style constant, and `toHaveBeenCalled` on first-party helpers. Calls handed to consumers, sent to other services, or crossing a package boundary are contract and may be asserted.
 
 ## Where tests call in
 
-Call in through the smallest interface consumers use, and keep everything between input and outcome real. Typical boundaries:
+| Package    | Call in through                                                             | Assert                                      |
+| ---------- | --------------------------------------------------------------------------- | ------------------------------------------- |
+| `reader`   | Public reader API on fixture files over HTTP range requests, public parsers | Decoded records, parsed and rejected input  |
+| `core`     | Mounted `GenomeBrowser`, documented store operations, the module contract   | Rendered output, store state, callbacks     |
+| `tracks`   | The module mounted in `GenomeBrowser` with a fixture, through `mountTrack`  | SVG snapshot, tooltip text, setting effects |
+| `ui`       | The user workflow on the component                                          | Screen content or browser store state       |
+| `apps/web` | Routes and persistence with real Postgres and Redis; the MCP endpoint       | Responses, stored sessions, tool results    |
+| `apps/web` | The client session lifecycle against a contract-correct session server      | Saved state, conflicts, rendered data       |
+| `create`   | The executable in a temporary directory                                     | Generated files, exit code, output          |
 
-| Package       | Call in through                                                                  | Assert                                      |
-| ------------- | -------------------------------------------------------------------------------- | ------------------------------------------- |
-| `reader`      | Public reader API on fixture files over HTTP range requests                      | Decoded records                             |
-| `reader`      | Public parsers such as `parseChromSizes` on text input                           | Parsed values and rejected input            |
-| `core`        | Mounted `GenomeBrowser`, documented store operations, track module contract      | Rendered output, store state, callbacks     |
-| `tracks`      | The track module mounted in `GenomeBrowser` with a fixture, through `mountTrack` | SVG snapshot, tooltip text, setting effect  |
-| `ui`          | The user workflow on the component                                               | Screen content or browser store state       |
-| `apps/server` | A real HTTP server and MCP client                                                | Tool results and delivered command payloads |
-| `apps/web`    | Routes and persistence with real Postgres and Redis                              | Responses and stored sessions               |
-| `apps/web`    | Client session lifecycle and workspace against a contract-correct session server | Saved state, conflicts, rendered data       |
-| `create`      | The executable in a temporary directory                                          | Generated files, exit code, output          |
-
-Keep the behavior under test real. Serve remote data from fixture files, replace auth providers with a test server, and control time with fake timers. A contract-correct fake is fine at an explicit boundary outside the behavior under test, such as a session server that controls HTTP failures and response order for client lifecycle tests. Do not `vi.mock` internal modules, and do not mock a collaborator whose behavior the test claims to verify.
-
-When valuable behavior is hard to reach from its interface, improve the interface. Do not add test-only exports or switches.
-
-## Rules
-
-- **Expected values come from the requirement.** Write them as literals from the issue, the format spec, or the correct behavior. Never copy them from a run of the code under test. Track SVG snapshots are the one exception: they are generated, so they need the visual review described below.
-- **See it fail.** Run a new test against broken code and read the failure message. A test you never saw fail is not a guard.
-- **The contract decides what counts as behavior.** A payload sent to another service is behavior. A call to an internal helper is not. An error type callers branch on is behavior. The wording of a message no caller reads is not. When "no call" is the promise, pair it with a case where the call happens.
-- **Verify the whole outcome.** A track URL workflow ends when the data renders. A fetch count can pass while the renderer crashes.
-- **Errors are behavior too.** Assert expected failures. Do not hide unexpected errors with broad console suppression.
-- **Do not retest libraries.** MUI, Zod, and React have their own tests.
+Keep everything between input and outcome real; fake only at an explicit boundary outside the behavior under test. When behavior is hard to reach from its interface, improve the interface instead of adding test-only exports or switches. Expected values come from the requirement, never from a run of the code.
 
 ## Track render snapshots
 
-First-party tracks guard their rendering with SVG file snapshots. A snapshot catches visual regressions in changes that are not meant to alter rendering, such as refactors, data-path changes, and dependency upgrades. No track has snapshots yet. The first snapshot suite adds the shared export helper in `packages/tracks/test/`.
+Each track and user-selectable display mode has one SVG snapshot: mount it with a fixed fixture, region, and width, export with `exportBrowserImage(svg, "svg")`, and compare with `toMatchFileSnapshot` against a `.svg` file. When one changes, open both images and update only for an intended visual change; say which in the PR. Remove recurring noise in the shared export helper, not per test. Assert values users read, such as tooltip text, separately. Do not snapshot React trees, store state, or geometry.
 
-- Mount the track in `GenomeBrowser` with a deterministic fixture, a fixed region, and a fixed width. Await `exportBrowserImage(svg, "svg")`, which produces the same SVG users download, and read the text of its `blob`. Compare that text with `toMatchFileSnapshot` against a `.svg` file, so reviewers can open it as an image.
-- Keep one snapshot per track and display mode a user can choose. Add one when a new mode or visual feature ships.
-- When a snapshot changes, open the old and new images. Run `vitest -u` only for an intended visual change, or for a markup-only change whose images match. Say which one in the PR.
-- If a track's snapshot changes on most refactors, remove the noise, such as generated IDs or float precision, in the shared export helper. Do not loosen individual tests.
-- A snapshot guards how a track looks, not whether its values are right. A reviewer approves a snapshot with a wrong value as easily as one with the right value. Assert values a user reads, such as tooltip text and labels, explicitly.
-- Do not snapshot React trees, store state, or intermediate geometry.
+## Other kinds
 
-## Browser tests
+- **Browser tests:** only when correctness depends on layout, hit testing, focus, scrolling, or APIs jsdom lacks. A shipped epic's user workflow becomes one browser journey.
+- **Private code:** only for a correctness or performance risk public tests cannot reach, such as gene geometry or binary decoding. Name the risk in a one-line suite comment.
+- **Render budgets** (`*.renders.test.tsx`) measure performance, not behavior; the rules above do not apply. Use the verify-renders skill.
 
-Use a real browser only when correctness depends on layout, hit testing, focus, scrolling, gestures, or browser APIs that jsdom lacks. Test data handling and asynchronous ordering in integration tests.
-
-Browser journeys come from epics. When an epic ships a user-facing workflow, its acceptance criterion becomes one browser journey. Do not add browser tests for single features that an integration test covers. Run the existing dynseq suite with `pnpm tracks test:e2e`. `pnpm verify` does not run it.
-
-## Private-code exceptions
-
-A test of private code needs a correctness or performance risk that public-boundary tests cannot practically reach. Gene composite geometry and binary decoding can qualify. Convenience, faster setup, or merely containing logic does not. Name the risk in a one-line suite comment, and assert the algorithm's result, not intermediate representations or generated IDs.
-
-## Render budgets
-
-Render budgets measure performance. They are not tests of behavior. `*.renders.test.tsx` scenarios count committed renders with `@weng-lab/render-probe`, and they run under vitest so that `pnpm verify` reports a count that changed. A changed count is a measurement to read, not a broken behavior, so the two-edit check and the boundary rules on this page do not apply to them. Do not rewrite or delete a scenario for being tied to the implementation. Follow the [verify-renders skill](../../.agents/skills/verify-renders/SKILL.md).
-
-## Existing tests
-
-When a refactor breaks a test, investigate the failure before changing expectations. If supported behavior did not change, the test was pinned to internals, so delete it or move it to the boundary. Snapshots, render budgets, and documented private-code exceptions follow their own sections above.
-
-When you edit a test file, apply the two-edit check to the tests you touch. Delete implementation-only and duplicate tests without replacing them. Before deleting a test that uniquely guards supported behavior, add coverage at the boundary. Leave unrelated test files for a separate cleanup PR.
-
-See [Verifying changes](verify.md) for commands and handoff checks.
+When a refactor breaks a test and supported behavior did not change, delete the test or move it to the boundary.

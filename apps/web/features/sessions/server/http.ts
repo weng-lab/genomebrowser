@@ -1,39 +1,21 @@
 import "server-only";
-import { maxSessionBytes, type SessionErrorCode } from "../schema";
+import { maxSessionBytes } from "../schema";
 import { readJsonBody } from "../../../shared/server/readJsonBody";
+import { createResponder } from "../../../shared/server/respond";
 import { parseSessionInput, parseSessionUpdate, SessionError } from "./sessions";
 
-const statuses: Record<SessionErrorCode, number> = {
-  INVALID_INPUT: 400,
-  UNAUTHENTICATED: 401,
-  NOT_FOUND: 404,
-  ASSEMBLY_CHANGED: 409,
-  CONFLICT: 409,
-};
-
-/**
- * Run one operation for a session route. Results are JSON, or 204 without one.
- * Session errors keep their code; any other failure is logged and reported
- * without detail.
- */
-export async function respond(operation: () => Promise<unknown>) {
-  const headers = { "Cache-Control": "no-store" };
-  try {
-    const result = await operation();
-    return result === undefined
-      ? new Response(null, { status: 204, headers })
-      : Response.json(result, { headers });
-  } catch (error) {
-    if (error instanceof SessionError) {
-      return Response.json(
-        { code: error.code, message: error.message },
-        { status: statuses[error.code], headers },
-      );
-    }
-    console.error("Session request failed", error);
-    return Response.json({ message: "Saved sessions are unavailable" }, { status: 500, headers });
-  }
-}
+/** Run one operation for a session route. */
+export const respond = createResponder(
+  SessionError,
+  {
+    INVALID_INPUT: 400,
+    UNAUTHENTICATED: 401,
+    NOT_FOUND: 404,
+    ASSEMBLY_CHANGED: 409,
+    CONFLICT: 409,
+  },
+  { log: "Session request failed", message: "Saved sessions are unavailable" },
+);
 
 /** Read and validate a session name and snapshot of at most 1 MB. */
 export async function readSessionInput(request: Request) {

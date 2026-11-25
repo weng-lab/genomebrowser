@@ -70,8 +70,13 @@ const server = await createServer({
     fs: { allow: [fileURLToPath(new URL("../../../..", import.meta.url))] },
   },
 });
+const browserEnv = { ...process.env };
+// Chromium's SingletonSocket fails when TMPDIR exceeds Unix domain socket limits (~108 bytes).
+if ((browserEnv.TMPDIR?.length ?? 0) > 40) browserEnv.TMPDIR = "/tmp";
+
 async function browser(...args) {
   const { stdout } = await run("agent-browser", ["--session", session, "--json", ...args], {
+    env: browserEnv,
     maxBuffer: 4 * 1024 * 1024,
   });
   const result = JSON.parse(stdout);
@@ -155,7 +160,17 @@ try {
     "Resizing must reuse the loaded reference window",
   );
   await click("Negative");
-  await letters(true);
+  await browser("wait", "--text", "450:550");
+  await browser(
+    "wait",
+    "--fn",
+    `(() => {
+    if (document.querySelector('#dynseq [role="progressbar"]')) return false;
+    const section = document.querySelector('#dynseq').getBoundingClientRect();
+    const cells = [...document.querySelectorAll('${glyphSelector}')].map(path => path.parentElement.parentElement.querySelector('rect'));
+    return cells.some(cell => { const r = cell.getBoundingClientRect(); return r.left > section.left + 100 && r.right < section.right; });
+  })()`,
+  );
   const hover = await evaluate(`(() => {
     const section = document.querySelector('#dynseq').getBoundingClientRect();
     const cells = [...document.querySelectorAll('${glyphSelector}')].map(path => path.parentElement.parentElement.querySelector('rect'));
