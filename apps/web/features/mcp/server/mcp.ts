@@ -4,7 +4,7 @@ import { commands, type Command } from "../../agent/commands";
 import type { CommandResult } from "../../agent/commands/protocol";
 import { authorizeRemoteControl, type AgentAccount } from "../../agent/server/access";
 import type { CommandRelay } from "../../agent/server/relay";
-import { isServerStateCommand, runServerStateCommand } from "../../agent/server/stateCommands";
+import { runServerStateCommand } from "../../agent/server/stateCommands";
 import { sessionIdSchema } from "../../sessions/schema";
 import { SessionError } from "../../sessions/server/sessions";
 import type { SessionService } from "../../sessions/server/service";
@@ -16,12 +16,8 @@ type Dependencies = {
   /** Operations for the user the current request acts for. */
   account(): Promise<AgentAccount>;
   relay(): CommandRelay;
-  /**
-   * Optional authoritative session service. When provided, pure state commands
-   * (`set_region`, `list_tracks`, `sort_tracks`, `set_track_metadata`) run
-   * directly on the server with 0..N open tabs and broadcast live via SSE.
-   */
-  sessionService?: () => Promise<SessionService>;
+  /** Authoritative session service for state commands (`target: "state"`). */
+  sessionService(): Promise<SessionService>;
 };
 
 const failed = (text: string) => ({ isError: true, content: [{ type: "text" as const, text }] });
@@ -45,17 +41,16 @@ function createServer(
         outputSchema: command.result,
       },
       async ({ sessionId, ...params }, context) => {
-        const useServerState = Boolean(sessionService && isServerStateCommand(command.name));
         let result: CommandResult;
         try {
           const denied = await authorizeRemoteControl(await account(), sessionId as string);
           if (denied) return failed(`${denied.code}: ${denied.error}`);
 
-          if (useServerState && sessionService) {
+          if (command.target === "state") {
             result = await runServerStateCommand(
               await sessionService(),
               sessionId as string,
-              command.name,
+              command,
               params,
             );
           } else {

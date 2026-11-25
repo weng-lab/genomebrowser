@@ -67,30 +67,12 @@ async function composeServices(): Promise<Services> {
 }
 
 let redisConnection: RedisConnection | undefined;
-let redisConnectionUrl: string | undefined;
+let bus: SessionBus | undefined;
+let relay: CommandRelay | undefined;
 
 function getSharedRedis(url: string): RedisConnection {
-  if (redisConnection && redisConnectionUrl === url) return redisConnection;
-  if (redisConnection) {
-    redisConnection
-      .close()
-      .catch((error: unknown) => console.error("Could not close previous Redis connection", error));
-  }
-  redisConnectionUrl = url;
-  redisConnection = createRedisConnection({ url });
-  return redisConnection;
+  return (redisConnection ??= createRedisConnection({ url }));
 }
-
-/** Close the shared Redis connection, if any (for graceful shutdown and tests). */
-export async function closeRedisConnection(): Promise<void> {
-  const active = redisConnection;
-  redisConnection = undefined;
-  redisConnectionUrl = undefined;
-  await active?.close();
-}
-
-let bus: SessionBus | undefined;
-let busUrl: string | undefined;
 
 /**
  * The process's live session bus. Uses Redis when `REDIS_URL` is configured so
@@ -98,21 +80,12 @@ let busUrl: string | undefined;
  * bus when `REDIS_URL` is unset so local dev works without Docker.
  */
 export function getSessionBus(): SessionBus {
-  const url = process.env.REDIS_URL;
-  if (bus && busUrl === url) return bus;
-  if (bus) {
-    bus
-      .close()
-      .catch((error: unknown) => console.error("Could not close previous session bus", error));
-  }
-  busUrl = url;
-  bus = url
+  return (bus ??= process.env.REDIS_URL
     ? createRedisSessionBus({
-        connection: getSharedRedis(url),
+        connection: getSharedRedis(process.env.REDIS_URL),
         namespace: `gb:${process.env.VERCEL_DEPLOYMENT_ID ?? "local"}`,
       })
-    : createMemorySessionBus();
-  return bus;
+    : createMemorySessionBus());
 }
 
 /** Authoritative live session service for browser routes (Clerk session cookies). */
@@ -131,8 +104,6 @@ export async function getAgentSessionService(): Promise<SessionService> {
   });
 }
 
-let relay: CommandRelay | undefined;
-
 /**
  * The process's command relay, sharing the process's Redis connection at `REDIS_URL`.
  * Each Vercel deployment uses its own namespace, so an older preview's agents and
@@ -145,6 +116,18 @@ export function getCommandRelay(): CommandRelay {
     connection: getSharedRedis(url),
     namespace: `gb:${process.env.VERCEL_DEPLOYMENT_ID ?? "local"}`,
   }));
+}
+
+/** Close and reset all server pub/sub and relay connections (for graceful shutdown and tests). */
+export async function closeServerConnections(): Promise<void> {
+  const activeRelay = relay;
+  const activeBus = bus;
+  const activeRedis = redisConnection;
+  relay = undefined;
+  bus = undefined;
+  redisConnection = undefined;
+  await Promise.all([activeRelay?.close(), activeBus?.close()]);
+  await activeRedis?.close();
 }
 
 let mcp: ReturnType<typeof createMcpEndpoint> | undefined;

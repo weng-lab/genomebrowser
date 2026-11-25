@@ -16,11 +16,13 @@ export const trackSortCollator = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: "base",
 });
+// Matches `@weng-lab/genomebrowser-ui`'s `trackSortOrder.ts` when one field mixes value types.
+const typeRank = { number: 0, string: 1, boolean: 2 } as const;
 
 /**
- * Pure, React-free track sort matching the Sort tracks dialog: pinned tracks keep
- * their positions at the top, missing values sort last in both directions, and ties
- * preserve existing order.
+ * Pure, React-free track sort matching `@weng-lab/genomebrowser-ui`'s `applyTrackSort`:
+ * pinned tracks keep their exact slot indices, missing/NaN values sort last in both
+ * directions, mixed value types rank number < string < boolean, and ties preserve order.
  */
 export function sortTrackList<T extends SortableTrack>(
   tracks: readonly T[],
@@ -50,40 +52,46 @@ export function sortTrackList<T extends SortableTrack>(
   }
 
   const pinned = new Set(pinnedTrackIds);
-  const pinnedTracks: T[] = [];
-  const unpinnedTracks: { track: T; index: number }[] = [];
+  const result = [...tracks];
+  const unpinned: { track: T; index: number }[] = [];
 
   for (const [index, track] of tracks.entries()) {
-    if (pinned.has(track.base.id)) pinnedTracks.push(track);
-    else unpinnedTracks.push({ track, index });
+    if (!pinned.has(track.base.id)) unpinned.push({ track, index });
   }
+  const slots = unpinned.map(({ index }) => index);
 
-  unpinnedTracks.sort((a, b) => {
+  unpinned.sort((a, b) => {
     for (const { field, direction = "ascending" } of by) {
       const getter = available.get(field)!;
-      const cmp = compareValues(getter(a.track), getter(b.track), direction);
+      const cmp = compareForRule(getter(a.track), getter(b.track), direction);
       if (cmp !== 0) return cmp;
     }
     return a.index - b.index;
   });
 
-  return { ok: true, tracks: [...pinnedTracks, ...unpinnedTracks.map(({ track }) => track)] };
+  unpinned.forEach(({ track }, position) => {
+    result[slots[position]] = track;
+  });
+
+  return { ok: true, tracks: result };
 }
 
-function compareValues(a: SortValue, b: SortValue, direction: SortDirection): number {
-  const aMissing = a === null || a === undefined;
-  const bMissing = b === null || b === undefined;
-  if (aMissing && bMissing) return 0;
-  if (aMissing) return 1;
-  if (bMissing) return -1;
+function hasValue(value: SortValue): value is string | number | boolean {
+  return value !== null && value !== undefined && !Number.isNaN(value);
+}
 
-  let cmp: number;
-  if (typeof a === "number" && typeof b === "number") {
-    cmp = a - b;
-  } else if (typeof a === "boolean" && typeof b === "boolean") {
-    cmp = Number(a) - Number(b);
-  } else {
-    cmp = trackSortCollator.compare(String(a), String(b));
-  }
+function compareForRule(a: SortValue, b: SortValue, direction: SortDirection): number {
+  if (!hasValue(a) || !hasValue(b)) return Number(hasValue(b)) - Number(hasValue(a));
+  const cmp = compareValues(a, b);
   return direction === "descending" ? -cmp : cmp;
+}
+
+function compareValues(a: string | number | boolean, b: string | number | boolean): number {
+  if (typeof a !== typeof b) {
+    return (
+      typeRank[typeof a as keyof typeof typeRank] - typeRank[typeof b as keyof typeof typeRank]
+    );
+  }
+  if (typeof a === "string") return trackSortCollator.compare(a, b as string);
+  return Number(a) - Number(b);
 }

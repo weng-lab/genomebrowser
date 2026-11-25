@@ -1,6 +1,8 @@
+import { hg38, normalizeRegion } from "@weng-lab/genomebrowser";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createRedisConnection, type RedisConnection } from "../composition/server/redis";
 import { createStores } from "../features/assemblies/assemblies";
+import { assemblyChromosomes, normalizeAssemblyRegion } from "../features/assemblies/regions";
 import { runServerStateCommand } from "../features/agent/server/stateCommands";
 import {
   createMemorySessionBus,
@@ -419,6 +421,23 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     expect(await reader.read()).toEqual({ done: true, value: undefined });
     reader.releaseLock();
     await bus.close();
+  });
+
+  it("keeps server assembly bounds and region normalization in parity with @weng-lab/genomebrowser", () => {
+    expect(assemblyChromosomes.hg38).toEqual(hg38.chromosomes);
+    for (const region of [
+      { chromosome: "chr1", start: -10, end: 500 },
+      { chromosome: "chr1", start: 100, end: 200 },
+      { chromosome: "chr99", start: 0, end: 10 },
+      { chromosome: "chr1", start: 200, end: 100 },
+      { chromosome: "chr1", start: 100, end: 100 },
+      { chromosome: "chrM", start: 20_000, end: 30_000 },
+    ]) {
+      expect(normalizeAssemblyRegion("hg38", region)).toEqual(normalizeRegion(region, hg38));
+    }
+    expect(
+      normalizeAssemblyRegion("mm10", { chromosome: "chr1", start: 0, end: 10 }),
+    ).toMatchObject({ ok: false, code: "UNSUPPORTED_ASSEMBLY" });
   });
 });
 

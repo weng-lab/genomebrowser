@@ -98,11 +98,8 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
   });
 
   afterAll(async () => {
-    const { closeRedisConnection, getCommandRelay, getSessionBus } =
-      await import("../composition/server");
-    await getCommandRelay().close();
-    await getSessionBus().close();
-    await closeRedisConnection();
+    const { closeServerConnections } = await import("../composition/server");
+    await closeServerConnections();
     vi.unstubAllEnvs();
     await database?.drop();
   });

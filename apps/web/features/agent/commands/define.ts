@@ -1,11 +1,38 @@
 import type { BrowserImage, GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
-import type { TrackMetadataChange, TrackMetadataOutcome } from "../../browser/trackMetadata";
-import type { TrackSortRequest } from "../../browser/trackSort";
+import type { TrackMetadataChange, TrackMetadataOutcome } from "../../browser/trackMetadataCore";
+import type { SortRequest as TrackSortRequest } from "../../browser/trackSortCore";
 import type { TrackRequest, UrlTracksOutcome } from "../../browser/urlTracks";
+import type { SessionSnapshot } from "../../sessions/snapshot.ts";
 
 export type CommandFailure = { ok: false; code: string; error: string };
 export type CommandOutcome<Value> = { ok: true; value: Value } | CommandFailure;
+export type StateCommandOutcome<Value> =
+  | { ok: true; value: Value; snapshot?: SessionSnapshot }
+  | CommandFailure;
+
+/**
+ * Pure domain helpers injected into state commands so command definitions stay
+ * schema/type-only and run identically on the server and in a browser tab.
+ */
+export type StateCommandHelpers = {
+  normalizeRegion(
+    assemblyId: string,
+    region: { chromosome: string; start: number; end: number },
+  ):
+    | { ok: true; region: { chromosome: string; start: number; end: number }; clamped: boolean }
+    | CommandFailure;
+  sortTracks(
+    tracks: SessionSnapshot["tracks"],
+    pinnedTrackIds: readonly string[],
+    by: readonly TrackSortRequest[],
+  ): { ok: true; tracks: SessionSnapshot["tracks"] } | CommandFailure;
+  planTrackMetadata(
+    tracks: SessionSnapshot["tracks"],
+    trackIds: readonly string[],
+    change: TrackMetadataChange,
+  ): TrackMetadataOutcome;
+};
 
 /**
  * What a command acts on in the browser tab: the open session's stores, the same
@@ -15,13 +42,12 @@ export type CommandOutcome<Value> = { ok: true; value: Value } | CommandFailure;
  */
 export type CommandApp = {
   stores: GenomeBrowserStores;
-  /** Sort the loaded tracks once by fields in priority order, as the Sort tracks dialog does. */
-  sortTracks(sort: readonly TrackSortRequest[]): { ok: true } | CommandFailure;
-  /** Apply one change to the metadata of each listed track, changing every track or none. */
-  changeTrackMetadata(
-    trackIds: readonly string[],
-    change: TrackMetadataChange,
-  ): TrackMetadataOutcome;
+  /** Snapshot the open session's live stores for state commands delivered to a tab. */
+  snapshot(): SessionSnapshot;
+  /** Apply a state command's updated snapshot synchronously back onto the live stores. */
+  applySnapshot(next: SessionSnapshot): void;
+  /** Pure domain helpers shared with server-side execution of state commands. */
+  stateHelpers: StateCommandHelpers;
   /** Export the rendered browser, named after its region unless `filename` is given. */
   exportImage(
     format: BrowserImage["format"],
@@ -37,14 +63,7 @@ export type CommandApp = {
   ): Promise<UrlTracksOutcome>;
 };
 
-/**
- * Everything about one agent command. MCP publishes it as a tool named `name`,
- * built from `description`, `params`, and `result`; the browser tab runs `run`
- * against its open session. `run` makes edits synchronously, so they cannot land
- * after `signal` aborts; asynchronous work checks `signal` before any effect the
- * user would see.
- */
-export type Command<
+type CommandBase<
   Params extends z.ZodObject = z.ZodObject,
   Result extends z.ZodObject = z.ZodObject,
 > = {
@@ -59,6 +78,36 @@ export type Command<
    * MCP route's `maxDuration` must outlast it.
    */
   timeoutMs?: number;
+};
+
+/**
+ * A command that operates purely on `SessionSnapshot`. MCP runs it directly on
+ * the server (with 0..N open tabs) through `SessionService`, and a browser tab
+ * runs the exact same `run` function if delivered one.
+ */
+export type StateCommand<
+  Params extends z.ZodObject = z.ZodObject,
+  Result extends z.ZodObject = z.ZodObject,
+> = CommandBase<Params, Result> & {
+  target: "state";
+  /** When true, MCP reads from PostgreSQL via `load` instead of opening a write path. */
+  readonly?: true;
+  run(
+    snapshot: SessionSnapshot,
+    params: z.output<Params>,
+    helpers: StateCommandHelpers,
+  ): StateCommandOutcome<z.input<Result>>;
+};
+
+/**
+ * A command that requires browser DOM/CORS access (`export_image`, `add_tracks_from_urls`).
+ * MCP relays it to the session's attached browser tab.
+ */
+export type BrowserCommand<
+  Params extends z.ZodObject = z.ZodObject,
+  Result extends z.ZodObject = z.ZodObject,
+> = CommandBase<Params, Result> & {
+  target: "browser";
   run(
     app: CommandApp,
     params: z.output<Params>,
@@ -66,8 +115,19 @@ export type Command<
   ): CommandOutcome<z.input<Result>> | Promise<CommandOutcome<z.input<Result>>>;
 };
 
-export function defineCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
-  command: Command<Params, Result>,
-) {
-  return command;
+export type Command<
+  Params extends z.ZodObject = z.ZodObject,
+  Result extends z.ZodObject = z.ZodObject,
+> = StateCommand<Params, Result> | BrowserCommand<Params, Result>;
+
+export function defineStateCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
+  command: Omit<StateCommand<Params, Result>, "target">,
+): StateCommand<Params, Result> {
+  return { target: "state", ...command };
+}
+
+export function defineBrowserCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
+  command: Omit<BrowserCommand<Params, Result>, "target">,
+): BrowserCommand<Params, Result> {
+  return { target: "browser", ...command };
 }

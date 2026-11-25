@@ -1,12 +1,10 @@
 import type { AnyTrackInstance, TrackStoreInstance } from "@weng-lab/genomebrowser";
-import {
-  applyTrackSort,
-  type TrackSortDirection,
-  type TrackSortOption,
-  type TrackSortRule,
-  type TrackSortValue,
+import type {
+  TrackSortDirection,
+  TrackSortOption,
+  TrackSortValue,
 } from "@weng-lab/genomebrowser-ui";
-import { trackSortCollator } from "./trackSortCore";
+import { sortTrackList, trackSortCollator } from "./trackSortCore";
 
 const titleField: TrackSortOption = {
   id: "title",
@@ -74,25 +72,14 @@ type SortOutcome = { ok: true } | { ok: false; code: string; error: string };
 
 /**
  * Sort the store's tracks once by the given fields in priority order, as the dialog's
- * Apply order does. The fields are `title`, `type`, and `meta:<name>` for any metadata
- * field a loaded track has. Fails without changing the order when a field is unknown.
+ * Apply order does. Delegates to `sortTrackList` so UI and server MCP share one sort.
  */
 export function sortTracks(
   trackStore: TrackStoreInstance,
   sort: readonly TrackSortRequest[],
 ): SortOutcome {
-  const available = sortFields(trackStore.getState().tracks);
-  const rules: TrackSortRule[] = [];
-  const unknown: string[] = [];
-  for (const { field, direction = "ascending" } of sort) {
-    const option = available.find(({ id }) => id === field);
-    if (option) rules.push({ option, direction });
-    else unknown.push(`"${field}"`);
-  }
-  if (unknown.length > 0) {
-    const ids = available.map(({ id }) => `"${id}"`).join(", ");
-    const error = `Unknown sort field ${unknown.join(", ")}. Available fields: ${ids}`;
-    return { ok: false, code: "UNKNOWN_SORT_FIELD", error };
-  }
-  return applyTrackSort(trackStore, rules);
+  const { tracks, pinnedTrackIds, reorderTracks } = trackStore.getState();
+  const sorted = sortTrackList(tracks, pinnedTrackIds, sort);
+  if (!sorted.ok) return sorted;
+  return reorderTracks(sorted.tracks.map(({ base }) => base.id));
 }

@@ -4,7 +4,7 @@ import {
   trackVisibilitySchema,
   urlTrackTypeSchema,
 } from "../../browser/urlTrackTypes";
-import { defineCommand } from "./define";
+import { defineBrowserCommand } from "./define";
 import { metadataSetInputSchema } from "./trackMetadataSchema";
 
 const track = z.strictObject({
@@ -45,7 +45,7 @@ const track = z.strictObject({
     ),
 });
 
-export const addTracksFromUrls = defineCommand({
+export const addTracksFromUrls = defineBrowserCommand({
   name: "add_tracks_from_urls",
   description:
     "Add one or more tracks from the URLs of hosted genomic files, after checking that the browser can read each one. Types: bigwig (.bw, .bigWig), bigbed (.bb, .bigBed), bam (.bam, with a BAI index), gene (a BigGenePred BigBed file), and ccre-bigbed (an ENCODE cCRE BigBed file). The type is inferred from the file extension; pass type for gene and cCRE files, or when the URL has no such extension. Plain-text BED, bedGraph, and WIG files cannot be added; convert them to BigBed or BigWig first. Each track can also be given a color, a UCSC visibility, the BED columns of a BigBed file, and metadata fields, which have a size limit per track. The host must support byte-range requests and allow the browser to fetch the file (CORS). Adds every track or none: if any cannot be added, nothing is added and the error gives each failing URL with its reason. The tracks are added below the others, in the order given, and saved with the session, unless the session lacks room for all of them. Returns each track's ID, title, and type, in order.",
