@@ -106,7 +106,7 @@ Proof standards (aligned with [docs/contributing/verify.md](../../../docs/contri
 
 - **Exercise the real user path:** click real controls, fill real forms, and wait for real saves/renders.
 - **Capture action and resulting state:** for visual bug fixes or state changes, capture before and after screenshots (plus ARIA snapshot where text/roles matter). For multi-step flows, capture a `.webm` recording.
-- **Verify side effects independently:** after saving or mutating a session, region, or setting, reload the page or reopen it from a second view (`/sessions`, another route, or `GET /api/sessions`) and confirm the persisted state matches.
+- **Verify side effects independently:** after saving or mutating a session, region, or setting, reload the page or reopen it from a second view (the Sessions panel, another route, or `GET /api/sessions`) and confirm the persisted state matches.
 - **Check runtime health:** run `verify-web.mjs browser errors` before finishing and report any unexpected console or page errors.
 - **Report skipped or blocked paths honestly:** if a precondition (such as Redis for Remote Control, or external track host reachability) is unmet, report the attempted command and exact unmet precondition rather than weakening the check.
 

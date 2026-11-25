@@ -27,7 +27,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 
 - Capture both the user action (or before state) and the resulting state, not only the final screen.
 - UI proof includes an ARIA snapshot and a PNG screenshot (or `.webm` recording for multi-step flows) showing the app workspace and resulting state.
-- Mutation proof includes a read-only second view of the persisted value (reload the page, navigate to `/sessions`, or inspect the reopen result).
+- Mutation proof includes a read-only second view of the persisted value (reload the page, show the Sessions panel, or inspect the reopen result).
 - Check `.agents/skills/verify-web/scripts/verify-web.mjs browser errors` before finishing and report any page errors.
 - Report any unreachable path with the attempted command and exact unmet precondition (for example, Redis unavailable for Remote Control or an unreachable external genomic file host).
 - Never report a skipped entry point as verified through a different path.
@@ -45,7 +45,7 @@ Keep implementation details out of the map. Name only user paths, stable handles
 
 ## Features
 
-- [Sessions](./sessions.md) covers creating, opening, switching, inline renaming, copying, searching, and deleting saved sessions.
+- [Sessions](./sessions.md) covers the Sessions panel and creating, opening, switching, inline renaming, copying, searching, and deleting one or all saved sessions.
 - [Browser navigation and image export](./browser-navigation.md) covers coordinate search, pan/zoom controls, track sorting, and SVG/PNG download.
 - [Saved regions and groups](./saved-regions.md) covers saving the current view or custom coordinates, jumping to regions, grouping, hiding, and deleting regions.
 - [Add custom tracks](./add-tracks.md) covers pasting, reviewing, validating, and adding hosted BigWig, BigBed, BigGenePred, and BAM tracks.
