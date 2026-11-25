@@ -208,6 +208,7 @@ describe.skipIf(!available)("Eve agent chat", () => {
         exportImage: () => Promise.reject(new Error("Not rendered")),
         showImage: () => {},
         addTracksFromUrls: () => Promise.reject(new Error("Not tested")),
+        control: { take() {}, release() {} },
       };
       const result = await runCommand(app, message, lifetime.signal);
       expect(await relay!.reply(sessionId, { commandId: message.commandId, result })).toBe(true);
