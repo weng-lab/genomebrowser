@@ -143,6 +143,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   // Read `phase` through a getter across `yield*` boundaries so TypeScript does not
   // keep stale control-flow narrowing while other fibers or SSE callbacks mutate it.
   const currentPhase = (): WritePhase => phase;
+  const currentLocal = (): LocalSnapshot => local;
   let applyingRemote = false;
 
   let waiters: Deferred.Deferred<void, SessionRequestError>[] = [];
@@ -210,6 +211,9 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     if (phase.tag === "saved") settle();
     report();
     if (phase.tag === "dirty") Queue.offerUnsafe(edits, undefined);
+    if (next.tag === "valid" && phase.tag !== "conflict" && targetRevision > revision) {
+      Queue.offerUnsafe(syncRequests, undefined);
+    }
   }
 
   /**
@@ -224,6 +228,19 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
   ) {
     if (phase.tag === "ended" || phase.tag === "conflict") return;
 
+    const liveLocal = readLocal();
+    if (liveLocal.tag === "unserializable") {
+      // Do not overwrite unsaveable local work; defer reconciliation until local stores serialize.
+      local = liveLocal;
+      if (remote.revision > targetRevision) targetRevision = remote.revision;
+      if (fromWrite || (phase.tag !== "writing" && phase.tag !== "retrying")) {
+        phase = { tag: "refused", bodyKey: undefined, failure: unsaveable };
+      }
+      settle(unsaveable);
+      report();
+      return;
+    }
+
     if (remote.revision < revision) {
       if (fromWrite && phase.tag === "writing") {
         phase = nextPhaseFromLocal(local, phase.editedAt);
@@ -234,12 +251,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       return;
     }
 
-    let pendingLocal: SessionPatch | undefined;
-    try {
-      pendingLocal = diffSessionPatch(baseForPending, current());
-    } catch {
-      pendingLocal = undefined;
-    }
+    const pendingLocal = diffSessionPatch(baseForPending, liveLocal.doc);
 
     revision = remote.revision;
     if (targetRevision < revision) targetRevision = revision;
@@ -390,11 +402,18 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
         while (
           currentPhase().tag !== "ended" &&
           currentPhase().tag !== "conflict" &&
+          currentLocal().tag === "valid" &&
           targetRevision > revision
         ) {
           const loaded = yield* Effect.result(transport.load(id));
           const latestPhase = currentPhase();
-          if (latestPhase.tag === "ended" || latestPhase.tag === "conflict") break;
+          if (
+            latestPhase.tag === "ended" ||
+            latestPhase.tag === "conflict" ||
+            currentLocal().tag !== "valid"
+          ) {
+            break;
+          }
           if (Result.isFailure(loaded)) {
             if (loaded.failure.code === "NOT_FOUND") {
               endWith(loaded.failure);
@@ -421,6 +440,7 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
       Effect.gen(function* () {
         const reconnect = yield* Deferred.make<void>();
         const restart = () => Deferred.doneUnsafe(reconnect, Effect.void);
+        let streamErrored = false;
         yield* Effect.scoped(
           Effect.gen(function* () {
             let active = true;
@@ -444,7 +464,9 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
               if (sourceClientId === clientId || incomingRevision <= revision) return;
               if (incomingRevision > targetRevision) {
                 targetRevision = incomingRevision;
-                if (phase.tag !== "conflict") Queue.offerUnsafe(syncRequests, undefined);
+                if (phase.tag !== "conflict" && local.tag === "valid") {
+                  Queue.offerUnsafe(syncRequests, undefined);
+                }
               }
             });
             source.addEventListener("deleted", (message: MessageEvent<string>) => {
@@ -459,11 +481,33 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
               );
               restart();
             });
-            source.onerror = restart;
+            source.onerror = () => {
+              if (!active) return;
+              streamErrored = true;
+              restart();
+            };
             yield* Deferred.await(reconnect);
           }),
         );
-        if (phase.tag === "ended") return yield* Effect.never;
+        if (currentPhase().tag === "ended") return yield* Effect.never;
+        if (streamErrored) {
+          // EventSource hides HTTP status codes (e.g. 404 after deletion while offline,
+          // or 401 after sign-out). Revalidate so terminal failures stop reconnecting.
+          const check = yield* Effect.result(transport.load(id));
+          if (currentPhase().tag === "ended") return yield* Effect.never;
+          if (Result.isFailure(check)) {
+            if (check.failure.code === "NOT_FOUND" || check.failure.code === "UNAUTHENTICATED") {
+              endWith(check.failure);
+              return yield* Effect.never;
+            }
+          } else if (check.success.revision > revision) {
+            if (currentPhase().tag !== "conflict" && currentLocal().tag === "valid") {
+              reconcileRemote(check.success, syncedInput, { fromWrite: false });
+            } else if (check.success.revision > targetRevision) {
+              targetRevision = check.success.revision;
+            }
+          }
+        }
         streamFailures += 1;
         // Wake immediately if the browser comes back online during backoff.
         const online = Effect.callback<void>((resume) => {

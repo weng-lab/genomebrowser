@@ -239,3 +239,87 @@ it("keeps a conflicted tab frozen against remote updates until overwrite, while 
   await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("failed"));
   expect(clientA.state().active?.signal.aborted).toBe(true);
 });
+
+it("preserves unsaveable local edits across remote updates and reconciles once they become valid", async () => {
+  const initial = snapshot(createStores("hg38")!);
+  const id = server.add("Unsaveable session", initial);
+  const clientA = openClient();
+  const clientB = openClient();
+
+  await clientA.state().open(id);
+  await clientB.state().open(id);
+  await vi.waitFor(() => expect(LiveEventSource.streams.size).toBe(2));
+
+  // Put Client A's local store into an unserializable state (NaN serializes to null, failing schema).
+  clientA.stores().useBrowserStore.setState({ fontSize: Number.NaN });
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("failed"));
+
+  // Client B renames the session, broadcasting an SSE update hint.
+  clientB.state().rename("Renamed in B");
+  await vi.waitFor(() => expect(server.stored.get(id)!.name).toBe("Renamed in B"));
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 100);
+  });
+
+  // Client A must keep its refused state and unserializable local store untouched.
+  expect(clientA.state().saveStatus).toBe("failed");
+  expect(Number.isNaN(clientA.stores().useBrowserStore.getState().fontSize)).toBe(true);
+
+  // Fixing the local store reconciles Client B's rename while saving Client A's valid edit.
+  clientA.stores().useBrowserStore.setState({ fontSize: 19 });
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("saved"));
+  expect(clientA.state().active?.name).toBe("Renamed in B");
+  expect(clientA.stores().useBrowserStore.getState().fontSize).toBe(19);
+  expect(server.stored.get(id)!.name).toBe("Renamed in B");
+  expect(server.stored.get(id)!.snapshot.browser.fontSize).toBe(19);
+});
+
+it("detects a deletion missed while offline when SSE reconnect fails and stops retrying", async () => {
+  const initial = snapshot(createStores("hg38")!);
+  const id = server.add("Offline delete", initial);
+  const clientA = openClient();
+
+  await clientA.state().open(id);
+  await vi.waitFor(() => expect(LiveEventSource.streams.size).toBe(1));
+  const [stream] = [...LiveEventSource.streams];
+
+  // Delete the session on the server without broadcasting an SSE deleted event (missed while offline).
+  server.stored.delete(id);
+  stream.onerror?.();
+
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("failed"));
+  expect(clientA.state().error).toBe(
+    "This session was deleted elsewhere. Its changes cannot be saved.",
+  );
+  expect(clientA.state().active?.signal.aborted).toBe(true);
+  expect(LiveEventSource.streams.size).toBe(0);
+});
+
+it("does not undo a newer tab's region edit when another tab retries a lost-response PATCH", async () => {
+  const initial = snapshot(createStores("hg38")!);
+  const id = server.add("Lost response retry", initial);
+  const clientA = openClient();
+  const clientB = openClient();
+
+  await clientA.state().open(id);
+  await clientB.state().open(id);
+  await vi.waitFor(() => expect(LiveEventSource.streams.size).toBe(2));
+
+  // Tab A saves regionA, which commits on the server, but Tab A's response is lost.
+  const regionA = { chromosome: "chr1", start: 10_000, end: 20_000 };
+  const regionB = { chromosome: "chr2", start: 30_000, end: 40_000 };
+  server.lose("PATCH");
+  clientA.stores().useBrowserStore.getState().setRegion(regionA);
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("retrying"));
+  expect(server.stored.get(id)!.snapshot.browser.region).toEqual(regionA);
+
+  // Tab B then moves to regionB and saves before Tab A retries.
+  clientB.stores().useBrowserStore.getState().setRegion(regionB);
+  await vi.waitFor(() => expect(server.stored.get(id)!.snapshot.browser.region).toEqual(regionB));
+
+  // When Tab A's retry lands with the original saveId, server recognizes it and preserves regionB.
+  await vi.waitFor(() => expect(clientA.state().saveStatus).toBe("saved"), { timeout: 3000 });
+  expect(server.stored.get(id)!.snapshot.browser.region).toEqual(regionB);
+  expect(clientA.stores().useBrowserStore.getState().region).toEqual(regionB);
+  expect(clientB.stores().useBrowserStore.getState().region).toEqual(regionB);
+});
