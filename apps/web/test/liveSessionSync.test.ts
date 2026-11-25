@@ -7,8 +7,13 @@ import {
   createRedisSessionBus,
   type SessionBus,
 } from "../features/sessions/server/bus";
+import { openSessionEventStream } from "../features/sessions/server/http";
 import { createSessionService } from "../features/sessions/server/service";
-import { SessionError, type Sessions } from "../features/sessions/server/sessions";
+import {
+  maxRecentSaveIds,
+  SessionError,
+  type Sessions,
+} from "../features/sessions/server/sessions";
 import type {
   SavedSession,
   Session,
@@ -20,9 +25,9 @@ import { applyRemoteSnapshot, snapshot } from "../features/sessions/storeSnapsho
 import { diffSessionPatch, syncKey, type SessionEvent } from "../features/sessions/syncSchema";
 import { testNamespace, testRedisUrl } from "./redis";
 
-/** Pure in-memory `Sessions` repository for testing `SessionService` via DI without Postgres. */
+/** Pure in-memory `Sessions` repository matching PostgreSQL's `recent_save_ids` contract. */
 function createMemorySessions(): Sessions & { loadCount: number } {
-  const rows = new Map<string, SavedSession & { saveId: string | null; recentSaveIds: string[] }>();
+  const rows = new Map<string, SavedSession & { recentSaveIds: string[] }>();
   let loadCount = 0;
 
   const meta = (row: SavedSession): Session => ({
@@ -35,6 +40,37 @@ function createMemorySessions(): Sessions & { loadCount: number } {
     trackCount: row.trackCount,
   });
 
+  const strip = ({
+    recentSaveIds: _recent,
+    ...saved
+  }: SavedSession & { recentSaveIds: string[] }) => saved;
+
+  function writeUpdate(
+    id: string,
+    input: SessionUpdate,
+    { allowInterveningRetry }: { allowInterveningRetry: boolean },
+  ): { session: SavedSession; applied: boolean } {
+    const row = rows.get(id);
+    if (!row) throw new SessionError("NOT_FOUND", "Session not found");
+    const duplicate = allowInterveningRetry
+      ? row.recentSaveIds.includes(input.saveId)
+      : row.recentSaveIds.at(-1) === input.saveId && row.revision === input.revision + 1;
+    if (duplicate) return { session: strip(row), applied: false };
+    if (row.revision !== input.revision) throw new SessionError("CONFLICT", "Conflict");
+    const parsed = sessionSnapshotSchema.parse(input.snapshot);
+    const next: SavedSession & { recentSaveIds: string[] } = {
+      ...row,
+      name: input.name,
+      snapshot: parsed,
+      revision: row.revision + 1,
+      trackCount: parsed.tracks.length,
+      updatedAt: new Date(),
+      recentSaveIds: [...row.recentSaveIds, input.saveId].slice(-maxRecentSaveIds),
+    };
+    rows.set(id, next);
+    return { session: strip(next), applied: true };
+  }
+
   return {
     get loadCount() {
       return loadCount;
@@ -43,7 +79,7 @@ function createMemorySessions(): Sessions & { loadCount: number } {
       const id = crypto.randomUUID();
       const now = new Date();
       const parsed = sessionSnapshotSchema.parse(input.snapshot);
-      const row: SavedSession & { saveId: string | null; recentSaveIds: string[] } = {
+      const row: SavedSession & { recentSaveIds: string[] } = {
         id,
         name: input.name,
         createdAt: now,
@@ -52,7 +88,6 @@ function createMemorySessions(): Sessions & { loadCount: number } {
         assembly: parsed.browser.assembly,
         trackCount: parsed.tracks.length,
         snapshot: parsed,
-        saveId: null,
         recentSaveIds: [],
       };
       rows.set(id, row);
@@ -65,32 +100,14 @@ function createMemorySessions(): Sessions & { loadCount: number } {
       loadCount += 1;
       const row = rows.get(id);
       if (!row) throw new SessionError("NOT_FOUND", "Session not found");
-      const { saveId: _saveId, recentSaveIds: _recentSaveIds, ...saved } = row;
-      return saved;
-    },
-    async loadWithSaveId(id) {
-      const row = rows.get(id);
-      if (!row) throw new SessionError("NOT_FOUND", "Session not found");
-      return { ...row, recentSaveIds: [...row.recentSaveIds] };
+      return strip(row);
     },
     async update(id, input: SessionUpdate) {
-      const row = rows.get(id);
-      if (!row) throw new SessionError("NOT_FOUND", "Session not found");
-      if (row.saveId === input.saveId && row.revision === input.revision + 1) return meta(row);
-      if (row.revision !== input.revision) throw new SessionError("CONFLICT", "Conflict");
-      const parsed = sessionSnapshotSchema.parse(input.snapshot);
-      const next: SavedSession & { saveId: string | null; recentSaveIds: string[] } = {
-        ...row,
-        name: input.name,
-        snapshot: parsed,
-        revision: row.revision + 1,
-        trackCount: parsed.tracks.length,
-        updatedAt: new Date(),
-        saveId: input.saveId,
-        recentSaveIds: [...row.recentSaveIds, input.saveId].slice(-128),
-      };
-      rows.set(id, next);
-      return meta(next);
+      const { session } = writeUpdate(id, input, { allowInterveningRetry: false });
+      return meta(session);
+    },
+    async commit(id, input: SessionUpdate) {
+      return writeUpdate(id, input, { allowInterveningRetry: true });
     },
     async remove(id) {
       if (!rows.delete(id)) throw new SessionError("NOT_FOUND", "Session not found");
@@ -105,29 +122,23 @@ function defaultSnapshot(): SessionSnapshot {
   return snapshot(createStores("hg38")!);
 }
 
-async function readEvent(
-  stream: ReadableStream<Uint8Array>,
-): Promise<{ event: string; data: SessionEvent }> {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  try {
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) throw new Error("SSE stream closed before event arrived");
-      buffer += decoder.decode(value);
-      let idx: number;
-      while ((idx = buffer.indexOf("\n\n")) !== -1) {
-        const frame = buffer.slice(0, idx).split("\n");
-        buffer = buffer.slice(idx + 2);
-        const event = frame.find((line) => line.startsWith("event: "))?.slice(7);
-        const data = frame.find((line) => line.startsWith("data: "))?.slice(6);
-        if (event && data) return { event, data: JSON.parse(data) as SessionEvent };
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
+function createEventCollector() {
+  const queue: SessionEvent[] = [];
+  const waiters: ((event: SessionEvent) => void)[] = [];
+  return {
+    push(event: SessionEvent) {
+      const waiter = waiters.shift();
+      if (waiter) waiter(event);
+      else queue.push(event);
+    },
+    next(): Promise<SessionEvent> {
+      const queued = queue.shift();
+      if (queued) return Promise.resolve(queued);
+      return new Promise<SessionEvent>((resolve) => {
+        waiters.push(resolve);
+      });
+    },
+  };
 }
 
 describe("live session sync (SessionService + MemorySessionBus)", () => {
@@ -144,13 +155,15 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     // Subscribe two tabs at revision 1.
     const tabA = new AbortController();
     const tabB = new AbortController();
-    const streamA = await service.subscribe(created.id, tabA.signal, { sinceRevision: 1 });
-    const streamB = await service.subscribe(created.id, tabB.signal, { sinceRevision: 1 });
+    const eventsA = createEventCollector();
+    const eventsB = createEventCollector();
+    await service.subscribe(created.id, eventsA.push, tabA.signal, { sinceRevision: 1 });
+    await service.subscribe(created.id, eventsB.push, tabB.signal, { sinceRevision: 1 });
 
     const clientA = crypto.randomUUID();
     const clientB = crypto.randomUUID();
-    const nextA = readEvent(streamA);
-    const nextB = readEvent(streamB);
+    const nextA = eventsA.next();
+    const nextB = eventsB.next();
 
     // Tab A changes fontSize; Tab B renames concurrently.
     const [patchedA, patchedB] = await Promise.all([
@@ -171,30 +184,22 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     expect(final.name).toBe("Renamed live");
     expect(final.snapshot.browser.fontSize).toBe(16);
 
-    // Both streams receive lightweight revision hints (no snapshot payload).
+    // Both subscribers receive lightweight revision hints (no snapshot payload).
     const [evtA, evtB] = await Promise.all([nextA, nextB]);
-    expect(evtA.event).toBe("updated");
-    expect(evtA.data).toMatchObject({ type: "updated", revision: expect.any(Number) });
-    expect("session" in evtA.data).toBe(false);
-    expect(evtB.event).toBe("updated");
+    expect(evtA).toMatchObject({ type: "updated", revision: expect.any(Number) });
+    expect("session" in evtA).toBe(false);
+    expect(evtB.type).toBe("updated");
 
-    // Catch-up SSE sends a revision hint when `sinceRevision` is behind.
+    // Catch-up subscription sends a revision hint when `sinceRevision` is behind.
     const lateTab = new AbortController();
-    const lateStream = await service.subscribe(created.id, lateTab.signal, { sinceRevision: 1 });
-    const catchup = await readEvent(lateStream);
-    expect(catchup).toEqual({
-      event: "updated",
-      data: { type: "updated", revision: 3 },
-    });
+    const lateEvents = createEventCollector();
+    await service.subscribe(created.id, lateEvents.push, lateTab.signal, { sinceRevision: 1 });
+    expect(await lateEvents.next()).toEqual({ type: "updated", revision: 3 });
 
-    // Deleting notifies open streams immediately.
-    const deleteNotice = readEvent(lateStream);
+    // Deleting notifies open subscribers immediately.
+    const deleteNotice = lateEvents.next();
     await service.remove(created.id);
-    const deleted = await deleteNotice;
-    expect(deleted).toEqual({
-      event: "deleted",
-      data: { type: "deleted", sessionId: created.id },
-    });
+    expect(await deleteNotice).toEqual({ type: "deleted", sessionId: created.id });
 
     tabA.abort();
     tabB.abort();
@@ -255,7 +260,7 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     });
   });
 
-  it("diffs region pans, ignores derived track heights, and applies remote snapshots while preserving unchanged track refs", () => {
+  it("diffs region pans, ignores derived track heights and jsonb key order, and preserves unchanged track refs", () => {
     const stores = createStores("hg38")!;
     const beforeTracks = [...stores.useTrackStore.getState().tracks];
     const base = { name: "Test", snapshot: defaultSnapshot() };
@@ -395,14 +400,22 @@ describe("live session sync (SessionService + MemorySessionBus)", () => {
     });
 
     const abort = new AbortController();
-    const subscribing = service.subscribe(created.id, abort.signal, { sinceRevision: 1 });
+    const opening = openSessionEventStream(
+      new Request(`http://localhost/api/sessions/${created.id}/events?sinceRevision=1`, {
+        signal: abort.signal,
+      }),
+      created.id,
+      async () => service,
+    );
+    await Promise.resolve();
     await Promise.resolve();
     // Client disconnects while authorize() is still pending.
     abort.abort();
     releaseAuth();
 
-    const stream = await subscribing;
-    const reader = stream.getReader();
+    const response = await opening;
+    expect(response.status).toBe(200);
+    const reader = response.body!.getReader();
     expect(await reader.read()).toEqual({ done: true, value: undefined });
     reader.releaseLock();
     await bus.close();
@@ -436,10 +449,11 @@ describe.skipIf(!testRedisUrl)("RedisSessionBus cross-instance pub/sub", () => {
     const created = await serviceA.create({ name: "Cross-instance", snapshot: defaultSnapshot() });
 
     const controller = new AbortController();
-    const streamOnB = await serviceB.subscribe(created.id, controller.signal, { sinceRevision: 1 });
-    const received = readEvent(streamOnB);
+    const eventsOnB = createEventCollector();
+    await serviceB.subscribe(created.id, eventsOnB.push, controller.signal, { sinceRevision: 1 });
+    const received = eventsOnB.next();
 
-    // Instance A mutates; Instance B's SSE stream receives the revision hint via Redis pub/sub.
+    // Instance A mutates; Instance B's subscriber receives the revision hint via Redis pub/sub.
     const sourceClientId = crypto.randomUUID();
     await serviceA.patch(created.id, {
       clientId: sourceClientId,
@@ -447,11 +461,7 @@ describe.skipIf(!testRedisUrl)("RedisSessionBus cross-instance pub/sub", () => {
       patch: { browser: { fontSize: 16 } },
     });
 
-    const evt = await received;
-    expect(evt).toEqual({
-      event: "updated",
-      data: { type: "updated", revision: 2, sourceClientId },
-    });
+    expect(await received).toEqual({ type: "updated", revision: 2, sourceClientId });
 
     controller.abort();
   });

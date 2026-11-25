@@ -2,7 +2,7 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createMemorySessionBus } from "../features/sessions/server/bus";
 import { createSessionService } from "../features/sessions/server/service";
-import { createSessions } from "../features/sessions/server/sessions";
+import { createSessions, maxRecentSaveIds } from "../features/sessions/server/sessions";
 import type { SessionInput, SessionUpdate } from "../features/sessions/schema";
 import { sessionsTable } from "../features/sessions/server/table";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
@@ -256,6 +256,36 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     expect(retried.revision).toBe(3);
     expect(retried.snapshot.browser.region).toEqual(regionB);
     expect((await service.load(created.id)).snapshot.browser.region).toEqual(regionB);
+
+    // Caps recent_save_ids at `maxRecentSaveIds` (128), dropping the oldest once full.
+    let currentRevision = 3;
+    for (let i = 0; i < maxRecentSaveIds - 1; i++) {
+      const next = await alice().commit(created.id, {
+        name: "Postgres retry",
+        snapshot: snapshot({ fontSize: 12 + (i % 10) }),
+        revision: currentRevision,
+        saveId: crypto.randomUUID(),
+      });
+      expect(next.applied).toBe(true);
+      currentRevision = next.session.revision;
+    }
+    // `saveA` was pushed out after 128 newer writes (saveB + 127 more), while `saveB` is still kept.
+    const keptB = await alice().commit(created.id, {
+      name: "Should not apply",
+      snapshot: snapshot({ fontSize: 99 }),
+      revision: currentRevision,
+      saveId: saveB,
+    });
+    expect(keptB.applied).toBe(false);
+
+    const evictedA = await alice().commit(created.id, {
+      name: "Evicted saveId applies again",
+      snapshot: snapshot({ fontSize: 22 }),
+      revision: currentRevision,
+      saveId: saveA,
+    });
+    expect(evictedA.applied).toBe(true);
+    expect(evictedA.session.revision).toBe(currentRevision + 1);
 
     await bus.close();
   });

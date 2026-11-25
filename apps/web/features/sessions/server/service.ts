@@ -1,5 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { z } from "zod";
 import {
   maxSessionBytes,
   type SavedSession,
@@ -8,26 +9,17 @@ import {
   type SessionUpdate,
 } from "../schema";
 import type { SessionSnapshot } from "../snapshot.ts";
-import {
-  applySessionPatch,
-  sessionPatchRequestSchema,
-  type SessionEvent,
-  type SessionPatchRequest,
-} from "../syncSchema";
+import { applySessionPatch, sessionPatchRequestSchema, type SessionEvent } from "../syncSchema";
 import type { SessionBus } from "./bus";
 import { SessionError, type Sessions } from "./sessions";
 
-export type SessionMutationResult =
-  | { ok: true; name: string; snapshot: SessionSnapshot }
+export type SessionMutationOutcome<T> =
+  | { ok: true; session: SavedSession; value: T }
   | { ok: false; code: string; error: string };
 
 export type SessionServiceOptions = {
   sessions: Sessions;
   bus: SessionBus;
-  /** How often an open SSE stream sends a keep-alive comment. Defaults to 15s. */
-  heartbeatIntervalMs?: number;
-  /** How long one SSE stream stays open before ending cleanly so clients reconnect. Defaults to 240s. */
-  streamLifetimeMs?: number;
 };
 
 /**
@@ -44,49 +36,39 @@ export type SessionService = {
   /** Full conditional replacement (`PUT`), persisting to DB and publishing a revision hint. */
   update(id: string, input: SessionUpdate, options?: { sourceClientId?: string }): Promise<Session>;
   /** Partial merge (`PATCH`) from a browser tab, retrying cleanly on concurrent edits. */
-  patch(id: string, request: SessionPatchRequest): Promise<SavedSession>;
+  patch(id: string, request: unknown): Promise<SavedSession>;
   /**
    * Apply a domain mutation atomically against the latest persisted state,
    * persist to PostgreSQL, and publish a revision hint to subscribed clients.
    */
-  mutate<T = SavedSession>(
+  mutate<T>(
     id: string,
     apply: (
       current: SavedSession,
     ) =>
-      | { ok: true; name: string; snapshot: SessionSnapshot; value?: T }
+      | { ok: true; name: string; snapshot: SessionSnapshot; value: T }
       | { ok: false; code: string; error: string },
-    options?: { sourceClientId?: string; saveId?: string },
-  ): Promise<
-    { ok: true; session: SavedSession; value: T } | { ok: false; code: string; error: string }
-  >;
+    options?: { sourceClientId?: string },
+  ): Promise<SessionMutationOutcome<T>>;
   /** Delete from PostgreSQL and notify all open clients immediately. */
   remove(id: string): Promise<void>;
   authorize(id: string): Promise<void>;
   /**
-   * Open an SSE stream of live `updated` hints and `deleted` notices for `id`.
-   * Sends an immediate catch-up `updated` hint when `sinceRevision` is behind.
+   * Subscribe to live `updated` hints and `deleted` notices for `id`, checking
+   * PostgreSQL for catch-up updates after subscribing so no concurrent event is
+   * missed. Delivers events to `onEvent` until `signal` aborts or deletion fires.
    */
   subscribe(
     id: string,
+    onEvent: (event: SessionEvent) => void,
     signal: AbortSignal,
-    options?: { sinceRevision?: number },
-  ): Promise<ReadableStream<Uint8Array>>;
+    options?: { sinceRevision?: number; onDisconnect?: () => void },
+  ): Promise<void>;
 };
-
-type StreamPhase =
-  | { tag: "buffering"; sentRevision: number; buffered: SessionEvent[] }
-  | { tag: "live"; sentRevision: number }
-  | { tag: "closed" };
 
 const maxMergeAttempts = 4;
 
-export function createSessionService({
-  sessions,
-  bus,
-  heartbeatIntervalMs = 15_000,
-  streamLifetimeMs = 240_000,
-}: SessionServiceOptions): SessionService {
+export function createSessionService({ sessions, bus }: SessionServiceOptions): SessionService {
   async function publishUpdated(id: string, revision: number, sourceClientId?: string) {
     await bus.publish(id, {
       type: "updated",
@@ -95,54 +77,17 @@ export function createSessionService({
     });
   }
 
-  async function mutate<T = SavedSession>(
-    id: string,
-    apply: (
-      current: SavedSession,
-    ) =>
-      | { ok: true; name: string; snapshot: SessionSnapshot; value?: T }
-      | { ok: false; code: string; error: string },
-    options: { sourceClientId?: string; saveId?: string } = {},
-  ): Promise<
-    { ok: true; session: SavedSession; value: T } | { ok: false; code: string; error: string }
-  > {
-    const saveId = options.saveId ?? randomUUID();
+  function assertWithinSizeLimit(name: string, snapshot: SessionSnapshot) {
+    const bytes = new TextEncoder().encode(JSON.stringify({ name, snapshot })).byteLength;
+    if (bytes > maxSessionBytes) {
+      throw new SessionError("INVALID_INPUT", "Sessions are limited to 1 MB");
+    }
+  }
 
+  async function retryOnConflict<R>(operation: () => Promise<R>): Promise<R> {
     for (let attempt = 0; attempt < maxMergeAttempts; attempt++) {
-      const current = await sessions.loadWithSaveId(id);
-      if (
-        options.saveId &&
-        (current.saveId === options.saveId || current.recentSaveIds.includes(options.saveId))
-      ) {
-        const { saveId: _ignored, recentSaveIds: _recent, ...saved } = current;
-        return { ok: true, session: saved, value: saved as unknown as T };
-      }
-
-      const { saveId: _saveId, recentSaveIds: _recentSaveIds, ...savedCurrent } = current;
-      const result = apply(savedCurrent);
-      if (!result.ok) return result;
-
-      const bytes = new TextEncoder().encode(
-        JSON.stringify({ name: result.name, snapshot: result.snapshot }),
-      ).byteLength;
-      if (bytes > maxSessionBytes) {
-        throw new SessionError("INVALID_INPUT", "Sessions are limited to 1 MB");
-      }
-
       try {
-        const meta = await sessions.update(id, {
-          name: result.name,
-          snapshot: result.snapshot,
-          revision: savedCurrent.revision,
-          saveId,
-        });
-        const saved: SavedSession = { ...meta, snapshot: result.snapshot };
-        await publishUpdated(saved.id, saved.revision, options.sourceClientId);
-        return {
-          ok: true,
-          session: saved,
-          value: (result.value !== undefined ? result.value : saved) as T,
-        };
+        return await operation();
       } catch (error) {
         if (
           error instanceof SessionError &&
@@ -171,29 +116,57 @@ export function createSessionService({
     async patch(id, rawRequest) {
       const parsed = sessionPatchRequestSchema.safeParse(rawRequest);
       if (!parsed.success) {
-        throw new SessionError("INVALID_INPUT", "Invalid session patch request");
+        throw new SessionError("INVALID_INPUT", z.prettifyError(parsed.error));
       }
       const { clientId, saveId, patch } = parsed.data;
-      const outcome = await mutate(
-        id,
-        (current) => {
-          try {
-            const next = applySessionPatch(current, patch);
-            return { ok: true, ...next };
-          } catch (cause) {
-            throw new SessionError(
-              "INVALID_INPUT",
-              cause instanceof Error ? cause.message : "Invalid session patch",
-            );
-          }
-        },
-        { sourceClientId: clientId, saveId },
-      );
-      if (!outcome.ok) throw new SessionError("INVALID_INPUT", outcome.error);
-      return outcome.session;
+      return retryOnConflict(async () => {
+        const current = await sessions.load(id);
+        let next: { name: string; snapshot: SessionSnapshot };
+        try {
+          next = applySessionPatch(current, patch);
+        } catch (cause) {
+          throw new SessionError(
+            "INVALID_INPUT",
+            cause instanceof Error ? cause.message : "Invalid session patch",
+          );
+        }
+        assertWithinSizeLimit(next.name, next.snapshot);
+        const { session, applied } = await sessions.commit(id, {
+          name: next.name,
+          snapshot: next.snapshot,
+          revision: current.revision,
+          saveId,
+        });
+        if (applied) await publishUpdated(session.id, session.revision, clientId);
+        return session;
+      });
     },
 
-    mutate,
+    mutate<T>(
+      id: string,
+      apply: (
+        current: SavedSession,
+      ) =>
+        | { ok: true; name: string; snapshot: SessionSnapshot; value: T }
+        | { ok: false; code: string; error: string },
+      options: { sourceClientId?: string } = {},
+    ): Promise<SessionMutationOutcome<T>> {
+      const saveId = randomUUID();
+      return retryOnConflict(async () => {
+        const current = await sessions.load(id);
+        const result = apply(current);
+        if (!result.ok) return result;
+        assertWithinSizeLimit(result.name, result.snapshot);
+        const { session, applied } = await sessions.commit(id, {
+          name: result.name,
+          snapshot: result.snapshot,
+          revision: current.revision,
+          saveId,
+        });
+        if (applied) await publishUpdated(session.id, session.revision, options.sourceClientId);
+        return { ok: true, session, value: result.value };
+      });
+    },
 
     async remove(id) {
       await sessions.remove(id);
@@ -202,134 +175,67 @@ export function createSessionService({
 
     authorize: (id) => sessions.authorize(id),
 
-    async subscribe(id, signal, { sinceRevision } = {}) {
+    async subscribe(id, onEvent, signal, { sinceRevision, onDisconnect } = {}) {
       await sessions.authorize(id);
-      if (signal.aborted) {
-        return new ReadableStream<Uint8Array>({
-          start(streamController) {
-            streamController.close();
-          },
-        });
-      }
-      const streamAbort = new AbortController();
-      const encoder = new TextEncoder();
-      let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
-      let heartbeat: ReturnType<typeof setInterval> | undefined;
-      let lifetime: ReturnType<typeof setTimeout> | undefined;
-      let state: StreamPhase = {
-        tag: "buffering",
-        sentRevision: sinceRevision ?? 0,
-        buffered: [],
-      };
-      // Read `state` through a getter across `await` points so TypeScript does not
-      // keep stale narrowing while abort/cancel/bus callbacks transition the stream.
-      const currentState = (): StreamPhase => state;
+      if (signal.aborted) return;
 
-      const close = () => {
-        if (state.tag === "closed") return;
-        state = { tag: "closed" };
-        clearInterval(heartbeat);
-        clearTimeout(lifetime);
-        streamAbort.abort();
-        try {
-          controller?.close();
-        } catch {
-          // Stream was already closed or cancelled.
-        }
-      };
+      let sentRevision = sinceRevision ?? 0;
+      let ready = false;
+      let stopped = false;
+      const buffered: SessionEvent[] = [];
 
-      const write = (text: string) => {
-        if (state.tag === "closed") return;
-        try {
-          controller?.enqueue(encoder.encode(text));
-        } catch {
-          close();
-        }
+      const stop = () => {
+        stopped = true;
       };
+      signal.addEventListener("abort", stop, { once: true });
 
-      const emit = (event: SessionEvent) => {
-        if (state.tag === "closed") return;
+      const deliver = (event: SessionEvent) => {
+        if (stopped || signal.aborted) return;
         if (event.type === "updated") {
-          if (event.revision <= state.sentRevision) return;
-          state.sentRevision = event.revision;
-          write(`event: updated\ndata: ${JSON.stringify(event)}\n\n`);
-          return;
+          if (event.revision <= sentRevision) return;
+          sentRevision = event.revision;
+        } else {
+          stopped = true;
         }
-        write(`event: deleted\ndata: ${JSON.stringify(event)}\n\n`);
-        close();
+        onEvent(event);
       };
-
-      const stream = new ReadableStream<Uint8Array>({
-        start(streamController) {
-          controller = streamController;
-        },
-        cancel() {
-          controller = undefined;
-          close();
-        },
-      });
-
-      const onSignalAbort = () => close();
-      signal.addEventListener("abort", onSignalAbort, { once: true });
-
-      heartbeat = setInterval(() => {
-        write(": heartbeat\n\n");
-      }, heartbeatIntervalMs);
-      lifetime = setTimeout(() => {
-        close();
-      }, streamLifetimeMs);
 
       try {
         // Subscribe BEFORE checking catch-up revision so no concurrent update falls between.
         await bus.subscribe(
           id,
           (event) => {
-            if (state.tag === "buffering") state.buffered.push(event);
-            else if (state.tag === "live") emit(event);
+            if (stopped || signal.aborted) return;
+            if (!ready) buffered.push(event);
+            else deliver(event);
           },
-          streamAbort.signal,
-          close,
+          signal,
+          onDisconnect,
         );
-
-        write(": connected\n\n");
 
         try {
           const current = await sessions.load(id);
-          const active = currentState();
-          if (active.tag === "buffering" && current.revision > active.sentRevision) {
-            emit({ type: "updated", revision: current.revision });
+          if (!stopped && !signal.aborted && current.revision > sentRevision) {
+            deliver({ type: "updated", revision: current.revision });
           }
         } catch (error) {
           if (error instanceof SessionError && error.code === "NOT_FOUND") {
-            emit({ type: "deleted", sessionId: id });
+            deliver({ type: "deleted", sessionId: id });
           } else {
             throw error;
           }
         }
 
-        const readyState = currentState();
-        if (readyState.tag === "buffering") {
-          state = { tag: "live", sentRevision: readyState.sentRevision };
-          for (const event of readyState.buffered) {
-            if (currentState().tag !== "live") break;
-            emit(event);
-          }
+        ready = true;
+        for (const event of buffered) {
+          if (stopped || signal.aborted) break;
+          deliver(event);
         }
+        buffered.length = 0;
       } catch (error) {
-        signal.removeEventListener("abort", onSignalAbort);
-        close();
+        signal.removeEventListener("abort", stop);
         throw error;
       }
-
-      streamAbort.signal.addEventListener(
-        "abort",
-        () => {
-          signal.removeEventListener("abort", onSignalAbort);
-        },
-        { once: true },
-      );
-
-      return stream;
     },
   };
 }

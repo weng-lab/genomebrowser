@@ -32,7 +32,6 @@ type Stored = {
   createdAt: Date;
   updatedAt: Date;
   revision: number;
-  saveId?: string;
   recentSaveIds: string[];
 };
 type Outcome = Response | undefined | "lost";
@@ -168,7 +167,7 @@ export function installSessionServer() {
       const parsed = sessionPatchRequestSchema.safeParse(body);
       if (!parsed.success) return rejected("INVALID_INPUT", 400);
       const { saveId, patch } = parsed.data;
-      if (session.saveId === saveId || session.recentSaveIds.includes(saveId))
+      if (session.recentSaveIds.includes(saveId))
         return json({ ...metadata(id, session), snapshot: session.snapshot });
       let next: { name: string; snapshot: SessionSnapshot };
       try {
@@ -182,7 +181,6 @@ export function installSessionServer() {
       Object.assign(session, {
         ...next,
         revision: session.revision + 1,
-        saveId,
         recentSaveIds: [...session.recentSaveIds, saveId].slice(-128),
         updatedAt: new Date(),
       });
@@ -191,7 +189,7 @@ export function installSessionServer() {
     const parsed = sessionUpdateSchema.safeParse(body);
     if (!parsed.success) return rejected("INVALID_INPUT", 400);
     const { revision, saveId, ...input } = parsed.data;
-    if (session.saveId === saveId && session.revision === revision + 1)
+    if (session.recentSaveIds.at(-1) === saveId && session.revision === revision + 1)
       return json(metadata(id, session));
     if (input.snapshot.browser.assembly !== session.snapshot.browser.assembly)
       return rejected("ASSEMBLY_CHANGED", 409);
@@ -199,7 +197,6 @@ export function installSessionServer() {
     Object.assign(session, {
       ...input,
       revision: revision + 1,
-      saveId,
       recentSaveIds: [...session.recentSaveIds, saveId].slice(-128),
       updatedAt: new Date(),
     });

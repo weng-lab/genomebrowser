@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { maxSessionBytes, type SessionErrorCode } from "../schema";
-import { sessionPatchRequestSchema } from "../syncSchema";
+import type { SessionEvent } from "../syncSchema";
 import { readJsonBody } from "../../../shared/server/readJsonBody";
 import { parseSessionInput, parseSessionUpdate, SessionError } from "./sessions";
 import type { SessionService } from "./service";
@@ -47,20 +47,24 @@ export async function readSessionUpdate(request: Request) {
   return parseSessionUpdate(await readJson(request));
 }
 
-/** Read and validate a partial live edit (`PATCH`) of at most 1 MB. */
-export async function readSessionPatch(request: Request) {
-  const result = sessionPatchRequestSchema.safeParse(await readJson(request));
-  if (!result.success) throw new SessionError("INVALID_INPUT", z.prettifyError(result.error));
-  return result.data;
+/** Read a raw JSON body of at most 1 MB for `SessionService.patch` to validate once. */
+export async function readSessionPatch(request: Request): Promise<unknown> {
+  return readJson(request);
 }
 
 const sinceRevisionSchema = z.coerce.number().int().nonnegative();
+const defaultHeartbeatIntervalMs = 15_000;
+const defaultStreamLifetimeMs = 240_000;
 
 /** Open the SSE stream of live session updates and deletion notices for one tab. */
 export async function openSessionEventStream(
   request: Request,
   sessionId: string,
   getService: () => Promise<SessionService>,
+  {
+    heartbeatIntervalMs = defaultHeartbeatIntervalMs,
+    streamLifetimeMs = defaultStreamLifetimeMs,
+  }: { heartbeatIntervalMs?: number; streamLifetimeMs?: number } = {},
 ) {
   const rawSince = new URL(request.url).searchParams.get("sinceRevision");
   let sinceRevision: number | undefined;
@@ -77,7 +81,77 @@ export async function openSessionEventStream(
 
   try {
     const service = await getService();
-    const stream = await service.subscribe(sessionId, request.signal, { sinceRevision });
+    const streamAbort = new AbortController();
+    const encoder = new TextEncoder();
+    let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
+    let heartbeat: ReturnType<typeof setInterval> | undefined;
+    let lifetime: ReturnType<typeof setTimeout> | undefined;
+    let closed = false;
+
+    const onRequestAbort = () => close();
+
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      clearInterval(heartbeat);
+      clearTimeout(lifetime);
+      request.signal.removeEventListener("abort", onRequestAbort);
+      streamAbort.abort();
+      try {
+        controller?.close();
+      } catch {
+        // Stream was already closed or cancelled.
+      }
+    };
+
+    const write = (text: string) => {
+      if (closed) return;
+      try {
+        controller?.enqueue(encoder.encode(text));
+      } catch {
+        close();
+      }
+    };
+
+    const writeEvent = (event: SessionEvent) => {
+      if (event.type === "updated") {
+        write(`event: updated\ndata: ${JSON.stringify(event)}\n\n`);
+        return;
+      }
+      write(`event: deleted\ndata: ${JSON.stringify(event)}\n\n`);
+      close();
+    };
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(streamController) {
+        controller = streamController;
+      },
+      cancel() {
+        controller = undefined;
+        close();
+      },
+    });
+
+    if (request.signal.aborted) {
+      close();
+    } else {
+      request.signal.addEventListener("abort", onRequestAbort, { once: true });
+      try {
+        await service.subscribe(sessionId, writeEvent, streamAbort.signal, {
+          sinceRevision,
+          onDisconnect: close,
+        });
+      } catch (error) {
+        close();
+        throw error;
+      }
+      if (!closed) {
+        write(": connected\n\n");
+        heartbeat = setInterval(() => write(": heartbeat\n\n"), heartbeatIntervalMs);
+        lifetime = setTimeout(close, streamLifetimeMs);
+      }
+    }
+
     return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",

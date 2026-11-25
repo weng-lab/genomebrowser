@@ -45,18 +45,23 @@ export type Sessions = {
   /** Metadata only, alphabetically by name. */
   list(): Promise<Session[]>;
   load(id: string): Promise<SavedSession>;
-  /** Load the latest session alongside its applied save IDs for idempotent patch merges. */
-  loadWithSaveId(
-    id: string,
-  ): Promise<SavedSession & { saveId: string | null; recentSaveIds: string[] }>;
-  /** Replace the name and snapshot of an existing session. Never recreates a deleted one. */
+  /**
+   * Replace the name and snapshot at an exact revision (`PUT`). Recognizes a
+   * retry of the immediately preceding save ID, and never recreates a deleted session.
+   */
   update(id: string, input: SessionUpdate): Promise<Session>;
+  /**
+   * Commit a conditional update (`PATCH` / domain mutation), recognizing any
+   * `saveId` still in the session's recent save-ID history even after intervening
+   * writes. Returns `applied: false` when `saveId` was already applied.
+   */
+  commit(id: string, input: SessionUpdate): Promise<{ session: SavedSession; applied: boolean }>;
   remove(id: string): Promise<void>;
   /** Succeeds when the acting user owns the session, without loading it. */
   authorize(id: string): Promise<void>;
 };
 
-const maxRecentSaveIds = 128;
+export const maxRecentSaveIds = 128;
 
 const metadata = {
   id: sessionsTable.id,
@@ -86,6 +91,67 @@ export function createSessions({
     // Only database-generated UUIDs name sessions; any other ID matches nothing.
     if (!sessionIdSchema.safeParse(id).success) throw notFound();
     return and(eq(sessionsTable.id, id), eq(sessionsTable.owner, owner));
+  }
+
+  async function writeUpdate(
+    id: string,
+    input: SessionUpdate,
+    { allowInterveningRetry }: { allowInterveningRetry: boolean },
+  ): Promise<{ session: SavedSession; applied: boolean }> {
+    const owner = await actingUser();
+    const { name, snapshot, revision, saveId } = parseSessionUpdate(input);
+    // One statement checks the revision, stored assembly, and recent save IDs
+    // atomically, so concurrent writes and retries cannot interleave.
+    const [updated] = await db
+      .update(sessionsTable)
+      .set({
+        name,
+        snapshot,
+        revision: sql`${sessionsTable.revision} + 1`,
+        recentSaveIds: sql`(array_append(${sessionsTable.recentSaveIds}, ${saveId}::uuid))[greatest(1, cardinality(${sessionsTable.recentSaveIds}) + 2 - ${maxRecentSaveIds}):]`,
+        updatedAt: sql`now()`,
+      })
+      .where(
+        and(
+          owned(owner, id),
+          eq(sessionsTable.revision, revision),
+          sql`${sessionsTable.snapshot}->'browser'->>'assembly' = ${snapshot.browser.assembly}`,
+          sql`NOT (${saveId}::uuid = ANY(${sessionsTable.recentSaveIds}))`,
+        ),
+      )
+      .returning(metadata);
+    if (updated) return { session: { ...updated, snapshot }, applied: true };
+
+    // Nothing was written. Any state read now is one the update could have met.
+    const [existing] = await db
+      .select({
+        ...metadata,
+        snapshot: sessionsTable.snapshot,
+        recentSaveIds: sessionsTable.recentSaveIds,
+      })
+      .from(sessionsTable)
+      .where(owned(owner, id));
+    if (!existing) throw notFound();
+    const { recentSaveIds, snapshot: existingSnapshot, ...meta } = existing;
+    const isDuplicate = allowInterveningRetry
+      ? recentSaveIds.includes(saveId)
+      : recentSaveIds.at(-1) === saveId && meta.revision === revision + 1;
+    if (isDuplicate) {
+      return {
+        session: { ...meta, snapshot: sessionSnapshotSchema.parse(existingSnapshot) },
+        applied: false,
+      };
+    }
+    if (meta.assembly !== snapshot.browser.assembly) {
+      throw new SessionError(
+        "ASSEMBLY_CHANGED",
+        "A session's assembly cannot change; create a new session instead",
+      );
+    }
+    throw new SessionError(
+      "CONFLICT",
+      "This session was saved elsewhere since these changes were based on it",
+    );
   }
 
   return {
@@ -118,63 +184,14 @@ export function createSessions({
       return { ...saved, snapshot: sessionSnapshotSchema.parse(saved.snapshot) };
     },
 
-    async loadWithSaveId(id) {
-      const owner = await actingUser();
-      const [saved] = await db
-        .select({
-          ...metadata,
-          snapshot: sessionsTable.snapshot,
-          saveId: sessionsTable.saveId,
-          recentSaveIds: sessionsTable.recentSaveIds,
-        })
-        .from(sessionsTable)
-        .where(owned(owner, id));
-      if (!saved) throw notFound();
-      return { ...saved, snapshot: sessionSnapshotSchema.parse(saved.snapshot) };
+    async update(id, input) {
+      const { session } = await writeUpdate(id, input, { allowInterveningRetry: false });
+      const { snapshot: _snapshot, ...meta } = session;
+      return meta;
     },
 
-    async update(id, input) {
-      const owner = await actingUser();
-      const { name, snapshot, revision, saveId } = parseSessionUpdate(input);
-      // One statement checks the revision and stored assembly and records the
-      // save ID, so concurrent writes cannot interleave between them.
-      const [updated] = await db
-        .update(sessionsTable)
-        .set({
-          name,
-          snapshot,
-          revision: sql`${sessionsTable.revision} + 1`,
-          saveId,
-          recentSaveIds: sql`(array_append(${sessionsTable.recentSaveIds}, ${saveId}::uuid))[greatest(1, coalesce(array_length(${sessionsTable.recentSaveIds}, 1), 0) + 2 - ${maxRecentSaveIds}):coalesce(array_length(${sessionsTable.recentSaveIds}, 1), 0) + 1]`,
-          updatedAt: sql`now()`,
-        })
-        .where(
-          and(
-            owned(owner, id),
-            eq(sessionsTable.revision, revision),
-            sql`${sessionsTable.snapshot}->'browser'->>'assembly' = ${snapshot.browser.assembly}`,
-          ),
-        )
-        .returning(metadata);
-      if (updated) return updated;
-      // Nothing was written. Any state read now is one the update could have met.
-      const [existing] = await db
-        .select({ ...metadata, saveId: sessionsTable.saveId })
-        .from(sessionsTable)
-        .where(owned(owner, id));
-      if (!existing) throw notFound();
-      const { saveId: lastSaveId, ...session } = existing;
-      if (lastSaveId === saveId && session.revision === revision + 1) return session;
-      if (session.assembly !== snapshot.browser.assembly) {
-        throw new SessionError(
-          "ASSEMBLY_CHANGED",
-          "A session's assembly cannot change; create a new session instead",
-        );
-      }
-      throw new SessionError(
-        "CONFLICT",
-        "This session was saved elsewhere since these changes were based on it",
-      );
+    commit(id, input) {
+      return writeUpdate(id, input, { allowInterveningRetry: true });
     },
 
     async remove(id) {
