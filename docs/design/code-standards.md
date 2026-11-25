@@ -52,5 +52,8 @@ Keep labels visible, name icon actions, never use color as the sole state signal
 - Disabling agents in account settings blocks all agent access, not just the UI panel. Manual browsing keeps working when agents are off, unavailable, or rate-limited.
 - Images an agent exports go to the user, never into model context.
 - A session ID alone grants nothing: authorize every agent request against the signed-in owner.
+- The agent is for signed-in users. Each saved session has one agent thread; the app stores only its current Eve session ID, never transcripts, and every read, follow-up, and Stop must name that session's thread.
+- A run lives only while a tab holds its session. Stop always works, even with agents off. A stopped or failed run keeps its completed changes and applies no more, and the agent reports a change as done only after its tool succeeds.
+- The control lock is for workflows of several steps and never outlives its run. It blocks the user's controls, not the stores, so the agent's commands keep working.
 
 Tests follow the [testing policy](../contributing/testing.md).

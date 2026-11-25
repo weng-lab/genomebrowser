@@ -50,3 +50,4 @@ Keep implementation details out of the map. Name only user paths, stable handles
 - [Saved regions and groups](./saved-regions.md) covers saving the current view or custom coordinates, jumping to regions, grouping, hiding, and deleting regions.
 - [Add custom tracks](./add-tracks.md) covers pasting, reviewing, validating, and adding hosted BigWig, BigBed, BigGenePred, and BAM tracks.
 - [Settings and MCP remote control](./remote-control.md) covers toggling Remote Control, checking AI Assist connection status, and verifying `/api/mcp` command execution.
+- [Agent chat, preferences, and control](./agent-chat.md) covers messaging the agent in AI Assist, stopping a run, keeping or resetting a session's conversation, the agent's control banner, and saving agent preferences.

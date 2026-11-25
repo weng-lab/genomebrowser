@@ -1,4 +1,6 @@
-import { getSessions } from "../../../../composition/server";
+import { getAgentThreads, getSessions } from "../../../../composition/server";
+import { endConversation } from "../../../../features/agent/server/conversations";
+import { endAgentThread } from "../../../../features/agent/server/http";
 import { readSessionUpdate, respond } from "../../../../features/sessions/server/http";
 
 export function GET(_request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
@@ -15,6 +17,15 @@ export function PUT(request: Request, { params }: RouteContext<"/api/sessions/[i
   );
 }
 
-export function DELETE(_request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
-  return respond(async () => (await getSessions()).remove((await params).id));
+/**
+ * Delete the session with its agent thread. The thread's conversation is ended
+ * first, so Eve stops holding its messages; if Eve cannot confirm that, the
+ * session is kept and the deletion can be retried.
+ */
+export function DELETE(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
+  return respond(async () => {
+    const { id } = await params;
+    await endAgentThread(request, id, { threads: getAgentThreads, end: endConversation });
+    await (await getSessions()).remove(id);
+  });
 }

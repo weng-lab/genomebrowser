@@ -54,6 +54,10 @@ When your work introduces or keeps relying on a domain concept that is not liste
 
 **Command relay / lease** - The relay carries commands and replies through Redis between the server handling an MCP call and the one holding the tab's connection. A session's lease names the one connection that receives its commands.
 
+**Agent thread / run** - A session's agent thread is its one conversation with the integrated agent, shared across tabs and devices until **New conversation** or deleting the session ends it. A run is the agent's work on one message; it lives only while a tab holds the session.
+
+**Control lock** - The agent's hold on a session's browser during a workflow of several steps. While it is held, the user's edits are blocked; it ends with its run.
+
 ## Testing
 
 **Render budget** - The exact number of committed React renders an interaction is allowed.

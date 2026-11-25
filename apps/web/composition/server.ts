@@ -1,21 +1,28 @@
 import "server-only";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { clerkAgentIdentity, clerkIdentity } from "../features/account/server/identity";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import {
+  clerkAgentIdentity,
+  clerkIdentity,
+  type Identity,
+} from "../features/account/server/identity";
 import {
   createAccountSettings,
   type AccountSettingsStore,
 } from "../features/account/server/settings";
 import type { AgentAccount } from "../features/agent/server/access";
+import { readCommandCredential } from "../features/agent/server/credential";
+import { agentRedisNamespace } from "../features/agent/server/deployment";
+import { createAgentThreads, type AgentThreads } from "../features/agent/server/threads";
 import { createCommandRelay, type CommandRelay } from "../features/agent/server/relay";
-import { createMcpEndpoint } from "../features/mcp/server/mcp";
+import { createMcpEndpoint, type McpCaller } from "../features/mcp/server/mcp";
 import { createSessions, type Sessions } from "../features/sessions/server/sessions";
 import { connectDatabase } from "./server/database";
 
 type Services = {
+  db: NodePgDatabase;
   sessions: Sessions;
   accountSettings: AccountSettingsStore;
-  /** The same operations for the user an agent request acts for. */
-  agent: AgentAccount;
+  agentThreads: AgentThreads;
 };
 let services: Promise<Services> | undefined;
 
@@ -41,21 +48,41 @@ export async function getAccountSettings(): Promise<AccountSettingsStore> {
   return (await getServices()).accountSettings;
 }
 
+/** Agent threads of the signed-in user's sessions. */
+export async function getAgentThreads(): Promise<AgentThreads> {
+  return (await getServices()).agentThreads;
+}
+
 /** The signed-in account, as its browser tabs act for it. */
 export async function getTabAccount(): Promise<AgentAccount> {
   const { sessions, accountSettings } = await getServices();
   return { sessions, settings: accountSettings };
 }
 
+/** Operations scoped to a verified user ID (Clerk or a scoped Eve credential). */
+async function accountForUser(
+  userId: string,
+): Promise<AgentAccount & { settings: AccountSettingsStore }> {
+  const { db } = await getServices();
+  const identity: Identity = { userId: async () => userId };
+  return {
+    sessions: createSessions({ db, identity }),
+    settings: createAccountSettings({ db, identity }),
+  };
+}
+
+/** A verified user's account, for Eve's scoped requests. */
+export function getAgentAccountForUser(userId: string) {
+  return accountForUser(userId);
+}
+
 async function composeServices(): Promise<Services> {
   const db = drizzle({ client: await connectDatabase(process.env) });
   return {
+    db,
     sessions: createSessions({ db, identity: clerkIdentity }),
     accountSettings: createAccountSettings({ db, identity: clerkIdentity }),
-    agent: {
-      sessions: createSessions({ db, identity: clerkAgentIdentity }),
-      settings: createAccountSettings({ db, identity: clerkAgentIdentity }),
-    },
+    agentThreads: createAgentThreads({ db, identity: clerkIdentity }),
   };
 }
 
@@ -71,17 +98,27 @@ export function getCommandRelay(): CommandRelay {
   if (!url) throw new Error("REDIS_URL must be set for agent commands");
   return (relay ??= createCommandRelay({
     url,
-    namespace: `gb:${process.env.VERCEL_DEPLOYMENT_ID ?? "local"}`,
+    namespace: agentRedisNamespace(),
   }));
+}
+
+async function authenticateMcpRequest(request: Request): Promise<McpCaller | null> {
+  const bearer = /^Bearer (\S+)$/i.exec(request.headers.get("authorization") ?? "")?.[1];
+  if (bearer?.startsWith("gbmcp_")) return readCommandCredential(bearer);
+  const userId = await clerkAgentIdentity.userId();
+  return userId ? { userId } : null;
 }
 
 let mcp: ReturnType<typeof createMcpEndpoint> | undefined;
 
-/** The MCP endpoint. Requests act for the Clerk user of their session or OAuth token. */
+/**
+ * The MCP endpoint. Requests act for either a verified Clerk user (session or
+ * OAuth token) or a short-lived session-scoped credential issued for Eve.
+ */
 export function getMcpEndpoint() {
   return (mcp ??= createMcpEndpoint({
-    authenticate: async () => (await clerkAgentIdentity.userId()) !== null,
-    account: async () => (await getServices()).agent,
+    authenticate: authenticateMcpRequest,
+    account: accountForUser,
     relay: getCommandRelay,
   }));
 }

@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 .next/
+.eve/
+.output/
 *.tsbuildinfo
 next-env.d.ts
 .vite/

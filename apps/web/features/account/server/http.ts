@@ -10,11 +10,12 @@ export const respondWithSettings = createResponder(
   { log: "Account settings request failed", message: "Account settings are unavailable" },
 );
 
-/** Read a settings body of at most 1 KB. */
-export function readSettings(request: Request) {
+/** Read a settings body of at most `maxBytes`, 1 KB by default. */
+export function readSettings(request: Request, maxBytes = 1024) {
   return readJsonBody(request, {
-    maxBytes: 1024,
-    tooLarge: () => new AccountSettingsError("INVALID_INPUT", "Settings are limited to 1 KB"),
+    maxBytes,
+    tooLarge: () =>
+      new AccountSettingsError("INVALID_INPUT", `Settings are limited to ${maxBytes / 1024} KB`),
     invalid: () => new AccountSettingsError("INVALID_INPUT", "The request body must be JSON"),
   });
 }

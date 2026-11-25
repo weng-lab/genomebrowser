@@ -1,6 +1,6 @@
 ---
 name: verify-web
-description: Drive, screenshot, record, and verify @weng-lab/web (the Next.js genome browser workspace and its Vite design gallery) like a real user. Use whenever verifying UI or behavior changes in apps/web, capturing before/after screenshots or videos for PRs and bug reports, testing sessions/browser/regions/custom-tracks/remote-control flows live, or diagnosing visual/interactive regressions.
+description: Drive, screenshot, record, and verify @weng-lab/web (the Next.js genome browser workspace and its Vite design gallery) like a real user. Use whenever verifying UI or behavior changes in apps/web, capturing before/after screenshots or videos for PRs and bug reports, testing sessions/browser/regions/custom-tracks/remote-control/agent-chat flows live, or diagnosing visual/interactive regressions.
 ---
 
 # Verify `@weng-lab/web`

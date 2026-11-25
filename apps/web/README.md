@@ -51,6 +51,8 @@ Before `pnpm dev`, set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY
 
 Open `http://localhost:3000/browser`. The dev and start scripts bind to `localhost` on purpose: Clerk rejects the request URLs Next.js produces for `127.0.0.1`, so connect through `localhost` when tunneling.
 
+`pnpm dev` also starts the Eve agent behind the AI Assist panel with `eve dev --resume`, so a session's agent conversation survives restarting the dev server. Set `GB_EVE_DEV_PORT` to pin its port.
+
 `pnpm web db:start` runs PostgreSQL and Redis from `compose.yaml`, matching the defaults in `.env.example`. `pnpm web db:stop` stops them. Sessions save without Redis; only remote control and MCP need it.
 
 ## Database changes
@@ -66,6 +68,10 @@ GB_TEST_DATABASE_URL=postgres://genomebrowser:genomebrowser@127.0.0.1:5432/postg
 GB_TEST_REDIS_URL=redis://127.0.0.1:6379 \
 pnpm web test
 ```
+
+### Agent evals
+
+`evals/` holds model evals of the agent's judgment. They stub every browser tool, but the agent still lists its tools from the app, so start `pnpm dev` with Redis running, then run `pnpm web eval` from the repository root. They call the real model, so they cost tokens and are not part of `pnpm verify`; use `--repeat` to see how stable a result is.
 
 ## Design gallery
 

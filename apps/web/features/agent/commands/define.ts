@@ -35,6 +35,8 @@ export type CommandApp = {
     requests: readonly TrackRequest[],
     signal: AbortSignal,
   ): Promise<UrlTracksOutcome>;
+  /** The agent's hold on the browser, which keeps the user's edits waiting while it works. */
+  control: { take(): void; release(): void };
 };
 
 /**

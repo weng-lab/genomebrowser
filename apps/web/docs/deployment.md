@@ -3,19 +3,19 @@
 The web app runs as one Vercel project. Each deployment serves the UI, saved sessions, and the MCP endpoint together. There are two environments:
 
 - **Preview** (development): one deployment per PR branch, with a URL that stays the same across pushes.
-- **Production**: currently a beta on the project's `vercel.app` domain. It still uses the development database and service account; [Before real users](#before-real-users) lists what to replace.
+- **Production**: currently a beta on the project's `vercel.app` domain. It has its own database on the development Cloud SQL instance but still uses the development service account and Clerk instance; [Before real users](#before-real-users) lists what to replace.
 
 Both are behind Vercel Authentication, so viewers need a Vercel team login. The current values of every setting below are in the Vercel project's environment variables (**Settings → Environment Variables**) and the Google Cloud console. Keep them out of this repository, which is public.
 
 ## Services
 
-| Service                | Used for                              | Preview                               | Production today                                                 | Production before real users       |
-| ---------------------- | ------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- | ---------------------------------- |
-| Vercel                 | Hosting the app                       | One URL per PR branch                 | The project's `vercel.app` domain                                | A `wenglab.org` subdomain          |
-| Cloud SQL (PostgreSQL) | Saved sessions and account settings   | The development instance and database | Same as Preview                                                  | Its own database and login         |
-| Google service account | Letting Vercel connect to Cloud SQL   | The development service account       | Same as Preview                                                  | Its own service account            |
-| Clerk                  | Accounts and sign-in                  | The development instance              | The lab's production instance, which works only on `wenglab.org` | Same, on a `wenglab.org` subdomain |
-| Redis                  | Relaying agent commands to the client | The server set as `REDIS_URL`         | Its own `REDIS_URL`, which may be Preview's server               | Same as today                      |
+| Service                | Used for                              | Preview                               | Production today                                   | Production before real users                                                 |
+| ---------------------- | ------------------------------------- | ------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Vercel                 | Hosting the app                       | One URL per PR branch                 | The project's `vercel.app` domain                  | A `wenglab.org` subdomain                                                    |
+| Cloud SQL (PostgreSQL) | Saved sessions and account settings   | The development instance and database | Its own database on the development instance       | Its own login, on an instance sized and backed up for production             |
+| Google service account | Letting Vercel connect to Cloud SQL   | The development service account       | Same as Preview                                    | Its own service account                                                      |
+| Clerk                  | Accounts and sign-in                  | The development instance              | Same as Preview                                    | The lab's production instance, which works only on a `wenglab.org` subdomain |
+| Redis                  | Relaying agent commands to the client | The server set as `REDIS_URL`         | Its own `REDIS_URL`, which may be Preview's server | Same as today                                                                |
 
 ## Vercel
 
@@ -101,7 +101,7 @@ An agent's MCP call and the client's command stream can run in different functio
 
 ## Apply migrations
 
-Builds do not run migrations. Apply reviewed migrations before deploying code that needs them. While Preview and Production share one database, a migration takes effect for both at once, so prefer changes the deployed code tolerates, such as adding columns.
+Builds do not run migrations. Preview and Production have separate databases, so apply reviewed migrations to both before deploying code that needs them. A migration takes effect at once for every deployment using that database, so prefer changes the deployed code tolerates, such as adding columns.
 
 ### Install the tools
 
@@ -125,7 +125,7 @@ Start the proxy and leave it running:
 cloud-sql-proxy --address=127.0.0.1 --port=55433 INSTANCE_CONNECTION_NAME
 ```
 
-In another terminal, from the repository root, run the migrations with a login allowed to change the schema. The prompts keep the password out of your shell history. URL-encode special characters in the password, such as `@` as `%40`, because it becomes part of a URL. Setting `DATABASE_URL` on the command overrides `.env.local`, so the migration cannot reach your local database by mistake:
+One running proxy serves both databases on the instance. In another terminal, from the repository root, run the migrations with a login allowed to change the schema. The prompts keep the password out of your shell history. URL-encode special characters in the password, such as `@` as `%40`, because it becomes part of a URL. Setting `DATABASE_URL` on the command overrides `.env.local`, so the migration cannot reach your local database by mistake:
 
 ```sh
 read -rp 'Database: ' DBNAME; read -rp 'DB user: ' DBUSER; read -rsp 'DB password: ' DBPW; echo
@@ -133,11 +133,13 @@ DATABASE_URL="postgres://${DBUSER}:${DBPW}@127.0.0.1:55433/${DBNAME}" pnpm web d
 unset DBNAME DBUSER DBPW
 ```
 
+Run this once with Preview's `DB_NAME` and once with Production's.
+
 `drizzle-kit migrate` reports only an exit code when it fails. To see the PostgreSQL error, test the same connection with `psql "postgres://…@127.0.0.1:55433/${DBNAME}" -c 'select 1'`, or check `pg_isready -h 127.0.0.1 -p 55433`, which tests the proxy without a login.
 
 ### Apply migrations in the Cloud SQL console
 
-Cloud SQL Studio in the Google Cloud console can run a migration without local tools. Run the migration's SQL file from `drizzle/`, then record it the way `db:migrate` does, or a later `db:migrate` runs it again and fails. Drizzle stores the SHA-256 hash of the file and the migration's `when` value from `drizzle/meta/_journal.json`:
+Cloud SQL Studio in the Google Cloud console can run a migration without local tools. Run it in each database. Run the migration's SQL file from `drizzle/`, then record it the way `db:migrate` does, or a later `db:migrate` runs it again and fails. Drizzle stores the SHA-256 hash of the file and the migration's `when` value from `drizzle/meta/_journal.json`:
 
 ```sh
 sha256sum apps/web/drizzle/0002_example.sql
@@ -154,9 +156,9 @@ Run the migration and the insert in one transaction, as a user that owns the tab
 
 Set these on Production only and leave Preview on the development resources.
 
-1. **Database.** Create a production database and a login with only the privileges the app needs, and apply the migrations to it before deploying. Decide whether to copy beta sessions over; nothing does it automatically. Check the instance's connection limit against expected traffic: each server process holds up to five connections.
+1. **Database.** Production already has its own database. Give it a login with only the privileges the app needs, and move it to a production instance unless this one is sized and backed up for production. Check the instance's connection limit against expected traffic: each server process holds up to five connections.
 2. **Google access.** Create a production service account with `roles/cloudsql.client`, grant `roles/iam.workloadIdentityUser` on it to `owner:TEAM_SLUG:project:genomebrowser:environment:production`, and remove that subject from the development service account.
-3. **Clerk.** Serve Production on a `wenglab.org` subdomain and configure sign-in methods on the production instance.
+3. **Clerk.** Serve Production on a `wenglab.org` subdomain, configure sign-in methods on the production instance, and switch Production to its keys. Sessions belong to Clerk user IDs, so users on the production instance won't own beta sessions saved under the development instance.
 4. **Access.** Decide whether Production stays behind Vercel Authentication or opens to the public.
 
 ## Check a deployment
