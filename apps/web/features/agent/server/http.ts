@@ -1,12 +1,17 @@
 import "server-only";
 import { z } from "zod";
 import { readJsonBody } from "../../../shared/server/readJsonBody";
+import { sessionIdSchema } from "../../sessions/schema";
 import { commandReplySchema } from "../commands/protocol";
 import { authorizeRemoteControl, type AgentAccount, type RemoteControlDenial } from "./access";
 import type { CommandRelay } from "./relay";
 
 /** Resolved for each request, so missing configuration is reported like any other outage. */
 type Dependencies = { account: () => Promise<AgentAccount>; relay: () => CommandRelay };
+type AgentAuthDependencies = {
+  userId: () => Promise<string | null>;
+  account: () => Promise<AgentAccount>;
+};
 
 const noStore = { "Cache-Control": "no-store" };
 const statuses: Record<RemoteControlDenial["code"], number> = {
@@ -86,4 +91,32 @@ export function receiveCommandReply(
       return error(409, "NOT_PENDING", "Command is not pending for this session");
     return Response.json({ ok: true }, { headers: noStore });
   });
+}
+
+/**
+ * Authorize the embedded agent to act on `sessionId` for the signed-in account.
+ * Stop requests (`control=stop`) require only a signed-in user; Eve checks the
+ * conversation's pinned owner so Stop still works after Remote Control is
+ * turned off or the browser session is deleted.
+ */
+export async function authorizeAgentSession(
+  request: Request,
+  sessionId: string,
+  { userId, account }: AgentAuthDependencies,
+) {
+  const stopping = new URL(request.url).searchParams.get("control") === "stop";
+  try {
+    const actingUser = await userId();
+    if (!actingUser) return error(401, "UNAUTHENTICATED", "Sign in to use remote control");
+    if (!sessionIdSchema.safeParse(sessionId).success)
+      return error(404, "NOT_FOUND", "Session not found");
+    if (!stopping) {
+      const denied = await authorizeRemoteControl(await account(), sessionId);
+      if (denied) return error(statuses[denied.code], denied.code, denied.error);
+    }
+    return Response.json({ userId: actingUser, browserSessionId: sessionId }, { headers: noStore });
+  } catch (cause) {
+    console.error("Agent session authorization failed", cause);
+    return error(503, "UNAVAILABLE", "Remote control is unavailable");
+  }
 }
