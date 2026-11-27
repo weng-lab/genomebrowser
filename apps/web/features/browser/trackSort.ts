@@ -1,11 +1,10 @@
 import type { AnyTrackInstance, TrackStoreInstance } from "@weng-lab/genomebrowser";
-import {
-  applyTrackSort,
-  type TrackSortDirection,
-  type TrackSortOption,
-  type TrackSortRule,
-  type TrackSortValue,
+import type {
+  TrackSortDirection,
+  TrackSortOption,
+  TrackSortValue,
 } from "@weng-lab/genomebrowser-ui";
+import { sortTrackList, trackSortCollator } from "./trackSortCore";
 
 const titleField: TrackSortOption = {
   id: "title",
@@ -27,13 +26,14 @@ const metadataField = (name: string): TrackSortOption => ({
   value: ({ metadata }) => (metadata && Object.hasOwn(metadata, name) ? metadata[name] : undefined),
 });
 
-// Field names in natural order, ignoring case, as text values sort.
-const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
-
 /** Every field the tracks can be sorted by: Title, Track type, then their metadata fields. */
 function sortFields(tracks: readonly AnyTrackInstance[]) {
   const names = new Set(tracks.flatMap((track) => Object.keys(track.metadata ?? {})));
-  return [titleField, typeField, ...[...names].toSorted(collator.compare).map(metadataField)];
+  return [
+    titleField,
+    typeField,
+    ...[...names].toSorted(trackSortCollator.compare).map(metadataField),
+  ];
 }
 
 /**
@@ -72,25 +72,14 @@ type SortOutcome = { ok: true } | { ok: false; code: string; error: string };
 
 /**
  * Sort the store's tracks once by the given fields in priority order, as the dialog's
- * Apply order does. The fields are `title`, `type`, and `meta:<name>` for any metadata
- * field a loaded track has. Fails without changing the order when a field is unknown.
+ * Apply order does. Delegates to `sortTrackList` so UI and server MCP share one sort.
  */
 export function sortTracks(
   trackStore: TrackStoreInstance,
   sort: readonly TrackSortRequest[],
 ): SortOutcome {
-  const available = sortFields(trackStore.getState().tracks);
-  const rules: TrackSortRule[] = [];
-  const unknown: string[] = [];
-  for (const { field, direction = "ascending" } of sort) {
-    const option = available.find(({ id }) => id === field);
-    if (option) rules.push({ option, direction });
-    else unknown.push(`"${field}"`);
-  }
-  if (unknown.length > 0) {
-    const ids = available.map(({ id }) => `"${id}"`).join(", ");
-    const error = `Unknown sort field ${unknown.join(", ")}. Available fields: ${ids}`;
-    return { ok: false, code: "UNKNOWN_SORT_FIELD", error };
-  }
-  return applyTrackSort(trackStore, rules);
+  const { tracks, pinnedTrackIds, reorderTracks } = trackStore.getState();
+  const sorted = sortTrackList(tracks, pinnedTrackIds, sort);
+  if (!sorted.ok) return sorted;
+  return reorderTracks(sorted.tracks.map(({ base }) => base.id));
 }

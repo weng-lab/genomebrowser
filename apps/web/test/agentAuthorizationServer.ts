@@ -38,7 +38,7 @@ export async function startAgentAuthorizationServer() {
   const context = await import("../app/api/sessions/[id]/agent-context/route");
   const session = await import("../app/api/sessions/[id]/route");
   const { POST: mcp } = await import("../app/api/mcp/route");
-  const { getAccountSettings, getCommandRelay, getSessions } =
+  const { closeServerConnections, getAccountSettings, getSessions } =
     await import("../composition/server");
 
   function token(userId: string) {
@@ -132,6 +132,8 @@ export async function startAgentAuthorizationServer() {
       asUser(userId, async () =>
         (await getSessions()).create({ name: "Agent auth", snapshot: snapshot() }),
       ),
+    loadSession: (userId: string, id: string) =>
+      asUser(userId, async () => (await getSessions()).load(id)),
     removeSession: (userId: string, id: string) =>
       asUser(userId, async () => (await getSessions()).remove(id)),
     setEnabled: (userId: string, remoteControl: boolean) =>
@@ -139,7 +141,7 @@ export async function startAgentAuthorizationServer() {
     setPreferences: (userId: string, text: string) =>
       asUser(userId, async () => (await getAccountSettings()).updateAgentPreferences({ text })),
     async close() {
-      await getCommandRelay().close();
+      await closeServerConnections();
       server.closeAllConnections();
       await new Promise<void>((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));

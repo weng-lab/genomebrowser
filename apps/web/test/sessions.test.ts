@@ -1,6 +1,8 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createSessions } from "../features/sessions/server/sessions";
+import { createMemorySessionBus } from "../features/sessions/server/bus";
+import { createSessionService } from "../features/sessions/server/service";
+import { createSessions, maxRecentSaveIds } from "../features/sessions/server/sessions";
 import type { SessionInput, SessionUpdate } from "../features/sessions/schema";
 import { sessionsTable } from "../features/sessions/server/table";
 import { createTestDatabase, snapshot, testServerUrl } from "./sessionFixtures";
@@ -216,5 +218,75 @@ describe.skipIf(!testServerUrl)("saved sessions", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(alice().load("local")).rejects.toMatchObject({ code: "NOT_FOUND" });
     expect(await alice().list()).toEqual([]);
+  });
+
+  it("recognizes a retried PATCH saveId in PostgreSQL even after an intervening write", async () => {
+    const bus = createMemorySessionBus();
+    const service = createSessionService({ sessions: alice(), bus });
+    const created = await service.create({ name: "Postgres retry", snapshot: snapshot() });
+    const clientA = crypto.randomUUID();
+    const clientB = crypto.randomUUID();
+    const saveA = crypto.randomUUID();
+    const saveB = crypto.randomUUID();
+
+    const regionA = { chromosome: "chr1", start: 100, end: 200 };
+    const regionB = { chromosome: "chr3", start: 300, end: 400 };
+
+    // Tab A writes region A (response lost), then Tab B writes region B.
+    const first = await service.patch(created.id, {
+      clientId: clientA,
+      saveId: saveA,
+      patch: { browser: { region: regionA } },
+    });
+    expect(first.revision).toBe(2);
+
+    const second = await service.patch(created.id, {
+      clientId: clientB,
+      saveId: saveB,
+      patch: { browser: { region: regionB } },
+    });
+    expect(second.revision).toBe(3);
+
+    // Tab A retries saveA; PostgreSQL recognizes it in recent_save_ids and preserves region B.
+    const retried = await service.patch(created.id, {
+      clientId: clientA,
+      saveId: saveA,
+      patch: { browser: { region: regionA } },
+    });
+    expect(retried.revision).toBe(3);
+    expect(retried.snapshot.browser.region).toEqual(regionB);
+    expect((await service.load(created.id)).snapshot.browser.region).toEqual(regionB);
+
+    // Caps recent_save_ids at `maxRecentSaveIds` (128), dropping the oldest once full.
+    let currentRevision = 3;
+    for (let i = 0; i < maxRecentSaveIds - 1; i++) {
+      const next = await alice().commit(created.id, {
+        name: "Postgres retry",
+        snapshot: snapshot({ fontSize: 12 + (i % 10) }),
+        revision: currentRevision,
+        saveId: crypto.randomUUID(),
+      });
+      expect(next.applied).toBe(true);
+      currentRevision = next.session.revision;
+    }
+    // `saveA` was pushed out after 128 newer writes (saveB + 127 more), while `saveB` is still kept.
+    const keptB = await alice().commit(created.id, {
+      name: "Should not apply",
+      snapshot: snapshot({ fontSize: 99 }),
+      revision: currentRevision,
+      saveId: saveB,
+    });
+    expect(keptB.applied).toBe(false);
+
+    const evictedA = await alice().commit(created.id, {
+      name: "Evicted saveId applies again",
+      snapshot: snapshot({ fontSize: 22 }),
+      revision: currentRevision,
+      saveId: saveA,
+    });
+    expect(evictedA.applied).toBe(true);
+    expect(evictedA.session.revision).toBe(currentRevision + 1);
+
+    await bus.close();
   });
 });

@@ -32,9 +32,9 @@ export function AccountControls() {
   async function leave(change: Change, discard = false) {
     setUnsaved(undefined);
     setLeaving(true);
-    const closed = await close({ discard, next: change });
+    const outcome = await close({ discard, next: change });
     setLeaving(false);
-    if (!closed) setUnsaved(() => change);
+    if (outcome === "unsaved") setUnsaved(() => change);
   }
 
   return (

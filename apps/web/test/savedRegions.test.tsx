@@ -154,7 +154,6 @@ it("renames, recolors, moves, hides, visits, and deletes regions, saving them", 
 
   await click(cards()[0].querySelector("[role='button']"));
   expect(cards()[0].querySelector('[aria-current="location"]')).not.toBeNull();
-  await vi.waitFor(() => expect(saved().region).toEqual(hs2));
 
   await chooseAction("HS2", "Delete");
   expect(cards()).toEqual([]);

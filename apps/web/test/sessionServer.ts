@@ -6,11 +6,23 @@ import {
   sessionInputSchema,
   sessionUpdateSchema,
 } from "../features/sessions/schema";
+import {
+  applySessionPatch,
+  sessionPatchRequestSchema,
+  type SessionPatch,
+} from "../features/sessions/syncSchema";
 
 type Request = {
   method: string;
   id?: string;
-  body?: { name: string; snapshot: SessionSnapshot; revision?: number; saveId?: string };
+  body?: {
+    name?: string;
+    snapshot?: SessionSnapshot;
+    revision?: number;
+    saveId?: string;
+    clientId?: string;
+    patch?: SessionPatch;
+  };
   bytes: number;
 };
 type Stored = {
@@ -20,7 +32,7 @@ type Stored = {
   createdAt: Date;
   updatedAt: Date;
   revision: number;
-  saveId?: string;
+  recentSaveIds: string[];
 };
 type Outcome = Response | undefined | "lost";
 
@@ -35,7 +47,7 @@ type Outcome = Response | undefined | "lost";
 export function installSessionServer() {
   const stored = new Map<string, Stored>();
   const requests: Request[] = [];
-  const gates: { method: string; gate: Promise<Outcome> }[] = [];
+  const gates: { method: string; gate: Promise<Outcome>; applyFirst?: boolean }[] = [];
   const server = {
     user: "user_alice" as string | null,
     /** Session requests, oldest first. */
@@ -58,6 +70,7 @@ export function installSessionServer() {
         createdAt: now,
         updatedAt: now,
         revision: 1,
+        recentSaveIds: [],
       });
       return id;
     },
@@ -78,6 +91,21 @@ export function installSessionServer() {
         lose: () => open("lost"),
         respond: (response: Response) => open(response),
       };
+    },
+    /**
+     * Apply the next request of `method` at once, but hold its response until released,
+     * as when a write commits and its reply is delayed.
+     */
+    delayReply(method: string) {
+      let open!: () => void;
+      gates.push({
+        method,
+        gate: new Promise((resolve) => {
+          open = () => resolve(undefined);
+        }),
+        applyFirst: true,
+      });
+      return { release: () => open() };
     },
     /**
      * Genomic files that other hosts serve, by URL, honoring byte ranges. A number answers
@@ -156,15 +184,43 @@ export function installSessionServer() {
       stored.delete(id);
       return new Response(null, { status: 204 });
     }
+    if (method === "PATCH") {
+      const parsed = sessionPatchRequestSchema.safeParse(body);
+      if (!parsed.success) return rejected("INVALID_INPUT", 400);
+      const { saveId, patch } = parsed.data;
+      if (session.recentSaveIds.includes(saveId))
+        return json({ ...metadata(id, session), snapshot: session.snapshot });
+      let next: { name: string; snapshot: SessionSnapshot };
+      try {
+        next = applySessionPatch({ name: session.name, snapshot: session.snapshot }, patch);
+      } catch {
+        return rejected("INVALID_INPUT", 400);
+      }
+      if (new TextEncoder().encode(JSON.stringify(next)).byteLength > maxSessionBytes) {
+        return rejected("INVALID_INPUT", 400);
+      }
+      Object.assign(session, {
+        ...next,
+        revision: session.revision + 1,
+        recentSaveIds: [...session.recentSaveIds, saveId].slice(-128),
+        updatedAt: new Date(),
+      });
+      return json({ ...metadata(id, session), snapshot: session.snapshot });
+    }
     const parsed = sessionUpdateSchema.safeParse(body);
     if (!parsed.success) return rejected("INVALID_INPUT", 400);
     const { revision, saveId, ...input } = parsed.data;
-    if (session.saveId === saveId && session.revision === revision + 1)
+    if (session.recentSaveIds.at(-1) === saveId && session.revision === revision + 1)
       return json(metadata(id, session));
     if (input.snapshot.browser.assembly !== session.snapshot.browser.assembly)
       return rejected("ASSEMBLY_CHANGED", 409);
     if (session.revision !== revision) return rejected("CONFLICT", 409);
-    Object.assign(session, { ...input, revision: revision + 1, saveId, updatedAt: new Date() });
+    Object.assign(session, {
+      ...input,
+      revision: revision + 1,
+      recentSaveIds: [...session.recentSaveIds, saveId].slice(-128),
+      updatedAt: new Date(),
+    });
     return json(metadata(id, session));
   }
 
@@ -228,10 +284,15 @@ export function installSessionServer() {
       signal?.addEventListener("abort", () => reject(signal.reason));
     });
     const index = gates.findIndex((gate) => gate.method === request.method);
-    const gated =
-      index < 0 ? undefined : await Promise.race([gates.splice(index, 1)[0].gate, aborted]);
+    const gate = index < 0 ? undefined : gates.splice(index, 1)[0];
     const respond = () =>
       settings ? handleSettings(init.method ?? "GET", request.body) : handle(request);
+    if (gate?.applyFirst) {
+      const response = respond();
+      await Promise.race([gate.gate, aborted]);
+      return response;
+    }
+    const gated = gate ? await Promise.race([gate.gate, aborted]) : undefined;
     if (gated !== "lost") return gated ?? respond();
     respond();
     throw new TypeError("Failed to fetch");

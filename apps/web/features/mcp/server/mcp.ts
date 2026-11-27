@@ -2,15 +2,21 @@ import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { commands, type Command } from "../../agent/commands";
+import type { CommandAgent, CommandResult } from "../../agent/commands/protocol";
 import { authorizeRemoteControl, type AgentAccount } from "../../agent/server/access";
 import type { CommandRelay } from "../../agent/server/relay";
+import { runServerStateCommand } from "../../agent/server/stateCommands";
 import { sessionIdSchema } from "../../sessions/schema";
+import { SessionError } from "../../sessions/server/sessions";
+import type { SessionService } from "../../sessions/server/service";
 
 /** Verified caller authenticated for one MCP HTTP request. */
 export type McpCaller = {
   userId: string;
   /** When set, this credential may act only on this saved session. */
   sessionId?: string;
+  /** `"panel"` for a run of the agent panel, which acts through Eve's session credential. */
+  agent: CommandAgent;
 };
 
 /** Resolved when needed, so missing configuration fails the affected call rather than every request. */
@@ -20,13 +26,18 @@ type Dependencies = {
   /** Operations for the verified user `userId`. */
   account(userId: string): Promise<AgentAccount>;
   relay(): CommandRelay;
+  /** Authoritative session service for state commands (`target: "state"`), acting for `userId`. */
+  sessionService(userId: string): Promise<SessionService>;
 };
 
 const failed = (text: string) => ({ isError: true, content: [{ type: "text" as const, text }] });
 
-/** Publish every agent command as a tool that runs in the tab attached to the caller's session. */
+/**
+ * Publish every agent command as a tool for the caller's session. State tools
+ * run directly on `SessionService`; browser-only tools relay to the attached tab.
+ */
 function createServer(
-  { account, relay }: Omit<Dependencies, "authenticate">,
+  { account, relay, sessionService }: Omit<Dependencies, "authenticate">,
   caller: McpCaller | undefined,
   request?: Request,
 ) {
@@ -38,7 +49,7 @@ function createServer(
         description: command.description,
         inputSchema: command.params.extend({
           sessionId: sessionIdSchema.describe(
-            "Your saved session open in a browser tab with remote control on: the ID in its /browser/<id> address.",
+            "Your saved session ID (the ID in its /browser/<id> address). State tools work even when the session is not open in a tab.",
           ),
         }),
         outputSchema: command.result,
@@ -48,26 +59,41 @@ function createServer(
         const targetSession = sessionId as string;
         if (caller.sessionId && caller.sessionId !== targetSession)
           return failed("FORBIDDEN: This credential is scoped to another session");
-        let commands: CommandRelay;
+        let result: CommandResult;
         try {
           const denied = await authorizeRemoteControl(await account(caller.userId), targetSession);
           if (denied) return failed(`${denied.code}: ${denied.error}`);
-          commands = relay();
+
+          // The caller cancelling or disconnecting stops either kind of command.
+          const signal = AbortSignal.any(
+            [context.mcpReq.signal, request?.signal].filter((signal) => !!signal),
+          );
+          if (command.target === "state") {
+            result = await runServerStateCommand(
+              await sessionService(caller.userId),
+              targetSession,
+              command,
+              params,
+              signal,
+            );
+          } else {
+            result = await relay().dispatch(
+              targetSession,
+              { name: command.name, params, agent: caller.agent },
+              signal,
+              {
+                timeoutMs: command.timeoutMs,
+              },
+            );
+          }
         } catch (error) {
-          console.error("Could not authorize an MCP command", error);
+          if (error instanceof SessionError) return failed(`${error.code}: ${error.message}`);
+          console.error("Could not execute an MCP command", error);
           return failed("UNAVAILABLE: Remote control is unavailable");
         }
-        const signals = [context.mcpReq.signal, request?.signal].filter((signal) => !!signal);
-        const result = await commands.dispatch(
-          targetSession,
-          { name: command.name, params },
-          AbortSignal.any(signals),
-          { timeoutMs: command.timeoutMs },
-        );
         if (!result.ok) return failed(`${result.code}: ${result.error}`);
         const value = command.result.safeParse(result.value);
-        if (!value.success)
-          return failed("INVALID_REPLY: The browser tab returned an invalid result");
+        if (!value.success) return failed("INVALID_REPLY: The command returned an invalid result");
         return {
           content: [{ type: "text" as const, text: JSON.stringify(value.data) }],
           structuredContent: value.data,
@@ -81,8 +107,8 @@ function createServer(
 /**
  * The app's MCP endpoint. Every request needs verified credentials, and every
  * tool call is authorized for the caller's own session and Remote Control
- * preference before it reaches the browser tab. Stateless: any instance serves
- * any request.
+ * preference. State commands run directly on the authoritative session service
+ * and broadcast to any open tabs; browser-only commands relay to an open tab.
  */
 export function createMcpEndpoint({ authenticate, ...dependencies }: Dependencies) {
   const currentCaller = new AsyncLocalStorage<McpCaller>();

@@ -9,8 +9,10 @@ flowchart TD
   Client(Web client)
   subgraph Next[Next.js server]
     MCP[MCP endpoint]
-    Commands[Commands route]
     Sessions[Session routes]
+    Service[Session service]
+    Events[Events route]
+    Commands[Commands route]
   end
   Redis[(Redis)]
   DB[(PostgreSQL)]
@@ -18,11 +20,16 @@ flowchart TD
   Clerk[Clerk]
   User -->|uses| Client
   Agent -->|calls tool| MCP
-  MCP -->|publishes command| Redis
+  MCP -->|runs state tool| Service
+  Client -->|sends edits| Sessions
+  Sessions -->|merges edits| Service
+  Service -->|stores snapshot| DB
+  Service -->|publishes revision| Redis
+  Redis -->|delivers revision| Events
+  Events -->|streams revision| Client
+  MCP -->|relays browser-only tool| Redis
   Redis -->|delivers command| Commands
   Commands -->|pushes command| Client
-  Client -->|saves session| Sessions
-  Sessions -->|stores snapshot| DB
   Client -->|reads track files| Files
   Client -->|signs in| Clerk
 
@@ -30,10 +37,10 @@ flowchart TD
   classDef frontend stroke-width:3px
   class User,Agent actor
   class Client frontend
-  linkStyle 1,2,3,4 stroke-width:3px
+  linkStyle 3,4,5,6,7,8 stroke-width:3px
 ```
 
-An agent's command reaches the web client only through Redis and the command stream, and the client's reply takes the same route back. The MCP call and the client's stream can be on different server instances, which is why Redis sits between them. The client applies commands to the same stores the UI uses.
+PostgreSQL holds the authoritative session. Tabs send their edits as section patches, the session service merges them, and Redis carries a revision hint to every open tab of the session, which then fetches the latest state. Agent state tools (`set_region`, `list_tracks`, `sort_tracks`, `set_track_metadata`) take the same path, so they work with any number of tabs open, including none. Browser-only tools (`export_image`, `add_tracks_from_urls`, `take_control`, `release_control`) still reach one tab through Redis and the command stream, and the tab's reply takes the same route back. Requests and streams can be on different server instances, which is why Redis sits between them. [ADR 0008](../../docs/adr/0008-server-authoritative-live-sessions.md) records the design.
 
 ## Run locally
 
@@ -53,7 +60,7 @@ Open `http://localhost:3000/browser`. The dev and start scripts bind to `localho
 
 `pnpm dev` also starts the Eve agent behind the AI Assist panel with `eve dev --resume`, so a session's agent conversation survives restarting the dev server. Set `GB_EVE_DEV_PORT` to pin its port.
 
-`pnpm web db:start` runs PostgreSQL and Redis from `compose.yaml`, matching the defaults in `.env.example`. `pnpm web db:stop` stops them. Sessions save without Redis; only remote control and MCP need it.
+`pnpm web db:start` runs PostgreSQL and Redis from `compose.yaml`, matching the defaults in `.env.example`. `pnpm web db:stop` stops them. Without `REDIS_URL`, an in-memory bus keeps tabs in sync within one server process, so sessions load, save, and sync without Redis; AI Assist and browser-only tools need it.
 
 ## Database changes
 
@@ -79,7 +86,7 @@ pnpm web test
 
 ## Connect an MCP client
 
-The endpoint is `http://localhost:3000/api/mcp`. Send the session owner's Clerk session token as `Authorization: Bearer <token>`, and pass the session ID from the browser URL as `sessionId`. The tab must have the session open with Remote control on in Settings.
+The endpoint is `http://localhost:3000/api/mcp`. Send the session owner's Clerk session token as `Authorization: Bearer <token>`, and pass the session ID from the browser URL as `sessionId`. Remote control must be on in Settings; browser-only tools also need a tab with the session open.
 
 ## Deploy
 

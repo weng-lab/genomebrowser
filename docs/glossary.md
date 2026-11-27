@@ -46,17 +46,17 @@ When your work introduces or keeps relying on a domain concept that is not liste
 
 **Session** - A named browsing setup for one assembly, owned by one account. The **open session** is the one a tab is showing and editing; there is one per tab. Its **snapshot** is the serializable setup: no fetched data, loading state, resources, or functions.
 
-**Revision / conflict** - Each save advances a session's revision and names the revision it was based on. A save based on an older revision is a conflict, not an overwrite. A **save ID** names one logical save so a retried save is applied only once.
+**Revision / conflict** - Each save advances a session's revision. Tabs send edits as section patches that the server merges onto the latest revision, then announces the new revision to every open tab. A conflict arises only when concurrent merge retries are exhausted, never as a silent overwrite. A **save ID** names one logical save; the server remembers recent ones so a retried save is applied only once.
 
-**Command / reply** - A command is an app action an agent can request through MCP; its definition is both the MCP tool and what the tab runs. The reply is the command's result or failure. A successful reply means the stores accepted the change, not that track data loaded or the session saved.
+**Command / reply** - A command is an app action an agent can request through MCP; its definition is both the MCP tool and what runs it. A **state command** runs on the server against the saved session, whether or not a tab has it open; a **browser command** needs the DOM or browser-side fetches and runs in the tab. The reply is the command's result or failure. A successful state command reply means the change was saved; a successful browser command reply means the stores accepted it and, for a command that changes the session, that the session saved the change, so state commands that follow see it. It never means track data loaded.
 
 **Remote control** - A tab's connection for receiving commands for its open session. It is an account preference, on by default; turning it off stops all agent access while manual browsing keeps working.
 
-**Command relay / lease** - The relay carries commands and replies through Redis between the server handling an MCP call and the one holding the tab's connection. A session's lease names the one connection that receives its commands.
+**Command relay / lease** - The relay carries browser commands and replies through Redis between the server handling an MCP call and the one holding the tab's connection. A session's lease names the one connection that receives its commands.
 
 **Agent thread / run** - A session's agent thread is its one conversation with the integrated agent, shared across tabs and devices until **New conversation** or deleting the session ends it. A run is the agent's work on one message; it lives only while a tab holds the session.
 
-**Control lock** - The agent's hold on a session's browser during a workflow of several steps. While it is held, the user's edits are blocked; it ends with its run.
+**Control lock** - The agent's hold on a session's browser during a workflow of several steps. While it is held, the user's edits are blocked; it ends with its run, and an agent can give back only a lock it took.
 
 ## Testing
 

@@ -24,7 +24,9 @@ export function AgentPanel() {
     message = "This session's changes can no longer be saved, so agents cannot control it.";
   else if (enabled && state === "connected")
     message = `Connected. MCP tools called with sessionId "${sessionId}" run in this tab.`;
-  else if (enabled) message = "Connecting… If this session is open in another tab, close that tab.";
+  else if (enabled)
+    message =
+      "Connecting… If this session is open in another tab, close that tab to use AI Assist and browser-only tools (image export, adding tracks) here. State tools still work.";
 
   return (
     <Box

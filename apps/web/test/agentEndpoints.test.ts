@@ -17,6 +17,7 @@ const agentAuth = await import("../app/api/sessions/[id]/agent-auth/route");
 const agentThread = await import("../app/api/sessions/[id]/agent-thread/route");
 const agentContext = await import("../app/api/sessions/[id]/agent-context/route");
 const commands = await import("../app/api/sessions/[id]/commands/route");
+const eventsRoute = await import("../app/api/sessions/[id]/events/route");
 const sessions = await import("../app/api/sessions/route");
 const sessionById = await import("../app/api/sessions/[id]/route");
 const settings = await import("../app/api/account/settings/route");
@@ -102,8 +103,8 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
   });
 
   afterAll(async () => {
-    const { getCommandRelay } = await import("../composition/server");
-    await getCommandRelay().close();
+    const { closeServerConnections } = await import("../composition/server");
+    await closeServerConnections();
     vi.unstubAllEnvs();
     await database?.drop();
   });
@@ -136,19 +137,22 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     await client.close();
   });
 
-  it("runs a tool call in the owner's tab and returns the tab's result", async () => {
+  it("runs browser-only tools in the owner's tab and returns the tab's result", async () => {
     const id = await createSession("user_alice");
     const tab = await openTab("user_alice", id);
     if (!("command" in tab)) throw new Error(`Tab was refused: ${tab.status}`);
     const client = await agent("user_alice");
 
-    const call = client.callTool(navigate(id));
+    const call = client.callTool({
+      name: "export_image",
+      arguments: { sessionId: id, format: "svg" },
+    });
     const command = await tab.command();
     expect(command).toMatchObject({
-      name: "set_region",
-      params: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
+      name: "export_image",
+      params: { format: "svg", scale: 2, includeTitles: true, includeRuler: true },
     });
-    const value = { region: { chromosome: "chr1", start: 1000, end: 2000 }, clamped: false };
+    const value = { filename: "chr12.svg", format: "svg", width: 800, height: 300 };
     expect(
       await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } }),
     ).toEqual({ status: 200, body: { ok: true } });
@@ -165,6 +169,89 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     );
 
     tab.close();
+    await client.close();
+  });
+
+  it("runs state tools directly on the server with 0 tabs open and broadcasts to open SSE streams", async () => {
+    const id = await createSession("user_alice");
+    const client = await agent("user_alice");
+
+    // 0 tabs open: set_region persists directly to PostgreSQL.
+    const headless = await client.callTool(navigate(id));
+    expect(headless).toMatchObject({
+      structuredContent: {
+        region: { chromosome: "chr1", start: 1000, end: 2000 },
+        clamped: false,
+      },
+    });
+
+    // Open two live SSE event streams on the same session.
+    await signIn("user_alice");
+    const c1 = new AbortController();
+    const r1 = await eventsRoute.GET(
+      new Request(`http://localhost/api/sessions/${id}/events?sinceRevision=2`, {
+        signal: c1.signal,
+      }),
+      params(id),
+    );
+    await signIn("user_alice");
+    const c2 = new AbortController();
+    const r2 = await eventsRoute.GET(
+      new Request(`http://localhost/api/sessions/${id}/events?sinceRevision=2`, {
+        signal: c2.signal,
+      }),
+      params(id),
+    );
+    expect(r1.status).toBe(200);
+    expect(r2.status).toBe(200);
+
+    const readNextUpdated = async (body: ReadableStream<Uint8Array>) => {
+      const reader = body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) throw new Error("Stream ended before update");
+        buf += decoder.decode(value);
+        let idx: number;
+        while ((idx = buf.indexOf("\n\n")) !== -1) {
+          const frame = buf.slice(0, idx).split("\n");
+          buf = buf.slice(idx + 2);
+          if (frame.some((line) => line === "event: updated")) {
+            const data = frame.find((line) => line.startsWith("data: "))!.slice(6);
+            return JSON.parse(data);
+          }
+        }
+      }
+    };
+
+    const p1 = readNextUpdated(r1.body!);
+    const p2 = readNextUpdated(r2.body!);
+
+    const updated = await client.callTool({
+      name: "set_region",
+      arguments: { sessionId: id, region: { chromosome: "chr2", start: 500, end: 1500 } },
+    });
+    expect(updated).toMatchObject({
+      structuredContent: {
+        region: { chromosome: "chr2", start: 500, end: 1500 },
+        clamped: false,
+      },
+    });
+
+    const [e1, e2] = await Promise.all([p1, p2]);
+    expect(e1).toEqual({ type: "updated", revision: 3 });
+    expect(e2).toEqual({ type: "updated", revision: 3 });
+
+    // Persisted in PostgreSQL as well.
+    await signIn("user_alice");
+    const loaded = await (
+      await sessionById.GET(new Request("http://localhost"), params(id))
+    ).json();
+    expect(loaded.snapshot.browser.region).toEqual({ chromosome: "chr2", start: 500, end: 1500 });
+
+    c1.abort();
+    c2.abort();
     await client.close();
   });
 
@@ -223,10 +310,15 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     tab.close();
   });
 
-  it("reports a session no tab has open", async () => {
+  it("reports a session no tab has open for browser-only tools", async () => {
     const id = await createSession("user_alice");
     const client = await agent("user_alice");
-    expect(await client.callTool(navigate(id))).toMatchObject({
+    expect(
+      await client.callTool({
+        name: "export_image",
+        arguments: { sessionId: id, format: "svg" },
+      }),
+    ).toMatchObject({
       isError: true,
       content: [{ text: expect.stringMatching(/^NOT_CONNECTED:/) }],
     });
@@ -307,6 +399,24 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     // Stop and follow-ups must name the session's thread.
     expect((await auth("?control=stop")).status).toBe(403);
     expect((await auth("?conversation=conversation-a")).status).toBe(403);
+
+    // A body over the limit is refused as too large, not as invalid JSON.
+    const oversized = await agentThread.POST(
+      new Request(thread, {
+        method: "POST",
+        body: JSON.stringify({ conversationId: "x".repeat(2_000) }),
+      }),
+      params(id),
+    );
+    expect(oversized.status).toBe(413);
+    expect(await oversized.json()).toMatchObject({
+      message: "The request body is limited to 1 KB",
+    });
+    const malformed = await agentThread.POST(
+      new Request(thread, { method: "POST", body: "{" }),
+      params(id),
+    );
+    expect(malformed.status).toBe(400);
 
     // Only Eve's one-use proof for this user, session, and conversation records it.
     expect((await bind("conversation-a", null)).status).toBe(403);
@@ -495,7 +605,24 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
     );
     expect((await bind("conversation-next")).status).toBe(200);
     // A session that has a conversation keeps it for the deletion to end.
-    expect(await (await getAgentThreads()).close(id)).toBe("conversation-next");
+    const threads = await getAgentThreads();
+    expect(await threads.close(id)).toBe("conversation-next");
+    expect(await threads.close(id)).toBe("conversation-next");
+    // Its tab, told the conversation ended, cannot free the slot for another to bind.
+    const release = (conversation: string) =>
+      agentThread.DELETE(
+        new Request(`${thread}?conversation=${conversation}`, { method: "DELETE" }),
+        params(id),
+      );
+    expect((await release("conversation-next")).status).toBe(204);
+    expect((await bind("conversation-late")).status).toBe(409);
+    expect(await threads.current(id)).toBe("conversation-next");
+    expect(await threads.owns(id, "conversation-next")).toBe(true);
+
+    // Once the deletion fails, the conversation can be released again.
+    await threads.reopen(id, "conversation-next");
+    expect((await release("conversation-next")).status).toBe(204);
+    expect((await bind("conversation-again")).status).toBe(200);
   });
 
   it("accepts a scoped Eve credential only for its own session, namespace, and enabled RC", async () => {
@@ -524,11 +651,20 @@ describe.skipIf(!testServerUrl || !testRedisUrl)("agent endpoints", () => {
       content: [{ text: expect.stringMatching(/^FORBIDDEN:/) }],
     });
 
+    // A state tool runs on the server for the credential's own session.
+    expect(await client.callTool(navigate(id))).toMatchObject({
+      structuredContent: { region: { chromosome: "chr1", start: 1000, end: 2000 }, clamped: false },
+    });
+
+    // A browser tool reaches the tab holding the credential's own session.
     const tab = await openTab("user_alice", id);
     if (!("command" in tab)) throw new Error(`Tab was refused: ${tab.status}`);
-    const call = client.callTool(navigate(id));
+    const call = client.callTool({
+      name: "export_image",
+      arguments: { sessionId: id, format: "svg" },
+    });
     const command = await tab.command();
-    const value = { region: { chromosome: "chr1", start: 1000, end: 2000 }, clamped: false };
+    const value = { filename: "chr1.svg", format: "svg", width: 800, height: 300 };
     await reply("user_alice", id, { commandId: command.commandId, result: { ok: true, value } });
     expect(await call).toMatchObject({ structuredContent: value });
 

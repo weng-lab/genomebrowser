@@ -24,6 +24,14 @@ export type SessionState = {
          * commands, must stop then: its edits would not be saved.
          */
         signal: AbortSignal;
+        /**
+         * Save every edit made to this session so far, without waiting for the edit
+         * delay, and resolve once the server has them, waiting through transient
+         * failures. Resolves the failure instead once they cannot be saved. Never
+         * settles while the server stays unreachable or after the session closes, so
+         * callers bound it.
+         */
+        save(): Promise<SessionRequestError | undefined>;
       }
     | undefined;
   /** Saving of the active session's edits. */
@@ -56,11 +64,15 @@ export type SessionState = {
   /**
    * Close the active session after saving every edit, or without saving when
    * `discard` is set, then run `next`, such as signing out. Nothing opens until
-   * `next` settles. Resolves `false`, without running `next`, when the edits
-   * could not be saved; the session then stays open with them.
+   * `next` settles. Resolves `"unsaved"`, without running `next`, when the
+   * edits could not be saved; the session then stays open with them. Resolves
+   * `"failed"` when `next` fails, which the error banner reports, or when the
+   * store stops before closing finishes.
    */
-  close(options?: { discard?: boolean; next?: () => void | Promise<void> }): Promise<boolean>;
+  close(options?: { discard?: boolean; next?: () => void | Promise<void> }): Promise<CloseOutcome>;
 };
+
+export type CloseOutcome = "closed" | "unsaved" | "failed";
 
 type Active = NonNullable<SessionState["active"]>;
 type Pending = NonNullable<SessionState["pending"]>;
@@ -71,6 +83,10 @@ type Current = {
   /** Aborts the active session's `signal`. */
   ended: AbortController;
 };
+type SessionErrorBanner =
+  | { tag: "none" }
+  | { tag: "save"; message: string }
+  | { tag: "operation"; message: string };
 
 const idle = {
   status: "loading",
@@ -120,8 +136,8 @@ export function createSession({
   let listing: Fiber.Fiber<void> | undefined;
   // The one replacement waiting for the user's answer. A newer request takes its place.
   let asking: object | undefined;
-  // The shown error, while it is about edits the active session has not saved.
-  let saveError: string | undefined;
+  // Tracks whether the currently shown error belongs to autosave or an explicit operation.
+  let errorBanner: SessionErrorBanner = { tag: "none" };
   const lock = Semaphore.makeUnsafe(1);
   const store = createStore<SessionState>()(() => ({
     ...idle,
@@ -148,10 +164,28 @@ export function createSession({
     return { fiber, done };
   }
 
-  function failed(error: SessionRequestError, message: string) {
-    if (error.code === "UNAUTHENTICATED")
-      set({ status: "signed-out", error: "Sign in to use saved sessions." });
-    else set({ error: message });
+  function setError(next: SessionErrorBanner, patch: Partial<SessionState> = {}) {
+    errorBanner = next;
+    set({ ...patch, error: next.tag === "none" ? undefined : next.message });
+  }
+
+  function clearSaveError() {
+    if (errorBanner.tag === "save") setError({ tag: "none" });
+  }
+
+  function failed(
+    error: SessionRequestError,
+    message: string,
+    source: "save" | "operation" = "operation",
+  ) {
+    if (error.code === "UNAUTHENTICATED") {
+      setError(
+        { tag: "operation", message: "Sign in to use saved sessions." },
+        { status: "signed-out" },
+      );
+    } else {
+      setError({ tag: source, message });
+    }
   }
 
   function list() {
@@ -201,7 +235,7 @@ export function createSession({
   function exclusive(pending: Pending, operation: Effect.Effect<void>) {
     return lock.withPermits(1)(
       Effect.suspend(() => {
-        set({ pending, error: undefined });
+        setError({ tag: "none" }, { pending });
         return operation;
       }).pipe(
         Effect.ensuring(
@@ -271,8 +305,7 @@ export function createSession({
 
   /** Keep the open session open after its edits could not be saved. */
   function unsaved(error: SessionRequestError) {
-    saveError = `Could not save “${get().active?.name}”. Its changes are kept here.`;
-    failed(error, saveError);
+    failed(error, `Could not save “${get().active?.name}”. Its changes are kept here.`, "save");
     stay();
   }
 
@@ -282,7 +315,7 @@ export function createSession({
    * closes without saving.
    */
   const activate = (
-    { revision, ...next }: Omit<Active, "signal"> & { revision: number },
+    { revision, ...next }: Omit<Active, "signal" | "save"> & { revision: number },
     { takeOver = false } = {},
   ) =>
     Effect.gen(function* () {
@@ -299,33 +332,45 @@ export function createSession({
           if (current?.scope !== sessionScope) return;
           set({ saveStatus });
           // Once every edit is saved, a failure to save them no longer applies.
-          if (saveStatus === "saved" && saveError && get().error === saveError)
-            set({ error: undefined });
+          if (saveStatus === "saved") clearSaveError();
           if ((saveStatus !== "failed" && saveStatus !== "conflict") || !failure) return;
+          let message: string;
           if (failure.code === "NOT_FOUND")
-            saveError = "This session was deleted elsewhere. Its changes cannot be saved.";
+            message = "This session was deleted elsewhere. Its changes cannot be saved.";
           else if (failure.code === "INVALID_INPUT")
-            saveError =
+            message =
               "The latest changes are too large or invalid to save. Change them to keep saving.";
           else if (failure.code === "CONFLICT")
-            saveError =
-              "This session was saved in another tab or window since these changes were made. Save them over that version, or close without saving.";
-          else saveError = "Changes to this session can no longer be saved.";
+            message =
+              "Could not merge these changes after concurrent edits. Save them over the latest version, or close without saving.";
+          else message = "Changes to this session can no longer be saved.";
           // Refused edits can still be saved after a further edit, and edits in
           // conflict after `overwrite`.
           if (failure.code !== "INVALID_INPUT" && failure.code !== "CONFLICT")
             current.ended.abort();
-          failed(failure, saveError);
+          failed(failure, message, "save");
         },
         onSaved(saved) {
           if (current?.scope === sessionScope) remember(saved);
         },
+        onRemoteRename(name) {
+          const active = get().active;
+          if (current?.scope !== sessionScope || !active || active.id !== next.id) return;
+          set({ active: { ...active, name } });
+          changeList((sessions) =>
+            sessions.map((session) => (session.id === active.id ? { ...session, name } : session)),
+          );
+        },
       }).pipe(Scope.provide(sessionScope));
+      const save = () =>
+        Effect.runPromise(Effect.result(autosave.saved)).then((saved) =>
+          Result.isFailure(saved) ? saved.failure : undefined,
+        );
       let replaced = false;
       const replace = () => {
         replaced = true;
         setCurrent({ id: next.id, scope: sessionScope, autosave, ended });
-        set({ active: { ...next, signal: ended.signal }, saveStatus: "saved" });
+        set({ active: { ...next, signal: ended.signal, save }, saveStatus: "saved" });
         navigation.show(next.id);
       };
       const previous = current;
@@ -340,7 +385,7 @@ export function createSession({
         }
         replace();
         // Its edits are no longer the previous session's, so its failure to save them no longer applies.
-        if (saveError && get().error === saveError) set({ error: undefined });
+        clearSaveError();
         return yield* Scope.close(previous.scope, Exit.void);
       }
       yield* finishSaving(previous, replace).pipe(
@@ -384,9 +429,11 @@ export function createSession({
       const { id, name: createdName, revision } = created.success;
       yield* activate({ id, name: createdName, revision, stores }, { takeOver });
       // An edit made while it was created could not be saved, so the previous session stays open.
-      if (current === previous && previous && get().error === saveError) {
-        saveError = `“${createdName}” was created but not opened: “${get().active?.name}” could not be saved. Its changes are kept here.`;
-        set({ error: saveError });
+      if (current === previous && previous && errorBanner.tag === "save") {
+        setError({
+          tag: "save",
+          message: `“${createdName}” was created but not opened: “${get().active?.name}” could not be saved. Its changes are kept here.`,
+        });
       }
     });
 
@@ -421,7 +468,7 @@ export function createSession({
         if (!stores) throw new Error(`Unsupported assembly ${saved.browser.assembly}`);
         restore(stores, saved);
       } catch {
-        set({ error: "This session's saved state cannot be restored." });
+        setError({ tag: "operation", message: "This session's saved state cannot be restored." });
         return stay();
       }
       yield* activate({ id, name: session.name, revision: session.revision, stores });
@@ -443,7 +490,11 @@ export function createSession({
   function create({ name, assembly }: { name: string; assembly: string }): Promise<void> {
     const operation = Effect.gen(function* () {
       const stores = createStores(assembly);
-      if (!stores) return set({ error: `The ${assembly} assembly is not supported.` });
+      if (!stores)
+        return setError({
+          tag: "operation",
+          message: `The ${assembly} assembly is not supported.`,
+        });
       yield* createAndOpen(name, stores, (error) =>
         error.code === "INVALID_INPUT"
           ? "Session names need 1 to 200 characters."
@@ -469,8 +520,9 @@ export function createSession({
         try {
           source = { name: active.name, snapshot: snapshot(active.stores) };
         } catch {
-          return set({
-            error: `“${active.name}” cannot be copied until its latest changes are valid.`,
+          return setError({
+            tag: "operation",
+            message: `“${active.name}” cannot be copied until its latest changes are valid.`,
           });
         }
       } else {
@@ -493,7 +545,10 @@ export function createSession({
         if (!stores) throw new Error(`Unsupported assembly ${source.snapshot.browser.assembly}`);
         restore(stores, source.snapshot);
       } catch {
-        return set({ error: "This session's saved state cannot be copied." });
+        return setError({
+          tag: "operation",
+          message: "This session's saved state cannot be copied.",
+        });
       }
       yield* createAndOpen(
         copyName(source.name),
@@ -514,8 +569,9 @@ export function createSession({
     const active = get().active;
     if (!active || !current) return;
     const parsed = sessionInputSchema.shape.name.safeParse(name);
-    if (!parsed.success) return set({ error: "Session names need 1 to 200 characters." });
-    set({ active: { ...active, name: parsed.data }, error: undefined });
+    if (!parsed.success)
+      return setError({ tag: "operation", message: "Session names need 1 to 200 characters." });
+    setError({ tag: "none" }, { active: { ...active, name: parsed.data } });
     changeList((sessions) =>
       sessions.map((session) =>
         session.id === active.id ? { ...session, name: parsed.data } : session,
@@ -532,8 +588,7 @@ export function createSession({
         Effect.sync(() => {
           // Other failures end saving, which the save status reports.
           if (current !== target || !unavailable(error)) return;
-          saveError = "Could not reach saved sessions. Try again.";
-          set({ error: saveError });
+          setError({ tag: "save", message: "Could not reach saved sessions. Try again." });
         }),
       ),
     );
@@ -574,8 +629,8 @@ export function createSession({
   function close({
     discard = false,
     next,
-  }: { discard?: boolean; next?: () => void | Promise<void> } = {}): Promise<boolean> {
-    let closed = false;
+  }: { discard?: boolean; next?: () => void | Promise<void> } = {}): Promise<CloseOutcome> {
+    let outcome: CloseOutcome = "failed";
     opening?.fiber.interruptUnsafe();
     const operation = Effect.gen(function* () {
       const target = current;
@@ -589,15 +644,22 @@ export function createSession({
         yield* Scope.close(target.scope, Exit.void);
       } else if (target) {
         const saved = yield* Effect.result(finishSaving(target, finish));
-        if (Result.isFailure(saved)) return unsaved(saved.failure);
+        if (Result.isFailure(saved)) {
+          outcome = "unsaved";
+          return unsaved(saved.failure);
+        }
       }
-      closed = true;
-      if (!next) return;
+      if (!next) {
+        outcome = "closed";
+        return;
+      }
       const changed = yield* Effect.result(Effect.tryPromise(async () => next()));
-      if (Result.isFailure(changed)) set({ error: "Could not change accounts. Try again." });
+      if (Result.isFailure(changed))
+        return setError({ tag: "operation", message: "Could not change accounts. Try again." });
+      outcome = "closed";
     });
     const task = run(exclusive({ operation: "close" }, operation));
-    return task ? task.done.then(() => closed) : Promise.resolve(false);
+    return task ? task.done.then(() => outcome) : Promise.resolve(outcome);
   }
 
   function start() {
@@ -618,7 +680,7 @@ export function createSession({
       setCurrent(undefined);
       scope = opening = listing = undefined;
       Effect.runFork(Scope.close(lifetime, Exit.void));
-      set(idle);
+      setError({ tag: "none" }, idle);
     };
   }
 

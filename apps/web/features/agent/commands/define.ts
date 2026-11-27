@@ -1,27 +1,20 @@
 import type { BrowserImage, GenomeBrowserStores } from "@weng-lab/genomebrowser";
 import type { z } from "zod";
-import type { TrackMetadataChange, TrackMetadataOutcome } from "../../browser/trackMetadata";
-import type { TrackSortRequest } from "../../browser/trackSort";
 import type { TrackRequest, UrlTracksOutcome } from "../../browser/urlTracks";
+import type { SessionSnapshot } from "../../sessions/snapshot.ts";
 
 export type CommandFailure = { ok: false; code: string; error: string };
 export type CommandOutcome<Value> = { ok: true; value: Value } | CommandFailure;
+export type StateCommandOutcome<Value> =
+  | { ok: true; value: Value; snapshot?: SessionSnapshot }
+  | CommandFailure;
 
 /**
- * What a command acts on in the browser tab: the open session's stores, the same
- * ones the UI uses, and app actions that need browser code. Command files import
- * only schemas and types, so the MCP endpoint can load them on the server. Add an
- * action here when a command needs browser work.
+ * What a browser-only command acts on in the browser tab: the open session's
+ * stores and app actions that need DOM or browser-side fetch/CORS access.
  */
 export type CommandApp = {
   stores: GenomeBrowserStores;
-  /** Sort the loaded tracks once by fields in priority order, as the Sort tracks dialog does. */
-  sortTracks(sort: readonly TrackSortRequest[]): { ok: true } | CommandFailure;
-  /** Apply one change to the metadata of each listed track, changing every track or none. */
-  changeTrackMetadata(
-    trackIds: readonly string[],
-    change: TrackMetadataChange,
-  ): TrackMetadataOutcome;
   /** Export the rendered browser, named after its region unless `filename` is given. */
   exportImage(
     format: BrowserImage["format"],
@@ -39,14 +32,7 @@ export type CommandApp = {
   control: { take(): void; release(): void };
 };
 
-/**
- * Everything about one agent command. MCP publishes it as a tool named `name`,
- * built from `description`, `params`, and `result`; the browser tab runs `run`
- * against its open session. `run` makes edits synchronously, so they cannot land
- * after `signal` aborts; asynchronous work checks `signal` before any effect the
- * user would see.
- */
-export type Command<
+type CommandBase<
   Params extends z.ZodObject = z.ZodObject,
   Result extends z.ZodObject = z.ZodObject,
 > = {
@@ -61,6 +47,36 @@ export type Command<
    * `longestCommandMs`.
    */
   timeoutMs?: number;
+};
+
+/**
+ * A command that operates purely on `SessionSnapshot`. MCP runs it directly on
+ * the server (with 0..N open tabs) through `SessionService`.
+ */
+export type StateCommand<
+  Params extends z.ZodObject = z.ZodObject,
+  Result extends z.ZodObject = z.ZodObject,
+> = CommandBase<Params, Result> & {
+  target: "state";
+  /** `"read"` loads from PostgreSQL without writing; `"write"` persists via `SessionService.mutate`. */
+  access: "read" | "write";
+  run(snapshot: SessionSnapshot, params: z.output<Params>): StateCommandOutcome<z.input<Result>>;
+};
+
+/**
+ * A command that requires browser DOM/CORS access (`export_image`, `add_tracks_from_urls`).
+ * MCP relays it to the session's attached browser tab.
+ */
+export type BrowserCommand<
+  Params extends z.ZodObject = z.ZodObject,
+  Result extends z.ZodObject = z.ZodObject,
+> = CommandBase<Params, Result> & {
+  target: "browser";
+  /**
+   * Whether a success changes the open session. Its reply then waits until the
+   * session has saved the change, so state commands that follow see it.
+   */
+  changesSession?: boolean;
   run(
     app: CommandApp,
     params: z.output<Params>,
@@ -68,15 +84,18 @@ export type Command<
   ): CommandOutcome<z.input<Result>> | Promise<CommandOutcome<z.input<Result>>>;
 };
 
+export type Command<
+  Params extends z.ZodObject = z.ZodObject,
+  Result extends z.ZodObject = z.ZodObject,
+> = StateCommand<Params, Result> | BrowserCommand<Params, Result>;
+
 /**
  * The longest a command may wait for its tab: under the MCP SDKs' default 60-second request
  * timeout and the MCP route's `maxDuration` of 60 seconds.
  */
 export const longestCommandMs = 55_000;
 
-export function defineCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
-  command: Command<Params, Result>,
-) {
+function checked<C extends Command>(command: C): C {
   if ("sessionId" in command.params.shape) {
     throw new Error(`${command.name} must not declare sessionId; the MCP tool adds it`);
   }
@@ -84,4 +103,16 @@ export function defineCommand<Params extends z.ZodObject, Result extends z.ZodOb
     throw new Error(`${command.name} may wait at most ${longestCommandMs} ms for its tab`);
   }
   return command;
+}
+
+export function defineStateCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
+  command: Omit<StateCommand<Params, Result>, "target">,
+): StateCommand<Params, Result> {
+  return checked({ target: "state", ...command });
+}
+
+export function defineBrowserCommand<Params extends z.ZodObject, Result extends z.ZodObject>(
+  command: Omit<BrowserCommand<Params, Result>, "target">,
+): BrowserCommand<Params, Result> {
+  return checked({ target: "browser", ...command });
 }

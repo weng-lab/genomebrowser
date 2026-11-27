@@ -7,7 +7,7 @@ Settings and MCP remote control lets a signed-in user allow or disallow AI agent
 - `settings-toggle` disables and re-enables `Allow agents to control my open session` on `/settings` and persists the preference across reloads.
 - `agent-panel-status` shows `Connected. MCP tools called with sessionId "<id>" run in this tab.` when enabled with an open session, or `Remote control is off. Turn it on in Settings.` when disabled.
 - `mcp-auth-reject` rejects unauthenticated `/api/mcp` requests with HTTP 401.
-- `mcp-roundtrip` executes an authenticated MCP tool call (`list_tracks` or `set_region`) against `/api/mcp` and reads or updates the live open browser tab.
+- `mcp-roundtrip` executes an authenticated MCP tool call (`list_tracks` or `set_region`) against `/api/mcp`, which reads or updates the saved session on the server; every open tab of that session updates live.
 
 ## How to get to it (user POV)
 
@@ -34,6 +34,6 @@ Preconditions:
 
 - New accounts start with Remote Control enabled (`Allow agents to control my open session` checked) and the `AI Assist` panel expanded.
 - Always send MCP requests to the same verification server port that hosts the open browser tab so the command reaches that tab's connection.
-- Remote Control allows only one active tab per session ID; if the same session is open in another tab, the panel stays at `Connecting… If this session is open in another tab, close that tab.`.
+- Only one tab per session ID holds the agent connection, which AI Assist chat and browser-only tools (`export_image`, `add_tracks_from_urls`, `take_control`, `release_control`) need; another tab of the same session stays at `Connecting… If this session is open in another tab, close that tab…`. State tools (`set_region`, `list_tracks`, `sort_tracks`, `set_track_metadata`) run on the server whether or not a tab is open, and every open tab of the session shows their result. `add_tracks_from_urls` replies only after the session has saved the new tracks, so a state tool called right after it (such as `set_track_metadata` on a new track) finds them; if the session cannot save them it replies `NOT_SAVED`.
 - The Remote Control preference belongs to the signed-in account, not the session. Restore it to the default (`on`) if you toggle it off during verification.
 - Never log or commit the output of `verify-web.mjs mcp-token`.

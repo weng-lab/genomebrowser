@@ -1,10 +1,14 @@
-import { getAgentThreads, getSessions } from "../../../../composition/server";
+import { getAgentThreads, getSessionService } from "../../../../composition/server";
 import { endConversation } from "../../../../features/agent/server/conversations";
 import { endAgentThread } from "../../../../features/agent/server/http";
-import { readSessionUpdate, respond } from "../../../../features/sessions/server/http";
+import {
+  readSessionPatch,
+  readSessionUpdate,
+  respond,
+} from "../../../../features/sessions/server/http";
 
 export function GET(_request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
-  return respond(async () => (await getSessions()).load((await params).id));
+  return respond(async () => (await getSessionService()).load((await params).id));
 }
 
 /**
@@ -13,19 +17,33 @@ export function GET(_request: Request, { params }: RouteContext<"/api/sessions/[
  */
 export function PUT(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
   return respond(async () =>
-    (await getSessions()).update((await params).id, await readSessionUpdate(request)),
+    (await getSessionService()).update((await params).id, await readSessionUpdate(request)),
   );
 }
 
 /**
- * Delete the session with its agent thread. The thread's conversation is ended
- * first, so Eve stops holding its messages; if Eve cannot confirm that, the
- * session is kept and the deletion can be retried.
+ * Apply a partial live edit (`SessionPatch`) from an open tab, merging cleanly
+ * with concurrent edits and broadcasting the new revision to all open tabs.
+ */
+export function PATCH(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
+  return respond(async () => {
+    const service = await getSessionService();
+    const { id } = await params;
+    await service.authorize(id);
+    return service.patch(id, await readSessionPatch(request));
+  });
+}
+
+/**
+ * Delete the session with its agent thread and notify open tabs. The thread's
+ * conversation is ended first, so Eve stops holding its messages; if Eve cannot
+ * confirm that, the session is kept and the deletion can be retried.
  */
 export function DELETE(request: Request, { params }: RouteContext<"/api/sessions/[id]">) {
   return respond(async () => {
-    const { id } = await params;
-    await endAgentThread(request, id, { threads: getAgentThreads, end: endConversation });
-    await (await getSessions()).remove(id);
+    const [{ id }, service] = await Promise.all([params, getSessionService()]);
+    await endAgentThread(request, id, { threads: getAgentThreads, end: endConversation }, () =>
+      service.remove(id),
+    );
   });
 }

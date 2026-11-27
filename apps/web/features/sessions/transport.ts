@@ -8,6 +8,7 @@ import {
   type SessionInput,
   type SessionUpdate,
 } from "./schema";
+import type { SessionPatchRequest } from "./syncSchema";
 
 /**
  * A failed session request. `UNAVAILABLE` covers network failures, server errors,
@@ -55,7 +56,7 @@ export function createSessionTransport(base = "/api/sessions") {
     );
   }
 
-  const json = (method: string, input: SessionInput | SessionUpdate) => ({
+  const json = (method: string, input: SessionInput | SessionUpdate | SessionPatchRequest) => ({
     method,
     body: JSON.stringify(input),
   });
@@ -67,7 +68,13 @@ export function createSessionTransport(base = "/api/sessions") {
     /** Fails with `NOT_FOUND` for a deleted session rather than recreating it. */
     update: (id: string, input: SessionUpdate) =>
       request(`/${encodeURIComponent(id)}`, sessionSchema, json("PUT", input)),
+    /** Merge a partial live edit onto the server's latest revision and broadcast to open tabs. */
+    patch: (id: string, input: SessionPatchRequest) =>
+      request(`/${encodeURIComponent(id)}`, savedSessionSchema, json("PATCH", input)),
     remove: (id: string) => request(`/${encodeURIComponent(id)}`, z.null(), { method: "DELETE" }),
+    /** SSE endpoint streaming live updates and deletions for one session. */
+    eventsUrl: (id: string, sinceRevision: number) =>
+      `${base}/${encodeURIComponent(id)}/events?sinceRevision=${sinceRevision}`,
   };
 }
 

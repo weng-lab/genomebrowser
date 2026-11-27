@@ -15,8 +15,15 @@ import { agentRedisNamespace } from "../features/agent/server/deployment";
 import { createAgentThreads, type AgentThreads } from "../features/agent/server/threads";
 import { createCommandRelay, type CommandRelay } from "../features/agent/server/relay";
 import { createMcpEndpoint, type McpCaller } from "../features/mcp/server/mcp";
+import {
+  createMemorySessionBus,
+  createRedisSessionBus,
+  type SessionBus,
+} from "../features/sessions/server/bus";
 import { createSessions, type Sessions } from "../features/sessions/server/sessions";
+import { createSessionService, type SessionService } from "../features/sessions/server/service";
 import { connectDatabase } from "./server/database";
+import { createRedisConnection, type RedisConnection } from "./server/redis";
 
 type Services = {
   db: NodePgDatabase;
@@ -86,27 +93,82 @@ async function composeServices(): Promise<Services> {
   };
 }
 
+let redisConnection: RedisConnection | undefined;
+let bus: SessionBus | undefined;
 let relay: CommandRelay | undefined;
 
+function getSharedRedis(url: string): RedisConnection {
+  return (redisConnection ??= createRedisConnection({ url }));
+}
+
 /**
- * The process's command relay, through the Redis at `REDIS_URL`. Each Vercel
- * deployment uses its own namespace, so an older preview's agents and tabs never
- * reach a newer one's. It connects on first use.
+ * The process's live session bus. Uses Redis when `REDIS_URL` is configured so
+ * multiple serverless instances share live pub/sub; falls back to an in-memory
+ * bus when `REDIS_URL` is unset so local dev works without Docker.
+ */
+export function getSessionBus(): SessionBus {
+  return (bus ??= process.env.REDIS_URL
+    ? createRedisSessionBus({
+        connection: getSharedRedis(process.env.REDIS_URL),
+        namespace: agentRedisNamespace(),
+      })
+    : createMemorySessionBus());
+}
+
+/** Authoritative live session service for browser routes (Clerk session cookies). */
+export async function getSessionService(): Promise<SessionService> {
+  return createSessionService({
+    sessions: (await getServices()).sessions,
+    bus: getSessionBus(),
+  });
+}
+
+/** Authoritative live session service for an MCP caller's verified user ID. */
+export async function getAgentSessionService(userId: string): Promise<SessionService> {
+  return createSessionService({
+    sessions: (await accountForUser(userId)).sessions,
+    bus: getSessionBus(),
+  });
+}
+
+/**
+ * The process's command relay, sharing the process's Redis connection at `REDIS_URL`.
+ * Each Vercel deployment uses its own namespace, so an older preview's agents and
+ * tabs never reach a newer one's. It connects on first use.
  */
 export function getCommandRelay(): CommandRelay {
   const url = process.env.REDIS_URL;
   if (!url) throw new Error("REDIS_URL must be set for agent commands");
   return (relay ??= createCommandRelay({
-    url,
+    connection: getSharedRedis(url),
     namespace: agentRedisNamespace(),
   }));
 }
 
+/** Close and reset all server pub/sub and relay connections (for graceful shutdown and tests). */
+export async function closeServerConnections(): Promise<void> {
+  const activeRelay = relay;
+  const activeBus = bus;
+  const activeRedis = redisConnection;
+  relay = undefined;
+  bus = undefined;
+  redisConnection = undefined;
+  // Redis closes after its users, even when one of them fails to close.
+  const users = await Promise.allSettled([activeRelay?.close(), activeBus?.close()]);
+  await activeRedis?.close();
+  const failed = users.find((result) => result.status === "rejected");
+  if (failed) throw failed.reason;
+}
+
 async function authenticateMcpRequest(request: Request): Promise<McpCaller | null> {
   const bearer = /^Bearer (\S+)$/i.exec(request.headers.get("authorization") ?? "")?.[1];
-  if (bearer?.startsWith("gbmcp_")) return readCommandCredential(bearer);
+  // Only Eve holds session credentials, so they act for the agent panel.
+  if (bearer?.startsWith("gbmcp_")) {
+    const principal = await readCommandCredential(bearer);
+    return principal && { ...principal, agent: "panel" };
+  }
   const userId = await clerkAgentIdentity.userId();
-  return userId ? { userId } : null;
+  return userId ? { userId, agent: "external" } : null;
 }
 
 let mcp: ReturnType<typeof createMcpEndpoint> | undefined;
@@ -120,5 +182,6 @@ export function getMcpEndpoint() {
     authenticate: authenticateMcpRequest,
     account: accountForUser,
     relay: getCommandRelay,
+    sessionService: getAgentSessionService,
   }));
 }

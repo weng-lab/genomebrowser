@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { Deferred, Effect, Exit, Scope } from "effect";
-import { createClient } from "redis";
+import { parseJson } from "../../../shared/parseJson";
 import {
   commandResultSchema,
   type CommandMessage,
@@ -10,9 +10,25 @@ import {
 } from "../commands/protocol";
 import { tabLeaseKey } from "./tabPresence";
 
+type RelayRedisPublisher = {
+  withCommandOptions(options: { abortSignal: AbortSignal }): {
+    eval(script: string, options: { keys: string[]; arguments: string[] }): Promise<unknown>;
+    zRem(key: string, member: string): Promise<unknown>;
+    publish(channel: string, message: string): Promise<number>;
+  };
+};
+type RelayRedisSubscriber = {
+  subscribe(channel: string, listener: (message: string) => void): Promise<unknown>;
+  unsubscribe(channel: string, listener: (message: string) => void): Promise<unknown>;
+};
+export type RelayRedisClients = {
+  publisher: RelayRedisPublisher;
+  subscriber: RelayRedisSubscriber;
+};
+
 export type CommandRelayOptions = {
-  /** Redis server, such as `redis://127.0.0.1:6379`. */
-  url: string;
+  /** Shared Redis connection pair managed by the caller so the relay and session bus share sockets. */
+  connection: { connect(): Promise<RelayRedisClients> };
   /** Prefix for every Redis key and channel. Deployments that must not reach each other's tabs use different ones. */
   namespace: string;
   /** Bounds a whole dispatch that gives no limit of its own, from reaching Redis to the tab's reply, and every other Redis wait. */
@@ -44,7 +60,7 @@ export type CommandRelay = {
    */
   dispatch(
     sessionId: string,
-    command: Pick<CommandMessage, "name" | "params">,
+    command: Pick<CommandMessage, "name" | "params" | "agent">,
     signal: AbortSignal,
     options?: { timeoutMs?: number },
   ): Promise<CommandResult>;
@@ -91,11 +107,13 @@ redis.call("DEL", KEYS[1])
 redis.call("PUBLISH", KEYS[2], ARGV[1])
 return 1`;
 // Admit a command unless the session already has the maximum in flight, after
-// dropping commands past their deadline.
+// dropping commands past their deadline. The key lasts until the latest
+// deadline, which a command with a shorter one must not cut short.
 const admitScript = `redis.call("ZREMRANGEBYSCORE", KEYS[1], "-inf", ARGV[1])
 if redis.call("ZCARD", KEYS[1]) >= tonumber(ARGV[2]) then return 0 end
 redis.call("ZADD", KEYS[1], ARGV[3], ARGV[4])
-redis.call("PEXPIREAT", KEYS[1], ARGV[3])
+local latest = redis.call("ZRANGE", KEYS[1], -1, -1, "WITHSCORES")[2]
+redis.call("PEXPIREAT", KEYS[1], latest)
 return 1`;
 // Returns the connection that received the command, or nil.
 const publishScript = `local owner = redis.call("GET", KEYS[1])
@@ -134,61 +152,26 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     pending: (sessionId: string) => `${prefix}pending:${sessionId}`,
   };
 
-  type Redis = ReturnType<typeof createRedis>;
-  type Clients = { publisher: Redis; subscriber: Redis };
-  let connecting: Promise<Clients> | undefined;
   let closed = false;
   // Each stream's `end`, and when its cleanup has started.
   const streams = new Map<() => void, Promise<void>>();
   const dispatches = new Map<AbortController, Promise<CommandResult>>();
   const cleanups = new Set<Promise<unknown>>();
 
-  function createRedis() {
-    const client = createClient({
-      url: options.url,
-      // Commands fail at once while disconnected rather than waiting to reconnect.
-      disableOfflineQueue: true,
-      socket: { connectTimeout: timeoutMs },
-    });
-    client.on("error", (error: unknown) => console.error("Command relay Redis error", error));
-    return client;
-  }
-
-  /** The shared publisher and subscriber. A connection attempt that fails or stalls is discarded, and the next use retries. */
-  function connect(): Promise<Clients> {
-    // While closing, cleanup still uses the existing connection.
-    if (closed && !connecting) return Promise.reject(new Error("The command relay is closed"));
-    connecting ??= (async () => {
-      const clients = { publisher: createRedis(), subscriber: createRedis() };
-      const all = Object.values(clients);
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      const stalled = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error("Redis did not connect in time")), timeoutMs);
-      });
-      try {
-        await Promise.race([Promise.all(all.map((client) => client.connect())), stalled]);
-        return clients;
-      } catch (error) {
-        for (const client of all) if (client.isOpen) client.destroy();
-        throw error;
-      } finally {
-        clearTimeout(timer);
-      }
-    })().catch((error: unknown) => {
-      connecting = undefined;
-      throw error;
-    });
-    return connecting;
+  /** The shared publisher and subscriber. */
+  function connect(): Promise<RelayRedisClients> {
+    if (closed) return Promise.reject(new Error("The command relay is closed"));
+    return options.connection.connect();
   }
 
   /** A Redis operation that stops waiting when interrupted. */
-  const redis = <A>(operation: (clients: Clients, signal: AbortSignal) => Promise<A>) =>
+  const redis = <A>(operation: (clients: RelayRedisClients, signal: AbortSignal) => Promise<A>) =>
     Effect.tryPromise(async (signal) => operation(await connect(), signal));
 
   /** Run cleanup without making anyone wait for Redis; `close` waits for it. */
-  function background(operation: (clients: Clients) => Promise<unknown>, what: string) {
-    if (closed && !connecting) return;
-    const cleanup = connect()
+  function background(operation: (clients: RelayRedisClients) => Promise<unknown>, what: string) {
+    const cleanup = options.connection
+      .connect()
       .then(operation)
       .catch((error: unknown) => console.error(`Could not ${what}`, error))
       .finally(() => cleanups.delete(cleanup));
@@ -210,7 +193,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
 
   function dispatch(
     sessionId: string,
-    command: Pick<CommandMessage, "name" | "params">,
+    command: Pick<CommandMessage, "name" | "params" | "agent">,
     signal: AbortSignal,
     { timeoutMs: commandTimeoutMs = timeoutMs }: { timeoutMs?: number } = {},
   ): Promise<CommandResult> {
@@ -335,6 +318,18 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     const scope = Scope.makeUnsafe();
     const ended = Deferred.makeUnsafe<void>();
     const end = () => Deferred.doneUnsafe(ended, Exit.void);
+    // Listed while it attaches, so `close` ends it and waits for it then too.
+    let settle!: () => void;
+    streams.set(
+      end,
+      new Promise<void>((resolve) => {
+        settle = resolve;
+      }),
+    );
+    const settled = () => {
+      streams.delete(end);
+      settle();
+    };
     const encoder = new TextEncoder();
     let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
     const write = (text: string) => {
@@ -389,7 +384,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
       { signal: timed(signal) },
     );
     if (!Exit.isSuccess(opened) || !opened.value) {
-      await Effect.runPromise(Scope.close(scope, Exit.void));
+      await Effect.runPromise(Scope.close(scope, Exit.void)).finally(settled);
       if (Exit.isSuccess(opened)) return "taken";
       throw new Error("Could not attach the browser tab", { cause: opened.cause });
     }
@@ -412,7 +407,7 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
       }),
     );
     write(": connected\n\n");
-    const done = Effect.runPromise(
+    Effect.runPromise(
       Effect.gen(function* () {
         yield* Effect.forkScoped(heartbeat);
         yield* Effect.raceAll([
@@ -433,8 +428,9 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
         ),
         Effect.ensuring(Scope.close(scope, Exit.void)),
       ),
-    ).finally(() => streams.delete(end));
-    streams.set(end, done);
+    )
+      .catch((error: unknown) => console.error("A tab stream failed", error))
+      .finally(settled);
     return stream;
   }
 
@@ -452,20 +448,9 @@ export function createCommandRelay(options: CommandRelayOptions): CommandRelay {
     for (const stop of dispatches.keys()) stop.abort();
     for (const end of streams.keys()) end();
     await Promise.allSettled([...dispatches.values(), ...streams.values()]);
-    // Let connection cleanup reach Redis before disconnecting.
+    // Let connection cleanup reach Redis before callers close the shared connection.
     while (cleanups.size) await Promise.allSettled(cleanups);
-    const clients = await connecting?.catch(() => undefined);
-    connecting = undefined;
-    for (const client of Object.values(clients ?? {})) if (client.isOpen) client.destroy();
   }
 
   return { dispatch, attach, reply, close };
-}
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 }

@@ -20,10 +20,13 @@ export default defineAgent({
       const turn = options.prompt.slice(user);
       const prompt = JSON.stringify(turn);
       const navigate = prompt.includes("navigate");
+      // `set_region` is a state tool the server runs; `take_control` is a browser tool the tab runs.
+      const takeControl = JSON.stringify(turn[0]).includes("take control");
+      const act = navigate || takeControl;
       const results = turn.filter((message) => message.role === "tool");
       const searched = results.some((message) => JSON.stringify(message).includes("eve__search"));
       const called = results.some((message) => JSON.stringify(message).includes("eve__tool"));
-      const tool = navigate && !called;
+      const tool = act && !called;
       // Everything before the latest message: instructions and the context the app adds.
       const context = JSON.stringify(options.prompt.slice(0, user));
       return {
@@ -63,10 +66,12 @@ export default defineAgent({
                 toolName: searched ? "eve__tool" : "eve__search",
                 input: JSON.stringify(
                   searched
-                    ? {
-                        name: "genomebrowser__set_region",
-                        input: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
-                      }
+                    ? takeControl
+                      ? { name: "genomebrowser__take_control", input: {} }
+                      : {
+                          name: "genomebrowser__set_region",
+                          input: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
+                        }
                     : { query: "genomebrowser__" },
                 ),
               });
@@ -75,9 +80,7 @@ export default defineAgent({
               controller.enqueue({
                 type: "text-delta",
                 id: "answer",
-                delta: navigate
-                  ? `Browser result: ${prompt}`
-                  : "Hello from the genome browser agent.",
+                delta: act ? `Browser result: ${prompt}` : "Hello from the genome browser agent.",
               });
               controller.enqueue({ type: "text-end", id: "answer" });
             }

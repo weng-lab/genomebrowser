@@ -12,8 +12,17 @@ export const sessionsTable = pgTable(
     snapshot: jsonb().$type<SessionSnapshot>().notNull(),
     /** Starts at 1 and increases by one with each saved update. */
     revision: integer().notNull().default(1),
-    /** The client-chosen ID of the update that produced `revision`, so a retry of it is recognized. */
+    /**
+     * Kept and dual-written during the expand-and-contract rollout so older
+     * deployments and preview branches sharing the database keep working.
+     * Drop in a follow-up migration once nothing reads `save_id`.
+     */
     saveId: uuid("save_id"),
+    /**
+     * Bounded history of client-chosen save IDs applied to this session (newest last,
+     * capped at 128), so retried writes are recognized even after intervening writes.
+     */
+    recentSaveIds: uuid("recent_save_ids").array().notNull().default([]),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

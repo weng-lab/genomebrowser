@@ -1,5 +1,6 @@
 import { createClient } from "redis";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createRedisConnection, type RedisConnection } from "../composition/server/redis";
 import {
   createCommandRelay,
   type CommandRelay,
@@ -9,12 +10,16 @@ import { attachTab, closedPort, stalledServer, testNamespace, testRedisUrl } fro
 
 // Real Redis. Each test uses its own namespace; relays stand in for server instances.
 const relays: CommandRelay[] = [];
-function relay(options: Partial<CommandRelayOptions> = {}) {
+const connections: RedisConnection[] = [];
+function relay(options: Partial<Omit<CommandRelayOptions, "connection">> & { url?: string } = {}) {
+  const { url = testRedisUrl!, commandTimeoutMs = 1_000, ...rest } = options;
+  const connection = createRedisConnection({ url, timeoutMs: commandTimeoutMs });
+  connections.push(connection);
   const created = createCommandRelay({
-    url: testRedisUrl!,
+    connection,
     namespace: testNamespace(),
-    commandTimeoutMs: 1_000,
-    ...options,
+    commandTimeoutMs,
+    ...rest,
   });
   relays.push(created);
   return created;
@@ -29,6 +34,7 @@ const never = () => new AbortController().signal;
 
 afterEach(async () => {
   await Promise.all(relays.splice(0).map((relay) => relay.close()));
+  await Promise.all(connections.splice(0).map((connection) => connection.close()));
 });
 
 describe.skipIf(!testRedisUrl)("command relay", () => {
@@ -159,6 +165,41 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     expect(await result).toEqual({ ok: true, value: 3 });
   });
 
+  it("keeps the pending limit's key until the latest deadline, whatever order commands arrive in", async () => {
+    const namespace = testNamespace();
+    const commands = relay({ namespace });
+    const id = session();
+    const tab = await attachTab(commands, id);
+    if (tab === "taken") throw new Error("Tab was refused");
+    const long = commands.dispatch(id, setRegion, never(), { timeoutMs: 10_000 });
+    await tab.command();
+    const short = commands.dispatch(id, setRegion, never());
+    await tab.command();
+    const redis = createClient({ url: testRedisUrl });
+    await redis.connect();
+    try {
+      expect(await redis.pTTL(`${namespace}:pending:${id}`)).toBeGreaterThan(5_000);
+    } finally {
+      redis.destroy();
+    }
+    tab.close();
+    await Promise.all([long, short]);
+  });
+
+  it("ends a tab stream that was still attaching when the relay closed", async () => {
+    for (const delayMs of [0, 1, 2, 5, 10, 20]) {
+      const commands = relay({ heartbeatIntervalMs: 30_000 });
+      const attaching = attachTab(commands, session()).catch(() => "failed" as const);
+      await new Promise((resolve) => {
+        setTimeout(resolve, delayMs);
+      });
+      const closing = commands.close();
+      const tab = await attaching;
+      if (typeof tab !== "string") await tab.ended;
+      await closing;
+    }
+  }, 10_000);
+
   it("fails at once when no tab is attached", async () => {
     const started = Date.now();
     expect(await relay().dispatch(session(), setRegion, never())).toMatchObject({
@@ -269,6 +310,17 @@ describe.skipIf(!testRedisUrl)("command relay", () => {
     if (tab === "taken") throw new Error("Tab was refused");
     await tab.ended;
     await expect.poll(() => attachTab(commands, id)).not.toBe("taken");
+  });
+
+  it("hands out no Redis clients once the connection starts closing", async () => {
+    const connection = createRedisConnection({ url: testRedisUrl! });
+    connections.push(connection);
+    const clients = await connection.connect();
+    const closing = connection.close();
+    await expect(connection.connect()).rejects.toThrow("Redis connection is closed");
+    await closing;
+    expect(clients.publisher.isOpen).toBe(false);
+    expect(clients.subscriber.isOpen).toBe(false);
   });
 
   it("fails within the command timeout when Redis is unreachable", async () => {

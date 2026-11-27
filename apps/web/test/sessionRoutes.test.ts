@@ -23,6 +23,8 @@ const create = (value: unknown) => collection.POST(body(value));
 const load = (id: string) => single.GET(new Request("http://localhost"), params(id));
 const update = (id: string, value: unknown) =>
   single.PUT(body(value, { method: "PUT" }), params(id));
+const patch = (id: string, value: unknown) =>
+  single.PATCH(body(value, { method: "PATCH" }), params(id));
 const remove = (id: string) => single.DELETE(new Request("http://localhost"), params(id));
 
 describe.skipIf(!testServerUrl)("session routes", () => {
@@ -101,6 +103,9 @@ describe.skipIf(!testServerUrl)("session routes", () => {
     const signedOut = await collection.GET();
     expect(signedOut.status).toBe(401);
     expect(await signedOut.json()).toMatchObject({ code: "UNAUTHENTICATED" });
+    const signedOutPatch = await patch(id, "{not json");
+    expect(signedOutPatch.status).toBe(401);
+    expect(await signedOutPatch.json()).toMatchObject({ code: "UNAUTHENTICATED" });
 
     await as("user_alice");
     expect(await (await load(id)).json()).toMatchObject({ name: "Private" });

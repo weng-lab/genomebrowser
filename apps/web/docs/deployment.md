@@ -9,13 +9,13 @@ Both are behind Vercel Authentication, so viewers need a Vercel team login. The 
 
 ## Services
 
-| Service                | Used for                              | Preview                               | Production today                                   | Production before real users                                                 |
-| ---------------------- | ------------------------------------- | ------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Vercel                 | Hosting the app                       | One URL per PR branch                 | The project's `vercel.app` domain                  | A `wenglab.org` subdomain                                                    |
-| Cloud SQL (PostgreSQL) | Saved sessions and account settings   | The development instance and database | Its own database on the development instance       | Its own login, on an instance sized and backed up for production             |
-| Google service account | Letting Vercel connect to Cloud SQL   | The development service account       | Same as Preview                                    | Its own service account                                                      |
-| Clerk                  | Accounts and sign-in                  | The development instance              | Same as Preview                                    | The lab's production instance, which works only on a `wenglab.org` subdomain |
-| Redis                  | Relaying agent commands to the client | The server set as `REDIS_URL`         | Its own `REDIS_URL`, which may be Preview's server | Same as today                                                                |
+| Service                | Used for                             | Preview                               | Production today                                   | Production before real users                                                 |
+| ---------------------- | ------------------------------------ | ------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Vercel                 | Hosting the app                      | One URL per PR branch                 | The project's `vercel.app` domain                  | A `wenglab.org` subdomain                                                    |
+| Cloud SQL (PostgreSQL) | Saved sessions and account settings  | The development instance and database | Its own database on the development instance       | Its own login, on an instance sized and backed up for production             |
+| Google service account | Letting Vercel connect to Cloud SQL  | The development service account       | Same as Preview                                    | Its own service account                                                      |
+| Clerk                  | Accounts and sign-in                 | The development instance              | Same as Preview                                    | The lab's production instance, which works only on a `wenglab.org` subdomain |
+| Redis                  | Live session sync and agent commands | The server set as `REDIS_URL`         | Its own `REDIS_URL`, which may be Preview's server | Same as today                                                                |
 
 ## Vercel
 
@@ -97,7 +97,7 @@ Sessions belong to Clerk user IDs, so users of one instance never see sessions s
 
 Set `REDIS_URL` to a Redis server that supports publish/subscribe and Lua scripts over TCP, such as a Redis database from the Vercel Marketplace. HTTP-only Redis APIs do not work. Use `rediss://` when the provider requires TLS.
 
-An agent's MCP call and the client's command stream can run in different function instances, and Redis passes commands and replies between them. It holds no application data, only short-lived leases naming each session's connection. Every key starts with the deployment's ID, so Preview and Production can share a server without one deployment's agents reaching another's clients. Without Redis, sessions still save, but MCP calls fail with `RELAY_UNAVAILABLE`.
+Requests and streams for one session can run in different function instances. Redis publishes each saved revision to every instance streaming that session's events, so all its open tabs stay in sync, and passes browser-only agent commands and replies between an MCP call and the client's command stream. It holds no application data, only short-lived leases naming each session's connection. Every key starts with the deployment's namespace, so Preview and Production can share a server without one deployment's agents reaching another's clients. Without `REDIS_URL`, sessions still save and agent state tools still run, but tabs sync only within one instance and browser-only tools fail.
 
 ## Apply migrations
 

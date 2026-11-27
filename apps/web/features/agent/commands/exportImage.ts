@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { defineCommand } from "./define";
+import { defineBrowserCommand } from "./define";
 
 const imageFormatSchema = z.enum(["svg", "png"]);
 
-export const exportImage = defineCommand({
+export const exportImage = defineBrowserCommand({
   name: "export_image",
   description:
     "Export the genome browser's current view as one image and show it to the user in a preview with a Download button. The image is not returned to you; the user decides whether to download it. Fails while tracks are loading or when the browser page is not open. Returns the file name and size in pixels.",

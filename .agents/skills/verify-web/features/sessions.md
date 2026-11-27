@@ -10,6 +10,7 @@ Sessions lets a signed-in user create a named genome browser session for an asse
 - `sessions-search` filters saved sessions by name or assembly on `/sessions` and shows an empty state for non-matching queries.
 - `sessions-copy` duplicates an existing session from its row actions menu as `Copy of <name>`.
 - `sessions-delete` removes a session from its row actions menu and updates both the browser and `/sessions`.
+- `sessions-live-sync` keeps two tabs of the same session in sync: an edit in one (panning, renaming, tracks, regions) appears in the other without a reload, and deleting the session in one tab stops the other from saving at once, offering **Close without saving** or **Save a copy**.
 
 ## How to get to it (user POV)
 
@@ -39,3 +40,4 @@ Preconditions:
 - While a copy or delete is in flight, all session row action buttons are temporarily disabled. Wait for the previous deletion to disappear from the list before clicking the next row's actions button.
 - The rename field selects all text on focus and saves on blur or `Enter`; pressing `Enter` with an empty value keeps the field open with a validation prompt.
 - Always wait for `All changes saved` before reloading or navigating away to assert persistence.
+- Several tabs may edit one session at once; edits merge on the server. `Changed elsewhere` with **Save over it** appears only when repeated merge retries collide, so two tabs editing normally is not a conflict.

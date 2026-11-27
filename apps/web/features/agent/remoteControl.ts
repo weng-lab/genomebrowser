@@ -1,5 +1,6 @@
 import { Deferred, Effect, Exit, Scope } from "effect";
-import { runCommand, type CommandApp } from "./commands";
+import { parseJson } from "../../shared/parseJson";
+import { runCommand, type TabApp } from "./commands";
 import { commandCancelSchema, commandMessageSchema, type CommandResult } from "./commands/protocol";
 
 export type RemoteControlState = "off" | "connecting" | "connected";
@@ -15,7 +16,7 @@ export type RemoteControlState = "off" | "connecting" | "connected";
  */
 export function connectRemoteControl(
   commandsUrl: string,
-  app: CommandApp,
+  app: TabApp,
   signal: AbortSignal,
   onState: (state: RemoteControlState) => void,
 ) {
@@ -149,12 +150,4 @@ export function connectRemoteControl(
     detached.abort();
     Effect.runFork(Scope.close(lifetime, Exit.void));
   };
-}
-
-function parseJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
 }
