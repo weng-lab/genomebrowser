@@ -72,6 +72,11 @@ export type BrowserCommand<
   Result extends z.ZodObject = z.ZodObject,
 > = CommandBase<Params, Result> & {
   target: "browser";
+  /**
+   * Whether a success changes the open session. Its reply then waits until the
+   * session has saved the change, so state commands that follow see it.
+   */
+  changesSession?: boolean;
   run(
     app: CommandApp,
     params: z.output<Params>,

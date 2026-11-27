@@ -11,7 +11,7 @@ import { Client } from "eve/client";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createRedisConnection, type RedisConnection } from "../composition/server/redis";
-import { runCommand, type CommandApp } from "../features/agent/commands";
+import { runCommand, type TabApp } from "../features/agent/commands";
 import { AgentChat } from "../features/agent/components/AgentChat";
 import { issueBindProof } from "../features/agent/server/credential";
 import { agentRedisNamespace } from "../features/agent/server/deployment";
@@ -231,12 +231,13 @@ describe.skipIf(!available)("Eve agent chat", () => {
   it("runs a browser tool in the bound session's tab", async () => {
     const command = (async () => {
       const message = await tab!.command();
-      const app: CommandApp = {
+      const app: TabApp = {
         stores,
         exportImage: () => Promise.reject(new Error("Not rendered")),
         showImage: () => {},
         addTracksFromUrls: () => Promise.reject(new Error("Not tested")),
         control: { take() {}, release() {} },
+        save: async () => undefined,
       };
       const result = await runCommand(app, message, lifetime.signal);
       expect(await relay!.reply(sessionId, { commandId: message.commandId, result })).toBe(true);

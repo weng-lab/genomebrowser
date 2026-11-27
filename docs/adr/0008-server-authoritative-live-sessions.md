@@ -23,7 +23,7 @@ Under [ADR 0007](0007-app-owned-mcp-redis-relay.md), each web client owned its l
   - Panning and zooming update the local Zustand store immediately, debounce into `PATCH` writes (`browser.region`), persist across reloads in PostgreSQL, and sync live to other open tabs via SSE revision hints.
   - Server-side region updates (such as MCP `set_region`) follow the exact same revision-hint + fetch path, with no region-specific branching in the client.
 - **Web clients stay optimistic and snappy**: Zustand stores remain local and synchronous; `autosave.ts` debounces section patches, rebases unacknowledged local edits onto incoming remote snapshots, suppresses echoes, preserves unchanged track object references, and ignores renderer-derived height differences so clients at different viewport widths do not ping-pong.
-- **Browser-only MCP tools** (`export_image`, `add_tracks_from_urls`) continue to use the Redis command relay from [ADR 0007](0007-app-owned-mcp-redis-relay.md) because they depend on DOM SVG rendering or browser-side CORS checks.
+- **Browser-only MCP tools** (`export_image`, `add_tracks_from_urls`) continue to use the Redis command relay from [ADR 0007](0007-app-owned-mcp-redis-relay.md) because they depend on DOM SVG rendering or browser-side CORS checks. A browser tool that changes the session, such as `add_tracks_from_urls`, replies only after the tab's autosave has saved the change, so a state tool the agent calls next reads it from PostgreSQL.
 
 ## Merge rules by section
 

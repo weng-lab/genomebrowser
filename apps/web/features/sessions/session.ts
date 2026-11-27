@@ -24,6 +24,14 @@ export type SessionState = {
          * commands, must stop then: its edits would not be saved.
          */
         signal: AbortSignal;
+        /**
+         * Save every edit made to this session so far, without waiting for the edit
+         * delay, and resolve once the server has them, waiting through transient
+         * failures. Resolves the failure instead once they cannot be saved. Never
+         * settles while the server stays unreachable or after the session closes, so
+         * callers bound it.
+         */
+        save(): Promise<SessionRequestError | undefined>;
       }
     | undefined;
   /** Saving of the active session's edits. */
@@ -307,7 +315,7 @@ export function createSession({
    * closes without saving.
    */
   const activate = (
-    { revision, ...next }: Omit<Active, "signal"> & { revision: number },
+    { revision, ...next }: Omit<Active, "signal" | "save"> & { revision: number },
     { takeOver = false } = {},
   ) =>
     Effect.gen(function* () {
@@ -354,11 +362,15 @@ export function createSession({
           );
         },
       }).pipe(Scope.provide(sessionScope));
+      const save = () =>
+        Effect.runPromise(Effect.result(autosave.saved)).then((saved) =>
+          Result.isFailure(saved) ? saved.failure : undefined,
+        );
       let replaced = false;
       const replace = () => {
         replaced = true;
         setCurrent({ id: next.id, scope: sessionScope, autosave, ended });
-        set({ active: { ...next, signal: ended.signal }, saveStatus: "saved" });
+        set({ active: { ...next, signal: ended.signal, save }, saveStatus: "saved" });
         navigation.show(next.id);
       };
       const previous = current;

@@ -49,11 +49,12 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
   const id = useSession((session) => session.active?.id);
   const stores = useSession((session) => session.active?.stores);
   const signal = useSession((session) => session.active?.signal);
+  const save = useSession((session) => session.active?.save);
   const [control] = useState(createAgentControl);
   const remoteControl = useMemo(() => ({ state, preference }), [state, preference]);
 
   useEffect(() => {
-    if (!enabled || !id || !stores || !signal) return;
+    if (!enabled || !id || !stores || !signal || !save) return;
     const app: TabApp = {
       stores,
       exportImage: (format, { filename, ...options }, signal) =>
@@ -71,6 +72,7 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
       addTracksFromUrls: (requests, signal) =>
         addTracksFromUrls(stores.useTrackStore, requests, signal),
       control,
+      save,
     };
     const disconnect = connectRemoteControl(`/api/sessions/${id}/commands`, app, signal, setState);
     // The agent cannot act on a session it no longer reaches, so it holds nothing: not
@@ -82,7 +84,7 @@ export function RemoteControlProvider({ children }: { children: ReactNode }) {
       disconnect();
       release();
     };
-  }, [enabled, id, stores, signal, svgRef, control]);
+  }, [enabled, id, stores, signal, save, svgRef, control]);
 
   return (
     <RemoteControlContext value={remoteControl}>

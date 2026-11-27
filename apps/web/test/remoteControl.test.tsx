@@ -513,6 +513,48 @@ it("adds a batch of tracks for the agent in order, and saves them", async () => 
   );
 });
 
+// State tools read the saved session, so a tool the agent calls next must find the tracks there.
+it("replies that tracks were added only once the session has saved them, through a failed write", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
+  await enableRemoteControl();
+  const save = server.hold("PATCH");
+
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
+
+  await vi.waitFor(() => expect(server.writes().map(({ method }) => method)).toEqual(["PATCH"]));
+  expect(server.replies).not.toHaveBeenCalled();
+  // A transient failure retries, and the reply keeps waiting for it.
+  await act(async () => save.fail(503));
+  await vi.waitFor(() => expect(server.writes()).toHaveLength(2), { timeout: 3000 });
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  expect(reply().result).toMatchObject({ ok: true, value: { tracks: [{ title: "signal" }] } });
+  expect(savedTracks().map(({ base }) => base.title)).toEqual([...startingTitles, "signal"]);
+});
+
+it("tells the agent when the session cannot save the tracks it added", async () => {
+  server.files.set(`${dataHost}/signal.bw`, files.bigWig);
+  await enableRemoteControl();
+  server
+    .hold("PATCH")
+    .respond(
+      Response.json(
+        { code: "INVALID_INPUT", message: "Sessions are limited to 1 MB" },
+        { status: 413 },
+      ),
+    );
+
+  await addTracks([{ url: `${dataHost}/signal.bw` }]);
+
+  await vi.waitFor(() => expect(server.replies).toHaveBeenCalledTimes(1));
+  expect(reply().result).toEqual({
+    ok: false,
+    code: "NOT_SAVED",
+    error:
+      "The browser made the change, but the session could not save it: Sessions are limited to 1 MB",
+  });
+  expect(savedTracks().map(({ base }) => base.title)).toEqual(startingTitles);
+});
+
 it("tells the agent why each URL in a batch cannot be added, and adds none of the batch", async () => {
   server.files.set(`${dataHost}/missing.bw`, 404);
   server.files.set(`${dataHost}/peaks.bb`, files.bed6);

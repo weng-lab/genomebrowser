@@ -609,6 +609,18 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
     }),
   );
 
+  const flush = Effect.suspend(() => {
+    changed();
+    const blocked = blockedError(state.phase);
+    if (blocked) return Effect.fail(blocked);
+    if (state.phase.tag === "saved") return Effect.void;
+    const waiter = Deferred.makeUnsafe<void, SessionRequestError>();
+    waiters.push(waiter);
+    urgent.openUnsafe();
+    Queue.offerUnsafe(edits, undefined);
+    return Deferred.await(waiter);
+  });
+
   return {
     /** Save the session's new name with its next write. */
     renamed: changed,
@@ -624,16 +636,25 @@ export const startAutosave = Effect.fnUntraced(function* (options: {
      * Write every synced edit made so far without waiting for the edit delay.
      * Fails if a write fails, and at once when the latest edits cannot be saved.
      */
-    flush: Effect.suspend(() => {
-      changed();
-      const blocked = blockedError(state.phase);
-      if (blocked) return Effect.fail(blocked);
-      if (state.phase.tag === "saved") return Effect.void;
-      const waiter = Deferred.makeUnsafe<void, SessionRequestError>();
-      waiters.push(waiter);
-      urgent.openUnsafe();
-      Queue.offerUnsafe(edits, undefined);
-      return Deferred.await(waiter);
+    flush,
+    /**
+     * Write every synced edit made so far without waiting for the edit delay, then
+     * wait until the server has them, through transient failures and their retries.
+     * Fails only once the edits cannot be saved. Waits as long as the server is
+     * unreachable, so callers bound it.
+     */
+    saved: Effect.gen(function* () {
+      if (Result.isSuccess(yield* Effect.result(flush))) return;
+      // A transient failure retries with backoff on its own, so wait for those writes.
+      for (;;) {
+        changed();
+        const blocked = blockedError(state.phase);
+        if (blocked) return yield* Effect.fail(blocked);
+        if (state.phase.tag === "saved") return;
+        const settled = Deferred.makeUnsafe<void, SessionRequestError>();
+        waiters.push(settled);
+        yield* Effect.result(Deferred.await(settled));
+      }
     }),
     /** Wait for a write in progress, then hold further writes until `resume`. */
     pause: Effect.asVoid(permit.take(1)),
